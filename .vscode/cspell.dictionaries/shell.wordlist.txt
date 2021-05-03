@@ -1,0 +1,71 @@
+# * POSIX
+TMPDIR
+csh
+globstar
+nullglob
+passwd
+pipefail
+popd
+pushd
+sh
+tcsh
+zsh
+
+# * Windows
+APPDATA
+COMSPEC
+HKCU
+HKLM
+HOMEDRIVE
+HOMEPATH
+LOCALAPPDATA
+PATHEXT
+PATHEXT
+SYSTEMROOT
+USERDOMAIN
+USERNAME
+USERPROFILE
+
+# * `git`
+gitattributes
+gitignore
+
+# * `make` (`gmake`)
+CURDIR
+GNUMAKEFLAGS
+GNUMakefile
+LIBPATTERNS
+MAKECMDGOALS
+MAKEFILES
+MAKEFLAGS
+MAKELEVEL
+MAKESHELL
+SHELLSTATUS
+VPATH
+abspath
+addprefix
+addsuffix
+endef
+firstword
+ifeq
+ifneq
+lastword
+notdir
+patsubst
+
+
+# * `npm`
+preversion
+
+# * utilities
+chglog
+commitlint
+dprint
+gcov
+gmake
+grcov
+grep
+markdownlint
+rollup
+sed
+xargs

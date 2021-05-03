@@ -1,0 +1,19 @@
+// `cspell` settings
+{
+	"version": "0.1", // Version of the setting file.  Always 0.1
+	"language": "en", // language - current active spelling language
+	"dictionaries": ["acronyms+names", "jargon", "people", "shell", "workspace"],
+	"dictionaryDefinitions": [
+		{ "name": "acronyms+names", "path": "./cspell.dictionaries/acronyms+names.wordlist.txt" },
+		{ "name": "jargon", "path": "./cspell.dictionaries/jargon.wordlist.txt" },
+		{ "name": "people", "path": "./cspell.dictionaries/people.wordlist.txt" },
+		{ "name": "shell", "path": "./cspell.dictionaries/shell.wordlist.txt" },
+		{ "name": "workspace", "path": "./cspell.dictionaries/workspace.wordlist.txt" }
+	],
+	// ignorePaths -  a list of globs to specify which files are to be ignored
+	"ignorePaths": ["tests/**/fixtures/**"],
+	// ignoreWords
+	"ignoreWords": [],
+	// words - list of words to be always considered correct
+	"words": []
+}
