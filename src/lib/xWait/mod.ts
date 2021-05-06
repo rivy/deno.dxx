@@ -5,7 +5,7 @@ import spinners from './spinners.ts';
 import { symbols } from './log_symbols.ts';
 
 type ColorFunction = (message: string) => string;
-const colormap: { [key: string]: ColorFunction } = {
+const colorMap: { [key: string]: ColorFunction } = {
 	black: colors.black,
 	red: colors.red,
 	green: colors.green,
@@ -120,7 +120,7 @@ export class Spinner {
 	}
 
 	set color(color: string | ColorFunction) {
-		if (typeof color === 'string') this.#color = colormap[color];
+		if (typeof color === 'string') this.#color = colorMap[color];
 		else this.#color = color;
 	}
 
@@ -241,7 +241,7 @@ export class Spinner {
 	}
 
 	fail(text?: string) {
-		return this.stopAndPersist({ symbol: symbols.error, text });
+		return this.stopAndPersist({ symbol: symbols.failure, text });
 	}
 
 	warn(text?: string) {
