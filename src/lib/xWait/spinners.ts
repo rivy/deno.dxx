@@ -168,6 +168,18 @@ export default <{ [key: string]: SpinnerAnimation }> {
 			'⠀⡀',
 		],
 	},
+	dotsHigh3: { interval: 80, frames: ['⠇', '⠋', '⠙', '⠸', '⢰', '⣠', '⣄', '⡆'] },
+	dotsHigh4: { interval: 80, frames: ['⠛', '⠹', '⢸', '⣰', '⣤', '⣆', '⡇', '⠏'] },
+	dotsHigh3Dual: { interval: 80, frames: ['⠇⢰', '⠋⣠', '⠙⣄', '⠸⡆', '⢰⠇', '⣠⠋', '⣄⠙', '⡆⠸'] },
+	dotsHigh4Dual: { interval: 80, frames: ['⠛⣤', '⠹⣆', '⢸⡇', '⣰⠏', '⣤⠛', '⣆⠹', '⡇⢸', '⠏⣰'] },
+	dotsHigh3DualSync: { interval: 80, frames: ['⠇⠇', '⠋⠋', '⠙⠙', '⠸⠸', '⢰⢰', '⣠⣠', '⣄⣄', '⡆⡆'] },
+	dotsHigh4DualSync: { interval: 80, frames: ['⠛⠛', '⠹⠹', '⢸⢸', '⣰⣰', '⣤⣤', '⣆⣆', '⡇⡇', '⠏⠏'] },
+	dotsWide4: {
+		interval: 80,
+		frames: ['⠋⠁', '⠉⠉', '⠈⠙', ' ⢸', ' ⣰', '⢀⣠', '⣀⣀', '⣄⡀', '⣆ ', '⡇ ', '⠏ '],
+	},
+	dotsPiston: { interval: 80, frames: [' ', '⣀', '⣤', '⣶', '⣿', '⣶', '⣤', '⣀'] },
+	dotsPistonDual: { interval: 80, frames: [' ⣿', '⣀⣶', '⣤⣤', '⣶⣀', '⣿ ', '⣶⣀', '⣤⣤', '⣀⣶'] },
 	dots8Bit: {
 		interval: 80,
 		frames: [
@@ -730,7 +742,7 @@ export default <{ [key: string]: SpinnerAnimation }> {
 		],
 	},
 	point: { interval: 125, frames: ['∙∙∙', '●∙∙', '∙●∙', '∙∙●', '∙∙∙'] },
-	layer: { interval: 150, frames: ['-', '=', '≡'] },
+	layer: { interval: 150, frames: ['--', '==', '≡≡', '=='] },
 	betaWave: {
 		interval: 80,
 		frames: ['ρββββββ', 'βρβββββ', 'ββρββββ', 'βββρβββ', 'ββββρββ', 'βββββρβ', 'ββββββρ'],

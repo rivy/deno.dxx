@@ -2,7 +2,8 @@ import { colors, encode, tty } from './deps.ts';
 
 import spinners from './spinners.ts';
 
-import { symbols } from './log_symbols.ts';
+import { symbols as Symbols } from './log_symbols.ts';
+export { symbols, symbolStrings } from './log_symbols.ts';
 
 type ColorFunction = (message: string) => string;
 const colorMap: { [key: string]: ColorFunction } = {
@@ -33,6 +34,7 @@ export interface SpinnerOptions {
 	stream?: Deno.WriterSync & { rid: number };
 	enabled?: boolean;
 	discardStdin?: boolean;
+	symbols?: typeof Symbols;
 }
 
 export interface PersistOptions {
@@ -56,6 +58,7 @@ export function wait(opts: string | SpinnerOptions) {
 		stream: opts.stream ?? Deno.stdout,
 		enabled: true,
 		discardStdin: true,
+		symbols: opts.symbols ?? Symbols,
 	});
 }
 
@@ -87,6 +90,7 @@ export class Spinner {
 		this.spinner = this.#opts.spinner;
 		this.indent = this.#opts.indent;
 		this.interval = this.#opts.interval;
+		this.symbols = this.#opts.symbols;
 
 		this.isSpinning = false;
 		this.#frameIndex = 0;
@@ -108,6 +112,7 @@ export class Spinner {
 	#color: ColorFunction = colors.cyan;
 	#text: string = '';
 	#prefix: string = '';
+	#symbols: typeof Symbols = Symbols;
 
 	set spinner(spin: string | SpinnerAnimation) {
 		this.#frameIndex = 0;
@@ -117,6 +122,13 @@ export class Spinner {
 
 	get spinner() {
 		return this.#spinner;
+	}
+
+	set symbols(s: typeof Symbols) {
+		this.#symbols = s;
+	}
+	get symbols() {
+		return this.#symbols;
 	}
 
 	set color(color: string | ColorFunction) {
@@ -237,18 +249,18 @@ export class Spinner {
 	}
 
 	succeed(text?: string) {
-		return this.stopAndPersist({ symbol: symbols.success, text });
+		return this.stopAndPersist({ symbol: this.#symbols.success, text });
 	}
 
 	fail(text?: string) {
-		return this.stopAndPersist({ symbol: symbols.failure, text });
+		return this.stopAndPersist({ symbol: this.#symbols.failure, text });
 	}
 
 	warn(text?: string) {
-		return this.stopAndPersist({ symbol: symbols.warning, text });
+		return this.stopAndPersist({ symbol: this.#symbols.warning, text });
 	}
 
 	info(text?: string) {
-		return this.stopAndPersist({ symbol: symbols.info, text });
+		return this.stopAndPersist({ symbol: this.#symbols.info, text });
 	}
 }
