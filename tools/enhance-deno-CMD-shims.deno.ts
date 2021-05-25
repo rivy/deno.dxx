@@ -57,7 +57,7 @@ function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undef
 	return Path.join(...(paths as string[])); // noSonar // false positive ("assertion not necessary"); ref: <https://github.com/SonarSource/SonarJS/issues/1961>
 }
 
-import { eol } from './lib/EOL.ts';
+import { eol } from '../src/lib/eol.ts';
 
 const denoInstallRoot = joinFullyDefinedPaths(
 	Deno.env.get('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OsPaths.home(), '.deno'),

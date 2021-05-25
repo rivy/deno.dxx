@@ -73,7 +73,7 @@ const pathListSeparator = isWinOS ? /;/ : /:/;
 // const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
 // const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
 
-import { eol } from './lib/EOL.ts';
+import { eol } from '../src/lib/eol.ts';
 
 // influenced by code from <https://github.com/npm/node-which/blob/master/which.js> (ISC License)
 // handle PATHEXT for Cygwin or MSYS?
