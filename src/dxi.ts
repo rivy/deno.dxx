@@ -1,12 +1,18 @@
 // spell-checker:ignore (vars) arr gmsu
 
-// import * as Spin from 'https://deno.land/x/wait/mod.ts';
+import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
+
 import Yargs from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
+import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Spin from './lib/xWait/mod.ts';
 import * as Me from './lib/xProcess.ts';
 
-// console.warn(Me.runAsName, { Me });
+const isWinOS = Deno.build.os === 'windows';
+const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
+
+// lodash
+import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
 // if (Deno.build.os === 'windows' && !Me.arg0) {
 // 	console.warn(
@@ -20,12 +26,17 @@ const runAsName = Me.shimArg0 || Me.name;
 const version = '0.0.1';
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
-const app = Yargs()
+const app = Yargs(undefined, undefined, undefined)
 	.scriptName(Me.name)
-	.usage(`$0 ${version}\n\nUsage:\n  ${runAsName} <command>`)
+	.usage(
+		`$0 ${version}\n\nUsage:\n  ${runAsName} [OPTIONS..] <COMMAND>`,
+		undefined,
+		undefined,
+		undefined,
+	)
 	// help and version setup
-	.help(false)
-	.version(false)
+	.help(false, undefined)
+	.version(false, undefined, undefined)
 	.option('help', { describe: 'Show help', boolean: true })
 	.alias('help', 'h')
 	.option('version', { describe: 'Show version number', boolean: true })
@@ -37,9 +48,14 @@ const app = Yargs()
 		'strip-aliased': true,
 		'strip-dashed': true,
 		'unknown-options-as-args': true,
-	});
+	})
+	.positional('OPTIONS', {
+		describe: 'options (as listed; may also include any `deno install` options)',
+	})
+	.positional('COMMAND', { describe: 'Path/URL of command to install' })
+	.option('debug', { describe: 'Show debug logging', boolean: true });
 
-const args = app.parse(Me.args());
+const args = app.parse(Me.args(), undefined, undefined);
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
@@ -51,9 +67,7 @@ if (args.version) {
 	Deno.exit(0);
 }
 
-console.warn(Me.name, { args });
-
-// Deno.exit(0);
+if (args.debug) console.warn(symbolDebug, Me.name, { args });
 
 const decoder = new TextDecoder(); // defaults to 'utf-8'
 const encoder = new TextEncoder(); // defaults to 'utf-8'
@@ -76,7 +90,7 @@ const runOptions: Deno.RunOptions = {
 	stdin: 'null',
 	stdout: 'piped',
 };
-// console.warn(Me.name, { runOptions });
+if (args.debug) console.warn(symbolDebug, Me.name, { runOptions });
 const process = Deno.run(runOptions);
 const status = (await Promise.all([delay(2000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
 const outStd = decoder.decode(await process.output()).replace(
@@ -96,7 +110,29 @@ const shimBinPath = (() => {
 	return '';
 })();
 
-console.warn(Me.name, { shimBinPath });
+if (args.debug) console.warn(symbolDebug, Me.name, { shimBinPath });
 
-// enhance shim
+import { eol } from './lib/eol.ts';
+import { cmdShimTemplate, shimInfo } from './lib/shim.windows.ts';
+
+const enablePipe = true;
+
+// enhance shim for successful installs on the Windows platform
+if (status.success && isWinOS) {
+	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimBinPath)));
+	const shimBinName = Path.parse(shimBinPath).name;
+	const info = shimInfo(contentsOriginal);
+	const { denoRunOptions, denoRunTarget } = info;
+	const contentsUpdated = eol.CRLF(
+		_.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
+	);
+	Deno.writeFileSync(shimBinPath, encoder.encode(contentsUpdated));
+	Deno.stdout.writeSync(
+		encoder.encode(
+			`${Spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\`\n`,
+		),
+	);
+}
+
+// done
 Deno.exit(status.success ? 0 : status.code);
