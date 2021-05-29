@@ -692,6 +692,7 @@ export default <{ [key: string]: SpinnerAnimation }> {
 			'▐/|____________▌',
 		],
 	},
+	// spell-checker:ignore dqpb
 	dqpb: { interval: 100, frames: ['d', 'q', 'p', 'b'] },
 	weather: {
 		interval: 100,
@@ -745,6 +746,7 @@ export default <{ [key: string]: SpinnerAnimation }> {
 	layer: { interval: 150, frames: ['--', '==', '≡≡', '=='] },
 	betaWave: {
 		interval: 80,
+		// spell-checker:ignore ρββββββ , βρβββββ , ββρββββ , βββρβββ , ββββρββ , βββββρβ , ββββββρ
 		frames: ['ρββββββ', 'βρβββββ', 'ββρββββ', 'βββρβββ', 'ββββρββ', 'βββββρβ', 'ββββββρ'],
 	},
 };

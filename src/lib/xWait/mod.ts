@@ -1,3 +1,5 @@
+// spell-checker:ignore (libs) [tty] wcswidth
+
 import { colors, encode, tty } from './deps.ts';
 
 import spinners from './spinners.ts';
