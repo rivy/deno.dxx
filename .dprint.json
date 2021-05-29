@@ -21,13 +21,8 @@
 		"module.sortImportDeclarations": "caseInsensitive",
 		"module.sortExportDeclarations": "caseInsensitive"
 	},
-	"json": {
-		"preferSingleLine": true
-	},
-	"markdown": {
-		"textWrap": "always",
-		"lineWidth": 99999
-	},
+	"json": { "preferSingleLine": true },
+	"markdown": { "textWrap": "always", "lineWidth": 99999 },
 	"rustfmt": {},
 	"includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,rs}"],
 	"excludes": [
