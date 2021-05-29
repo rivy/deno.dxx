@@ -8,7 +8,6 @@
 // spell-checker:ignore (jargon) templating
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki , Packt
-// spell-checker:ignore (shell/cmd) COMSPEC PATHEXT
 
 console.log({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
