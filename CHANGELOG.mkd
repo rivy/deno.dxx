@@ -1,0 +1,81 @@
+<!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --><!-- spellchecker:disable -->
+
+# CHANGELOG <br/> [dxx](https://github.com/rivy/deno.dxx)
+
+<div style="font-size: 0.9em; line-height: 1.1em;">
+
+> This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+> <br/>
+> The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) using [conventional/semantic commits](https://nitayneeman.com/posts/understanding-semantic-commit-messages-using-git-and-angular).<small><sup>[`@`](https://archive.is/jnup8)</sup></small>
+
+</div>
+<div id='last-line-of-prefix'></div>
+
+---
+
+## [v0.0.3](https://github.com/rivy/deno.dxx/compare/v0.0.2...v0.0.3) <small>(2021-05-28)</small>
+
+<details open><summary><small><em>[v0.0.3; details]</em></small></summary>
+
+#### Fixes
+
+* fix *(dxf)*: repair use of `shimArg0` from xProcess &ac; [`91751cf`](https://github.com/rivy/deno.dxx/commit/91751cf63a6ef1fda2ffb517baec3d3ce28aa762)
+
+#### Documentation
+
+* docs ~ add git-changelog configuration &ac; [`615edbb`](https://github.com/rivy/deno.dxx/commit/615edbb562288d5e39162c8619e929ff94687bc4)
+
+</details>
+
+---
+
+## [v0.0.2](https://github.com/rivy/deno.dxx/compare/v0.0.1...v0.0.2) <small>(2021-05-28)</small>
+
+<details><summary><small><em>[v0.0.2; details]</em></small></summary>
+
+#### Documentation
+
+* docs ~ add LICENSE &ac; [`206b51f`](https://github.com/rivy/deno.dxx/commit/206b51fbbe4691c0728555049667f051d2859900)
+
+</details>
+
+---
+
+## v0.0.1 <small>(2021-05-28)</small>
+
+<details><summary><small><em>[v0.0.1; details]</em></small></summary>
+
+#### Changes
+
+* add ~ (xArgs) prototype `reQuote()` for protected transfer of command lines to sub-processes &ac; [`d968f42`](https://github.com/rivy/deno.dxx/commit/d968f42fe930c9ae0fa37cf49998dce42d84367a)
+* add support for shim enhancement to `dxi` &ac; [`6ee9664`](https://github.com/rivy/deno.dxx/commit/6ee9664f56f47626acc6910d3c5557c07cf061d5)
+* change ~ (xWait) improve symbols and spinners capabilities &ac; [`89e928e`](https://github.com/rivy/deno.dxx/commit/89e928e512c3d69fd7d2d114f41d7667980bc6ab)
+* change ~ (xWait) fix 'failure' message generation (and delint) &ac; [`6ddb762`](https://github.com/rivy/deno.dxx/commit/6ddb76280561de52e264378c2b3ee398fd6081b6)
+* change xWait log level character/sigil prefixes &ac; [`3ff7149`](https://github.com/rivy/deno.dxx/commit/3ff71497d16869b406db32f712c7d654d27e84ba)
+* add xWait lib (from 'wait' with improved stable support) &ac; [`939d8d5`](https://github.com/rivy/deno.dxx/commit/939d8d5b5c42719229bd6c2300ac4131d99ec5e2)
+* add `dxi` &ac; [`8e89e08`](https://github.com/rivy/deno.dxx/commit/8e89e089662d1f092e63c7d1d37b750c057c69a1)
+* add shim enhancement/fixup tools &ac; [`44aae60`](https://github.com/rivy/deno.dxx/commit/44aae60854b58e46bda58afa7c8f07ed2ba55844)
+* add initial source code (alpha/prototype of `dxf` and `dxr`) &ac; [`95e7c33`](https://github.com/rivy/deno.dxx/commit/95e7c3345680fa2146c805f2491538f2ced6bbbf)
+
+#### Documentation
+
+* docs ~ update README &ac; [`18e9fcb`](https://github.com/rivy/deno.dxx/commit/18e9fcbb57cd397502163283022c3f5e7fc84c1b)
+* docs ~ refactor eg\args.ts (cleanup, add Yargs, improve logging, ...) &ac; [`300f00d`](https://github.com/rivy/deno.dxx/commit/300f00d9f05dceabb0bbf1f13a8b9d41decac5fc)
+* docs ~ add examples &ac; [`d052fe3`](https://github.com/rivy/deno.dxx/commit/d052fe30c3c6080c3048621933fcd3828d35f4fd)
+* docs ~ add README &ac; [`5559ff9`](https://github.com/rivy/deno.dxx/commit/5559ff9a2534517c4bb320c78b641995353fe63e)
+* docs *(polish)*: remove extraneous spell-checker exceptions &ac; [`4971924`](https://github.com/rivy/deno.dxx/commit/4971924b8d655b3f26a88aac5782a277ef10a3ca)
+* docs *(polish)*: (xWait) add spell-checker exceptions for spinners &ac; [`eaf6a99`](https://github.com/rivy/deno.dxx/commit/eaf6a999c884d7c11edab274b93f8fc4b50f3ae2)
+
+#### Maintenance
+
+* maint *(dev)*: add baseline TS config for Deno development &ac; [`5bb2479`](https://github.com/rivy/deno.dxx/commit/5bb24798c42a213d920f558960bd319217f35a39)
+* maint *(dev)*: add DPrint configuration &ac; [`a23777b`](https://github.com/rivy/deno.dxx/commit/a23777b846e3743988a4ee0dc32a1a42d7e282bb)
+* maint *(dev)*: add VSCode settings (includes cspell config + dictionaries) &ac; [`0dd3f33`](https://github.com/rivy/deno.dxx/commit/0dd3f332afedf87ad38ee7518046d5c12b048268)
+* maint *(dev)*: add EditorConfig &ac; [`6cb5011`](https://github.com/rivy/deno.dxx/commit/6cb5011b173ebebe54c67b6ee1226eee361e8c26)
+
+#### Refactoring
+
+* refactor eol handling code as a shared library &ac; [`e4f3683`](https://github.com/rivy/deno.dxx/commit/e4f36833267af0584e83bc4b1d9f9f0e736fa2ec)
+* refactor shim detection and enhancement code into a shared library &ac; [`0b923c2`](https://github.com/rivy/deno.dxx/commit/0b923c2dace2c32fd4abdc233c7413d3a42edd17)
+
+</details><br/>
