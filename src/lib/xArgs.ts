@@ -341,6 +341,17 @@ function decodeANSIC(s: string) {
 	return s;
 }
 
+export function reQuote(s: string) {
+	// re-quote string protect from later re-expansion
+	const specialChars = ['*', '?', '{', '}', '$', "'", '"', '[', ']'];
+	const hasSpecialChar = specialChars.find((c) => s.includes(c));
+	const hasWhiteSpace = s.match(/\s/msu);
+	if (hasSpecialChar || hasWhiteSpace) {
+		s = "'" + s.replaceAll("'", '"\'"') + "'";
+	}
+	return s;
+}
+
 export function deQuote(s: string) {
 	// de-quote string
 	// * supports both single and double quotes
