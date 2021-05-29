@@ -28,7 +28,14 @@
 	},
 	"rustfmt": {},
 	"includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,rs}"],
-	"excludes": [".history", "**/node_modules", "**/*-lock.json", "**/target", "**/vendor"],
+	"excludes": [
+		".history",
+		".changelog/*.tpl.*",
+		"**/node_modules",
+		"**/*-lock.json",
+		"**/target",
+		"**/vendor"
+	],
 	"plugins": [
 		"https://plugins.dprint.dev/typescript-0.44.1.wasm",
 		"https://plugins.dprint.dev/json-0.8.0.wasm",
