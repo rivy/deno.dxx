@@ -16,7 +16,7 @@ import * as Me from './lib/xProcess.ts';
 
 // console.warn(Me.name, { Me });
 
-if (Deno.build.os === 'windows' && !Me.arg0) {
+if (Deno.build.os === 'windows' && !Me.shimArg0) {
 	console.warn(
 		Me.name +
 			': warn: diminished capacity; full function requires an enhanced runner (use `dxr` or install with `dxi`)',
