@@ -13,9 +13,30 @@
 
 ---
 
+## [v0.0.4](https://github.com/rivy/deno.dxx/compare/v0.0.3...v0.0.4) <small>(2021-05-30)</small>
+
+<details open><summary><small><em>[v0.0.4; details]</em></small></summary>
+
+#### Changes
+
+* change ~ add 'enhanced' shell detection (for use under MSYS or 'thru' WSL) &ac; [`f3cc5a5`](https://github.com/rivy/deno.dxx/commit/f3cc5a5d7d3fe749cddf0be4237ba737a2e2e2d5)
+* change *(dxi)*: reword/polish help output &ac; [`9dc6a16`](https://github.com/rivy/deno.dxx/commit/9dc6a16a46aea02cf913c99a4b990f98db226f56)
+
+#### Maintenance
+
+* maint *(dev)*: update formatting configuration &ac; [`f824428`](https://github.com/rivy/deno.dxx/commit/f8244287309c17c4b0c0c5fd4ca80e656216aad0)
+
+#### Refactoring
+
+* refactor *(polish)*: `dxf` reformatting &ac; [`8b9a2c8`](https://github.com/rivy/deno.dxx/commit/8b9a2c83d733d5f8ebf3acaf754d36c764d51bf5)
+
+</details>
+
+---
+
 ## [v0.0.3](https://github.com/rivy/deno.dxx/compare/v0.0.2...v0.0.3) <small>(2021-05-28)</small>
 
-<details open><summary><small><em>[v0.0.3; details]</em></small></summary>
+<details><summary><small><em>[v0.0.3; details]</em></small></summary>
 
 #### Fixes
 
