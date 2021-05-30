@@ -5,6 +5,8 @@ import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
 import * as xArgs from '../lib/xArgs.ts';
 
 const isWinOS = Deno.build.os === 'windows';
+const underEnhancedShell =
+	((Deno.env.get('SHELL') || '').match(/[\\\/][^\\\/]*?sh$/msu) || []).length > 0;
 
 // FixME: problematic transfer of information down to sub-processes
 // ?... consume/reset all ENV variables when accessed;
@@ -49,13 +51,13 @@ export const argsText = argsTextExpanded || argsTextRaw;
 
 export const targetURL = Deno.env.get('DENO_SHIM_URL');
 
-export const enhanced = shimArg0 ? true : false;
+export const enhanced = shimArg0 ? true : underEnhancedShell;
 
 // ... ToDO: add `alreadyExpanded` boolean to correctly avoid re-expansion for `args()`
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const args = () => {
-	if (!isWinOS) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
+	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return xArgs.args(argsText || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
