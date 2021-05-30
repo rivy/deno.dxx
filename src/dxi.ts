@@ -59,7 +59,7 @@ const args = app.parse(Me.args(), undefined, undefined);
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
-	console.log(await app.getHelp());
+	console.log((await app.getHelp()).replace(/^Positionals:$/msu, 'Arguments:'));
 	Deno.exit(0);
 }
 if (args.version) {
