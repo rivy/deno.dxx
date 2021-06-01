@@ -1,4 +1,4 @@
-// spell-checker:ignore (vars) arr gmsu
+// spell-checker:ignore (vars) arr gmsu ; (text) positionals
 
 import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
 
@@ -49,6 +49,7 @@ const app = Yargs(undefined, undefined, undefined)
 		'strip-dashed': true,
 		'unknown-options-as-args': true,
 	})
+	.updateStrings({ 'Positionals:': 'Arguments:' })
 	.positional('OPTIONS', {
 		describe: 'options (as listed; may also include any `deno install` options)',
 	})
@@ -59,7 +60,7 @@ const args = app.parse(Me.args(), undefined, undefined);
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
-	console.log((await app.getHelp()).replace(/^Positionals:$/msu, 'Arguments:'));
+	console.log(await app.getHelp());
 	Deno.exit(0);
 }
 if (args.version) {
