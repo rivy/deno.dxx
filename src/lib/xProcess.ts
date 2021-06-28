@@ -75,6 +75,9 @@ export const path = (() => {
 /** * name of main script file (best guess from all available sources) */
 export const name = Path.parse(path).name;
 
+/** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
+export const runAs = shimArg0 || name;
+
 export const isImpaired = () => {
 	return (isWinOS && !enhanced);
 };
