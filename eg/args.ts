@@ -8,7 +8,7 @@ import * as Me from '../src/lib/xProcess.ts';
 Me.warnIfImpaired((s) => console.warn(colors.yellow(`WARN/[${Me.name}]: ` + s))); // WARN if executing with impaired command line capability
 
 const version = '0.0.1';
-const runAsName = Me.runAsName;
+const runAsName = Me.runAs;
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = Yargs(undefined, undefined, undefined)
