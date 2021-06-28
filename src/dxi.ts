@@ -87,7 +87,7 @@ const runOptions: Deno.RunOptions = {
 };
 if (args.debug) console.warn(symbolDebug, Me.name, { runOptions });
 const process = Deno.run(runOptions);
-const status = (await Promise.all([delay(2000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
+const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
 const outStd = decoder.decode(await process.output()).replace(
 	/^(\S+)(?=\s+Success)/gmsu,
 	Spin.symbolStrings.emoji.success,
