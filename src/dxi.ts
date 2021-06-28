@@ -8,22 +8,16 @@ import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Spin from './lib/xWait/mod.ts';
 import * as Me from './lib/xProcess.ts';
 
+Me.warnIfImpaired();
+
 const isWinOS = Deno.build.os === 'windows';
 const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
 
 // lodash
 import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
-// if (Deno.build.os === 'windows' && !Me.arg0) {
-// 	console.warn(
-// 		Me.runAsName +
-// 			': warn: diminished capacity; full function requires an enhanced runner (use `dxr` or install with `dxi`)',
-// 		{ Me },
-// 	);
-// }
-
-const runAsName = Me.shimArg0 || Me.name;
 const version = '0.0.1';
+const runAsName = Me.runAsName;
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = Yargs(undefined, undefined, undefined)

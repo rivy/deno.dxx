@@ -5,13 +5,7 @@ import * as Me from './lib/xProcess.ts';
 
 // console.warn(Me.name, { Me });
 
-// if (Deno.build.os === 'windows' && !Me.arg0) {
-// 	console.warn(
-// 		Me.name +
-// 			': warn: diminished capacity; full function requires an enhanced runner (use `dxr` or install with `dxi`)',
-// 		{ Me },
-// 	);
-// }
+Me.warnIfImpaired();
 
 // const { arg: targetPath, tailOfArgExpansion, tailOfArgsText } = await (async () => {
 // 	const it = xArgs.argsIt(Me.argsText || Deno.args);

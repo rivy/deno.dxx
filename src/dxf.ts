@@ -7,6 +7,8 @@ const fs = { exists, existsSync, expandGlob, expandGlobSync, walk, walkSync };
 
 import * as Me from './lib/xProcess.ts';
 
+Me.warnIfImpaired();
+
 // const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 // const pathListSeparator = isWinOS ? /;/ : /:/;
@@ -15,13 +17,6 @@ import * as Me from './lib/xProcess.ts';
 // const pathCaseSensitive = !isWinOS;
 
 // console.warn(Me.name, { Me });
-
-if (Deno.build.os === 'windows' && !Me.shimArg0) {
-	console.warn(
-		Me.name +
-			': warn: diminished capacity; full function requires an enhanced runner (use `dxr` or install with `dxi`)',
-	);
-}
 
 const args = Me.args();
 
