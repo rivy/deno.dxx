@@ -5,18 +5,10 @@ import Yargs from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Me from '../src/lib/xProcess.ts';
 
-const isWinOS = Deno.build.os === 'windows';
+Me.warnIfImpaired((s) => console.warn(colors.yellow(`WARN/[${Me.name}]: ` + s))); // WARN if executing with impaired command line capability
 
-if (isWinOS && !Me.enhanced) {
-	console.warn(
-		colors.yellow(
-			'WARN: diminished capacity; full command line processing requires an enhanced runner (use `dxr` or install with `dxi`)',
-		),
-	);
-}
-
-const runAsName = Me.shimArg0 || Me.name;
 const version = '0.0.1';
+const runAsName = Me.runAsName;
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = Yargs(undefined, undefined, undefined)

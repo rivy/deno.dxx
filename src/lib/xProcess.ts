@@ -52,6 +52,7 @@ export const argsText = argsTextExpanded || argsTextRaw;
 export const targetURL = Deno.env.get('DENO_SHIM_URL');
 
 export const enhanced = shimArg0 ? true : underEnhancedShell;
+export const impaired = isWinOS && !enhanced;
 
 // ... ToDO: add `alreadyExpanded` boolean to correctly avoid re-expansion for `args()`
 
@@ -78,19 +79,15 @@ export const name = Path.parse(path).name;
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs = shimArg0 || name;
 
-export const isImpaired = () => {
-	return (isWinOS && !enhanced);
-};
-
 export const impairedWarningMessage = () => {
-	return isImpaired()
+	return impaired
 		? `diminished capacity; full function requires an enhanced runner (use \`dxr\` or install with \`dxi\`)`
 		: undefined;
 };
 
 // deno-lint-ignore no-explicit-any
 export const warnIfImpaired = (writer?: (...args: any[]) => void) => {
-	if (isImpaired() && impairedWarningMessage()) {
+	if (impaired && impairedWarningMessage()) {
 		if (writer) writer(impairedWarningMessage());
 		else console.warn(`WARN/[${name}]: ` + impairedWarningMessage());
 	}
