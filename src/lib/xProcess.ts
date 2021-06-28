@@ -75,6 +75,24 @@ export const path = (() => {
 /** * name of main script file (best guess from all available sources) */
 export const name = Path.parse(path).name;
 
+export const isImpaired = () => {
+	return (isWinOS && !enhanced);
+};
+
+export const impairedWarningMessage = () => {
+	return isImpaired()
+		? `diminished capacity; full function requires an enhanced runner (use \`dxr\` or install with \`dxi\`)`
+		: undefined;
+};
+
+// deno-lint-ignore no-explicit-any
+export const warnIfImpaired = (writer?: (...args: any[]) => void) => {
+	if (isImpaired() && impairedWarningMessage()) {
+		if (writer) writer(impairedWarningMessage());
+		else console.warn(`WARN/[${name}]: ` + impairedWarningMessage());
+	}
+};
+
 /** * information related to any 'shim'-executable initiating the main script, when available */
 export const shim = {
 	// useful ~ for Windows modification of parent environment (needed for creation of equivalents for enhanced-`cd` (`enhan-cd`, `goto`, `scd`, ...) and `source` applications) // spell-checker:ignore enhan
