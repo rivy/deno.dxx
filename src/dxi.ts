@@ -17,7 +17,7 @@ const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
 import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
 const version = '0.0.1';
-const runAsName = Me.runAsName;
+const runAsName = Me.runAs;
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = Yargs(undefined, undefined, undefined)
