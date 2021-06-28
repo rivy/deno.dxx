@@ -46,8 +46,8 @@ export const shimArg0 = isShimTarget ? Deno.env.get('DENO_SHIM_ARG0') : undefine
 /** * raw argument text string for current process (needed for modern Windows argument processing, but generally not useful for POSIX) */
 export const argsTextRaw = Deno.env.get('DENO_SHIM_ARGS');
 /** * already expanded argument text (re-quoted); when present, avoids double-expansions for sub-processes */
-export const argsTextExpanded = Deno.env.get('DENO_SHIM_ARGX');
-export const argsText = argsTextExpanded || argsTextRaw;
+export const argsTextPreExpanded = Deno.env.get('DENO_SHIM_ARGX');
+export const argsText = argsTextPreExpanded || argsTextRaw;
 
 export const targetURL = Deno.env.get('DENO_SHIM_URL');
 
