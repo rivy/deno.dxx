@@ -26,7 +26,7 @@ const runOptions: Deno.RunOptions = (() => {
 	let options: Deno.RunOptions;
 	const dprintConfigPaths = ['.dprint.json', 'dprint.json', '.dprintrc.json'];
 	const dprintConfigPath = dprintConfigPaths.filter(fs.existsSync);
-	if (dprintConfigPath) {
+	if (dprintConfigPath.length > 0) {
 		// console.info(Me.name, 'Using `dprint` formatting');
 		const dprintConfig = dprintConfigPath ? ['--config', dprintConfigPath[0]] : [];
 		const dprintConfigArgs = [...dprintConfig, ...args];
