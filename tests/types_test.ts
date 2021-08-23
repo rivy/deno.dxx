@@ -6,8 +6,8 @@ import { string, unknown } from 'https://cdn.esm.sh/v45/computed-types@1.6.0';
 // import type { SchemaValidatorFunction, SchemaReturnType } from 'cdn.esm.sh/v45/computed-types@1.6.0';
 // import type { ValidatorProxy as _ } from 'https://cdn.esm.sh/v45/computed-types@1.6.0/lib/Validator.d.ts';
 
+// import { assertEquals } from './$.deps.ts';
 import { testTemplate } from './common.ts';
-// import { assertEquals } from './deps.ts';
 
 const test = testTemplate(import.meta.url);
 
