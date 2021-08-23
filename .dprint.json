@@ -28,6 +28,7 @@
 	"excludes": [
 		".history",
 		".changelog/*.tpl.*",
+		"CHANGELOG{,.}*",
 		"**/node_modules",
 		"**/*-lock.json",
 		"**/target",
