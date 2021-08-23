@@ -1,0 +1,48 @@
+name: CICD
+
+# spell-checker:ignore (acronyms) CICD MSVC musl
+# spell-checker:ignore (env/flags) Awarnings Ccodegen Coverflow Cpanic RUSTDOCFLAGS RUSTFLAGS Zpanic
+# spell-checker:ignore (jargon) SHAs deps softprops toolchain
+# spell-checker:ignore (names) CodeCOV MacOS MinGW Peltoche rivy
+# spell-checker:ignore (shell/tools) choco clippy dmake dpkg esac fakeroot gmake grcov halium lcov libssl mkdir popd printf pushd rustc rustfmt rustup shopt xargs
+# spell-checker:ignore (misc) aarch alnum armhf bindir busytest coreutils gnueabihf issuecomment maint nullglob onexitbegin onexitend runtest tempfile testsuite uutils
+
+env:
+  PROJECT_NAME: dxx
+  PROJECT_DESC: "Enhanced Deno commands"
+  PROJECT_AUTH: "rivy"
+  DENO_MIN_VER: "1.0.0"
+
+on: [push, pull_request]
+
+jobs:
+  code_deps:
+    name: Style/dependencies
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-latest }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Initialize workflow variables
+        id: vars
+        shell: bash
+        run: |
+          ## VARs setup
+          outputs() { step_id="vars"; for var in "$@" ; do echo steps.${step_id}.outputs.${var}="${!var}"; echo ::set-output name=${var}::${!var}; done; }
+          # ...
+      - name: Install `deno` toolchain
+        uses: denoland/setup-deno@v1
+      - name: "`deno cache` testing"
+        shell: bash
+        run: |
+          ## `deno cache` testing
+          # * src files to test (shell-quoted)
+          files=(./src/*.ts)
+          for file in "${files[@]}"; do
+            # * convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
+            # * note: `perl -ne 's/\x1b\[[0-9;]*[A-Za-z]//gim; print'` removes ANSI escapes; ref: <https://stackoverflow.com/questions/17998978/removing-colors-from-output>
+            S=$(deno cache "${file}" 2>&1) && printf "%s\n" "$S" || { printf "%s\n" "$S" ; printf "%s\n" "$S" | perl -ne 's/\x1b\[[0-9;]*[A-Za-z]//gim; print' | sed -E -n -e '/^error:/{' -e "N; s/^error:[[:space:]]+(.*)\n[[:space:]]+at file:[/][/]${PWD////\\/}[/](.*):([0-9]+):([0-9]+).*$/::error file=\2,line=\3::ERROR: \`deno cache\`: dependency missing (file:'\2', line:\3)/p" -e '}' ; exit 1 ; }
+          done
