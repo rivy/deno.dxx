@@ -24,7 +24,7 @@
 	"json": { "preferSingleLine": true },
 	"markdown": { "textWrap": "always", "lineWidth": 99999 },
 	"rustfmt": {},
-	"includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,rs}"],
+	"includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,rs,yaml,yml}"],
 	"excludes": [
 		".history",
 		".changelog/*.tpl.*",
@@ -38,8 +38,8 @@
 		"https://plugins.dprint.dev/typescript-0.44.1.wasm",
 		"https://plugins.dprint.dev/json-0.11.0.wasm",
 		"https://plugins.dprint.dev/markdown-0.5.1.wasm",
-		"https://plugins.dprint.dev/rustfmt-0.3.0.wasm"
+		"https://plugins.dprint.dev/rustfmt-0.3.0.wasm",
 		// ref: <https://github.com/dprint/dprint-plugin-prettier>
-		// "https://plugins.dprint.dev/prettier-0.2.2.wasm"
+		"https://plugins.dprint.dev/prettier-0.2.2.exe-plugin@63b06beba3acd51e6d23379c47db342a1a24f3d88f3c52a775e2db3426124582"
 	]
 }
