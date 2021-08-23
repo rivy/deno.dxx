@@ -29,8 +29,8 @@ const app = Yargs(undefined, undefined, undefined)
 		undefined,
 	)
 	// help and version setup
-	.help(false, undefined)
-	.version(false, undefined, undefined)
+	.help(false)
+	.version(false)
 	.option('help', { describe: 'Show help', boolean: true })
 	.alias('help', 'h')
 	.option('version', { describe: 'Show version number', boolean: true })
