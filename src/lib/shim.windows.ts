@@ -75,9 +75,15 @@ export function shimInfo(contentsOriginal: string) {
 	) || [];
 	const [_match, _denoCommandPrefix, denoRunOptionsRaw, denoRunTarget] = reMatchArray;
 
+	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
+
 	const denoRunOptions = (denoRunOptionsRaw || '')
 		.replace(/((^|\s+)\x22?--\x22?)+(\s|$)/g, ' ') // remove any "--" (quoted or not); avoids collision with "--" added by template
 		.replace(/^\s+/m, '') // remove leading whitespace
-		.replace(/\s+$/m, ''); // remove trailing whitespace
+		.replace(/\s+$/m, '') // remove trailing whitespace
+		// .replace(/--allow-plugin/m, Semver.lt(Deno.version.deno, '1.13.0') ? '--allow-plugin' : '--allow-ffi') // repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
+		.replace(/--allow-plugin/m, '--allow-all') // (less secure but works for all deno version) repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
+		.toString();
+
 	return { isEnhanced, denoRunOptions, denoRunTarget };
 }
