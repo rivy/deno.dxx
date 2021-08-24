@@ -93,3 +93,23 @@ jobs:
           # * convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
           # * note: `deno lint` returns UNC paths under WinOS (including Cygwin and MSys) requiring platform-specific PWD handling
           S=$(deno lint 2>&1) && printf "%s\n" "$S" || { printf "%s\n" "$S" | perl -ne 's/\x1b\[[0-9;]*[A-Za-z]//gim; print' | perl -ne 'BEGIN { $errs = q//; $_=$ENV{PWD}; if ($^O =~ m/Cygwin|MSWin32|MSys/i) { s#^/([A-Za-z])/#"//?/".uc($1).":/"#e; s#/#\\#g; } ; $PWD=$_; print qq{PWD=$PWD\n}; }; print; if (m/^Error\s+linting:\s+\Q$PWD\E[\\\/](.*)$/) { $errs .= qq{::error file=$1::ERROR: \`deno lint\`: linting error (file:\x27$1\x27; correct the syntax error)\n}; $file = q{}; } ; $error = $1 if /^([(].*)$/; ($errs .= qq{::error file=$1,line=$2::ERROR: \`deno lint\`: $error (file:\x27$1\x27, line:$2)\n}) if length($error) && m/\s*at\s+\Q$PWD\E[\\\/](.*):(\d+):\d+\s*$/; END { print qq/$errs/; }' ; exit 1 ; }
+
+  code_spellcheck:
+    name: Style/spelling
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      matrix:
+        job:
+          - { os: ubuntu-latest }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install/setup prerequisites
+        shell: bash
+        run: |
+          ## Install/setup prerequisites
+          sudo apt-get -y update ; sudo apt-get -y install npm ; sudo npm install cspell -g ;
+      - name: Run `cspell`
+        shell: bash
+        run: |
+          ## Run `cspell`
+          cspell --config .vscode/cspell.json --no-summary --no-progress "**/*" ".github/**/*" | sed -E -n "s/${PWD//\//\\/}\/(.*):(.*):(.*) - (.*)/::error file=\1,line=\2,col=\3::ERROR: \4 (file:'\1', line:\2)/p"
