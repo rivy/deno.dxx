@@ -113,3 +113,30 @@ jobs:
         run: |
           ## Run `cspell`
           cspell --config .vscode/cspell.json --no-summary --no-progress "**/*" ".github/**/*" | sed -E -n "s/${PWD//\//\\/}\/(.*):(.*):(.*) - (.*)/::error file=\1,line=\2,col=\3::ERROR: \4 (file:'\1', line:\2)/p"
+
+  test:
+    name: Test
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-latest }
+          - { os: macos-latest }
+          - { os: windows-latest }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Initialize workflow variables
+        id: vars
+        shell: bash
+        run: |
+          ## VARs setup
+          outputs() { step_id="vars"; for var in "$@" ; do echo steps.${step_id}.outputs.${var}="${!var}"; echo ::set-output name=${var}::${!var}; done; }
+          # ...
+      - name: Install `deno` toolchain
+        uses: denoland/setup-deno@v1
+      - name: "`deno test`"
+        shell: bash
+        run: |
+          ## `deno test`
+          deno test --allow-all
