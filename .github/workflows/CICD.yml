@@ -71,3 +71,25 @@ jobs:
           # * convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
           # * note: `perl -ne 's/\x1b\[[0-9;]*[A-Za-z]//gim; print'` removes ANSI escapes; ref: <https://stackoverflow.com/questions/17998978/removing-colors-from-output>
           S=$(dprint check 2>&1) && printf "%s\n" "$S" || { printf "%s\n" "$S" | perl -ne 's/\x1b\[[0-9;]*[A-Za-z]//gim; print' | perl -ne 'BEGIN { $errs = q//; }; print; if (m/^Error\s+formatting\s+\Q$ENV{PWD}\E\/(.*).\s+Message/) { $errs .= qq{::error file=$1::ERROR: \`dprint check\`: formatting error (file:\x27$1\x27; correct the syntax error)\n}; $file = q{}; } ; $file = $1 if /^from\s+\Q$ENV{PWD}\E\/(.*):\s*$/; ($errs .= qq{::error file=$file,line=$1::ERROR: \`dprint check\`: style violation (file:\x27$file\x27, line:$1; use \`dprint fmt -- \x27$file\x27\`)\n}) if length($file) && m/^(\d+)\|/; END { print qq/$errs/; }' ; exit 1 ; }
+
+  code_lint:
+    name: Style/lint
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-latest }
+          - { os: macos-latest }
+          - { os: windows-latest }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install `deno` toolchain
+        uses: denoland/setup-deno@v1
+      - name: "`deno lint` testing"
+        shell: bash
+        run: |
+          ## `deno lint` lint testing
+          # * convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
+          # * note: `deno lint` returns UNC paths under WinOS (including Cygwin and MSys) requiring platform-specific PWD handling
+          S=$(deno lint 2>&1) && printf "%s\n" "$S" || { printf "%s\n" "$S" | perl -ne 's/\x1b\[[0-9;]*[A-Za-z]//gim; print' | perl -ne 'BEGIN { $errs = q//; $_=$ENV{PWD}; if ($^O =~ m/Cygwin|MSWin32|MSys/i) { s#^/([A-Za-z])/#"//?/".uc($1).":/"#e; s#/#\\#g; } ; $PWD=$_; print qq{PWD=$PWD\n}; }; print; if (m/^Error\s+linting:\s+\Q$PWD\E[\\\/](.*)$/) { $errs .= qq{::error file=$1::ERROR: \`deno lint\`: linting error (file:\x27$1\x27; correct the syntax error)\n}; $file = q{}; } ; $error = $1 if /^([(].*)$/; ($errs .= qq{::error file=$1,line=$2::ERROR: \`deno lint\`: $error (file:\x27$1\x27, line:$2)\n}) if length($error) && m/\s*at\s+\Q$PWD\E[\\\/](.*):(\d+):\d+\s*$/; END { print qq/$errs/; }' ; exit 1 ; }
