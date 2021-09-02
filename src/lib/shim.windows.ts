@@ -77,12 +77,27 @@ export function shimInfo(contentsOriginal: string) {
 
 	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 
-	const denoRunOptions = (denoRunOptionsRaw || '')
-		.replace(/((^|\s+)\x22?--\x22?)+(\s|$)/g, ' ') // remove any "--" (quoted or not); avoids collision with "--" added by template
+	let denoRunOptions = denoRunOptionsRaw || '';
+
+	denoRunOptions.replace(/(^|\s+)[\x22\x27]?--[\x22\x27]?(\s+|$)/gm, '$1$2') // remove any "--" (quoted or not); avoids collision with "--" added by template
+		.toString();
+
+	// change purposeful use of unstable flags to `--allow-all`
+	// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
+	// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
+	denoRunOptions
+		.replace(/(^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(\s+|$)/gm, '$1--allow-all$2') // deno <= v1.12
+		.replace(/(^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(\s+|$)/gm, '$1--allow-all$2') // deno >= v1.13
+		.toString();
+
+	// summarize flags/options for `--allow-all` or `--allow-run`
+	if (!denoRunOptions.match(/(^|\s+)[\x22\x27]?--allow-(all|run)(\s+|$)/m)) {
+		denoRunOptions = '--allow-all';
+	}
+
+	denoRunOptions
 		.replace(/^\s+/m, '') // remove leading whitespace
 		.replace(/\s+$/m, '') // remove trailing whitespace
-		// .replace(/--allow-plugin/m, Semver.lt(Deno.version.deno, '1.13.0') ? '--allow-plugin' : '--allow-ffi') // repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
-		.replace(/--allow-plugin/m, '--allow-all') // (less secure but works for all deno version) repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
 		.toString();
 
 	return { isEnhanced, denoRunOptions, denoRunTarget };
