@@ -584,7 +584,8 @@ export function parseGlob(s: string) {
 	// console.warn('xArgs.parseGlob()', { globAsReS });
 	// const globScan: any = Picomatch.scan(Path.join(prefix, glob), {
 	// console.warn('xArgs.parseGlob()', { prefix, glob, pathJoin: Path.posix.join(prefix, glob) });
-	// deno-lint-ignore no-explicit-any ## 'picomatch' has incomplete typing
+	// * 'picomatch' has incomplete typing => ignore no-explicit-any
+	// deno-lint-ignore no-explicit-any
 	const globScan: any = Picomatch.scan(pJoinToPosix, {
 		windows: true,
 		dot: false,
