@@ -218,6 +218,8 @@ export class Spinner {
 	}
 
 	updateLines(): void {
+		// `Deno.consoleSize()` is unstable API (as of v1.12) => deno-lint-ignore no-explicit-any
+		// deno-lint-ignore no-explicit-any
 		const denoConsoleSize = (Deno as any).consoleSize;
 		const columns = denoConsoleSize ? denoConsoleSize(this.#stream.rid)?.columns || 80 : 80;
 		const fullPrefixText = typeof this.prefix === 'string' ? this.prefix + '-' : '';
