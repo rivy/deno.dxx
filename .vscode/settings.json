@@ -7,5 +7,6 @@
 	"deno.lint": true,
 	"deno.suggest.completeFunctionCalls": true,
 	"deno.unstable": true,
-	"editor.formatOnSave": true
+	"editor.formatOnSave": true,
+	"deno.suggest.imports.hosts": { "https://deno.land": true }
 }
