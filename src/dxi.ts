@@ -6,6 +6,7 @@ import Yargs from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
 import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Spin from './lib/xWait/mod.ts';
+import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
 
 Me.warnIfImpaired();
@@ -16,7 +17,7 @@ const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
 // lodash
 import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
-const version = '0.0.1';
+const version = Version.v();
 const runAsName = Me.runAs;
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
