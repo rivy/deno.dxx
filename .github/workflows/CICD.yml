@@ -126,6 +126,8 @@ jobs:
           - { os: windows-latest }
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # pull full repository (enables `git` branch/describe operations and testing)
       - name: Initialize workflow variables
         id: vars
         shell: bash
