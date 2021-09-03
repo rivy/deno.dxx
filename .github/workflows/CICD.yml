@@ -137,6 +137,23 @@ jobs:
           # ...
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
+      - name: Info
+        shell: bash
+        run: |
+          ## Info
+          # environment
+          echo "## environment"
+          echo "CI='${CI}'"
+          # tooling info display
+          echo "## tooling"
+          deno --version
+          # dependencies
+          echo "## dependency list"
+          # * src files (shell-quoted)
+          files=(./src/*.ts)
+          for file in "${files[@]}"; do
+            deno info "${file}"
+          done
       - name: "`deno test`"
         shell: bash
         run: |
