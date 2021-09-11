@@ -13,9 +13,66 @@
 
 ---
 
+## [v0.0.5](https://github.com/rivy/deno.dxx/compare/v0.0.4...v0.0.5) <small>(2021-09-11)</small>
+
+<details open><summary><small><em>[v0.0.5; details]</em></small></summary>
+
+#### Changes
+
+* add `version` library module &ac; [`ec8bb14`](https://github.com/rivy/deno.dxx/commit/ec8bb14566881d8fdbe65883bf65cbe87d8194ef)
+* add VERSION tag file to project &ac; [`23e87d7`](https://github.com/rivy/deno.dxx/commit/23e87d72bc2d0b49dc241727b96052be797745c9)
+* change ~ (xWait) improve symbols &ac; [`7eed2c6`](https://github.com/rivy/deno.dxx/commit/7eed2c61789dbf3f37cee7812a3a266d2f9cc09e)
+* change *(dxi)*: use version library module &ac; [`bc617f7`](https://github.com/rivy/deno.dxx/commit/bc617f73cab4a5b9006b360529b09f20852de22a)
+* change *(dxi)*: decrease spinner flash suppression delay time &ac; [`f85b38c`](https://github.com/rivy/deno.dxx/commit/f85b38cd3cc5e9d167471d0ccfa5d8e848871b5a)
+* change *(dxi)*: reword/polish help output &ac; [`cc8fa52`](https://github.com/rivy/deno.dxx/commit/cc8fa529df597ad7d86c9d60210a39b0537d549c)
+* change *(xProcess)*: add `runAs` property &ac; [`96a1cff`](https://github.com/rivy/deno.dxx/commit/96a1cff17780e330c6e86f598f2660caaab4344f)
+* change *(xProcess)*: add impaired/diminished capacity test and warning message &ac; [`fa44f79`](https://github.com/rivy/deno.dxx/commit/fa44f79f0682ee8dce4e411d6925278efd249e8f)
+
+#### Fixes
+
+* fix shim parsing regex bugs &ac; [`8c63838`](https://github.com/rivy/deno.dxx/commit/8c63838cabbcc922fb90733e1c90d45c3ade2ca2)
+* fix `deno lint` complaint (no-explicit-any) &ac; [`a1f449f`](https://github.com/rivy/deno.dxx/commit/a1f449fb5f85f8b1f11e27b785761e00099f6c89)
+* fix `deno lint` complaint (*allow* no-inferrable-types) &ac; [`a36d506`](https://github.com/rivy/deno.dxx/commit/a36d506aa9d05cd71851da75facbc34bb78a6b1a)
+* fix `deno lint` complaint (ban-unknown-rule-code) &ac; [`5b975bf`](https://github.com/rivy/deno.dxx/commit/5b975bf65236e56fe069cdd9f687d9957adead73)
+* fix denoRunOptions for unstable flags within shim scripts &ac; [`1758e92`](https://github.com/rivy/deno.dxx/commit/1758e9268d8f95d56235bce37be305a337890d4c)
+* fix ~ repair semver breaking change to `--allow-plugin` &ac; [`9412056`](https://github.com/rivy/deno.dxx/commit/9412056c2819b72bd3c8190c38b7d1b577d51224)
+* fix *(dxf)*: fix test for presense of dprint config file &ac; [`5749477`](https://github.com/rivy/deno.dxx/commit/5749477462206a303875b08211b500f07dfc8fe1)
+* fix *(dxi)*: fix incorrect deactivation of Yargs help and version &ac; [`00ff5c7`](https://github.com/rivy/deno.dxx/commit/00ff5c70edd51f889645b8cade8f60ebf0ea52ac)
+
+#### Documentation
+
+* docs ~ (README) update fix notes &ac; [`bfecca7`](https://github.com/rivy/deno.dxx/commit/bfecca776d218d3d408ef2ae3013a91351245ca0)
+* docs ~ update README &ac; [`c7c88a9`](https://github.com/rivy/deno.dxx/commit/c7c88a91df6213c07430f9b5a1ca673a34172447)
+* docs *(refactor)*: use `runAs` from 'xProcess' &ac; [`46f8f43`](https://github.com/rivy/deno.dxx/commit/46f8f43f6dcbb1e2448860763ebbad7205076b13)
+* docs *(refactor)*: (examples) use `impaired...` xProcess functionality &ac; [`c86ba59`](https://github.com/rivy/deno.dxx/commit/c86ba59625f4c5ce09f7f4645bb9c3b85bbb48af)
+
+#### Maintenance
+
+* maint *(CICD)*: (GHA) expand project info display (versions and dependencies) &ac; [`95114bb`](https://github.com/rivy/deno.dxx/commit/95114bb920fa00d95d9065ccf54606d6804fad02)
+* maint *(CICD)*: add GitHub Actions automation &ac; [`6c65c5c`](https://github.com/rivy/deno.dxx/commit/6c65c5c2de477c27f82b4f9d3a133ac19a4e3e44)
+* maint *(CICD)*: add GHA 'Test' &ac; [`30251ed`](https://github.com/rivy/deno.dxx/commit/30251ed3226c2a080c9aad476836bdeab5225e12)
+* maint *(CICD)*: add GHA 'Style/spelling' check &ac; [`7712926`](https://github.com/rivy/deno.dxx/commit/77129260e5b815d09b6555853806d20db82af358)
+* maint *(CICD)*: add GHA 'Style/lint' check &ac; [`528a4dc`](https://github.com/rivy/deno.dxx/commit/528a4dc62dc323bf52cdcfdf8468f05193b2520e)
+* maint *(CICD)*: add GHA 'Style/format' check &ac; [`2eeebae`](https://github.com/rivy/deno.dxx/commit/2eeebaed710fa696472651788f6bfaafad091262)
+* maint *(dev)*: (VSCode) settings ~ allow suggestions from deno.land &ac; [`9b5b939`](https://github.com/rivy/deno.dxx/commit/9b5b939525c97a2bb4473062ce6ae326b7654b9f)
+* maint *(dev)*: (GHA) pull full repository (enable `git` branch/describe operations and tests) &ac; [`42fae06`](https://github.com/rivy/deno.dxx/commit/42fae06e2f1b9c6abfbb0c5e75601562e1eefe43)
+* maint *(dev)*: update DPrint plugins &ac; [`ebd6f0e`](https://github.com/rivy/deno.dxx/commit/ebd6f0e620ab1541bfdc6d73a1d8c9d6f3e3d542)
+* maint *(dev)*: add DPrint Prettier plugin to format YAML files &ac; [`56ae468`](https://github.com/rivy/deno.dxx/commit/56ae468be99570076fdebe4a8ba897622607dba2)
+* maint *(dev)*: (dprint) ignore CHANGELOG when formatting &ac; [`15577d4`](https://github.com/rivy/deno.dxx/commit/15577d46d50eeef7c176c39094a48cdb72a4dfd6)
+
+#### Refactoring
+
+* refactor utils to use `impaired...` xProcess functionality for warnings &ac; [`9272d40`](https://github.com/rivy/deno.dxx/commit/9272d40e7d02875eb158cfe8e294b1bdbd4ff0ad)
+* refactor *(dxi)*: use `runAs` from 'xProcess' &ac; [`f745e53`](https://github.com/rivy/deno.dxx/commit/f745e5396e5bad0e7930d754397c28249733fc82)
+* refactor *(xProcess)*: rename `argsTextExpanded` => `argsTextPreExpanded` (improved match with semantics) &ac; [`7d4bcf0`](https://github.com/rivy/deno.dxx/commit/7d4bcf0288a3b4c57a5e77f411a4177094d24f2f)
+
+</details>
+
+---
+
 ## [v0.0.4](https://github.com/rivy/deno.dxx/compare/v0.0.3...v0.0.4) <small>(2021-05-30)</small>
 
-<details open><summary><small><em>[v0.0.4; details]</em></small></summary>
+<details><summary><small><em>[v0.0.4; details]</em></small></summary>
 
 #### Changes
 
