@@ -1,4 +1,6 @@
-<!-- spell-checker:ignore (names) Deno Gitter (utils) dprint -->
+<!-- spell-checker:ignore () markdownlint (names) Deno Gitter (utils) dprint -->
+
+<!-- (template) data-template-match='(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)' data-template-replace='$1${VERSION_TAG}' -->
 
 # 🦕 Enhanced Deno commands
 
