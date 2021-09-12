@@ -5,7 +5,7 @@ import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
 import Yargs from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
 import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
-import * as Spin from './lib/xWait/mod.ts';
+import * as Spin from './lib/xWait/$mod.ts';
 import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
 
