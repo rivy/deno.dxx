@@ -1,5 +1,5 @@
-import { assertEquals } from './$.deps.ts';
-import { testTemplate } from './common.ts';
+import { assertEquals } from './$deps.ts';
+import { testTemplate } from './$shared.ts';
 
 const test = testTemplate(import.meta.url);
 
