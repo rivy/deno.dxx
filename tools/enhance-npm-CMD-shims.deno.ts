@@ -11,12 +11,7 @@
 
 console.log({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
-import * as path from 'https://deno.land/std@0.83.0/path/mod.ts';
-
-// import * as fs from 'https://deno.land/std@0.83.0/fs/mod.ts';
-import { exists, existsSync } from 'https://deno.land/std@0.83.0/fs/exists.ts';
-import { expandGlob, expandGlobSync } from 'https://deno.land/std@0.83.0/fs/expand_glob.ts';
-const fs = { exists, existsSync, expandGlob, expandGlobSync };
+import { fs, Path as path } from './lib/$deps.ts';
 
 import { collect, first, map } from './lib/funk.ts';
 

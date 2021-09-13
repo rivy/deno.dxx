@@ -10,14 +10,9 @@
 // spell-checker:ignore (shell/cmd) COMSPEC ERRORLEVEL PATHEXT
 // spell-checker:ignore (words) occurences
 
-import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
-import OsPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
+import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-// import * as fs from 'https://deno.land/std@0.83.0/fs/mod.ts'; // avoid; uses unstable API
-import { exists, existsSync } from 'https://deno.land/std@0.83.0/fs/exists.ts';
-import { expandGlob, expandGlobSync } from 'https://deno.land/std@0.83.0/fs/expand_glob.ts';
-import { walk, walkSync } from 'https://deno.land/std@0.83.0/fs/walk.ts';
-const fs = { exists, existsSync, expandGlob, expandGlobSync, walk, walkSync };
+import { fs, Path } from './lib/$deps.ts';
 
 import { collect, filter, map } from './lib/funk.ts';
 
@@ -59,7 +54,7 @@ function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undef
 import { eol } from '../src/lib/eol.ts';
 
 const denoInstallRoot = joinFullyDefinedPaths(
-	Deno.env.get('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OsPaths.home(), '.deno'),
+	Deno.env.get('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OSPaths.home(), '.deno'),
 	'bin',
 );
 
