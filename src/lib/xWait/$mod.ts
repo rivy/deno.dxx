@@ -1,7 +1,7 @@
 // spell-checker:ignore (libs) [tty] wcswidth
 // deno-lint-ignore-file no-inferrable-types
 
-import { colors, encode, tty } from './$deps.ts';
+import { Colors, encode, tty } from '../$deps.ts';
 
 import spinners from './spinners.ts';
 
@@ -10,15 +10,15 @@ export { symbols, symbolStrings } from './log_symbols.ts';
 
 type ColorFunction = (message: string) => string;
 const colorMap: { [key: string]: ColorFunction } = {
-	black: colors.black,
-	red: colors.red,
-	green: colors.green,
-	yellow: colors.yellow,
-	blue: colors.blue,
-	magenta: colors.magenta,
-	cyan: colors.cyan,
-	white: colors.white,
-	gray: colors.gray,
+	black: Colors.black,
+	red: Colors.red,
+	green: Colors.green,
+	yellow: Colors.yellow,
+	blue: Colors.blue,
+	magenta: Colors.magenta,
+	cyan: Colors.cyan,
+	white: Colors.white,
+	gray: Colors.gray,
 };
 
 export interface SpinnerAnimation {
@@ -53,7 +53,7 @@ export function wait(opts: string | SpinnerOptions) {
 	return new Spinner({
 		text: opts.text,
 		prefix: opts.prefix ?? '',
-		color: opts.color ?? colors.cyan,
+		color: opts.color ?? Colors.cyan,
 		spinner: opts.spinner ?? 'dots',
 		hideCursor: opts.hideCursor ?? true,
 		indent: opts.indent ?? 0,
@@ -112,7 +112,7 @@ export class Spinner {
 	}
 
 	#spinner: SpinnerAnimation = spinners.dots;
-	#color: ColorFunction = colors.cyan;
+	#color: ColorFunction = Colors.cyan;
 	#text: string = '';
 	#prefix: string = '';
 	#symbols: typeof Symbols = Symbols;

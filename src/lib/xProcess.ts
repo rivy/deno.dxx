@@ -1,6 +1,6 @@
 // spell-checker:ignore (vars) ARGX
 
-import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
+import { Path } from './$deps.ts';
 
 import * as xArgs from '../lib/xArgs.ts';
 

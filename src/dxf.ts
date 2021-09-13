@@ -1,9 +1,6 @@
 // spell-checker:ignore (vars) ARGX arr gmsu ; (utils) dprint dprintrc
 
-import { exists, existsSync } from 'https://deno.land/std@0.83.0/fs/exists.ts';
-import { expandGlob, expandGlobSync } from 'https://deno.land/std@0.83.0/fs/expand_glob.ts';
-import { walk, walkSync } from 'https://deno.land/std@0.83.0/fs/walk.ts';
-const fs = { exists, existsSync, expandGlob, expandGlobSync, walk, walkSync };
+import { fs } from './lib/$deps.ts';
 
 import * as Me from './lib/xProcess.ts';
 

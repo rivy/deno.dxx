@@ -27,11 +27,9 @@
 // ref: <https://stackoverflow.com/questions/61821038/how-to-use-npm-module-in-deno>
 // ref: <https://jspm.org/docs/cdn>
 
-import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
-import { exists, existsSync } from 'https://deno.land/std@0.93.0/fs/exists.ts';
-import { assert } from 'https://deno.land/std@0.93.0/testing/asserts.ts';
+import { assert, fs, OSPaths, Path } from './$deps.ts';
 
-import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
+const { exists, existsSync } = fs;
 
 import { walk, walkSync } from './xWalk.ts';
 

@@ -6,9 +6,8 @@
 // Documentation and interface for walk were adapted from Go
 // https://golang.org/pkg/path/filepath/#Walk
 // Copyright 2009 The Go Authors. All rights reserved. BSD license.
-import { assert } from 'https://deno.land/std@0.92.0/_util/assert.ts';
-// import * as Path from 'https://deno.land/std@0.83.0/path/mod.ts';
-import { basename, join, normalize } from 'https://deno.land/std@0.92.0/path/mod.ts';
+import { assert, Path } from './$deps.ts';
+const { basename, join, normalize } = Path;
 
 /** Create WalkEntry for the `path` synchronously */
 export function _createWalkEntrySync(path: string): WalkEntry {

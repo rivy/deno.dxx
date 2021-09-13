@@ -1,6 +1,6 @@
 // VERSION handler
 
-import * as Path from 'https://deno.land/std@0.106.0/path/mod.ts';
+import { Path } from './$deps.ts';
 
 const versionPath = Path.toFileUrl(Path.join(Path.fromFileUrl(Deno.mainModule), '../../VERSION'));
 
