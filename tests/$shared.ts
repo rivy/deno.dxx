@@ -5,59 +5,86 @@ import { Colors, Path } from './$deps.ts';
 type TestName = string;
 const testLog: [TestName, string][] = [];
 
-function formatString(str: string) {
-	return `${str.replace(/\\/, '\\\\').replace(/"/g, '\\"')}`;
+//====
+
+// ref: <https://nodejs.org/api/util.html#util_util_format_format_args>
+function toFormatReplacement(specifier: string, value: unknown): string {
+	if (specifier === '%s') {
+		if (typeof value === 'string' || value instanceof String) return value as string;
+		else return Deno.inspect(value, { depth: 2 });
+	}
+	if (specifier === '%d') {
+		if (typeof value === 'bigint') {
+			return value + 'n';
+		}
+		return Number(value).toString();
+	}
+	if (specifier === '%i') {
+		if (typeof value === 'bigint') {
+			return value + 'n';
+		}
+		return parseInt(value as string).toString();
+	}
+	if (specifier === '%f') {
+		return parseFloat(value as string).toString();
+	}
+	if (specifier === '%j') {
+		try {
+			return JSON.stringify(value);
+		} catch (e) {
+			// nodeJS => 'cyclic object value' , deno => 'Converting circular structure to JSON ...' ; ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
+			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) return '[Circular]';
+			else throw e;
+		}
+	}
+	if (specifier === '%o') {
+		return Deno.inspect(value, { showHidden: true, showProxy: true });
+	}
+	if (specifier === '%O') {
+		return Deno.inspect(value);
+	}
+	if (specifier === '%c') {
+		return '';
+	}
+	return '';
 }
 
-function thingToString(thing: unknown, maxDepth?: number, depth = 1): string {
+// ref: <https://nodejs.org/docs/latest-v16.x/api/console.html#console_console_log_data_args>
+// ref: <https://nodejs.org/docs/latest-v16.x/api/util.html#util_util_format_format_args>
+// modified from <https://deno.land/std@0.105.0/node/util.ts#L247-L266>
+function format(...args: unknown[]) {
+	const replacement: [number, string][] = [];
+	const regex = /%(s|d|i|f|j|o|O|c|%)/g;
+	const hasFormatTemplate = args.length > 0 &&
+		(typeof args[0] === 'string' || args[0] instanceof String);
+	const formatTemplate = hasFormatTemplate ? (args[0] as string) : '';
+	let i = hasFormatTemplate ? 1 : 0;
+	let arr: RegExpExecArray | null = null;
+	let done = false;
+	while ((arr = regex.exec(formatTemplate)) !== null && !done) {
+		if (arr[0] === '%%') {
+			replacement.push([arr['index'], '%']);
+		} else if (i < args.length) {
+			replacement.push([arr['index'], toFormatReplacement(arr[0], args[i])]);
+			i++;
+		} else done = true;
+	}
+	const lastArgUsed = i;
 	let result = '';
-	if (typeof thing === 'bigint') {
-		return thing + 'n';
+	let last = 0;
+	for (let i = 0; i < replacement.length; i++) {
+		const item = replacement[i];
+		result += formatTemplate.slice(last, item[0]);
+		result += item[1];
+		last = item[0] + 2;
 	}
-	if (
-		typeof thing === 'undefined' || typeof thing === 'number' ||
-		typeof thing === 'boolean' || typeof thing === 'symbol' || thing === null
-	) {
-		return String(thing);
+	result += formatTemplate.slice(last);
+	for (let i = lastArgUsed; i < args.length; i++) {
+		if (i > 0) result += ' ';
+		if (typeof args[i] === 'string') {
+			result += args[i];
+		} else result += Deno.inspect(args[i], { colors: true });
 	}
-	if (typeof thing === 'function') {
-		return `[Function ${thing.name || '(anonymous)'}]`;
-	}
-	if (typeof thing === 'string') {
-		return formatString(thing);
-	}
-	if (Array.isArray(thing)) {
-		if (depth === maxDepth) {
-			return '[Array]';
-		}
-		result += '[';
-		const en = Object.entries(thing);
-		for (let i = 0; i < en.length; i++) {
-			const [key, value] = en[i];
-			if (isNaN(Number(key))) {
-				result += `${key}: `;
-			}
-			result += thingToString(value, maxDepth, depth + 1);
-			if (i !== en.length - 1) {
-				result += ', ';
-			}
-		}
-		result += ']';
-		return result;
-	}
-	if (depth === maxDepth) {
-		return '[Object]';
-	}
-	const en = Object.entries(thing as Record<string, unknown>);
-	result += '{ ';
-	for (let i = 0; i < en.length; i++) {
-		const [key, value] = en[i];
-		result += `${key}: ${thingToString(value, maxDepth, depth + 1)}`;
-		if (i !== en.length - 1) {
-			result += ', ';
-		}
-	}
-	result += ' }';
 	return result;
 }
 
@@ -74,10 +101,10 @@ export function createTestFn(testFilePath: string) {
 		// ref: <https://stackoverflow.com/questions/9216441/intercept-calls-to-console-log-in-chrome> , <https://www.bayanbennett.com/posts/how-does-mdn-intercept-console-log-devlog-003> @@ <https://archive.is/dfg7H>
 		// ref: <https://www.npmjs.com/package/output-interceptor>
 		console.log = (...args) => {
-			args.forEach((arg) => testLog.push([testName, thingToString(arg)]));
+			testLog.push([testName, format(...args)]);
 		};
 		console.warn = (...args) => {
-			args.forEach((arg) => testLog.push([testName, thingToString(arg)]));
+			testLog.push([testName, format(...args)]);
 		};
 		Deno.test({
 			name: testName,
