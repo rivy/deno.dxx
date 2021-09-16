@@ -2,10 +2,6 @@
 
 import { Colors, Path } from './$deps.ts';
 
-export function nameGen(filename: string) {
-	return (testName: string) => Colors.dim(Path.parse(filename).base) + ' ' + Colors.bold(testName);
-}
-
 type TestName = string;
 const testLog: [TestName, string][] = [];
 
@@ -65,10 +61,15 @@ function thingToString(thing: unknown, maxDepth?: number, depth = 1): string {
 	return result;
 }
 
-export function testTemplate(filename: string) {
-	const name = nameGen(filename);
+//====
+
+function composeTestName(testFilePath: string, description: string) {
+	return Colors.dim(Path.parse(testFilePath).base) + ' ' + Colors.bold(description);
+}
+
+export function createTestFn(testFilePath: string) {
 	return (description: string, fn: () => void | Promise<void>, opts = {}) => {
-		const testName: TestName = name(description);
+		const testName: TestName = composeTestName(testFilePath, description);
 		// * capture `console.log()` and `console.warn()` messages via intercepts; display only on failure (as part of the error message)
 		// ref: <https://stackoverflow.com/questions/9216441/intercept-calls-to-console-log-in-chrome> , <https://www.bayanbennett.com/posts/how-does-mdn-intercept-console-log-devlog-003> @@ <https://archive.is/dfg7H>
 		// ref: <https://www.npmjs.com/package/output-interceptor>

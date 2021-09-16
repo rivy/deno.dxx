@@ -9,9 +9,9 @@ import { string, unknown } from 'https://cdn.esm.sh/v45/computed-types@1.6.0';
 // ToDO: evaluate [`zod`](https://github.com/colinhacks/zod) as a possible replacement for `computed-types`
 
 // import { assertEquals } from './$.deps.ts';
-import { testTemplate } from './$shared.ts';
+import { createTestFn } from './$shared.ts';
 
-const test = testTemplate(import.meta.url);
+const test = createTestFn(import.meta.url);
 
 type ValidatorType = {
 	validator: (_: unknown) => unknown[];

@@ -1,7 +1,7 @@
 import { assertEquals } from './$deps.ts';
-import { testTemplate } from './$shared.ts';
+import { createTestFn } from './$shared.ts';
 
-const test = testTemplate(import.meta.url);
+const test = createTestFn(import.meta.url);
 
 import * as Version from '../src/lib/version.ts';
 
