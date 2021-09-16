@@ -7,8 +7,7 @@ import * as Version from '../src/lib/version.ts';
 
 const newlines = /\r?\n|\n/g;
 
-const readmePath = 'README.md';
-const versionPath = 'VERSION';
+const projectPaths = { readme: 'README.md', version: 'VERSION' };
 
 test('version matches `git describe`', async () => {
 	const expected = Version.v();
@@ -27,11 +26,11 @@ test('version matches `git describe`', async () => {
 
 test('version matches VERSION file', () => {
 	const expected = Version.v();
-	const actual = Deno.readTextFileSync(versionPath).replace(newlines, '');
+	const actual = Deno.readTextFileSync(projectPaths.version).replace(newlines, '');
 	assertEquals(actual, expected);
 });
 
-const readmeText = Deno.readTextFileSync(readmePath);
+const readmeText = Deno.readTextFileSync(projectPaths.readme);
 // const URLrx = /(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)/i;
 const URLre = new RegExp('https?://deno.land/x/dxx@v?((?:\\d+[.])*\\d+)(?=/)', 'gim');
 const readmeURLs = Array.from(readmeText.matchAll(URLre));
