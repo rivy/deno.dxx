@@ -3,7 +3,7 @@
 import { Colors, Path } from './$deps.ts';
 
 type TestName = string;
-const testLog: [TestName, string][] = [];
+const testLog: [TestName, (() => string) | string][] = [];
 
 //====
 
@@ -32,7 +32,8 @@ function toFormatReplacement(specifier: string, value: unknown): string {
 		try {
 			return JSON.stringify(value);
 		} catch (e) {
-			// nodeJS => 'cyclic object value' , deno => 'Converting circular structure to JSON ...' ; ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
+			// nodeJS => 'cyclic object value' , deno => 'Converting circular structure to JSON ...'
+			// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
 			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) return '[Circular]';
 			else throw e;
 		}
@@ -100,11 +101,12 @@ export function createTestFn(testFilePath: string) {
 		// * capture `console.log()` and `console.warn()` messages via intercepts; display only on failure (as part of the error message)
 		// ref: <https://stackoverflow.com/questions/9216441/intercept-calls-to-console-log-in-chrome> , <https://www.bayanbennett.com/posts/how-does-mdn-intercept-console-log-devlog-003> @@ <https://archive.is/dfg7H>
 		// ref: <https://www.npmjs.com/package/output-interceptor>
+		// * "lazy" formatting for `args`
 		console.log = (...args) => {
-			testLog.push([testName, format(...args)]);
+			testLog.push([testName, () => format(...args)]);
 		};
 		console.warn = (...args) => {
-			testLog.push([testName, format(...args)]);
+			testLog.push([testName, () => format(...args)]);
 		};
 		Deno.test({
 			name: testName,
@@ -112,7 +114,9 @@ export function createTestFn(testFilePath: string) {
 				try {
 					await fn();
 				} catch (e) {
-					const logText = testLog.flatMap(([n, v]) => n === testName ? [v] : []);
+					const logText = testLog.flatMap(([n, v]) =>
+						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : []
+					);
 					if (logText.length > 0) {
 						logText.unshift(Colors.dim(`## test log:begin>`));
 						logText.push(Colors.dim(`## test log:end.`));
