@@ -7,6 +7,8 @@ const testLog: [TestName, (() => string) | string][] = [];
 
 //====
 
+// ToDO: [2021-09-16; rivy] * improved equivalency to NodeJS format/inspect string quoting requires changing the preference expressed [here](https://github.com/denoland/deno/blob/5d814a4c244d489b4ae51002a0cf1d3c2fe16058/ext/console/02_console.js#L648-L669)
+
 // ref: <https://nodejs.org/api/util.html#util_util_format_format_args>
 function toFormatReplacement(specifier: string, value: unknown): string {
 	if (specifier === '%s') {
