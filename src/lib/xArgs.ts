@@ -56,7 +56,7 @@ export { expand as braceExpand } from './xBraces.ts';
 import * as PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
 // import BracesM from 'https://jspm.dev/npm:braces@3.0.2';
 // import MicromatchM from 'https://jspm.dev/npm:micromatch@4.0.2';
-import PicomatchM from 'https://jspm.dev/npm:picomatch@2.2.2';
+import PicomatchM from 'https://jspm.dev/npm:picomatch@2.3.0';
 // const Braces = BracesM as typeof BracesT;
 // const Micromatch = MicromatchM as typeof MicromatchT;
 const Picomatch = PicomatchM as typeof PicomatchT; // noSonar ; disable "type assertion not necessary"; needed for correct typings as 'picomatch' develops
