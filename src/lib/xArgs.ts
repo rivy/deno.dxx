@@ -75,6 +75,8 @@ const Picomatch = PicomatchM as typeof PicomatchT;
 // const Micromatch = MicromatchM as typeof MicromatchT;
 // const Picomatch = PicomatchM as typeof PicomatchT; // noSonar ; disable "type assertion not necessary"; needed for correct typings as 'picomatch' develops
 
+// esm.sh (self-hosting)
+// * `go install github.com/alephjs/esm.sh` ; `esm.sh.exe --port=8080 --dev` // spell-checker:ignore (name) alephjs
 // import Braces from 'http://localhost/braces@3.0.2?bundle';
 // import Micromatch from 'http://localhost/micromatch@4.0.2?bundle';
 // import Picomatch from 'http://localhost/picomatch@2.2.2?bundle';
