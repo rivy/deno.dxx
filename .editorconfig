@@ -13,7 +13,7 @@ insert_final_newline = true
 max_line_length = 100
 trim_trailing_whitespace = true
 
-[[Mm]akefile{,.*}, *.{mk,[Mm][Kk]}]
+[{[Mm]akefile{,.*},*.{mk,[Mm][Kk]}}]
 # makefiles ~ TAB-style indentation
 indent_style = tab
 
