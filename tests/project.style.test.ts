@@ -49,6 +49,13 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectPath, projectDirs });
 
+test('style ~ `deno lint` succeeds', async () => {
+	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+	p.close();
+	assert(status.success);
+});
+
 if (haveDPrint) {
 	test('style ~ `dprint check` succeeds', async () => {
 		const p = Deno.run({
