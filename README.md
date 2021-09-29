@@ -61,14 +61,31 @@ dxi -A "https://deno.land/x/dxx@v0.0.5/src/dxr.ts"
 
 ## Development
 
-### CHANGELOG
+### Tools
 
-> #### optional
->
-> - [`git-changelog`](https://github.com/rivy-go/git-changelog) (v1.1+) ... enables changelog automation
-> - install using `go get -u github.com/rivy-go/git-changelog/cmd/git-changelog`
+- [`bmp`](https://github.com/rivy-go/git-changelog) (v1.1+) ... synchronizes version strings within the project
+  - install using `dxi --allow-read=. --allow-write=. --allow-run=git -qf https://deno.land/x/bmp@v0.0.6/cli.ts`
+- [`git-changelog`](https://github.com/rivy-go/git-changelog) (v1.1+) ... enables changelog automation
+  - install using `go get -u github.com/rivy-go/git-changelog/cmd/git-changelog`
+
+### Maintenance
+
+#### CHANGELOG
 
 `git changelog > CHANGELOG.mkd`
+
+#### Version
+
+- `bmp` ~ check project for synchronized version strings
+- `bmp --commit --[major|minor|patch]` ~ update project version strings
+
+### Version update process
+
+```shell
+bmp --[major|minor|patch]
+git changelog --next-tag v$(cat VERSION) > CHANGELOG.mkd
+bmp --commit
+```
 
 ## Testing
 
