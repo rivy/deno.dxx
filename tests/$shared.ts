@@ -100,19 +100,19 @@ function composeTestName(testFilePath: string, description: string) {
 export function createTestFn(testFilePath: string) {
 	return (description: string, fn: () => void | Promise<void>, opts = {}) => {
 		const testName: TestName = composeTestName(testFilePath, description);
-		// * capture `console.log()` and `console.warn()` messages via intercepts; display only on failure (as part of the error message)
-		// ref: <https://stackoverflow.com/questions/9216441/intercept-calls-to-console-log-in-chrome> , <https://www.bayanbennett.com/posts/how-does-mdn-intercept-console-log-devlog-003> @@ <https://archive.is/dfg7H>
-		// ref: <https://www.npmjs.com/package/output-interceptor>
-		// * "lazy" formatting for `args`
-		console.log = (...args) => {
-			testLog.push([testName, () => format(...args)]);
-		};
-		console.warn = (...args) => {
-			testLog.push([testName, () => format(...args)]);
-		};
 		Deno.test({
 			name: testName,
 			fn: async () => {
+				// * capture `console.log()` and `console.warn()` messages via intercepts; display only on failure (as part of the error message)
+				// ref: <https://stackoverflow.com/questions/9216441/intercept-calls-to-console-log-in-chrome> , <https://www.bayanbennett.com/posts/how-does-mdn-intercept-console-log-devlog-003> @@ <https://archive.is/dfg7H>
+				// ref: <https://www.npmjs.com/package/output-interceptor>
+				// * "lazy" formatting for `args`
+				console.log = (...args) => {
+					testLog.push([testName, () => format(...args)]);
+				};
+				console.warn = (...args) => {
+					testLog.push([testName, () => format(...args)]);
+				};
 				try {
 					await fn();
 				} catch (e) {
