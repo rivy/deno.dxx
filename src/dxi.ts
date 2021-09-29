@@ -7,7 +7,7 @@ import * as Spin from './lib/xWait/$mod.ts';
 import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
 
-Me.warnIfImpaired();
+// Me.warnIfImpaired(); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution from installation via `deno install ...`
 
 const isWinOS = Deno.build.os === 'windows';
 const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
