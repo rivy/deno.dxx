@@ -13,9 +13,57 @@
 
 ---
 
+## [v0.0.6](https://github.com/rivy/deno.dxx/compare/v0.0.5...v0.0.6) <small>(2021-09-29)</small>
+
+<details open><summary><small><em>[v0.0.6; details]</em></small></summary>
+
+#### Changes
+
+* add $shared module (includes values for VERSION and VERSION_PATH) &ac; [`0ea6a7d`](https://github.com/rivy/deno.dxx/commit/0ea6a7d215ad51ee4dd065db3b4a8db9f1b05ec8)
+
+#### Fixes
+
+* fix `deno lint` complaint (no-window-prefix) &ac; [`974b253`](https://github.com/rivy/deno.dxx/commit/974b253df43ffae97c7df8c4b8183321924669de)
+* fix `deno lint` complaint (no-unused-vars) &ac; [`bc3065a`](https://github.com/rivy/deno.dxx/commit/bc3065a22c2206aa2bcec0e956d6fd86053d4c3c)
+* fix version implementation (broken for network installs) &ac; [`0db32b7`](https://github.com/rivy/deno.dxx/commit/0db32b77cf926082bc95f00121224ac1c5b1edf3)
+
+#### Dependency Updates
+
+* deps ~ add/update deps &ac; [`34fcaf4`](https://github.com/rivy/deno.dxx/commit/34fcaf455bbebcf03eba758ac33fa076288c76dc)
+* deps ~ fixes `tsc` complaints about use of `Deno.permissions...` by 'tty' &ac; [`95f16dd`](https://github.com/rivy/deno.dxx/commit/95f16dd08caa8fb6ef1cfb5800352ca12e2f51e0)
+* update `picomatch` (for xArgs; fixes bracket matching) &ac; [`620ab9c`](https://github.com/rivy/deno.dxx/commit/620ab9cb503daa65452aa883d4e589ffd87d725b)
+* update deps &ac; [`d3a1375`](https://github.com/rivy/deno.dxx/commit/d3a13752def10719d7c38aea53dc336dd9ffeeed)
+* update *(tools)*: deps &ac; [`dd44f9d`](https://github.com/rivy/deno.dxx/commit/dd44f9db8281cc827a0e58cf586c604e5c5f9d6e)
+
+#### Documentation
+
+* docs ~ (README) revise '## Development' section with tools/processes &ac; [`722a22f`](https://github.com/rivy/deno.dxx/commit/722a22fd35843d13f8790e6c39b871bf880c79f7)
+* docs ~ (README) fix install reference for `dxr` &ac; [`d3f5c60`](https://github.com/rivy/deno.dxx/commit/d3f5c609d316498606ca93e234d9ad5151a7e189)
+* docs ~ (CHANGELOG) add 'deps' (category alias for 'update') &ac; [`1dce8bb`](https://github.com/rivy/deno.dxx/commit/1dce8bbb17295d82cf0b107aa0e06abecacc77cc)
+* docs ~ add ToDO for format/inspect improvements &ac; [`1bc7800`](https://github.com/rivy/deno.dxx/commit/1bc7800345decb56e4e11d109de111f89e8738da)
+* docs ~ add tests ToDO for evaluation of `zod` &ac; [`d3ad0e0`](https://github.com/rivy/deno.dxx/commit/d3ad0e0bb457c9ce9d864ee89de498c46f8ae5c2)
+* docs ~ (README) update installation URLs &ac; [`53d3ab0`](https://github.com/rivy/deno.dxx/commit/53d3ab0d64d8bfa2975fd9eba7602858866aab31)
+
+#### Maintenance
+
+* maint *(dev)*: add '.gitattributes' to force consistent EOLs cross-platform &ac; [`bc750cb`](https://github.com/rivy/deno.dxx/commit/bc750cb4a7363d8ce32d288d7b4df98b6ee05365)
+* maint *(dev)*: add `bmp` config &ac; [`b434878`](https://github.com/rivy/deno.dxx/commit/b4348785ad91900b8c05d2ad5e338b0dfe7ba4b8)
+* maint *(dev)*: tune DPrint Prettier plugin settings &ac; [`e79c57a`](https://github.com/rivy/deno.dxx/commit/e79c57a3dad472e61e67977dca92a9e4a08b1007)
+* maint *(dev)*: update EditorConfig from upstream improvements &ac; [`eddbf6d`](https://github.com/rivy/deno.dxx/commit/eddbf6d5cd43719cc34f3ddcea6df07eca218b79)
+* maint *(dev)*: improve EditorConfig match glob for Makefiles &ac; [`93e72f6`](https://github.com/rivy/deno.dxx/commit/93e72f66bd6d893db810d2a6d9bc91181f12c7c3)
+
+#### Refactoring
+
+* refactor *(polish)*: `dxf` reformatting &ac; [`d6cd6f0`](https://github.com/rivy/deno.dxx/commit/d6cd6f0369adf1cf04e9f249775f3887419d5b12)
+* refactor *(xWait)*: rename deps and base module code file paths (improves focus) &ac; [`8b37960`](https://github.com/rivy/deno.dxx/commit/8b37960736f58995bc66bd8725606d5c3cf6fd22)
+
+</details>
+
+---
+
 ## [v0.0.5](https://github.com/rivy/deno.dxx/compare/v0.0.4...v0.0.5) <small>(2021-09-11)</small>
 
-<details open><summary><small><em>[v0.0.5; details]</em></small></summary>
+<details><summary><small><em>[v0.0.5; details]</em></small></summary>
 
 #### Changes
 

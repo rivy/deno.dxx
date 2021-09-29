@@ -52,10 +52,10 @@ automatically runs `dprint fmt` if `dprint` is available and a config is found i
 
 ```shell
 # `dxi`
-deno install -A "https://deno.land/x/dxx@v0.0.5/src/dxi.ts"
+deno install -A "https://deno.land/x/dxx@v0.0.6/src/dxi.ts"
 #
-dxi -A "https://deno.land/x/dxx@v0.0.5/src/dxf.ts"
-dxi -A "https://deno.land/x/dxx@v0.0.5/src/dxr.ts"
+dxi -A "https://deno.land/x/dxx@v0.0.6/src/dxf.ts"
+dxi -A "https://deno.land/x/dxx@v0.0.6/src/dxr.ts"
 # WIP: dxi .../dxx
 ```
 

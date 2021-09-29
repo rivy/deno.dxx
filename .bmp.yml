@@ -1,4 +1,4 @@
-version: 0.0.5
+version: 0.0.6
 commit: '%.%.%'
 files:
   README.md: 'https://deno.land/x/dxx@v%.%.%'
