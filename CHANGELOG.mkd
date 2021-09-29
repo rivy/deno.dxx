@@ -13,9 +13,25 @@
 
 ---
 
+## [0.0.7](https://github.com/rivy/deno.dxx/compare/v0.0.6...0.0.7) <small>(2021-09-29)</small>
+
+<details open><summary><small><em>[0.0.7; details]</em></small></summary>
+
+#### Changes
+
+* change *(dxi)*: avoid non-essential enhanced runner needed warning &ac; [`29778e6`](https://github.com/rivy/deno.dxx/commit/29778e65ad70e184850b9f8142004376e9e0c37d)
+
+#### Refactoring
+
+* refactor ~ consolidate dependencies into $deps &ac; [`8dc1f52`](https://github.com/rivy/deno.dxx/commit/8dc1f52658583751e66978a50ead5aa623c4ca03)
+
+</details>
+
+---
+
 ## [v0.0.6](https://github.com/rivy/deno.dxx/compare/v0.0.5...v0.0.6) <small>(2021-09-29)</small>
 
-<details open><summary><small><em>[v0.0.6; details]</em></small></summary>
+<details><summary><small><em>[v0.0.6; details]</em></small></summary>
 
 #### Changes
 
