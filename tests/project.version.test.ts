@@ -1,4 +1,4 @@
-import { assertEquals, Path } from './$deps.ts';
+import { assertEquals, Colors, equal, Path } from './$deps.ts';
 import { createTestFn, projectPath } from './$shared.ts';
 
 const test = createTestFn(import.meta.url);
@@ -12,20 +12,28 @@ const projectFilePath = {
 	version: Path.join(projectPath, 'VERSION'),
 };
 
-test('version matches `git describe`', async () => {
-	const expected = Version.v();
-
+const gitDescribeVersion = await (async () => {
 	const p = Deno.run({ cmd: ['git', 'describe', '--tags'], stdout: 'piped', stderr: 'piped' });
 	const [_status, out, _err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
 	p.close();
-
 	const gitDescribeText = new TextDecoder().decode(out);
-	// console.log({ gitDescribeText });
+	return (gitDescribeText.match(/^v?((?:\d+[.])*\d+)/) || [undefined, undefined])[1];
+})();
 
-	const actual = (gitDescribeText.match(/^v?((?:\d+[.])*\d+)/) || [undefined, undefined])[1];
+if (!equal(gitDescribeVersion, Version.v())) {
+	console.warn(
+		`${
+			Colors.magenta('WARN:')
+		} \`git describe --tags\` reports the version as '${gitDescribeVersion}' instead of '${Version.v()}'.`,
+	);
+}
 
-	assertEquals(actual, expected);
-});
+// ToDO: [2021-09-28; rivy] re-activate as a test for release commits (== commits with an associated tag?)
+// test('version matches `git describe`', () => {
+// 	const expected = Version.v();
+// 	const actual = gitDescribeVersion;
+// 	assertEquals(actual, expected);
+// });
 
 test(`version matches 'VERSION' file`, () => {
 	const expected = Version.v();
