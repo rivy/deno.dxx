@@ -2,9 +2,6 @@
 
 import { Colors, Path } from './$deps.ts';
 
-type TestName = string;
-const testLog: [TestName, (() => string) | string][] = [];
-
 //====
 
 // ToDO: [2021-09-16; rivy] * improved equivalency to NodeJS format/inspect string quoting requires changing the preference expressed [here](https://github.com/denoland/deno/blob/5d814a4c244d489b4ae51002a0cf1d3c2fe16058/ext/console/02_console.js#L648-L669)
@@ -92,6 +89,9 @@ function format(...args: unknown[]) {
 }
 
 //====
+
+type TestName = string;
+const testLog: [TestName, (() => string) | string][] = [];
 
 function composeTestName(testFilePath: string, description: string) {
 	return Colors.dim(Path.parse(testFilePath).base) + ' ' + Colors.bold(description);
