@@ -130,3 +130,10 @@ export function createTestFn(testFilePath: string) {
 		});
 	};
 }
+
+//===
+
+export const isWinOS = Deno.build.os === 'windows';
+
+export const projectURL = Path.dirname(Path.dirname(import.meta.url));
+export const projectPath = Path.fromFileUrl(projectURL);
