@@ -1,5 +1,5 @@
-import { assertEquals } from './$deps.ts';
-import { createTestFn } from './$shared.ts';
+import { assertEquals, Path } from './$deps.ts';
+import { createTestFn, projectPath } from './$shared.ts';
 
 const test = createTestFn(import.meta.url);
 
@@ -7,7 +7,10 @@ import * as Version from '../src/lib/version.ts';
 
 const newlines = /\r?\n|\n/g;
 
-const projectPaths = { readme: 'README.md', version: 'VERSION' };
+const projectFilePath = {
+	readme: Path.join(projectPath, 'README.md'),
+	version: Path.join(projectPath, 'VERSION'),
+};
 
 test('version matches `git describe`', async () => {
 	const expected = Version.v();
@@ -24,19 +27,23 @@ test('version matches `git describe`', async () => {
 	assertEquals(actual, expected);
 });
 
-test('version matches VERSION file', () => {
+test(`version matches 'VERSION' file`, () => {
 	const expected = Version.v();
-	const actual = Deno.readTextFileSync(projectPaths.version).replace(newlines, '');
+	const actual = Deno.readTextFileSync(projectFilePath.version).replace(newlines, '');
 	assertEquals(actual, expected);
 });
 
-const readmeText = Deno.readTextFileSync(projectPaths.readme);
+const readmeText = Deno.readTextFileSync(projectFilePath.readme);
 // const URLrx = /(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)/i;
 const URLre = new RegExp('https?://deno.land/x/dxx@v?((?:\\d+[.])*\\d+)(?=/)', 'gim');
 const readmeURLs = Array.from(readmeText.matchAll(URLre));
 
-test(`README ~ VERSION matches versioned URLs (${readmeURLs?.length || 'NONE'} found)`, () => {
-	const expected = Version.v();
-	console.log({ URLs: readmeURLs.flatMap((v) => [{ match: v[0], index: v.index }]) });
-	readmeURLs?.forEach((v) => assertEquals(v[1], expected));
-}, { ignore: (readmeURLs?.length || 0) < 1 });
+test(
+	`README ~ 'VERSION' file matches versioned URLs (${readmeURLs?.length || 'NONE'} found)`,
+	() => {
+		const expected = Version.v();
+		console.log({ URLs: readmeURLs.flatMap((v) => [{ match: v[0], index: v.index }]) });
+		readmeURLs?.forEach((v) => assertEquals(v[1], expected));
+	},
+	{ ignore: (readmeURLs?.length || 0) < 1 },
+);
