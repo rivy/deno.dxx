@@ -26,7 +26,7 @@ const projectFiles = projectPaths.filter((path) => Deno.lstatSync(path).isFile);
 const projectNonBinaryFiles = projectFiles.filter((file) =>
 	!Path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : ''))
 );
-const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
+// const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
 
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectDirs });
