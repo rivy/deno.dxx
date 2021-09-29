@@ -1,7 +1,8 @@
-import { assertEquals, Colors, equal, Path } from './$deps.ts';
-import { createTestFn, projectPath } from './$shared.ts';
+import { assertEquals, equal, Path } from './$deps.ts';
+import { createTestFn, createWarnFn, projectPath } from './$shared.ts';
 
 const test = createTestFn(import.meta.url);
+const warn = createWarnFn(import.meta.url);
 
 import * as Version from '../src/lib/version.ts';
 
@@ -21,10 +22,8 @@ const gitDescribeVersion = await (async () => {
 })();
 
 if (!equal(gitDescribeVersion, Version.v())) {
-	console.warn(
-		`${
-			Colors.magenta('WARN:')
-		} \`git describe --tags\` reports the version as '${gitDescribeVersion}' instead of '${Version.v()}'.`,
+	warn(
+		`\`git describe --tags\` reports the version as '${gitDescribeVersion}' instead of '${Version.v()}'.`,
 	);
 }
 

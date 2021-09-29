@@ -97,9 +97,10 @@ function composeTestName(testFilePath: string, description: string) {
 	return Colors.dim(Path.parse(testFilePath).base) + ' ' + Colors.bold(description);
 }
 
-export function createTestFn(testFilePath: string) {
-	return (description: string, fn: () => void | Promise<void>, opts = {}) => {
-		const testName: TestName = composeTestName(testFilePath, description);
+export function createTestFn(testFilePath: URL | string) {
+	const path = (testFilePath instanceof URL) ? testFilePath.pathname : testFilePath;
+	function test(description: string, fn: () => void | Promise<void>, opts = {}) {
+		const testName: TestName = composeTestName(path, description);
 		Deno.test({
 			name: testName,
 			fn: async () => {
@@ -128,12 +129,68 @@ export function createTestFn(testFilePath: string) {
 			},
 			...opts,
 		});
-	};
+	}
+	return test;
 }
 
 //===
 
+export const isCI = Deno.env.get('CI');
+export const isGHA = Deno.env.get('GITHUB_ACTIONS'); // ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
 export const isWinOS = Deno.build.os === 'windows';
 
-export const projectURL = Path.dirname(Path.dirname(import.meta.url));
+export const projectURL = new URL('..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath = Path.fromFileUrl(projectURL);
+
+//===
+
+function _isValidURL(s: string) {
+	try {
+		const _ = new URL(s, projectURL);
+	} catch (_e) {
+		return false;
+	}
+	return true;
+}
+
+function _toURL(s?: string, base: URL = projectURL) {
+	if (!s) return undefined;
+	try {
+		return new URL(s, base);
+	} catch (_e) {
+		return undefined;
+	}
+}
+
+export function relativePath(s: string | URL, base: string | URL = projectURL) {
+	const url = (s instanceof URL) ? s : new URL(s, projectURL);
+	const baseURL = (base instanceof URL) ? base : new URL(base, projectURL);
+	const equalOrigin =
+		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0);
+	// console.warn({ s, url, base, equalOrigin });
+	if (equalOrigin) {
+		return Path.relative(baseURL.pathname, url.pathname);
+	} else {
+		try {
+			return Path.fromFileUrl(url);
+		} catch (_e) {
+			return url.href;
+		}
+	}
+}
+
+export function createWarnFn(testFilePath?: URL | string) {
+	const path = testFilePath ? relativePath(testFilePath) : undefined;
+	const base = path ? Path.parse(path).base : undefined;
+	// console.warn({ projectPath, testFilePath, path, base });
+	function warn(...args: unknown[]) {
+		//# * for GHA CI, convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
+		const s = format(...args);
+		if (isCI && isGHA) {
+			console.log(Colors.stripColor(`::warning ::${base ? (base + ': ') : ''}${s}`));
+		} else console.warn(Colors.dim(base || '*'), Colors.yellow('Warning:'), s);
+	}
+	return warn;
+}
+
+export const warn = createWarnFn();

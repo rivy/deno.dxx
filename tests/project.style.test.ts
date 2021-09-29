@@ -47,7 +47,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 // const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
 
 // console.warn({ projectFiles, projectDirs });
-// console.warn({ projectDirs });
+// console.warn({ projectPath, projectDirs });
 
 if (haveDPrint) {
 	test('style ~ `dprint check` succeeds', async () => {
