@@ -23,6 +23,7 @@
 	},
 	"json": { "preferSingleLine": true },
 	"markdown": { "textWrap": "always", "lineWidth": 99999 },
+	"prettier": { "printWidth": 100, "singleQuote": true, "tabWidth": 2 },
 	"rustfmt": {},
 	"includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,rs,yaml,yml}"],
 	"excludes": [
