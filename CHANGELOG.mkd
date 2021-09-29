@@ -13,9 +13,21 @@
 
 ---
 
-## [0.0.7](https://github.com/rivy/deno.dxx/compare/v0.0.6...0.0.7) <small>(2021-09-29)</small>
+## [v0.0.8](https://github.com/rivy/deno.dxx/compare/v0.0.7...v0.0.8) <small>(2021-09-29)</small>
 
-<details open><summary><small><em>[0.0.7; details]</em></small></summary>
+<details open><summary><small><em>[v0.0.8; details]</em></small></summary>
+
+#### Fixes
+
+* fix TextEncoder/Decoder dependency definitions &ac; [`688a13e`](https://github.com/rivy/deno.dxx/commit/688a13ef092d945b25c0c5c8876c028f91c95e61)
+
+</details>
+
+---
+
+## [v0.0.7](https://github.com/rivy/deno.dxx/compare/v0.0.6...v0.0.7) <small>(2021-09-29)</small>
+
+<details><summary><small><em>[v0.0.7; details]</em></small></summary>
 
 #### Changes
 
