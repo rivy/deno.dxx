@@ -36,6 +36,7 @@ options:
       build: maint
       changed: change
       chore: maint
+      deps: update
       fixed: fix
       fixes: fix
       updated: update
