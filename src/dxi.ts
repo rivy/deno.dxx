@@ -1,6 +1,6 @@
 // spell-checker:ignore (vars) arr gmsu ; (text) positionals
 
-import { Path, Yargs } from './lib/$deps.ts';
+import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
 
 import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Spin from './lib/xWait/$mod.ts';
@@ -11,9 +11,6 @@ import * as Me from './lib/xProcess.ts';
 
 const isWinOS = Deno.build.os === 'windows';
 const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
-
-// lodash
-import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
 const version = Version.v();
 const runAsName = Me.runAs;
