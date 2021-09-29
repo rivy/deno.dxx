@@ -5,6 +5,24 @@ const test = createTestFn(import.meta.url);
 
 import { args } from '../src/lib/xArgs.ts';
 
+const haveDPrint = await (async () => {
+	var process = null;
+	try {
+		process = Deno.run({
+			cmd: ['dprint', '--version'],
+			cwd: projectPath,
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'null',
+		});
+	} catch (_) {
+		// continue regardless of error
+	}
+	const success = process ? (await process.status()).success : false;
+	if (process) process.close();
+	return success;
+})();
+
 const excludeDirsRxs = ['[_.#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
 const _crlfFilesRxs = '[.](bat|cmd)';
@@ -31,13 +49,19 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectDirs });
 
-test('style ~ `dprint check` succeeds', async () => {
-	const p = Deno.run({ cmd: ['dprint', 'check'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
-	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-	p.close();
-
-	assert(status.success);
-});
+if (haveDPrint) {
+	test('style ~ `dprint check` succeeds', async () => {
+		const p = Deno.run({
+			cmd: ['dprint', 'check'],
+			stdin: 'null',
+			stdout: 'piped',
+			stderr: 'piped',
+		});
+		const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+		p.close();
+		assert(status.success);
+	});
+}
 
 test(`style ~ non-binary project files exist (${projectNonBinaryFiles.length} found)`, () => {
 	assert(projectNonBinaryFiles.length > 0);
