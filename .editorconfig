@@ -1,4 +1,5 @@
 # EditorConfig (is awesome): http://EditorConfig.org
+# v2021.09.26; rivy
 
 # * top-most EditorConfig file
 root = true
@@ -21,19 +22,24 @@ indent_style = tab
 # BAT/CMD ~ DOS/Win requires BAT/CMD files to have CRLF EOLNs
 end_of_line = crlf
 
-[*.go]
-# go ~ TAB-style indentation (SPACE-style alignment); ref: <https://blog.golang.org/gofmt>@@<https://archive.is/wip/9B6FC>
-indent_style = tab
-
 [*.{cjs,js,json,mjs,ts}]
 # js/ts ~ Prettier/XO-style == TAB indention + SPACE alignment
 indent_size = 2
+indent_style = tab
+
+[*.go]
+# go ~ TAB-style indentation (SPACE-style alignment); ref: <https://blog.golang.org/gofmt>@@<https://archive.is/wip/9B6FC>
 indent_style = tab
 
 [*.{markdown,md,mkd,[Mm][Dd],[Mm][Kk][Dd],[Mm][Dd][Oo][Ww][Nn],[Mm][Kk][Dd][Oo][Ww][Nn],[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn]}]
 # markdown
 indent_size = 2
 indent_style = space
+
+[*.{sln,vc{,x}proj{,.*},[Ss][Ln][Nn],[Vv][Cc]{,[Xx]}[Pp][Rr][Oo][Jj]{,.*}}]
+# MSVC sln/vcproj/vcxproj files, when used, will persistantly revert to CRLF EOLNs and eat final EOLs
+end_of_line = crlf
+insert_final_newline = false
 
 [*.{yaml,yml,[Yy][Mm][Ll],[Yy][Aa][Mm][Ll]}]
 # YAML
