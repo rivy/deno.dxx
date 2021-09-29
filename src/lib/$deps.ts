@@ -12,7 +12,7 @@ export const fs = { exists, existsSync, expandGlob, expandGlobSync, walk, walkSy
 export const decode = new TextDecoder().decode;
 export const encode = new TextEncoder().encode;
 
-export * as tty from 'https://deno.land/x/tty@0.1.4/mod.ts';
-
+export { fetch } from 'https://deno.land/x/file_fetch@0.2.0/mod.ts';
 export { default as OSPaths } from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
+export * as tty from 'https://deno.land/x/tty@0.1.4/mod.ts';
 export { default as Yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
