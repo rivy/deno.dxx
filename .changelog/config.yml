@@ -39,6 +39,7 @@ options:
       deps: update
       fixed: fix
       fixes: fix
+      tests: test
       updated: update
       upkeep: maint
   commit_groups:
