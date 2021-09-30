@@ -2,9 +2,55 @@
 // spell-checker:ignore (utils) dprint git
 
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
-import { haveCSpell, haveDPrint, isWinOS, projectPath, test } from './$shared.ts';
+import {
+	decode,
+	haveCSpell,
+	haveDPrint,
+	haveGit,
+	isWinOS,
+	projectLocations,
+	projectPath,
+	test,
+} from './$shared.ts';
 
 const args = $args.argsSync;
+
+import * as EditorConfig from 'https://cdn.esm.sh/editorconfig@0.15.3?target=deno';
+
+const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
+
+function xSplit(s: string, sep: RegExp | string, options?: { trailing: boolean }) {
+	const opts = { trailing: false, ...options };
+	const r = s.split(sep);
+	if (!opts.trailing && (r[r.length - 1] === '')) r.pop();
+	return r;
+}
+
+const _gitLsFiles = (await haveGit())
+	? () => {
+		try {
+			const p = Deno.run({
+				cmd: ['git', 'ls-files', '--eol', '--full-name', projectPath],
+				stdout: 'piped',
+				stderr: 'piped',
+			});
+			return Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.then(([_status, out, _err]) => {
+					return decode(out);
+				})
+				.finally(() => p.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	}
+	: () => Promise.resolve(undefined);
+
+const _gitFiles = xSplit((await _gitLsFiles()) || '', /r?\n|\r/);
+// console.warn({ gitFiles });
+
+const _ec = EditorConfig.parseString(Deno.readTextFileSync(projectLocations.editorconfig));
+// console.warn({ ec });
 
 const excludeDirsRxs = ['[._@#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
@@ -13,7 +59,9 @@ const _tabbedFilesRxs = '[.](bat|cmd)';
 
 // ToDO: instead, use `git ls -r` for project files
 
-const projectPaths = args($path.join(projectPath, `!(${excludeDirsRxs.join('|')}){*,*/**/*}`))
+const projectPotentialPaths = args(
+	$path.join(projectPath, `!(${excludeDirsRxs.join('|')}){*,*/**/*}`),
+)
 	.filter((path) =>
 		!$path.relative(projectPath, path).match(
 			new RegExp(
@@ -23,7 +71,7 @@ const projectPaths = args($path.join(projectPath, `!(${excludeDirsRxs.join('|')}
 		)
 	);
 
-const projectFiles = projectPaths.filter((path) => Deno.lstatSync(path).isFile);
+const projectFiles = projectPotentialPaths.filter((path) => Deno.lstatSync(path).isFile);
 const projectNonBinaryFiles = projectFiles.filter((file) =>
 	!$path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : ''))
 );
