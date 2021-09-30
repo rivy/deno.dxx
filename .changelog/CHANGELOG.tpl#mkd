@@ -1,4 +1,4 @@
-{{- /* <-- dprint-ignore-file --><!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --> */ -}}
+{{- /* <!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --> */ -}}
 
 {{- define "format-commit" -}}
 * {{ if .Scope }}{{ .Type | smartLowerFirstWord }} *({{ .Scope }})*: {{ .Subject | smartLowerFirstWord }}{{ else }}{{ .Header | smartLowerFirstWord }}{{ end }} &ac; [`{{ .Hash.Short }}`]({{ commitURL .Hash.Long }})
@@ -10,7 +10,7 @@
 {{ range .Commits }}{{ template "format-commit" . -}}{{ end -}}
 {{ end -}}
 
-<!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --><!-- spellchecker:disable -->
+<!-- deno-fmt-ignore-file --><!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --><!-- spellchecker:disable -->
 
 # CHANGELOG <br/> [{{ $.Info.Title }}]({{ $.Info.RepositoryURL }})
 

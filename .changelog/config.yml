@@ -3,7 +3,7 @@ info:
   title: dxx
   repository_url: https://github.com/rivy/deno.dxx
 style: github
-template: CHANGELOG.tpl.mkd
+template: CHANGELOG.tpl#mkd
 options:
   commits:
     filters:
