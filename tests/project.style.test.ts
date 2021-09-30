@@ -88,7 +88,7 @@ test('style ~ non-binary project files do not contain leading utf-8 BOM', () => 
 	assertEquals({ flawedFiles: 0 }, { flawedFiles: flawedFiles.length });
 });
 
-test('style ~ non-binary project files end with a newline', () => {
+test('style ~ non-binary project files (when non-empty) end with a newline', () => {
 	const flawedFiles = projectNonBinaryFiles.filter((file) => {
 		const content = Deno.readTextFileSync(file);
 		return (content.length > 0 && (!content.slice(-1).match(/\r|\n/ms)));
