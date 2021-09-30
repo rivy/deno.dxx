@@ -27,12 +27,21 @@ if (!equal(gitDescribeVersion, Version.v())) {
 	);
 }
 
-// ToDO: [2021-09-28; rivy] re-activate as a test for release commits (== commits with an associated tag?)
-// test('version matches `git describe`', () => {
-// 	const expected = Version.v();
-// 	const actual = gitDescribeVersion;
-// 	assertEquals(actual, expected);
-// });
+// for commits tagged as releases, test for equivalence between project version and `git describe`
+// * check `GITHUB_REF` for a value such as 'refs/tags/<TAG_STRING>'
+// * ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
+{
+	const githubRef = Deno.env.get('GITHUB_REF') || '';
+	const isVersionTaggedCommit = githubRef.match(/v?(?:\d+[.])*\d+$/);
+	if (isVersionTaggedCommit) {
+		// testing a version tagged commit
+		test('version matches `git describe --tags`', () => {
+			const expected = Version.v();
+			const actual = gitDescribeVersion;
+			assertEquals(actual, expected);
+		});
+	}
+}
 
 test(`version matches 'VERSION' file`, () => {
 	const expected = Version.v();
