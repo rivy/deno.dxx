@@ -1,5 +1,5 @@
-import { assertEquals, equal, Path } from './$deps.ts';
-import { createTestFn, createWarnFn, projectPath } from './$shared.ts';
+import { assertEquals, decode, equal, Path } from './$deps.ts';
+import { createTestFn, createWarnFn, haveGit, projectPath } from './$shared.ts';
 
 const test = createTestFn(import.meta.url);
 const warn = createWarnFn(import.meta.url);
@@ -13,17 +13,28 @@ const projectFilePath = {
 	version: Path.join(projectPath, 'VERSION'),
 };
 
-const gitDescribeVersion = await (async () => {
-	const p = Deno.run({ cmd: ['git', 'describe', '--tags'], stdout: 'piped', stderr: 'piped' });
-	const [_status, out, _err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-	p.close();
-	const gitDescribeText = new TextDecoder().decode(out);
-	return (gitDescribeText.match(/^v?((?:\d+[.])*\d+)/) || [undefined, undefined])[1];
-})();
+const gitDescribe = (await haveGit())
+	? () => {
+		try {
+			const p = Deno.run({ cmd: ['git', 'describe', '--tags'], stdout: 'piped', stderr: 'piped' });
+			return Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.then(([_status, out, _err]) => {
+					return decode(out);
+				})
+				.finally(() => p.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	}
+	: () => Promise.resolve(undefined);
 
-if (!equal(gitDescribeVersion, Version.v())) {
+const gitDescribeVersion = async () =>
+	((await gitDescribe())?.match(/^v?((?:\d+[.])*\d+)/) || [])[1];
+
+if ((await haveGit()) && !equal(await gitDescribeVersion(), Version.v())) {
 	warn(
-		`\`git describe --tags\` reports the version as '${gitDescribeVersion}' instead of '${Version.v()}'.`,
+		`\`git describe --tags\` reports the version as '${await gitDescribeVersion()}' instead of '${Version.v()}'.`,
 	);
 }
 
@@ -34,10 +45,11 @@ if (!equal(gitDescribeVersion, Version.v())) {
 	const githubRef = Deno.env.get('GITHUB_REF') || '';
 	const isVersionTaggedCommit = githubRef.match(/v?(?:\d+[.])*\d+$/);
 	if (isVersionTaggedCommit) {
+		// const text = await gitDescribeVersion;
 		// testing a version tagged commit
-		test('version matches `git describe --tags`', () => {
+		test('version matches `git describe --tags`', async () => {
 			const expected = Version.v();
-			const actual = gitDescribeVersion;
+			const actual = await gitDescribeVersion();
 			assertEquals(actual, expected);
 		});
 	}

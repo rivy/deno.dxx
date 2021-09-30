@@ -1,27 +1,9 @@
 import { assert, assertEquals, equal, Path } from './$deps.ts';
-import { createTestFn, isWinOS, projectPath } from './$shared.ts';
+import { createTestFn, haveDPrint, isWinOS, projectPath } from './$shared.ts';
 
 const test = createTestFn(import.meta.url);
 
 import { args } from '../src/lib/xArgs.ts';
-
-const haveDPrint = await (async () => {
-	var process = null;
-	try {
-		process = Deno.run({
-			cmd: ['dprint', '--version'],
-			cwd: projectPath,
-			stdin: 'null',
-			stderr: 'null',
-			stdout: 'null',
-		});
-	} catch (_) {
-		// continue regardless of error
-	}
-	const success = process ? (await process.status()).success : false;
-	if (process) process.close();
-	return success;
-})();
 
 const excludeDirsRxs = ['[_.#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
@@ -51,12 +33,13 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 
 test('style ~ `deno lint` succeeds', async () => {
 	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
-	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-	p.close();
+	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
+		p.close()
+	);
 	assert(status.success);
 });
 
-if (haveDPrint) {
+if (await haveDPrint()) {
 	test('style ~ `dprint check` succeeds', async () => {
 		const p = Deno.run({
 			cmd: ['dprint', 'check'],
@@ -64,8 +47,9 @@ if (haveDPrint) {
 			stdout: 'piped',
 			stderr: 'piped',
 		});
-		const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-		p.close();
+		const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
+			p.close()
+		);
 		assert(status.success);
 	});
 }

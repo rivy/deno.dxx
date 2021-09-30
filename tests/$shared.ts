@@ -194,3 +194,35 @@ export function createWarnFn(testFilePath?: URL | string) {
 }
 
 export const warn = createWarnFn();
+
+//===
+
+export const haveDPrint = () => {
+	try {
+		const process = Deno.run({
+			cmd: ['dprint', '--version'],
+			cwd: projectPath,
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'null',
+		});
+		return (process.status()).then((status) => status.success).finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(false);
+	}
+};
+
+export const haveGit = () => {
+	try {
+		const process = Deno.run({
+			cmd: ['git', '--version'],
+			cwd: projectPath,
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'null',
+		});
+		return (process.status()).then((status) => status.success).finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(false);
+	}
+};
