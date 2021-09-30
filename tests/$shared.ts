@@ -9,8 +9,9 @@ import { Colors, Path } from './$deps.ts';
 // ref: <https://nodejs.org/api/util.html#util_util_format_format_args>
 function toFormatReplacement(specifier: string, value: unknown): string {
 	if (specifier === '%s') {
-		if (typeof value === 'string' || value instanceof String) return value as string;
-		else return Deno.inspect(value, { depth: 2 });
+		if (typeof value === 'string' || value instanceof String) {
+			return value as string;
+		} else return Deno.inspect(value, { depth: 2 });
 	}
 	if (specifier === '%d') {
 		if (typeof value === 'bigint') {
@@ -33,8 +34,9 @@ function toFormatReplacement(specifier: string, value: unknown): string {
 		} catch (e) {
 			// nodeJS => 'cyclic object value' , deno => 'Converting circular structure to JSON ...'
 			// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
-			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) return '[Circular]';
-			else throw e;
+			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) {
+				return '[Circular]';
+			} else throw e;
 		}
 	}
 	if (specifier === '%o') {

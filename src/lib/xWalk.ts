@@ -78,7 +78,6 @@ export interface WalkEntry extends Deno.DirEntry {
  * - match?: RegExp[];
  * - skip?: RegExp[];
  *
- *
  *       for await (const entry of walk(".")) {
  *         console.log(entry.path);
  *         assert(entry.isFile);
