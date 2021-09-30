@@ -1,4 +1,4 @@
-<!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --><!-- spellchecker:disable -->
+<!-- deno-fmt-ignore-file --><!-- markdownlint-disable --><!-- spellchecker:ignore markdownlint --><!-- spellchecker:disable -->
 
 # CHANGELOG <br/> [dxx](https://github.com/rivy/deno.dxx)
 
@@ -54,8 +54,23 @@
 
 #### Changes
 
-* add $shared module (includes values for VERSION and VERSION_PATH) &ac; [`0ea6a7d`](https://github.com/rivy/deno.dxx/commit/0ea6a7d215ad51ee4dd065db3b4a8db9f1b05ec8)
 * change *(dxi)*: avoid non-essential enhanced runner needed warning &ac; [`29778e6`](https://github.com/rivy/deno.dxx/commit/29778e65ad70e184850b9f8142004376e9e0c37d)
+
+#### Refactoring
+
+* refactor ~ consolidate dependencies into $deps &ac; [`8dc1f52`](https://github.com/rivy/deno.dxx/commit/8dc1f52658583751e66978a50ead5aa623c4ca03)
+
+</details>
+
+---
+
+## [v0.0.6](https://github.com/rivy/deno.dxx/compare/v0.0.5...v0.0.6) <small>(2021-09-29)</small>
+
+<details><summary><small><em>[v0.0.6; details]</em></small></summary>
+
+#### Changes
+
+* add $shared module (includes values for VERSION and VERSION_PATH) &ac; [`0ea6a7d`](https://github.com/rivy/deno.dxx/commit/0ea6a7d215ad51ee4dd065db3b4a8db9f1b05ec8)
 
 #### Fixes
 
@@ -68,6 +83,8 @@
 * deps ~ add/update deps &ac; [`34fcaf4`](https://github.com/rivy/deno.dxx/commit/34fcaf455bbebcf03eba758ac33fa076288c76dc)
 * deps ~ fixes `tsc` complaints about use of `Deno.permissions...` by 'tty' &ac; [`95f16dd`](https://github.com/rivy/deno.dxx/commit/95f16dd08caa8fb6ef1cfb5800352ca12e2f51e0)
 * update `picomatch` (for xArgs; fixes bracket matching) &ac; [`620ab9c`](https://github.com/rivy/deno.dxx/commit/620ab9cb503daa65452aa883d4e589ffd87d725b)
+* update deps &ac; [`d3a1375`](https://github.com/rivy/deno.dxx/commit/d3a13752def10719d7c38aea53dc336dd9ffeeed)
+* update *(tools)*: deps &ac; [`dd44f9d`](https://github.com/rivy/deno.dxx/commit/dd44f9db8281cc827a0e58cf586c604e5c5f9d6e)
 
 #### Documentation
 
@@ -75,6 +92,8 @@
 * docs ~ (README) fix install reference for `dxr` &ac; [`d3f5c60`](https://github.com/rivy/deno.dxx/commit/d3f5c609d316498606ca93e234d9ad5151a7e189)
 * docs ~ (CHANGELOG) add 'deps' (category alias for 'update') &ac; [`1dce8bb`](https://github.com/rivy/deno.dxx/commit/1dce8bbb17295d82cf0b107aa0e06abecacc77cc)
 * docs ~ add ToDO for format/inspect improvements &ac; [`1bc7800`](https://github.com/rivy/deno.dxx/commit/1bc7800345decb56e4e11d109de111f89e8738da)
+* docs ~ add tests ToDO for evaluation of `zod` &ac; [`d3ad0e0`](https://github.com/rivy/deno.dxx/commit/d3ad0e0bb457c9ce9d864ee89de498c46f8ae5c2)
+* docs ~ (README) update installation URLs &ac; [`53d3ab0`](https://github.com/rivy/deno.dxx/commit/53d3ab0d64d8bfa2975fd9eba7602858866aab31)
 
 #### Maintenance
 
@@ -86,67 +105,28 @@
 
 #### Refactoring
 
-* refactor ~ consolidate dependencies into $deps &ac; [`8dc1f52`](https://github.com/rivy/deno.dxx/commit/8dc1f52658583751e66978a50ead5aa623c4ca03)
 * refactor *(polish)*: `dxf` reformatting &ac; [`d6cd6f0`](https://github.com/rivy/deno.dxx/commit/d6cd6f0369adf1cf04e9f249775f3887419d5b12)
-
-#### Test Improvements
-
-* tests ~ gate `dprint check` style test to `dprint` availability &ac; [`2d780d3`](https://github.com/rivy/deno.dxx/commit/2d780d3eca7e069007f6e0a2f8a9c7358d0c3855)
-* tests ~ refactor VERSION comparison to `git describe` as a visual warning &ac; [`9cee500`](https://github.com/rivy/deno.dxx/commit/9cee500654d6e556bbdf9d4666c493f7cc149f51)
-* tests ~ add project style tests &ac; [`a6c5a43`](https://github.com/rivy/deno.dxx/commit/a6c5a43a6b8beb35ea8aefdae71fc8c7b99c4ba3)
-* tests ~ add OS-type and project path shared vars &ac; [`fdd96d4`](https://github.com/rivy/deno.dxx/commit/fdd96d4db1711e6f87b2e94b25d038121df1fcf3)
-* tests ~ refactor code layout (improves code readability) &ac; [`700e497`](https://github.com/rivy/deno.dxx/commit/700e49748abdc4efe792146a3e2c916d272c566e)
-* tests ~ fix log-on-error implementation &ac; [`e5488e9`](https://github.com/rivy/deno.dxx/commit/e5488e9e139a138975371527215f05b53a095cb9)
-* test *(deps)*: add 'equal' from std::assert &ac; [`980d0f0`](https://github.com/rivy/deno.dxx/commit/980d0f059c9c5d41663bafd1b305f0021ed6236a)
-* test *(refactor)*: revise version testing (improves test grouping) &ac; [`33fb179`](https://github.com/rivy/deno.dxx/commit/33fb1797f3331812e44e1f0dfc6a793b5ca29378)
-* test *(refactor)*: add support for lazy test log formatting &ac; [`fb0ecdf`](https://github.com/rivy/deno.dxx/commit/fb0ecdf3344da2b58c8290febe1093834537bf65)
-* test *(refactor)*: improve log text formatting implementation &ac; [`a4ca943`](https://github.com/rivy/deno.dxx/commit/a4ca943c11724fd4310380bda95e415f75d691d4)
-* test *(refactor)*: improve naming for test function creation &ac; [`94cc888`](https://github.com/rivy/deno.dxx/commit/94cc8881819efecb55724e9913d6554a10904427)
-* test *(refactor)*: consolidate project path references &ac; [`9a24484`](https://github.com/rivy/deno.dxx/commit/9a24484a4ae88f1d499075ffb7f1324ed24aa330)
-
-</details>
-
----
-
-## [v0.0.6](https://github.com/rivy/deno.dxx/compare/v0.0.5...v0.0.6) <small>(2021-09-28)</small>
-
-<details><summary><small><em>[v0.0.6; details]</em></small></summary>
-
-#### Dependency Updates
-
-* update `picomatch` (for xArgs; fixes bracket matching) &ac; [`840c808`](https://github.com/rivy/deno.dxx/commit/840c808f8495afeaf76cea5a954aeefb119e7724)
-* update deps &ac; [`d3a1375`](https://github.com/rivy/deno.dxx/commit/d3a13752def10719d7c38aea53dc336dd9ffeeed)
-* update *(tools)*: deps &ac; [`dd44f9d`](https://github.com/rivy/deno.dxx/commit/dd44f9db8281cc827a0e58cf586c604e5c5f9d6e)
-
-#### Documentation
-
-* docs ~ add ToDO for format/inspect improvements &ac; [`1ab88c5`](https://github.com/rivy/deno.dxx/commit/1ab88c56c6f0391df1d50095f30dd0fda98926ff)
-* docs ~ add tests ToDO for evaluation of `zod` &ac; [`d3ad0e0`](https://github.com/rivy/deno.dxx/commit/d3ad0e0bb457c9ce9d864ee89de498c46f8ae5c2)
-* docs ~ (README) update installation URLs &ac; [`53d3ab0`](https://github.com/rivy/deno.dxx/commit/53d3ab0d64d8bfa2975fd9eba7602858866aab31)
-* docs *(wip)*: improve esm.sh self-hosting docs &ac; [`0a338c4`](https://github.com/rivy/deno.dxx/commit/0a338c4160625abdbc25d5c75b3db019e364dc97)
-
-#### Maintenance
-
-* maint *(dev)*: improve EditorConfig match glob for Makefiles &ac; [`9268f7f`](https://github.com/rivy/deno.dxx/commit/9268f7f938df7d1488236b6d17ee66b226c94be8)
-
-#### Refactoring
-
 * refactor *(xWait)*: rename deps and base module code file paths (improves focus) &ac; [`8b37960`](https://github.com/rivy/deno.dxx/commit/8b37960736f58995bc66bd8725606d5c3cf6fd22)
 
 #### Test Improvements
 
 * tests ~ refactor test file naming schema &ac; [`50512ff`](https://github.com/rivy/deno.dxx/commit/50512ff78bab3036ebb87ea01f3d1057260f5996)
-* tests ~ add color, log-on-error, and advanced Deno.test option support &ac; [`ca023ee`](https://github.com/rivy/deno.dxx/commit/ca023ee039b05d3ff94f002d9d3c756fb237303a)
-* tests ~ update deps &ac; [`713d28a`](https://github.com/rivy/deno.dxx/commit/713d28add9521365332c9bc3ea06c988459d6b80)
+* tests ~ refactor VERSION comparison to `git describe` as a visual warning &ac; [`9cee500`](https://github.com/rivy/deno.dxx/commit/9cee500654d6e556bbdf9d4666c493f7cc149f51)
 * tests ~ add README URL version testing &ac; [`04f02a4`](https://github.com/rivy/deno.dxx/commit/04f02a4d19a89d17e009466d832cd6f1a33db7ff)
+* tests ~ add project style tests &ac; [`a6c5a43`](https://github.com/rivy/deno.dxx/commit/a6c5a43a6b8beb35ea8aefdae71fc8c7b99c4ba3)
+* tests ~ add OS-type and project path shared vars &ac; [`fdd96d4`](https://github.com/rivy/deno.dxx/commit/fdd96d4db1711e6f87b2e94b25d038121df1fcf3)
+* tests ~ refactor code layout (improves code readability) &ac; [`700e497`](https://github.com/rivy/deno.dxx/commit/700e49748abdc4efe792146a3e2c916d272c566e)
+* tests ~ update deps &ac; [`713d28a`](https://github.com/rivy/deno.dxx/commit/713d28add9521365332c9bc3ea06c988459d6b80)
+* tests ~ fix log-on-error implementation &ac; [`e5488e9`](https://github.com/rivy/deno.dxx/commit/e5488e9e139a138975371527215f05b53a095cb9)
+* tests ~ gate `dprint check` style test to `dprint` availability &ac; [`2d780d3`](https://github.com/rivy/deno.dxx/commit/2d780d3eca7e069007f6e0a2f8a9c7358d0c3855)
+* tests ~ add color, log-on-error, and advanced Deno.test option support &ac; [`ca023ee`](https://github.com/rivy/deno.dxx/commit/ca023ee039b05d3ff94f002d9d3c756fb237303a)
 * tests ~ refactor deps and shared code file paths (improves focus) &ac; [`5f92e47`](https://github.com/rivy/deno.dxx/commit/5f92e4753a46cbecbf74dc5ef11edfc9d46110d4)
-* test *(refactor)*: consolidate project path references &ac; [`ed38e61`](https://github.com/rivy/deno.dxx/commit/ed38e613139fb03051569799882066645447c82b)
-* test *(refactor)*: add support for lazy test log formatting &ac; [`5130da1`](https://github.com/rivy/deno.dxx/commit/5130da1f483f1d8950bef1298646a6ac37e0cd74)
-* test *(refactor)*: improve log text formatting implementation &ac; [`263d4f7`](https://github.com/rivy/deno.dxx/commit/263d4f77a1711332aeb3cd20bf50a273b90bc7c5)
-* test *(refactor)*: improve naming for test function creation &ac; [`3be6112`](https://github.com/rivy/deno.dxx/commit/3be61125dfb49ce0f3f58b274ce2de2bd9b1209d)
-* test *(wip)*: refactor `haveGit` processing &ac; [`cf3dc47`](https://github.com/rivy/deno.dxx/commit/cf3dc47d044143f01eca9f1060a1acd71bde9f8d)
-* test *(wip)*: style tests using git editorconfig etc &ac; [`368b588`](https://github.com/rivy/deno.dxx/commit/368b588506f4afc4a72a5671a2b2598ef945f32f)
-* test *(wip)*: add project tests &ac; [`d78b815`](https://github.com/rivy/deno.dxx/commit/d78b8159cd4927a3109d60d5510ff7452f18685b)
+* test *(deps)*: add 'equal' from std::assert &ac; [`980d0f0`](https://github.com/rivy/deno.dxx/commit/980d0f059c9c5d41663bafd1b305f0021ed6236a)
+* test *(refactor)*: consolidate project path references &ac; [`9a24484`](https://github.com/rivy/deno.dxx/commit/9a24484a4ae88f1d499075ffb7f1324ed24aa330)
+* test *(refactor)*: improve naming for test function creation &ac; [`94cc888`](https://github.com/rivy/deno.dxx/commit/94cc8881819efecb55724e9913d6554a10904427)
+* test *(refactor)*: improve log text formatting implementation &ac; [`a4ca943`](https://github.com/rivy/deno.dxx/commit/a4ca943c11724fd4310380bda95e415f75d691d4)
+* test *(refactor)*: revise version testing (improves test grouping) &ac; [`33fb179`](https://github.com/rivy/deno.dxx/commit/33fb1797f3331812e44e1f0dfc6a793b5ca29378)
+* test *(refactor)*: add support for lazy test log formatting &ac; [`fb0ecdf`](https://github.com/rivy/deno.dxx/commit/fb0ecdf3344da2b58c8290febe1093834537bf65)
 
 </details>
 
