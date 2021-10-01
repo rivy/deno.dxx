@@ -14,7 +14,7 @@ CHANGELOG.*
 dist
 
 # * format-sensitive files
-.changelog/*.tpl.*
+.changelog/*.tpl[-_.#]*
 
 # * third-party code
 node_modules
