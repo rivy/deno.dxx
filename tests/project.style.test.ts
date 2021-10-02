@@ -1,9 +1,8 @@
-import { assert, assertEquals, equal, Path } from './$deps.ts';
+import { Args, assert, assertEquals, equal, Path } from './$deps.ts';
+const { args } = Args;
 import { createTestFn, haveDPrint, isWinOS, projectPath } from './$shared.ts';
 
 const test = createTestFn(import.meta.url);
-
-import { args } from '../src/lib/xArgs.ts';
 
 const excludeDirsRxs = ['[_.#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
