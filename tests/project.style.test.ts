@@ -1,6 +1,7 @@
 import { Args, assert, assertEquals, equal, Path } from './$deps.ts';
-const { args } = Args;
 import { createTestFn, haveDPrint, isWinOS, projectPath } from './$shared.ts';
+
+const args = Args.args;
 
 const test = createTestFn(import.meta.url);
 
