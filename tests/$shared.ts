@@ -1,6 +1,12 @@
 // tests ~ common code
 
+export * from '../src/lib/$shared.ts';
+
+//====
+
 import { Colors, Path } from './$deps.ts';
+
+import { projectPath, projectURL } from '../src/lib/$shared.ts';
 
 //====
 
@@ -140,9 +146,6 @@ export function createTestFn(testFilePath: URL | string) {
 export const isCI = Deno.env.get('CI');
 export const isGHA = Deno.env.get('GITHUB_ACTIONS'); // ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
 export const isWinOS = Deno.build.os === 'windows';
-
-export const projectURL = new URL('..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
-export const projectPath = Path.fromFileUrl(projectURL);
 
 //===
 
