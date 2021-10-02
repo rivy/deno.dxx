@@ -1,6 +1,6 @@
 // spell-checker:ignore (vars) ARGX arr gmsu ; (utils) dprint dprintrc
 
-import { fs } from './lib/$deps.ts';
+import { FS as fs } from './lib/$deps.ts';
 
 import * as Me from './lib/xProcess.ts';
 

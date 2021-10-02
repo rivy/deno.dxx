@@ -12,7 +12,7 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-import { fs, Path } from './lib/$deps.ts';
+import { FS as fs, Path } from './lib/$deps.ts';
 
 import { collect, filter, map } from './lib/funk.ts';
 

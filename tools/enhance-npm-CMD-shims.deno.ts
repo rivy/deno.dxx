@@ -11,7 +11,7 @@
 
 console.log({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
-import { fs, Path as path } from './lib/$deps.ts';
+import { FS as fs, Path as path } from './lib/$deps.ts';
 
 import { collect, first, map } from './lib/funk.ts';
 

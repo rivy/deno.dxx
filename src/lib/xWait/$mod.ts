@@ -1,7 +1,7 @@
 // spell-checker:ignore (libs) [tty] wcswidth
 // deno-lint-ignore-file no-inferrable-types
 
-import { Colors, encode, tty } from '../$deps.ts';
+import { Colors, encode, TTY as tty } from '../$deps.ts';
 
 import spinners from './spinners.ts';
 
