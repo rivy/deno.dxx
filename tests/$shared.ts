@@ -149,38 +149,42 @@ export const isWinOS = Deno.build.os === 'windows';
 
 //===
 
-function _isValidURL(s: string) {
-	try {
-		const _ = new URL(s, projectURL);
-	} catch (_e) {
-		return false;
-	}
-	return true;
-}
-
-function _toURL(s?: string, base: URL = projectURL) {
+function _validURL(s?: string, base: URL = projectURL) {
 	if (!s) return undefined;
 	try {
 		return new URL(s, base);
-	} catch (_e) {
+	} catch (_error) {
 		return undefined;
 	}
 }
 
-export function relativePath(s: string | URL, base: string | URL = projectURL) {
-	const url = (s instanceof URL) ? s : new URL(s, projectURL);
-	const baseURL = (base instanceof URL) ? base : new URL(base, projectURL);
-	const equalOrigin =
+export function asURL(
+	s?: string,
+	base: URL = Path.toFileUrl(Deno.cwd()),
+	options = { driveLetterSchemes: true },
+) {
+	// ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
+	// heuristic (enabled by `driveLetterSchemes`) => single letter schemes are instead interpreted starting a file path
+	if (!s) return undefined;
+	const scheme = (s.match(/^[A-Za-z][A-Za-z0-9+-.]*/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1)
+	if (options.driveLetterSchemes && scheme?.length == 1) s = 'file://' + Path.normalize(s);
+	try {
+		return new URL(s, base);
+	} catch (_error) {
+		return undefined;
+	}
+}
+
+export function relativePath(s: string | URL, base: string | URL = Path.toFileUrl(Deno.cwd())) {
+	const url = (s instanceof URL) ? s : asURL(s);
+	const baseURL = (base instanceof URL) ? base : asURL(base);
+	const equalOrigin = url && baseURL &&
 		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0);
 	// console.warn({ s, url, base, equalOrigin });
 	if (equalOrigin) {
 		return Path.relative(baseURL.pathname, url.pathname);
 	} else {
-		try {
-			return Path.fromFileUrl(url);
-		} catch (_e) {
-			return url.href;
-		}
+		return url ? url.href : undefined;
 	}
 }
 
