@@ -1,4 +1,5 @@
 // spell-checker:ignore (abbrev/acronym) LOGLEVEL NOTSET PRNG
+// spell-checker:ignore (names) Deno
 
 import { getLevelByName } from 'https://deno.land/std@0.93.0/log/levels.ts';
 import * as Log from 'https://deno.land/std@0.93.0/log/mod.ts';

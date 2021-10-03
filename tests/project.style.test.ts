@@ -1,3 +1,6 @@
+// spell-checker:ignore (names) Deno
+// spell-checker:ignore (utils) dprint git
+
 import { Args, assert, assertEquals, equal, Path } from './$deps.ts';
 import { createTestFn, haveDPrint, isWinOS, projectPath } from './$shared.ts';
 

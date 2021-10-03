@@ -1,3 +1,5 @@
+// spell-checker:ignore (names) Deno
+
 // import { assert } from 'https://deno.land/std@0.93.0/testing/asserts.ts';
 // import { writeAllSync } from 'https://deno.land/std@0.93.0/io/mod.ts';
 

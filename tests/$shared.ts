@@ -1,5 +1,7 @@
 // tests ~ common code
 
+// spell-checker:ignore (names) Axel Rauschmayer
+
 export * from '../src/lib/$shared.ts';
 
 //====

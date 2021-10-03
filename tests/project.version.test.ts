@@ -1,3 +1,5 @@
+// spell-checker:ignore (names) Deno
+
 import { assertEquals, decode, equal, FS } from './$deps.ts';
 const { existsSync } = FS;
 import {
