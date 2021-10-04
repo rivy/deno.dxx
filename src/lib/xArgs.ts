@@ -413,9 +413,12 @@ function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-export async function* filenameExpandIter(s: string): AsyncIterableIterator<string> {
+export type FilenameExpandOptions = { nullglob: boolean };
+export async function* filenameExpandIter(
+	s: string,
+	options: FilenameExpandOptions = { nullglob: false },
+): AsyncIterableIterator<string> {
 	// filename (glob) expansion
-	const nullglob = false;
 	const parsed = parseGlob(s);
 
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
@@ -432,7 +435,7 @@ export async function* filenameExpandIter(s: string): AsyncIterableIterator<stri
 			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			// deno-lint-ignore no-explicit-any
-			const maxDepth = (parsed.globScanTokens as unknown as any).reduce(
+			const maxDepth: number = (parsed.globScanTokens as unknown as any).reduce(
 				(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
 					acc + (value.isGlob ? value.depth : 0),
 				0,
@@ -454,14 +457,16 @@ export async function* filenameExpandIter(s: string): AsyncIterableIterator<stri
 		}
 	}
 
-	if (!found && !nullglob) {
+	if (!found && !options.nullglob) {
 		yield s;
 	}
 }
 
-export function* filenameExpandIterSync(s: string) {
+export function* filenameExpandIterSync(
+	s: string,
+	options: FilenameExpandOptions = { nullglob: false },
+) {
 	// filename (glob) expansion
-	const nullglob = false;
 	const parsed = parseGlob(s);
 
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
@@ -500,23 +505,29 @@ export function* filenameExpandIterSync(s: string) {
 		}
 	}
 
-	if (!found && !nullglob) {
+	if (!found && !options.nullglob) {
 		yield s;
 	}
 }
 
-export async function filenameExpand(s: string) {
+export async function filenameExpand(
+	s: string,
+	options: FilenameExpandOptions = { nullglob: false },
+) {
 	// filename (glob) expansion
 	const arr = [];
-	for await (const e of filenameExpandIter(s)) {
+	for await (const e of filenameExpandIter(s, options)) {
 		arr.push(e);
 	}
 	return arr;
 }
-export function filenameExpandSync(s: string) {
+export function filenameExpandSync(
+	s: string,
+	options: FilenameExpandOptions = { nullglob: false },
+) {
 	// filename (glob) expansion
 	const arr = [];
-	for (const e of filenameExpandIterSync(s)) {
+	for (const e of filenameExpandIterSync(s, options)) {
 		arr.push(e);
 	}
 	return arr;
@@ -663,7 +674,9 @@ export function globToReS(s: string) {
 	return ((parsed as unknown) as any).output as string;
 }
 
-// `args`
+export type ArgsOptions = { nullglob: boolean };
+
+// `args()`
 /** parse (if needed) and 'shell'-expand argument string(s)
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
@@ -682,13 +695,17 @@ const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
 const expansion: string[] = args(argsText);
 ```
 */
-export function args(argsText: string | string[]) {
+export function args(argsText: string | string[], options: ArgsOptions = { nullglob: false }) {
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
 	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
 	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
-	return expand.flatMap(Braces.expand).map(tildeExpand).flatMap(filenameExpandSync).map(deQuote)
+	return expand
+		.flatMap(Braces.expand)
+		.map(tildeExpand)
+		.flatMap((e) => filenameExpandSync(e, options))
+		.map(deQuote)
 		.concat(raw);
 }
 
@@ -737,14 +754,17 @@ if (options.targetExecutable) {
 }
 ```
 */
-export async function* argsIt(argsText: string): AsyncIterableIterator<ArgIncrement> {
+export async function* argsIt(
+	argsText: string,
+	options: ArgsOptions = { nullglob: false },
+): AsyncIterableIterator<ArgIncrement> {
 	let continueExpansions = true;
 	while (argsText) {
 		let argText = '';
 		[argText, argsText] = shiftCLTextWord(argsText);
 		if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map(filenameExpandIter)
+			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) => filenameExpandIter(e, options))
 			: [(async function* () {
 				yield argText;
 			})()];
@@ -773,14 +793,17 @@ export async function* argsIt(argsText: string): AsyncIterableIterator<ArgIncrem
 	}
 }
 // `argItSync`
-export function* argsItSync(argsText: string): IterableIterator<ArgIncrementSync> {
+export function* argsItSync(
+	argsText: string,
+	options: ArgsOptions = { nullglob: false },
+): IterableIterator<ArgIncrementSync> {
 	const continueExpansions = false;
 	while (argsText) {
 		let argText = '';
 		[argText, argsText] = shiftCLTextWord(argsText);
 		// if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map(filenameExpandSync)
+			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) => filenameExpandSync(e, options))
 			: [[argText]];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
 			const argExpansion = argExpansions[idx];
