@@ -457,7 +457,7 @@ export async function* filenameExpandIter(
 		}
 	}
 
-	if (!found && !options.nullglob) {
+	if (!parsed.glob || (!found && !options.nullglob)) {
 		yield s;
 	}
 }
@@ -505,7 +505,7 @@ export function* filenameExpandIterSync(
 		}
 	}
 
-	if (!found && !options.nullglob) {
+	if (!parsed.glob || (!found && !options.nullglob)) {
 		yield s;
 	}
 }
