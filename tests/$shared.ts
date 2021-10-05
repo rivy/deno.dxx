@@ -6,7 +6,7 @@ export * from '../src/lib/$shared.ts';
 
 import { Colors, Path } from './$deps.ts';
 
-import { projectPath, projectURL } from '../src/lib/$shared.ts';
+import { projectPath } from '../src/lib/$shared.ts';
 
 //====
 
@@ -149,80 +149,20 @@ export const isWinOS = Deno.build.os === 'windows';
 
 //===
 
-function _validURL(s?: string, base: URL = projectURL) {
-	if (!s) return undefined;
-	try {
-		return new URL(s, base);
-	} catch (_error) {
-		return undefined;
-	}
+function _validURL(s: string, base: URL = Path.toFileUrl(Deno.cwd() + Path.SEP)) {
+	// return !!toURL(s, base);
+	return toURL(s, base);
+}
+
+function _isValidURL(s: string, base: URL = Path.toFileUrl(Deno.cwd() + Path.SEP)) {
+	return !!_validURL(s, base);
 }
 
 // ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
 export type ToUrlOptions = {
 	driveLetterSchemes?: boolean; // interpret single letter URL schemes as drive letters for Windows-style paths
 };
-// type Required<T> = { [P in keyof T]-?: T[P] };
-// refs: <https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html> , <https://www.typescriptlang.org/docs/handbook/utility-types.html> , <https://stackoverflow.com/questions/50588873/definition-of-nonnullablet-in-typescript>
-// ref: <https://stackoverflow.com/questions/43909566/get-keys-of-a-typescript-interface-as-array-of-strings>
-type NullablePropertyNames<T> = Exclude<
-	{ [P in keyof T]: T[P] extends NonNullable<T[P]> ? never : P }[keyof T],
-	undefined
->;
-type NullableProperties<T> = Pick<T, NullablePropertyNames<T>>; // ToDO: {} => Record<string,never>
-type RequiredPropertyNames<T> = Exclude<
-	{ [P in keyof T]: P }[keyof T],
-	NullablePropertyNames<T> | undefined
->;
-type RequiredProperties<T> = Pick<T, RequiredPropertyNames<T>>; // ToDO: {} => Record<string,never>
-type EmptyIsNever<T> = T extends Record<string, never> ? Record<string, never> : T;
-
-// type Tx = Required<EmptyIsNever<RequiredProperties<ToUrlOptions>>>;
-// const x: Tx = { x: 10 };
-// const y: {} = { z: boolean }; // "{} doesn't mean empty object; it means any types other than 'null' and 'undefined'"
-// type T0 = RequiredPropertyNames<ToUrlOptions>;
-// type T1 = NullablePropertyNames<ToUrlOptions>;
-// type T2 = RequiredProperties<ToUrlOptions>;
-// type T3 = NullableProperties<ToUrlOptions>;
-
-const ToUrlOptionsNullableDefault: EmptyIsNever<Required<NullableProperties<ToUrlOptions>>> = {
-	driveLetterSchemes: true,
-};
-const ToUrlOptionsRequiredDefault: EmptyIsNever<Required<RequiredProperties<ToUrlOptions>>> = {};
-
-export const ToUrlOptionsDefault: Required<ToUrlOptions> = {
-	...ToUrlOptionsNullableDefault,
-	...ToUrlOptionsRequiredDefault,
-};
-
-// ref: "Type guards and assertion functions", Tackling Typescript by Axel Rauschmayer, 2020.
-// deno-lint-ignore no-namespace
-export namespace isLikeType {
-	/**
-  `arg` is structurally compatible with type `ToUrlOptions` (ie, empty or contains compatible properties)
-  · _a type guard for [`ToUrlOptions`]{@link ToUrlOptions}_
-	*/
-	export function ToUrlOptions(arg: unknown): arg is ToUrlOptions {
-		if (!arg || typeof arg !== 'object') return false;
-		if (Object.keys(arg!).length === 0) return true;
-		// `ToUrlOptionsDefault: Required<ToUrlOptions>`, available at runtime, contains all properties from `ToUrlOptions`
-		// ToDO: implement nullable/required based on ToUrlOptionsNullableProps/ToUrlOptionsRequiredProps
-		Object.keys(ToUrlOptionsDefault).forEach((key) => {
-			const type = typeof (arg! as ToUrlOptions)[key as keyof ToUrlOptions];
-			console.warn('ToUrlOptions()', { arg, key, type });
-			if (
-				type !== 'undefined' && (type !== typeof ToUrlOptionsDefault[key as keyof ToUrlOptions])
-			) {
-				return false;
-			}
-		});
-		return true;
-		// return !!arg &&
-		// 	typeof arg === 'object' &&
-		// 	(Object.keys(arg!).length === 0 ||
-		// 		typeof (arg! as ToUrlOptions).driveLetterSchemes === 'boolean');
-	}
-}
+const ToUrlOptionsDefault: Required<ToUrlOptions> = { driveLetterSchemes: true };
 
 /**
 Convert a string `path` into an URL, relative to a `base` URL.
@@ -233,14 +173,13 @@ Convert a string `path` into an URL, relative to a `base` URL.
 */
 export function toURL(path: string, base?: URL, options?: ToUrlOptions): URL | undefined;
 export function toURL(path: string, options: ToUrlOptions): URL | undefined;
-export function toURL(path: string): URL | undefined;
 export function toURL(path: string, ...args: unknown[]) {
 	const base = (args?.length > 0 && (args[0] instanceof URL))
 		? args.shift() as URL
 		: Path.toFileUrl(Deno.cwd() + Path.SEP);
 	const options = {
 		...ToUrlOptionsDefault,
-		...(isLikeType.ToUrlOptions(args[0])) ? args.shift() as ToUrlOptions : {},
+		...(args?.length > 0) ? args.shift() as ToUrlOptions : {},
 	};
 	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1)
 	if (options.driveLetterSchemes && scheme?.length == 1) path = 'file://' + Path.normalize(path);
@@ -256,7 +195,7 @@ export function toURL(path: string, ...args: unknown[]) {
 Determine the traversal path to `goal` from `base`.
 _Returned path will be relative if `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_.
 
-• _relative `goal` or `base` paths are evaluated relative to `Deno.cwd()`_
+• _relative `goal` or `base` paths are evaluated relative to the `Deno.cwd()` directory_
 
 @param [goal] • target path
 @param [base] • starting path ~ defaults to `Path.toFileUrl(Deno.cwd()+Path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
