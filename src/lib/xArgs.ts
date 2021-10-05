@@ -85,6 +85,7 @@ const isWinOS = Deno.build.os === 'windows';
 // const endExpansionToken = '-.'; // ToDO: bikeshed best alternative for an end-of-expansion token
 const endExpansionToken = '-+'; // ToDO: bikeshed best alternative for an end-of-expansion token
 // const endExpansionToken = '--++'; // ToDO: bikeshed best alternative for an end-of-expansion token
+// const endExpansionToken = '---'; // ToDO: bikeshed best alternative for an end-of-expansion token
 
 export const portablePathSepReS = '[\\/]';
 
@@ -350,19 +351,19 @@ export function reQuote(s: string) {
 	return s;
 }
 
-export function deQuote(s: string) {
-	// de-quote string
+export function shellDeQuote(s: string) {
+	// de-code/quote quoted string
 	// * supports both single and double quotes
-	// * supports ANSI-C quotes
+	// * supports decoding ANSI-C quotes (ie, $'...')
 	// * no character escape sequences are recognized
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
-	// console.warn('xArgs.deQuote()', { s });
+	// console.warn('xArgs.shellDeQuote()', { s });
 	const tokenRe = WordReS.quote; // == (ANSIC/DQ/SQ/non-Q-tokenFragment)(tailOfString)
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
 		if (m) {
-			// console.warn('xArgs.deQuote()', { m });
+			// console.warn('xArgs.shellDeQuote()', { m });
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				if (matchStr[0] === DQ || matchStr[0] === SQ) {
@@ -373,7 +374,7 @@ export function deQuote(s: string) {
 				} else if ((matchStr.length > 1) && matchStr[0] === '$' && matchStr[1] === SQ) {
 					// $'...'
 					const spl = matchStr.split(SQ);
-					// console.warn('xArgs.deQuote()', { s, matchStr, spl });
+					// console.warn('xArgs.shellDeQuote()', { s, matchStr, spl });
 					matchStr = decodeANSIC(spl[1]);
 				}
 			}
@@ -405,7 +406,7 @@ export function tildeExpand(s: string): string {
 	return s;
 }
 
-export function shellExpand(_s: string): Array<string> {
+export function subShellExpand(_s: string): Array<string> {
 	throw 'unimplemented';
 }
 
@@ -429,8 +430,10 @@ export async function* filenameExpandIter(
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (await exists(resolvedPrefix)) {
 			// normalize prefix to have a trailing separator
+			// ToDO: convert to use of Path.SEP_PATTERN
 			const normalizedPrefix = resolvedPrefix +
-				(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
+				((resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\')) ? '' : Path.SEP);
+			// ToDO: convert to use of Path.SEP_PATTERN
 			const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
@@ -477,8 +480,10 @@ export function* filenameExpandIterSync(
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (existsSync(resolvedPrefix)) {
 			// normalize prefix to have a trailing separator
+			// ToDO: convert to use of Path.SEP_PATTERN
 			const normalizedPrefix = resolvedPrefix +
 				(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
+			// ToDO: convert to use of Path.SEP_PATTERN
 			const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
@@ -534,6 +539,7 @@ export function filenameExpandSync(
 }
 
 function pathToPosix(p: string) {
+	// ToDO: convert to use of Path.SEP_PATTERN
 	return p.replace(/\\/g, '/');
 }
 // function pathToWindows(p: string) {
@@ -676,8 +682,8 @@ export function globToReS(s: string) {
 
 export type ArgsOptions = { nullglob: boolean };
 
-// `args()`
-/** parse (if needed) and 'shell'-expand argument string(s)
+// `shellExpand()`
+/** 'shell'-expand argument string(s)
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
 - Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
@@ -688,7 +694,31 @@ export type ArgsOptions = { nullglob: boolean };
 
 Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
 
-@returns Iterator of argument expansions (possibly empty)
+@returns Iterable array of argument expansions (possibly empty)
+@example
+```js
+const expansion: string[] = shellExpand('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
+```
+*/
+export function shellExpand(args: string | string[], options: ArgsOptions = { nullglob: false }) {
+	const arr = Array.isArray(args) ? args : [args];
+	// console.warn('xArgs.shellExpand()', { arr });
+	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) => filenameExpandSync(e, options));
+}
+
+// `args()`
+/** parse (if needed) and 'shell'-expand argument string(s)
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+- ANSI-C strings (eg, $'...') are supported and expanded; otherwise, no character escape sequences are recognized.
+- Brace expansion is fully implemented (including nested braces and ["brace bomb"](https://github.com/micromatch/braces/blob/master/README.md#brace-matching-pitfalls) protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Iterable array of argument expansions (possibly empty)
 @example
 ```js
 const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
@@ -701,12 +731,7 @@ export function args(argsText: string | string[], options: ArgsOptions = { nullg
 	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
 	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
-	return expand
-		.flatMap(Braces.expand)
-		.map(tildeExpand)
-		.flatMap((e) => filenameExpandSync(e, options))
-		.map(deQuote)
-		.concat(raw);
+	return shellExpand(expand, options).map(shellDeQuote).concat(raw);
 }
 
 export type ArgIncrement = {
@@ -775,7 +800,7 @@ export async function* argsIt(
 				const next = await argExpansion.next();
 				// const tail = [argExpansion]
 				yield {
-					arg: deQuote(current.value),
+					arg: shellDeQuote(current.value),
 					tailOfArgExpansion: [
 						...(!next.done
 							? [(async function* () {
@@ -809,7 +834,7 @@ export function* argsItSync(
 			const argExpansion = argExpansions[idx];
 			for (let jdx = 0; jdx < argExpansion.length; jdx++) {
 				yield {
-					arg: deQuote(argExpansion[jdx]),
+					arg: shellDeQuote(argExpansion[jdx]),
 					tailOfArgExpansion: [argExpansion.slice(jdx + 1), ...argExpansions.slice(idx + 1)],
 					tailOfArgsText: argsText,
 				};
