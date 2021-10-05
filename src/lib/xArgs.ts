@@ -682,13 +682,15 @@ export function globToReS(s: string) {
 
 export type ArgsOptions = { nullglob: boolean };
 
+// ToDO: fix panic "error: Uncaught SyntaxError: Invalid regular expression" for args/shellExpand('{.}*')
+
 // `shellExpand()`
 /** 'shell'-expand argument string(s)
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
 - Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
 	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
-  Otherwise, no character escape sequences are recognized.
+- Character escape sequences are not recognized/supported.
 - Brace expansion is fully implemented (including nested braces and ["brace bomb"](https://github.com/micromatch/braces/blob/master/README.md#brace-matching-pitfalls) protections).
 - Glob expansion supports `globstar` and full extended glob syntax.
 
