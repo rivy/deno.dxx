@@ -58,7 +58,7 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 	}
 }
 
-test(`version matches 'VERSION' file`, () => {
+test(`project version matches 'VERSION' file`, () => {
 	const expected = VERSION;
 	const actual = Deno.readTextFileSync(projectPaths.version).replace(newlines, '');
 	assertEquals(actual, expected);
@@ -70,7 +70,7 @@ if ((projectName && (projectName.length > 0)) && existsSync(projectPaths.readme)
 	const readmeURLs = Array.from(readmeText.matchAll(URLrx));
 
 	test(
-		`README ~ 'VERSION' file matches versioned URLs (${readmeURLs?.length || 'NONE'} found)`,
+		`README ~ project version matches versioned URLs (${readmeURLs?.length || 'NONE'} found)`,
 		() => {
 			const expected = VERSION;
 			console.log({ URLs: readmeURLs.flatMap((v) => [{ match: v[0], index: v.index }]) });

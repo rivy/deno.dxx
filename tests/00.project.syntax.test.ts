@@ -20,13 +20,11 @@ const projectTypeScriptFiles = {
 
 test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.length} found)`, async () => {
 	const files = (projectTypeScriptFiles.examples).flatMap((e) =>
-		traversal(e, projectPath + Path.SEP) || []
+		traversal(e, Deno.cwd() + Path.SEP) || []
 	);
 	console.log({ files });
 	const p = Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat((projectTypeScriptFiles
-			.examples)
-			.flatMap((e) => traversal(e, projectPath + Path.SEP) || [])),
+		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -34,20 +32,21 @@ test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.len
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
 	);
-	console.warn(decode(out));
-	console.warn(decode(err));
+	if (!status.success) {
+		console.warn({ status });
+		console.warn(decode(out));
+		console.warn(decode(err));
+	}
 	assert(status.success);
 });
 
 test(`syntax ~ source files (and imports) compile correctly (${projectTypeScriptFiles.source.length} found)`, async () => {
 	const files = (projectTypeScriptFiles.source).flatMap((e) =>
-		traversal(e, projectPath + Path.SEP) || []
+		traversal(e, Deno.cwd() + Path.SEP) || []
 	);
 	console.log({ files });
 	const p = Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat((projectTypeScriptFiles
-			.examples)
-			.flatMap((e) => traversal(e, projectPath + Path.SEP) || [])),
+		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -55,20 +54,21 @@ test(`syntax ~ source files (and imports) compile correctly (${projectTypeScript
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
 	);
-	console.warn(decode(out));
-	console.warn(decode(err));
+	if (!status.success) {
+		console.warn({ status });
+		console.warn(decode(out));
+		console.warn(decode(err));
+	}
 	assert(status.success);
 });
 
 test(`syntax ~ test and benchmark files (plus imports) compile correctly (${projectTypeScriptFiles.tests.length} found)`, async () => {
 	const files = (projectTypeScriptFiles.tests).flatMap((e) =>
-		traversal(e, projectPath + Path.SEP) || []
+		traversal(e, Deno.cwd() + Path.SEP) || []
 	);
 	console.log({ files });
 	const p = Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat((projectTypeScriptFiles
-			.examples)
-			.flatMap((e) => traversal(e, projectPath + Path.SEP) || [])),
+		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -76,20 +76,21 @@ test(`syntax ~ test and benchmark files (plus imports) compile correctly (${proj
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
 	);
-	console.warn(decode(out));
-	console.warn(decode(err));
+	if (!status.success) {
+		console.warn({ status });
+		console.warn(decode(out));
+		console.warn(decode(err));
+	}
 	assert(status.success);
 });
 
 test(`syntax ~ tools compile correctly (${projectTypeScriptFiles.tools.length} found)`, async () => {
 	const files = (projectTypeScriptFiles.tools).flatMap((e) =>
-		traversal(e, projectPath + Path.SEP) || []
+		traversal(e, Deno.cwd() + Path.SEP) || []
 	);
 	console.log({ files });
 	const p = Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat((projectTypeScriptFiles
-			.examples)
-			.flatMap((e) => traversal(e, projectPath + Path.SEP) || [])),
+		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -97,7 +98,10 @@ test(`syntax ~ tools compile correctly (${projectTypeScriptFiles.tools.length} f
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
 	);
-	console.warn(decode(out));
-	console.warn(decode(err));
+	if (!status.success) {
+		console.warn({ status });
+		console.warn(decode(out));
+		console.warn(decode(err));
+	}
 	assert(status.success);
 });
