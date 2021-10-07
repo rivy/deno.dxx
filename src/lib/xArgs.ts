@@ -1,4 +1,4 @@
-// spell-checker:ignore (jargon) bikeshed ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (utils) xargs
+// spell-checker:ignore (jargon) bikeshed ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
 // ToDO: review checks for progression in splits => continue to use an assert? what do we guarantee about returned 'token'?
 
