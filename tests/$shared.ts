@@ -166,8 +166,8 @@ export type ToUrlOptions = {
 };
 const ToUrlOptionsDefault: Required<ToUrlOptions> = { driveLetterSchemes: true };
 
-/**
-Convert a string `path` into an URL, relative to a `base` URL.
+// `toURL()`
+/** Convert a string `path` into an URL, relative to a `base` URL.
 
 @param [path]
 @param [base] • baseline URL ~ defaults to `Path.toFileUrl(Deno.cwd()+Path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
@@ -193,11 +193,11 @@ export function toURL(path: string, ...args: unknown[]) {
 	}
 }
 
-/**
-Determine the traversal path to `goal` from `base`.
+// `traversal()`
+/** Determine the traversal path to `goal` from `base`.
 _Returned path will be relative if `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_.
 
-• _relative `goal` or `base` paths are evaluated relative to the `Deno.cwd()` directory_
+- _relative `goal` or `base` paths are evaluated relative to the `Deno.cwd()` directory_
 
 @param [goal] • target path
 @param [base] • starting path ~ defaults to `Path.toFileUrl(Deno.cwd()+Path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
