@@ -4,7 +4,7 @@ export * from '../src/lib/$shared.ts';
 
 //====
 
-import { Colors, Path } from './$deps.ts';
+import { Colors, decode, Path } from './$deps.ts';
 
 import { projectPath } from '../src/lib/$shared.ts';
 
@@ -238,7 +238,6 @@ export const haveDPrint = () => {
 	try {
 		const process = Deno.run({
 			cmd: ['dprint', '--version'],
-			cwd: projectPath,
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'null',
@@ -253,7 +252,6 @@ export const haveGit = () => {
 	try {
 		const process = Deno.run({
 			cmd: ['git', '--version'],
-			cwd: projectPath,
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'null',
@@ -262,4 +260,52 @@ export const haveGit = () => {
 	} catch (_) {
 		return Promise.resolve(false);
 	}
+};
+
+export const isGitRepo = async (path = projectPath) => {
+	const haveGit_ = await haveGit();
+	if (haveGit_) {
+		try {
+			const process = Deno.run({
+				cmd: ['git', 'status', '--short'],
+				cwd: path,
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'null',
+			});
+			return (process.status()).then((status) => status.success).finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(false);
+		}
+	} else return Promise.resolve(undefined);
+};
+
+export const gitProjectFilesWithEolDetail = async (path = projectPath, _options = {}) => {
+	const haveGit_ = await haveGit();
+	if (haveGit_) {
+		try {
+			const process = Deno.run({
+				cmd: ['git', 'ls-files', '--eol', '--full-name'],
+				cwd: path,
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'piped',
+			});
+			const result = Promise.all([process.status(), process.output()]);
+			return result
+				.then(([status, output]) =>
+					status.success ? decode(output).replace(/\r?\n$/, '').split(/\r?\n/) : undefined
+				)
+				.finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	} else return Promise.resolve(undefined);
+};
+
+export const gitProjectFiles = async (path = projectPath, options = {}) => {
+	const files = await gitProjectFilesWithEolDetail(path, options);
+	return (files && files.length > 0)
+		? files.map((file) => file.replace(/^[^\t]*\t/, ''))
+		: undefined;
 };
