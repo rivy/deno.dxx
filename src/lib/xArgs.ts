@@ -87,6 +87,9 @@ const endExpansionToken = '-+'; // ToDO: bikeshed best alternative for an end-of
 // const endExpansionToken = '--++'; // ToDO: bikeshed best alternative for an end-of-expansion token
 // const endExpansionToken = '---'; // ToDO: bikeshed best alternative for an end-of-expansion token
 
+export const globStarAsReS = '(?!\\.)(?=.)[^\\\\/]*?[\\\\/]?';
+export const globDoubleStarAsReS = '(?:(?:(?!(?:^|[\\\\/])\\.).)*?)';
+
 export const portablePathSepReS = '[\\/]';
 
 const DQ = '"';
@@ -429,12 +432,18 @@ export async function* filenameExpandIter(
 		const resolvedPrefix = Path.resolve(parsed.prefix);
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (await exists(resolvedPrefix)) {
+			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
 			// normalize prefix to have a trailing separator
 			// ToDO: convert to use of Path.SEP_PATTERN
 			const normalizedPrefix = resolvedPrefix +
 				((resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\')) ? '' : Path.SEP);
 			// ToDO: convert to use of Path.SEP_PATTERN
-			const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
+			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
+			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
+			const globEscapedPrefix = escapeRegExp(
+				parsed.globScan.glob.startsWith('**/') ? resolvedPrefix : normalizedPrefix,
+			)
+				.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			// deno-lint-ignore no-explicit-any
@@ -475,16 +484,25 @@ export function* filenameExpandIterSync(
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
 
 	let found = false;
-	if (parsed.glob) {
+	if (parsed.glob.length > 0) {
 		const resolvedPrefix = Path.resolve(parsed.prefix);
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (existsSync(resolvedPrefix)) {
+			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
+			// * initial globstar requires a prefix *w/o* trailing SEP in the final RegExp
+			// * o/w the prefix should have a trailing SEP in the final RegExp
+			// ToDO: add tests for the correct outputs
 			// normalize prefix to have a trailing separator
 			// ToDO: convert to use of Path.SEP_PATTERN
 			const normalizedPrefix = resolvedPrefix +
 				(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
 			// ToDO: convert to use of Path.SEP_PATTERN
-			const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
+			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
+			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
+			const globEscapedPrefix = escapeRegExp(
+				parsed.globScan.glob.startsWith('**/') ? resolvedPrefix : normalizedPrefix,
+			)
+				.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			// deno-lint-ignore no-explicit-any
