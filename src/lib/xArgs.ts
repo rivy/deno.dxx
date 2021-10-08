@@ -78,9 +78,14 @@ const isWinOS = Deno.build.os === 'windows';
 
 export const envNullglob = () => {
 	const e = Deno.env.get('nullglob') || '';
-	if (e.match(/^0|f|false|no|off$/)) return false;
+	// console.warn('envNullglob()', { e });
+	if (e.match(/^(0|f|false|no|off)?$/)) {
+		// console.warn(`${e} matched falsey`);
+		return false;
+	}
 	return true;
 };
+// console.warn({ envNullglob: envNullglob() });
 
 // ToDO: add ArgsOptions = {
 //    endExpansionToken (default == '-+'; setting this also sets partialExpansion to true)
@@ -93,8 +98,9 @@ const endExpansionToken = '-+'; // ToDO: bikeshed best alternative for an end-of
 // const endExpansionToken = '--++'; // ToDO: bikeshed best alternative for an end-of-expansion token
 // const endExpansionToken = '---'; // ToDO: bikeshed best alternative for an end-of-expansion token
 
-export const globStarAsReS = '(?!\\.)(?=.)[^\\\\/]*?[\\\\/]?';
-export const globDoubleStarAsReS = '(?:(?:(?!(?:^|[\\\\/])\\.).)*?)';
+// const globStarAsReS = '(?!\\.)(?=.)[^\\\\/]*?';
+// const globDoubleStarAsReS =
+// 	'(?:^|[\\\\/]|(?:(?:(?!(?:^|[\\\\/])\\.).)*?)[\\\\/])(?!\\.)(?=.)[^\\\\/]*?';
 
 export const portablePathSepReS = '[\\/]';
 
@@ -434,36 +440,55 @@ export async function* filenameExpandIter(
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
 
 	let found = false;
-	if (parsed.glob) {
+	if (parsed.glob.length > 0) {
+		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
 		const resolvedPrefix = Path.resolve(parsed.prefix);
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (await exists(resolvedPrefix)) {
+			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
+			// * initial globstar requires a prefix *w/o* trailing SEP in the final RegExp
+			// * o/w the prefix should have a trailing SEP in the final RegExp
+			// ToDO: add tests for the correct outputs
 			// normalize prefix to have a trailing separator
 			// ToDO: convert to use of Path.SEP_PATTERN
-			const normalizedPrefix = resolvedPrefix +
-				((resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\')) ? '' : Path.SEP);
-			// ToDO: convert to use of Path.SEP_PATTERN
+			// const normalizedPrefix = resolvedPrefix +
+			// 	(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
+			// // ToDO: convert to use of Path.SEP_PATTERN
 			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
-			const globEscapedPrefix = escapeRegExp(
-				parsed.globScan.glob.startsWith('**/') ? resolvedPrefix : normalizedPrefix,
-			)
+			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
+			const globEscapedPrefix = (escapeRegExp(
+				resolvedPrefix + ((resolvedHasTrailingSep || parsed
+						.globScan
+						.glob
+						.startsWith('**/'))
+					? ''
+					: Path.SEP),
+			))
 				.replace(/\\\\|\//g, '[\\\\/]');
-			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
+			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			// deno-lint-ignore no-explicit-any
-			const maxDepth: number = (parsed.globScanTokens as unknown as any).reduce(
-				(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-					acc + (value.isGlob ? value.depth : 0),
-				0,
-			);
+			const maxDepth = (parsed
+				// deno-lint-ignore no-explicit-any
+				.globScanTokens as unknown as any)
+				.reduce(
+					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+						acc + (value.isGlob ? value.depth : 0),
+					0,
+				);
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
 				isWinOS ? 'imsu' : 'msu',
 			);
-			// console.warn('xArgs.filenameExpandIter()', { normalizedPrefix, globEscapedPrefix, maxDepth, re });
-			// note: `walk` match re is compared to the full path during the walk
+			// console.warn('xArgs.filenameExpandIter()', {
+			// 	resolvedPrefix,
+			// 	resolvedHasTrailingSep,
+			// 	globEscapedPrefix,
+			// 	maxDepth,
+			// 	re,
+			// });
+			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walk(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for await (const e of walkIt) {
 				const p = e.path.replace(new RegExp('^' + globEscapedPrefix), '');
@@ -491,39 +516,55 @@ export function* filenameExpandIterSync(
 
 	let found = false;
 	if (parsed.glob.length > 0) {
+		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
 		const resolvedPrefix = Path.resolve(parsed.prefix);
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (existsSync(resolvedPrefix)) {
+			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
 			// * initial globstar requires a prefix *w/o* trailing SEP in the final RegExp
 			// * o/w the prefix should have a trailing SEP in the final RegExp
 			// ToDO: add tests for the correct outputs
 			// normalize prefix to have a trailing separator
 			// ToDO: convert to use of Path.SEP_PATTERN
-			const normalizedPrefix = resolvedPrefix +
-				(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
-			// ToDO: convert to use of Path.SEP_PATTERN
+			// const normalizedPrefix = resolvedPrefix +
+			// 	(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
+			// // ToDO: convert to use of Path.SEP_PATTERN
 			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
-			const globEscapedPrefix = escapeRegExp(
-				parsed.globScan.glob.startsWith('**/') ? resolvedPrefix : normalizedPrefix,
-			)
+			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
+			const globEscapedPrefix = (escapeRegExp(
+				resolvedPrefix + ((resolvedHasTrailingSep || parsed
+						.globScan
+						.glob
+						.startsWith('**/'))
+					? ''
+					: Path.SEP),
+			))
 				.replace(/\\\\|\//g, '[\\\\/]');
-			// some paths are resolved to paths with trailing separators (eg, network paths) and some are not
+			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			// deno-lint-ignore no-explicit-any
-			const maxD = (parsed.globScanTokens as unknown as any).reduce(
-				(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-					acc + (value.isGlob ? value.depth : 0),
-				0,
-			);
+			const maxDepth = (parsed
+				// deno-lint-ignore no-explicit-any
+				.globScanTokens as unknown as any)
+				.reduce(
+					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+						acc + (value.isGlob ? value.depth : 0),
+					0,
+				);
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
 				isWinOS ? 'imsu' : 'msu',
 			);
-			// console.warn('xArgs.filenameExpandIter()', { normalizedPrefix, globEscapedPrefix, maxD, re });
-			// note: `walkSync` match re is compared to the full path during the walk
-			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxD ? maxD : 1 });
+			// console.warn('xArgs.filenameExpandIter()', {
+			// 	resolvedPrefix,
+			// 	resolvedHasTrailingSep,
+			// 	globEscapedPrefix,
+			// 	maxDepth,
+			// 	re,
+			// });
+			// note: `walk/walkSync` match re is compared to the full path during the walk
+			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for (const e of walkIt) {
 				const p = e.path.replace(new RegExp('^' + globEscapedPrefix), '');
 				if (p) {
@@ -708,6 +749,33 @@ export type ArgsOptions = { nullglob: boolean };
 
 // ToDO: fix panic "error: Uncaught SyntaxError: Invalid regular expression" for args/shellExpand('{.}*')
 
+// `shellExpandSync()`
+/** 'shell'-expand argument string(s)
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+- Character escape sequences are not recognized/supported.
+- Brace expansion is fully implemented (including nested braces and ["brace bomb"](https://github.com/micromatch/braces/blob/master/README.md#brace-matching-pitfalls) protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Iterable array of argument expansions (possibly empty)
+@example
+```js
+const expansion: string[] = shellExpandSync('{.,}*'); // or `shellExpandSync(['{.,}*', './src/file_{1..10..2}_*.ts'])`
+```
+*/
+export function shellExpandSync(
+	args: string | string[],
+	options: ArgsOptions = { nullglob: envNullglob() },
+) {
+	const arr = Array.isArray(args) ? args : [args];
+	// console.warn('xArgs.shellExpandSync()', { options, arr });
+	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) => filenameExpandSync(e, options));
+}
+
 // `shellExpand()`
 /** 'shell'-expand argument string(s)
 
@@ -723,16 +791,20 @@ Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](http
 @returns Iterable array of argument expansions (possibly empty)
 @example
 ```js
-const expansion: string[] = shellExpand('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
+const expansion: string[] = await shellExpand('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
 ```
 */
-export function shellExpand(
+export async function shellExpand(
 	args: string | string[],
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
 	const arr = Array.isArray(args) ? args : [args];
+	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpand()', { options, arr });
-	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) => filenameExpandSync(e, options));
+	for (const e of arr) {
+		arrOut.push(...await filenameExpand(e, options));
+	}
+	return arrOut;
 }
 
 // `args()`
@@ -751,10 +823,10 @@ Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](http
 @example
 ```js
 const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
-const expansion: string[] = args(argsText);
+const expansion: string[] = await args(argsText);
 ```
 */
-export function args(
+export async function args(
 	argsText: string | string[],
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
@@ -763,7 +835,38 @@ export function args(
 	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
 	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
-	return shellExpand(expand, options).map(shellDeQuote).concat(raw);
+	return (await shellExpand(expand, options)).map(shellDeQuote).concat(raw);
+}
+
+// `argsSync()`
+/** parse (if needed) and 'shell'-expand argument string(s)
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+- ANSI-C strings (eg, $'...') are supported and expanded; otherwise, no character escape sequences are recognized.
+- Brace expansion is fully implemented (including nested braces and ["brace bomb"](https://github.com/micromatch/braces/blob/master/README.md#brace-matching-pitfalls) protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Iterable array of argument expansions (possibly empty)
+@example
+```js
+const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
+const expansion: string[] = args(argsText);
+```
+*/
+export function argsSync(
+	argsText: string | string[],
+	options: ArgsOptions = { nullglob: envNullglob() },
+) {
+	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
+	const idx = arr.findIndex((v) => v === endExpansionToken);
+	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
+	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
+	// console.warn('xArgs.args()', { arr, idx, expand, raw });
+	return shellExpandSync(expand, options).map(shellDeQuote).concat(raw);
 }
 
 export type ArgIncrement = {
