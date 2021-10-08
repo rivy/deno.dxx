@@ -59,7 +59,13 @@ export const impaired = isWinOS && !enhanced;
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const args = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return xArgs.args(argsText || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+	return xArgs.argsSync(argsText || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+};
+
+/** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
+export const argsAsync = async () => {
+	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
+	return await xArgs.args(argsText || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * path string of main script file (best guess from all available sources) */
