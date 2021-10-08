@@ -11,3 +11,7 @@ export const projectPaths = {
 	readme: Path.join(projectPath, 'README.md'),
 	version: Path.join(projectPath, 'VERSION'),
 };
+
+// // ToDO: investigate best practice for portability of PATH_SEP_PATTERN // note: WinOS => /[\\/]+/ ; *nix => /\/+/
+// // * currently, treating paths as WinOS-compatible with both backslash and forward-slash as path separators (on both WinOS and *nix platforms)
+// export const PATH_SEP_PATTERN = /[\\/]+/;
