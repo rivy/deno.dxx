@@ -76,6 +76,12 @@ const Picomatch = PicomatchM as typeof PicomatchT; // noSonar ; disable "type as
 
 const isWinOS = Deno.build.os === 'windows';
 
+export const envNullglob = () => {
+	const e = Deno.env.get('nullglob') || '';
+	if (e.match(/^0|f|false|no|off$/)) return false;
+	return true;
+};
+
 // ToDO: add ArgsOptions = {
 //    endExpansionToken (default == '-+'; setting this also sets partialExpansion to true)
 //    partialExpansionAllowed (default == false)
@@ -420,7 +426,7 @@ function escapeRegExp(s: string) {
 export type FilenameExpandOptions = { nullglob: boolean };
 export async function* filenameExpandIter(
 	s: string,
-	options: FilenameExpandOptions = { nullglob: false },
+	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
 	const parsed = parseGlob(s);
@@ -476,7 +482,7 @@ export async function* filenameExpandIter(
 
 export function* filenameExpandIterSync(
 	s: string,
-	options: FilenameExpandOptions = { nullglob: false },
+	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const parsed = parseGlob(s);
@@ -535,7 +541,7 @@ export function* filenameExpandIterSync(
 
 export async function filenameExpand(
 	s: string,
-	options: FilenameExpandOptions = { nullglob: false },
+	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const arr = [];
@@ -546,7 +552,7 @@ export async function filenameExpand(
 }
 export function filenameExpandSync(
 	s: string,
-	options: FilenameExpandOptions = { nullglob: false },
+	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const arr = [];
@@ -720,9 +726,12 @@ Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](http
 const expansion: string[] = shellExpand('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
 ```
 */
-export function shellExpand(args: string | string[], options: ArgsOptions = { nullglob: false }) {
+export function shellExpand(
+	args: string | string[],
+	options: ArgsOptions = { nullglob: envNullglob() },
+) {
 	const arr = Array.isArray(args) ? args : [args];
-	// console.warn('xArgs.shellExpand()', { arr });
+	// console.warn('xArgs.shellExpand()', { options, arr });
 	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) => filenameExpandSync(e, options));
 }
 
@@ -745,7 +754,10 @@ const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
 const expansion: string[] = args(argsText);
 ```
 */
-export function args(argsText: string | string[], options: ArgsOptions = { nullglob: false }) {
+export function args(
+	argsText: string | string[],
+	options: ArgsOptions = { nullglob: envNullglob() },
+) {
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
 	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
@@ -801,7 +813,7 @@ if (options.targetExecutable) {
 */
 export async function* argsIt(
 	argsText: string,
-	options: ArgsOptions = { nullglob: false },
+	options: ArgsOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<ArgIncrement> {
 	let continueExpansions = true;
 	while (argsText) {
@@ -840,7 +852,7 @@ export async function* argsIt(
 // `argItSync`
 export function* argsItSync(
 	argsText: string,
-	options: ArgsOptions = { nullglob: false },
+	options: ArgsOptions = { nullglob: envNullglob() },
 ): IterableIterator<ArgIncrementSync> {
 	const continueExpansions = false;
 	while (argsText) {
