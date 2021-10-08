@@ -36,7 +36,7 @@ try {
 } catch {
 	targetURL = '';
 }
-// console.warn(Me.name, { CWD: Deno.cwd(), targetPath, targetURL });
+// console.warn(Me.name, { CWD: Deno.cwd(), targetPath, targetURL, args });
 
 // const targetArgs = [...iteratedArgTail, tailOfArgsText].join(' ');
 
