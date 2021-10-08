@@ -7,7 +7,7 @@
 import { Args, assert, decode, Path } from './$deps.ts';
 import { createTestFn, projectPath, traversal } from './$shared.ts';
 
-const expand = Args.shellExpand;
+const expand = Args.shellExpandSync;
 
 const test = createTestFn(import.meta.url);
 
@@ -40,7 +40,7 @@ test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.len
 	assert(status.success);
 });
 
-test(`syntax ~ source files (and imports) compile correctly (${projectTypeScriptFiles.source.length} found)`, async () => {
+test(`syntax ~ source files (plus imports) compile correctly (${projectTypeScriptFiles.source.length} found)`, async () => {
 	const files = (projectTypeScriptFiles.source).flatMap((e) =>
 		traversal(e, Deno.cwd() + Path.SEP) || []
 	);

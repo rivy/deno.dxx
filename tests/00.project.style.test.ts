@@ -4,7 +4,7 @@
 import { Args, assert, assertEquals, equal, Path } from './$deps.ts';
 import { createTestFn, haveDPrint, isWinOS, projectPath } from './$shared.ts';
 
-const args = Args.args;
+const args = Args.argsSync;
 
 const test = createTestFn(import.meta.url);
 
