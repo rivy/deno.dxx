@@ -1,4 +1,4 @@
-// spell-checker:ignore (vars) ARGX arr gmsu ; (utils) dprint dprintrc
+// spell-checker:ignore (names) Deno ; (vars) ARGX PATHEXT arr gmsu ; (utils) dprint dprintrc
 
 import { FS as fs } from './lib/$deps.ts';
 

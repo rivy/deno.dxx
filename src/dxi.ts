@@ -1,4 +1,4 @@
-// spell-checker:ignore (vars) arr gmsu ; (text) positionals
+// spell-checker:ignore (names) Deno ; (vars) arr gmsu ; (text) positionals
 
 import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
 

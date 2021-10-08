@@ -1,4 +1,4 @@
-// spell-checker:ignore (vars) arr gmsu
+// spell-checker:ignore (names) Deno ; (vars) arr gmsu
 
 import * as xArgs from './lib/xArgs.ts';
 import * as Me from './lib/xProcess.ts';
