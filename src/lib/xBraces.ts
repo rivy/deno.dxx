@@ -41,8 +41,8 @@ const cNonQReS = `(?:(?!${QReS}).)`; // non-(double or single)-quote character
 
 const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'); // == (tokenFragment)(restOfString)
 
-// `braceExpand`
-/** brace expand a string
+// `expand`
+/** Brace expand a string argument.
 
 * - Bash-like brace expansion (compatible with the Bash v4.3 specification).
 * - Quotes (single or double) are used to protect braces from expansion;
@@ -56,7 +56,7 @@ Uses the ['braces'](https://github.com/micromatch/braces) JS module.
 @example
 ```js
 const text = '{a,b} text string {1..10..2}';
-const expansion = braceExpand('{a,b} text string');
+const expansion = expand('{a,b} text string');
 ```
 */
 export function expand(s: string) {
