@@ -552,10 +552,10 @@ export function* filenameExpandIterSync(
 						acc + (value.isGlob ? value.depth : 0),
 					0,
 				);
-			const re = new RegExp(
-				'^' + globEscapedPrefix + parsed.globAsReS + '$',
-				isWinOS ? 'imsu' : 'msu',
-			);
+			const rxS = '^' + globEscapedPrefix + parsed.globAsReS + '$';
+			// console.warn({ globEscapedPrefix, globAsReS: parsed.globAsReS, maxDepth });
+			// console.warn(`rxS=${rxS}`);
+			const re = new RegExp(rxS, isWinOS ? 'imsu' : 'msu');
 			// console.warn('xArgs.filenameExpandIter()', {
 			// 	resolvedPrefix,
 			// 	resolvedHasTrailingSep,
@@ -735,8 +735,7 @@ export function globToReS(s: string) {
 	const parsed = Picomatch.parse(text, {
 		windows: true,
 		dot: false,
-		nobrace: true,
-		noquantifiers: true,
+		literalBrackets: true,
 		posix: true,
 		nocase: isWinOS,
 	});
