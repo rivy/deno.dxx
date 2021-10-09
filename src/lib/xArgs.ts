@@ -749,6 +749,37 @@ export type ArgsOptions = { nullglob: boolean };
 
 // ToDO: fix panic "error: Uncaught SyntaxError: Invalid regular expression" for args/shellExpand('{.}*')
 
+// `shellExpandAsync()`
+/** 'shell'-expand argument string(s).
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+- Character escape sequences are not recognized/supported.
+- Brace expansion is fully implemented (including nested braces and ["brace bomb"](https://github.com/micromatch/braces/blob/master/README.md#brace-matching-pitfalls) protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Promise for an iterable array of argument expansions (possibly empty)
+@example
+```js
+const expansion: string[] = await shellExpandAsync('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
+```
+*/
+export async function shellExpandAsync(
+	args: string | string[],
+	options: ArgsOptions = { nullglob: envNullglob() },
+) {
+	const arr = Array.isArray(args) ? args : [args];
+	const arrOut: string[] = [];
+	// console.warn('xArgs.shellExpand()', { options, arr });
+	for (const e of arr) {
+		arrOut.push(...await filenameExpand(e, options));
+	}
+	return arrOut;
+}
+
 // `shellExpandSync()`
 /** 'shell'-expand argument string(s)
 
@@ -777,7 +808,7 @@ export function shellExpandSync(
 }
 
 // `shellExpand()`
-/** 'shell'-expand argument string(s)
+/** 'shell'-expand argument string(s).
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
 - Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
@@ -788,27 +819,21 @@ export function shellExpandSync(
 
 Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
 
-@returns Iterable array of argument expansions (possibly empty)
+@returns Promise for an iterable array of argument expansions (possibly empty)
 @example
 ```js
-const expansion: string[] = await shellExpand('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
+const expansion: string[] = await shellExpandAsync('{.,}*'); // or `shellExpand(['{.,}*', './src/file_{1..10..2}_*.ts'])`
 ```
 */
-export async function shellExpand(
+export function shellExpand(
 	args: string | string[],
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
-	const arr = Array.isArray(args) ? args : [args];
-	const arrOut: string[] = [];
-	// console.warn('xArgs.shellExpand()', { options, arr });
-	for (const e of arr) {
-		arrOut.push(...await filenameExpand(e, options));
-	}
-	return arrOut;
+	return shellExpandAsync(args, options);
 }
 
-// `args()`
-/** parse (if needed) and 'shell'-expand argument string(s)
+//$ `args()` (aka `argsAsync()`)
+/** Parse (if needed) and 'shell'-expand argument text string(s).
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
 - Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
@@ -819,14 +844,41 @@ export async function shellExpand(
 
 Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
 
-@returns Iterable array of argument expansions (possibly empty)
+@returns Promise for an iterable array of argument expansions (possibly empty)
 @example
-```js
+```ts
 const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
 const expansion: string[] = await args(argsText);
 ```
 */
-export async function args(
+export function args(
+	argsText: string | string[],
+	options: ArgsOptions = { nullglob: envNullglob() },
+) {
+	return argsAsync(argsText, options);
+}
+
+//$ `argsAsync()`
+//$from `args()` -@example
+/** Parse (if needed) and 'shell'-expand argument text string(s).
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+- ANSI-C strings (eg, $'...') are supported and expanded; otherwise, no character escape sequences are recognized.
+- Brace expansion is fully implemented (including nested braces and ["brace bomb"](https://github.com/micromatch/braces/blob/master/README.md#brace-matching-pitfalls) protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Promise for an iterable array of argument expansions (possibly empty)
+@example
+```ts
+const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
+const expansion: string[] = await argsAsync(argsText);
+```
+*/
+export async function argsAsync(
 	argsText: string | string[],
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
@@ -838,8 +890,9 @@ export async function args(
 	return (await shellExpand(expand, options)).map(shellDeQuote).concat(raw);
 }
 
-// `argsSync()`
-/** parse (if needed) and 'shell'-expand argument string(s)
+//$ `argsSync()`
+//$from `args()`
+/** Parse (if needed) and 'shell'-expand argument string(s).
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
 - Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
@@ -850,9 +903,10 @@ export async function args(
 
 Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
 
+@$from `args()`
 @returns Iterable array of argument expansions (possibly empty)
 @example
-```js
+```ts
 const argsText = '{.,}* "text string" ./src/file_{1..10..2}_*.ts';
 const expansion: string[] = args(argsText);
 ```
@@ -869,7 +923,7 @@ export function argsSync(
 	return shellExpandSync(expand, options).map(shellDeQuote).concat(raw);
 }
 
-export type ArgIncrement = {
+export type ArgIncrementAsync = {
 	arg: string;
 	tailOfArgExpansion: AsyncIterableIterator<string>[];
 	tailOfArgsText: string;
@@ -880,8 +934,8 @@ export type ArgIncrementSync = {
 	tailOfArgsText: string;
 };
 
-// `argsIt`
-/** incrementally parse and 'shell'-expand argument text; returning a lazy iterator of ArgIncrementSync's
+// `argsItAsync`
+/** Incrementally parse and 'shell'-expand argument text; returning a lazy iterator of ArgIncrementSync's.
 
 - Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
 - Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
@@ -892,12 +946,12 @@ export type ArgIncrementSync = {
 
 Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
 
-@returns Iterator of expansions with corresponding remaining argument string (ie, `[arg, restOfArgS]`)
+@returns Async iterator of expansions with corresponding remaining argument string (ie, `[arg, restOfArgS]`)
 @example
 ```js
 // eg, for `deno`, `dxr`, `env`, `xargs`, ...
 const argsText = '--processOptions ... targetExecutable {.,}* "text*string" ./src/file_{1..10..2}_*.ts';
-const argIt = argsIt(argsText);
+const argIt = argsItAsync(argsText);
 const processArgs = [];
 let targetArgsText = '';
 let options = null;
@@ -914,10 +968,10 @@ if (options.targetExecutable) {
 }
 ```
 */
-export async function* argsIt(
+export async function* argsItAsync(
 	argsText: string,
 	options: ArgsOptions = { nullglob: envNullglob() },
-): AsyncIterableIterator<ArgIncrement> {
+): AsyncIterableIterator<ArgIncrementAsync> {
 	let continueExpansions = true;
 	while (argsText) {
 		let argText = '';
@@ -952,7 +1006,41 @@ export async function* argsIt(
 		}
 	}
 }
-// `argItSync`
+
+// `argsItSync`
+/** Incrementally parse and 'shell'-expand argument text; returning a lazy iterator of ArgIncrementSync's.
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+  Otherwise, no character escape sequences are recognized.
+- Brace expansion is fully implemented (including nested braces and "brace bomb" protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Async iterator of expansions with corresponding remaining argument string (ie, `[arg, restOfArgS]`)
+@example
+```js
+// eg, for `deno`, `dxr`, `env`, `xargs`, ...
+const argsText = '--processOptions ... targetExecutable {.,}* "text*string" ./src/file_{1..10..2}_*.ts';
+const argIt = argsItSync(argsText);
+const processArgs = [];
+let targetArgsText = '';
+let options = null;
+for (const [arg, restOfArgsText] in argIt) {
+	processArgs.push(arg);
+	options = getOptions(processArgs);
+	if (options.targetExecutable) {
+		targetArgsText = restOfArgsText;
+		break;
+	}
+}
+if (options.targetExecutable) {
+	// run `targetExecutable` with `targetArgsText` (un-processed argument text)
+}
+```
+*/
 export function* argsItSync(
 	argsText: string,
 	options: ArgsOptions = { nullglob: envNullglob() },
@@ -975,5 +1063,48 @@ export function* argsItSync(
 				};
 			}
 		}
+	}
+}
+
+// `argsIt`
+/** Incrementally parse and 'shell'-expand argument text; returning a lazy iterator of ArgIncrementAsync.
+
+- Performs `bash`-like expansion (compatible with the Bash v4.3 specification).
+- Quotes (single or double) are used to protect braces, tildes, and globs from expansion;
+	unbalanced quotes are allowed (and parsed as if completed by the end of the string).
+  Otherwise, no character escape sequences are recognized.
+- Brace expansion is fully implemented (including nested braces and "brace bomb" protections).
+- Glob expansion supports `globstar` and full extended glob syntax.
+
+Uses the [*braces*](https://github.com/micromatch/braces) and [*picomatch*](https://github.com/micromatch/picomatch) JS modules.
+
+@returns Async iterator of expansions with corresponding remaining argument string (ie, `[arg, restOfArgS]`)
+@example
+```js
+// eg, for `deno`, `dxr`, `env`, `xargs`, ...
+const argsText = '--processOptions ... targetExecutable {.,}* "text*string" ./src/file_{1..10..2}_*.ts';
+const argIt = argsIt(argsText);
+const processArgs = [];
+let targetArgsText = '';
+let options = null;
+for await (const [arg, restOfArgsText] in argIt) {
+	processArgs.push(arg);
+	options = getOptions(processArgs);
+	if (options.targetExecutable) {
+		targetArgsText = restOfArgsText;
+		break;
+	}
+}
+if (options.targetExecutable) {
+	// run `targetExecutable` with `targetArgsText` (un-processed argument text)
+}
+```
+*/
+export async function* argsIt(
+	argsText: string,
+	options: ArgsOptions = { nullglob: envNullglob() },
+): AsyncIterableIterator<ArgIncrementAsync> {
+	for await (const e of argsItAsync(argsText, options)) {
+		yield e;
 	}
 }
