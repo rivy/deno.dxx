@@ -34,3 +34,7 @@ test('compare `shellExpand()` to `shellExpandSync()`', async () => {
 	assertEquals(await Parse.shellExpand('eg\\*\\*.ts'), Parse.shellExpandSync('eg\\*\\*.ts'));
 	assertEquals(await Parse.shellExpand('eg\\**\\*.ts'), Parse.shellExpandSync('eg\\**\\*.ts'));
 });
+
+test("brace expansion (eg, `shellExpand('{a}*')`)", async () => {
+	assertEquals(await Parse.shellExpand('{a}*'), ['{a}*']);
+});
