@@ -1,5 +1,7 @@
 // spell-checker:ignore (jargon) bikeshed ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
+// ToDO: review RegExp construction statements to avoid panics where appropriate (explore deno std for possible examples of good handlkng practices)
+
 // ToDO: review checks for progression in splits => continue to use an assert? what do we guarantee about returned 'token'?
 
 // ToDO: add support for end-of-expansion token (eg, `--#`); all subsequent tokens are passed through in their raw, unexpanded form
