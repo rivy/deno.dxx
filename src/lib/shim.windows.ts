@@ -94,8 +94,8 @@ export function shimInfo(contentsOriginal: string) {
 		.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno >= v1.13
 		.toString();
 
-	// summarize flags/options for `--allow-all` or `--allow-run`
-	if (!denoRunOptions.match(/(?<=^|\s+)[\x22\x27]?--allow-(all|run)(?=\s+|$)/m)) {
+	// summarize flags/options for `--allow-all` or (unrestricted) `--allow-run`
+	if (denoRunOptions.match(/(?<=^|\s)[\x22\x27]?--allow-(all|run)(?:[\x22\x27]|\s|$)/m)) {
 		denoRunOptions = '"--allow-all"';
 	}
 
