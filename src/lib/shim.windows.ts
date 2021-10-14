@@ -19,8 +19,8 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @for %%G in ("%COMSPEC%") do @title %%~nG
 @set "DENO_SHIM_EXEC=%DENO_SHIM_EXEC%"
 @set "DENO_SHIM_PIPE=%DENO_SHIM_PIPE%"
-@set DENO_SHIM_ARG0=%~0
-@set DENO_SHIM_URL=<%=denoRunTarget%>
+@set "DENO_SHIM_ARG0=%~0"
+@set "DENO_SHIM_URL=<%=denoRunTarget%>"
 @call "%DENO_SHIM_EXEC%"
 @call set DENO_SHIM_ERRORLEVEL=%%ERRORLEVEL%%
 @if EXIST "%DENO_SHIM_PIPE%" call "%DENO_SHIM_PIPE%" >NUL 2>NUL
@@ -38,12 +38,12 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 const cmdShimPrepPipe = `@:pipeEnabled
 @:prep
 @set "RANDOM=" &:: remove any cloak from dynamic variable RANDOM
-@if NOT DEFINED TEMP @set TEMP=%TMP%
-@if NOT EXIST "%TEMP%" @set TEMP=%TMP%
+@if NOT DEFINED TEMP @set "TEMP=%TMP%"
+@if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @goto :launch
-@set DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%
-@set DENO_SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd
-@set DENO_SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%DENO_SHIM_TID%.cmd
+@set "DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
+@set "DENO_SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd"
+@set "DENO_SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%DENO_SHIM_TID%.cmd"
 @if EXIST "%DENO_SHIM_EXEC%" @goto :prep
 @if EXIST "%DENO_SHIM_PIPE%" @goto :prep
 @if DEFINED DENO_SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%DENO_SHIM_EXEC%"
@@ -51,11 +51,11 @@ const cmdShimPrepPipe = `@:pipeEnabled
 const cmdShimPrepNoPipe = `@:pipeDisabled
 @:prep
 @set "RANDOM=" &:: remove any cloak from dynamic variable RANDOM
-@if NOT DEFINED TEMP @set TEMP=%TMP%
-@if NOT EXIST "%TEMP%" @set TEMP=%TMP%
+@if NOT DEFINED TEMP @set "TEMP=%TMP%"
+@if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @goto :launch
-@set DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%
-@set DENO_SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd
+@set "DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
+@set "DENO_SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd"
 @if EXIST "%DENO_SHIM_EXEC%" @goto :prep
 @if DEFINED DENO_SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%DENO_SHIM_EXEC%"`;
 
