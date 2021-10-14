@@ -13,7 +13,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @:launch
 @rem:: DENO_SHIM_EXEC convolution is to avoid \`%*\` within the final parse group [o/w paren args cause parsing misbehavior]
 @>>"%DENO_SHIM_EXEC%" echo @set DENO_SHIM_ARGS=%*
-@>>"%DENO_SHIM_EXEC%" echo @goto _undef_ 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- <%=denoRunTarget%> %%DENO_SHIM_ARGS%%
+@>>"%DENO_SHIM_EXEC%" echo @goto _undef_ 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%DENO_SHIM_ARGS%%
 @(
 @goto _undef_ 2>NUL
 @for %%G in ("%COMSPEC%") do @title %%~nG
@@ -70,10 +70,14 @@ export function shimInfo(contentsOriginal: string) {
 		contentsOriginal.match(/shim\s*;\s*by\s*`?dxi`?/i);
 
 	const reMatchArray = contentsOriginal.match(
-		// eg, `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
-		/^(.*?)@\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?(\x22[^\x22]*\x22)\s+%*.*$/m,
+		// match `deno run` options, run-target (as a URL-like quoted string), and run-target arguments from shim text
+		// * run-target is matched as the first double-quoted URL-like (like "<scheme>:...") argument
+		// eg, `deno install ...` => `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
+		// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%DENO_SHIM_ARGS%%`
+		/^(.*?)@\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?\x22([a-z][a-z0-9+.-]+:[^\x22]+)\x22\s+(%[*]|%%DENO_SHIM_ARGS%%)\s*$/m,
 	) || [];
-	const [_match, _denoCommandPrefix, denoRunOptionsRaw, denoRunTarget] = reMatchArray;
+	const [_match, _denoCommandPrefix, denoRunOptionsRaw, denoRunTarget, _denoRunTargetArgs] =
+		reMatchArray;
 
 	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 
