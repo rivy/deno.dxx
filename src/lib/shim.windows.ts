@@ -90,13 +90,13 @@ export function shimInfo(contentsOriginal: string) {
 	// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
 	// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
 	denoRunOptions = denoRunOptions
-		.replace(/(?<=^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(?=\s+|$)/gm, '--allow-all') // deno <= v1.12
-		.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '--allow-all') // deno >= v1.13
+		.replace(/(?<=^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno <= v1.12
+		.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno >= v1.13
 		.toString();
 
 	// summarize flags/options for `--allow-all` or `--allow-run`
 	if (!denoRunOptions.match(/(?<=^|\s+)[\x22\x27]?--allow-(all|run)(?=\s+|$)/m)) {
-		denoRunOptions = '--allow-all';
+		denoRunOptions = '"--allow-all"';
 	}
 
 	denoRunOptions = denoRunOptions
