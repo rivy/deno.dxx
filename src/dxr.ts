@@ -44,7 +44,7 @@ try {
 // FixME: fail gracefully (with warning?) if expanded command line is longer than a <max_length>
 
 const targetArgs = args;
-const denoOptions = ['run', '-A'];
+const denoOptions = ['run', '-A', '--'];
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoOptions, targetPath, ...targetArgs],
 	stderr: 'inherit',
