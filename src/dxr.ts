@@ -40,6 +40,9 @@ try {
 
 // const targetArgs = [...iteratedArgTail, tailOfArgsText].join(' ');
 
+// !NOTE: maximum command line or environment variable length is likely 8192 characters; see ref: <https://superuser.com/questions/1070272/why-does-windows-have-a-limit-on-environment-variables-at-all/1070354#1070354>
+// FixME: fail gracefully (with warning?) if expanded command line is longer than a <max_length>
+
 const targetArgs = args;
 const denoOptions = ['run', '-A'];
 const runOptions: Deno.RunOptions = {
