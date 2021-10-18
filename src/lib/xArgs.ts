@@ -1,5 +1,9 @@
 // spell-checker:ignore (jargon) bikeshed ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
+// FixME: [2021-10-17; rivy] current code returns values with incorrect prefixes (eg, '**/...' has leading SEP, './**/...' is missing leading './')
+// !! *** need to re-evaluate prefix handling
+// !! *** lots of extended globs aren't matching correctly `.*` should match '.' and '..'; `?(.[^.]|)*` should match all files in directory, including dot-files, except '.' and '..'
+
 // ToDO: review RegExp construction statements to avoid panics where appropriate (explore deno std for possible examples of good handlkng practices)
 
 // ToDO: review checks for progression in splits => continue to use an assert? what do we guarantee about returned 'token'?
@@ -430,6 +434,8 @@ export function subShellExpand(_s: string): Array<string> {
 function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
+
+// FixME: `filenameExpand...` is not an accurate term for the function group; possible globExpand, or other alternatives?
 
 export type FilenameExpandOptions = { nullglob: boolean };
 export async function* filenameExpandIter(
