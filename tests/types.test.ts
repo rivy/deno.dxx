@@ -9,6 +9,12 @@ import { string, unknown } from 'https://cdn.esm.sh/v45/computed-types@1.6.0';
 // import type { ValidatorProxy as _ } from 'https://cdn.esm.sh/v45/computed-types@1.6.0/lib/Validator.d.ts';
 
 // ToDO: evaluate [`zod`](https://github.com/colinhacks/zod) as a possible replacement for `computed-types`
+// ToDO: evaluate `chai` and `sinon`; egs, <https://deno.land/std@0.111.0/testing/chai_example.ts> and <https://deno.land/std@0.111.0/testing/sinon_example.ts>
+
+import chai from 'https://cdn.skypack.dev/chai@4.3.4?dts';
+// import sinon from 'https://cdn.skypack.dev/sinon@11.1.2?dts';
+// import mocha from 'https://unpkg.com/mocha@7.2.0/mocha.js';
+import { z } from 'https://cdn.skypack.dev/zod@3.9.8?dts';
 
 import { createTestFn } from './$shared.ts';
 
@@ -51,4 +57,18 @@ test('parse', () => {
 	assertType(unknown.array().of(string), Parse.wordSplitCLText('test this'));
 
 	// writeAllSync(Deno.stdout, e.encode('] '));
+});
+
+// ref: <https://stackoverflow.com/questions/44595658/chai-test-array-of-objects-to-contain-something-like-an-object-submatch>
+// ref: <https://stackoverflow.com/questions/42113776/chai-check-if-array-of-strings-has-one-with-a-subset-string>
+
+test('parse (using chai)', () => {
+	chai.expect(Parse.wordSplitCLText('')).to.be.an('array').lengthOf(0);
+	// assertType(chai.assert. ... unknown.array().of(string).max(0), Parse.wordSplitCLText(''));
+	// assertType(chai.assert. ... unknown.array().of(string), Parse.wordSplitCLText('test this'));
+});
+
+test('parse (using zod)', () => {
+	z.array(z.string()).length(0).parse(Parse.wordSplitCLText(''));
+	z.array(z.string()).parse(Parse.wordSplitCLText('test this'));
 });
