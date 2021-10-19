@@ -87,7 +87,16 @@ async function* findExecutable(
 	for (const path_ of paths) {
 		for (const extension of extensions) {
 			const p = path.join(path_, name) + extension;
-			if ((await fs.exists(p)) && (isWinOS || ((await Deno.lstat(p)).mode || 0) & 0o111)) {
+			const [exists, err] = await (async () => {
+				// catches "incorrect" (aka malformed) paths for broken PATH configurations
+				try {
+					return [await fs.exists(p), null];
+				} catch (e) {
+					return [false, e];
+				}
+			})();
+			if (err) console.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
+			if (exists && (isWinOS || ((await Deno.lstat(p)).mode || 0) & 0o111)) {
 				yield p;
 			}
 		}
