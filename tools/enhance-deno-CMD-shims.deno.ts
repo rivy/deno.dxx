@@ -13,7 +13,7 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-import { FS as fs, Path } from './lib/$deps.ts';
+import { FS as $fs, Path as $path } from './lib/$deps.ts';
 
 import { collect, filter, map } from './lib/funk.ts';
 
@@ -49,7 +49,7 @@ function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undef
 	if (paths.find((v) => typeof v === 'undefined')) {
 		return void 0;
 	}
-	return Path.join(...(paths as string[])); // noSonar // false positive ("assertion not necessary"); ref: <https://github.com/SonarSource/SonarJS/issues/1961>
+	return $path.join(...(paths as string[])); // noSonar // false positive ("assertion not necessary"); ref: <https://github.com/SonarSource/SonarJS/issues/1961>
 }
 
 import { eol } from '../src/lib/eol.ts';
@@ -59,7 +59,7 @@ const denoInstallRoot = joinFullyDefinedPaths(
 	'bin',
 );
 
-if (denoInstallRoot && fs.existsSync(denoInstallRoot)) {
+if (denoInstallRoot && $fs.existsSync(denoInstallRoot)) {
 	Deno.stdout.writeSync(
 		encoder.encode('`deno` binaries folder found at "' + denoInstallRoot + '"\n'),
 	);
@@ -80,8 +80,8 @@ function disableWinGlobEscape(s: string) {
 const cmdGlob = '*.cmd';
 // configure regex (`[\\/]` as path separators, no escape characters (use character sets (`[..]`)instead) )
 const re = new RegExp(
-	// Path.globToRegExp(cmdGlob, { extended: true, globstar: true, os: 'windows' }),
-	Path
+	// $path.globToRegExp(cmdGlob, { extended: true, globstar: true, os: 'windows' }),
+	$path
 		.globToRegExp(disableWinGlobEscape(cmdGlob), { extended: true, globstar: true, os: 'windows' })
 		.source
 		.replace(
@@ -99,7 +99,7 @@ const res = [re];
 const fileEntries = await collect(filter(
 	// 	// (walkEntry) => walkEntry.path !== denoInstallRoot,
 	() => true,
-	fs.walkSync(denoInstallRoot + '/.', {
+	$fs.walkSync(denoInstallRoot + '/.', {
 		maxDepth: 1,
 		match: res,
 		// skip: [/[.]/],
@@ -123,7 +123,7 @@ import { cmdShimTemplate, shimInfo } from '../src/lib/shim.windows.ts';
 const updates = await collect(map(async function (fileEntry) {
 	const shimPath = fileEntry.path;
 	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimPath)));
-	const shimBinName = Path.parse(shimPath).name;
+	const shimBinName = $path.parse(shimPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget } = info;
 	const contentsUpdated = eol.CRLF(
@@ -138,7 +138,7 @@ for await (const update of updates) {
 	// console.log(update.contentsUpdated);
 	// }
 	if (!update.isEnhanced || forceUpdate) {
-		Deno.stdout.writeSync(encoder.encode(Path.basename(update.shimPath) + '...'));
+		Deno.stdout.writeSync(encoder.encode($path.basename(update.shimPath) + '...'));
 		Deno.writeFileSync(update.shimPath, encoder.encode(update.contentsUpdated));
 		Deno.stdout.writeSync(encoder.encode('updated' + '\n'));
 	}

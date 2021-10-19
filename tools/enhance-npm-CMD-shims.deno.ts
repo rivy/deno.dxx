@@ -11,7 +11,7 @@
 
 console.log({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
-import { FS as fs, Path as path } from './lib/$deps.ts';
+import { FS as $fs, Path as $path } from './lib/$deps.ts';
 
 import { collect, first, map } from './lib/funk.ts';
 
@@ -86,11 +86,11 @@ async function* findExecutable(
 		: (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [''];
 	for (const path_ of paths) {
 		for (const extension of extensions) {
-			const p = path.join(path_, name) + extension;
+			const p = $path.join(path_, name) + extension;
 			const [exists, err] = await (async () => {
 				// catches "incorrect" (aka malformed) paths for broken PATH configurations
 				try {
-					return [await fs.exists(p), null];
+					return [await $fs.exists(p), null];
 				} catch (e) {
 					return [false, e];
 				}
@@ -124,7 +124,7 @@ async function* findExecutable(
 // }
 
 const npmPath = await first(findExecutable('npm'));
-const npmBinPath = npmPath ? path.dirname(npmPath) : void 0;
+const npmBinPath = npmPath ? $path.dirname(npmPath) : void 0;
 
 if (npmBinPath) {
 	Deno.stdout.writeSync(
@@ -138,7 +138,7 @@ if (npmBinPath) {
 // ref: [deno issue ~ add `caseSensitive` option to `expandGlob`](https://github.com/denoland/deno/issues/9208)
 // ref: [deno/std ~ `expandGlob` discussion](https://github.com/denoland/deno/issues/1856)
 // const files = await collect(fs.expandGlob(path.join(npmBinPath, '*.cmd')));
-const files = fs.expandGlob(path.join(npmBinPath, '*.cmd'));
+const files = $fs.expandGlob($path.join(npmBinPath, '*.cmd'));
 
 const updates = await collect(map(async function (file) {
 	const name = file.path;
@@ -155,7 +155,7 @@ for await (const update of updates) {
 	// if (options.debug) {
 	// 	console.log({ update });
 	// }
-	Deno.stdout.writeSync(encoder.encode(path.basename(update.name) + '...'));
+	Deno.stdout.writeSync(encoder.encode($path.basename(update.name) + '...'));
 	if (!update.targetBinPath) {
 		Deno.stdout.writeSync(encoder.encode('UNKNOWN FORMAT' + '\n'));
 	} else if (update.contentsUpdated != update.contentsOriginal) {
