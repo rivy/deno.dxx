@@ -11,7 +11,7 @@
 
 // console.warn({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
-import { FS as $fs, Path as $path } from './lib/$deps.ts';
+import { Colors as $colors, FS as $fs, Me, Path as $path } from './lib/$deps.ts';
 
 import { collect, first, map } from './lib/funk.ts';
 
@@ -127,11 +127,16 @@ const npmPath = await first(findExecutable('npm'));
 const npmBinPath = npmPath ? $path.dirname(npmPath) : void 0;
 
 if (npmBinPath) {
-	Deno.stdout.writeSync(
-		encoder.encode('`npm` binaries folder found at "' + npmBinPath + '"' + '\n'),
+	Deno.stderr.writeSync(
+		encoder.encode(
+			$colors.cyan(`note/[${Me.name}] `) + '`npm` binaries folder found at "' + npmBinPath + '"' +
+				'\n',
+		),
 	);
 } else {
-	Deno.stderr.writeSync(encoder.encode('`npm` binaries folder not found\n'));
+	Deno.stderr.writeSync(
+		encoder.encode($colors.red(`ERR!/[${Me.name}] `) + '`npm` binaries folder not found\n'),
+	);
 	Deno.exit(1);
 }
 
@@ -157,10 +162,10 @@ for await (const update of updates) {
 	// }
 	Deno.stdout.writeSync(encoder.encode($path.basename(update.name) + '...'));
 	if (!update.targetBinPath) {
-		Deno.stdout.writeSync(encoder.encode('UNKNOWN FORMAT' + '\n'));
+		Deno.stdout.writeSync(encoder.encode($colors.yellow('UNKNOWN FORMAT') + '\n'));
 	} else if (update.contentsUpdated != update.contentsOriginal) {
 		Deno.writeFileSync(update.name, encoder.encode(update.contentsUpdated));
-		Deno.stdout.writeSync(encoder.encode('updated' + '\n'));
+		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
 	} else {
 		Deno.stdout.writeSync(encoder.encode('up-to-date' + '\n'));
 	}
