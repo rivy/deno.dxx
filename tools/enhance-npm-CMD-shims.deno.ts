@@ -9,7 +9,7 @@
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki , Packt
 
-console.log({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+// console.warn({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
 import { FS as $fs, Path as $path } from './lib/$deps.ts';
 
