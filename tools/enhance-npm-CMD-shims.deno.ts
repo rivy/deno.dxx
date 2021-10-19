@@ -4,7 +4,7 @@
 
 // `deno run --allow-... PROG`
 
-// spell-checker:ignore (abbrev/names) Cygwin MSYS SkyPack
+// spell-checker:ignore (abbrev/names) Cygwin Deno MSYS SkyPack
 // spell-checker:ignore (jargon) templating
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki , Packt
