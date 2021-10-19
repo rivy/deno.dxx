@@ -142,12 +142,11 @@ const files = fs.expandGlob(path.join(npmBinPath, '*.cmd'));
 
 const updates = await collect(map(async function (file) {
 	const name = file.path;
-	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(name)));
-	const targetBinPath = (contentsOriginal
-		.match(/^[^\S\n]*\x22%_prog%\x22\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
-	const targetBinName = targetBinPath
-		? path.parse(targetBinPath).name
-		: undefined;
+	const contentsOriginal = decoder.decode(await Deno.readFile(name));
+	const targetBinPath = (eol
+		.LF(contentsOriginal)
+		.match(/^[^\n]*?\x22%_prog%\x22\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
+	const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
 	const contentsUpdated = eol.CRLF(_.template(cmdShimTemplate)({ targetBinName, targetBinPath }));
 	return { name, targetBinPath, contentsOriginal, contentsUpdated };
 }, files));
@@ -156,9 +155,13 @@ for await (const update of updates) {
 	// if (options.debug) {
 	// 	console.log({ update });
 	// }
-	if (update.targetBinPath) {
-		Deno.stdout.writeSync(encoder.encode(path.basename(update.name) + '...'));
+	Deno.stdout.writeSync(encoder.encode(path.basename(update.name) + '...'));
+	if (!update.targetBinPath) {
+		Deno.stdout.writeSync(encoder.encode('UNKNOWN FORMAT' + '\n'));
+	} else if (update.contentsUpdated != update.contentsOriginal) {
 		Deno.writeFileSync(update.name, encoder.encode(update.contentsUpdated));
 		Deno.stdout.writeSync(encoder.encode('updated' + '\n'));
+	} else {
+		Deno.stdout.writeSync(encoder.encode('up-to-date' + '\n'));
 	}
 }
