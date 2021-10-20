@@ -10,7 +10,7 @@ import * as Parse from '../src/lib/xArgs.ts';
 // ToDO: convert to testing fixtures to avoid failures when source example files change
 const fixturePath = 'tests/fixtures';
 
-test('`shellExpand()` basics', async () => {
+test('`shellExpand()` basics', () => {
 	return Promise
 		.resolve()
 		.then(() => Deno.chdir($path.join(projectPath, fixturePath)))
