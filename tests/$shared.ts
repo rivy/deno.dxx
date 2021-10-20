@@ -64,7 +64,7 @@ function toSpecFormat(specifier: string, value: unknown): string {
 // ref: <https://nodejs.org/docs/latest-v16.x/api/console.html#console_console_log_data_args>
 // ref: <https://nodejs.org/docs/latest-v16.x/api/util.html#util_util_format_format_args>
 // modified from <https://deno.land/std@0.105.0/node/util.ts#L247-L266>
-function format(...args: unknown[]) {
+export function format(...args: unknown[]) {
 	const replacement: [number, string][] = [];
 	const formatSpecifierRx = /%(s|d|i|f|j|o|O|c|%)/g;
 	const hasFormatTemplate = args.length > 0 &&
