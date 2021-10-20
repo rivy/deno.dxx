@@ -14,12 +14,14 @@ import { projectPath } from '../src/lib/$shared.ts';
 
 // ToDO: [2021-09-16; rivy] * improved equivalency to NodeJS format/inspect string quoting requires changing the preference expressed [here](https://github.com/denoland/deno/blob/5d814a4c244d489b4ae51002a0cf1d3c2fe16058/ext/console/02_console.js#L648-L669)
 
+const inspect = Deno.inspect;
+
 // ref: <https://nodejs.org/api/util.html#util_util_format_format_args>
 function toSpecFormat(specifier: string, value: unknown): string {
 	if (specifier === '%s') {
 		if (typeof value === 'string' || value instanceof String) {
 			return value as string;
-		} else return Deno.inspect(value, { depth: 2 });
+		} else return inspect(value, { depth: 2 });
 	}
 	if (specifier === '%d') {
 		if (typeof value === 'bigint') {
@@ -48,10 +50,10 @@ function toSpecFormat(specifier: string, value: unknown): string {
 		}
 	}
 	if (specifier === '%o') {
-		return Deno.inspect(value, { showHidden: true, showProxy: true });
+		return inspect(value, { showHidden: true, showProxy: true });
 	}
 	if (specifier === '%O') {
-		return Deno.inspect(value);
+		return inspect(value);
 	}
 	if (specifier === '%c') {
 		return '';
@@ -93,7 +95,7 @@ function format(...args: unknown[]) {
 		if (i > 0) result += ' ';
 		if (typeof args[i] === 'string') {
 			result += args[i];
-		} else result += Deno.inspect(args[i], { colors: true });
+		} else result += inspect(args[i], { colors: true });
 	}
 	return result;
 }
