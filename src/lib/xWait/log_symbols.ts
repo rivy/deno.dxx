@@ -8,7 +8,7 @@ if ((await Deno.permissions.query({ name: 'env' })).state === 'granted') {
 }
 
 export const symbolStrings: Record<string, Record<string, string>> = {
-	// ASCII (eg, ANSI high-bit reset) character fallback prefixes
+	// ASCII (ie, ANSI high-bit reset) character fallback prefixes
 	ascii: {
 		debug: Colors.yellow('@'),
 		die: Colors.red('!'),
