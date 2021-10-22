@@ -1,3 +1,5 @@
+// spell-checker:ignore (names) Deno
+
 import { Colors } from '../$deps.ts';
 
 let supportsUnicode = true;
