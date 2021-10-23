@@ -228,7 +228,7 @@ export function* enumerateSync<
 		}
 	} else if (isObject) {
 		const arr: ObjectKey[] = Reflect.ownKeys(enumerable);
-		for (const k in arr) {
+		for (const k of arr) {
 			yield ([k, Reflect.get(enumerable, k)] as unknown) as [TKey, TValue];
 		}
 	} else {

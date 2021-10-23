@@ -962,7 +962,7 @@ const argIt = argsItAsync(argsText);
 const processArgs = [];
 let targetArgsText = '';
 let options = null;
-for await (const [arg, restOfArgsText] in argIt) {
+for await (const [arg, restOfArgsText] of argIt) {
 	processArgs.push(arg);
 	options = getOptions(processArgs);
 	if (options.targetExecutable) {
@@ -1035,7 +1035,7 @@ const argIt = argsItSync(argsText);
 const processArgs = [];
 let targetArgsText = '';
 let options = null;
-for (const [arg, restOfArgsText] in argIt) {
+for (const [arg, restOfArgsText] of argIt) {
 	processArgs.push(arg);
 	options = getOptions(processArgs);
 	if (options.targetExecutable) {
@@ -1094,7 +1094,7 @@ const argIt = argsIt(argsText);
 const processArgs = [];
 let targetArgsText = '';
 let options = null;
-for await (const [arg, restOfArgsText] in argIt) {
+for await (const [arg, restOfArgsText] of argIt) {
 	processArgs.push(arg);
 	options = getOptions(processArgs);
 	if (options.targetExecutable) {
