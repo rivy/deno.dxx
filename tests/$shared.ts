@@ -8,7 +8,7 @@ export * from '../src/lib/$shared.ts';
 
 import { Colors, decode, Path } from './$deps.ts';
 
-import { projectPath } from '../src/lib/$shared.ts';
+import { intoPath, projectPath, traversal } from '../src/lib/$shared.ts';
 
 //====
 
@@ -110,7 +110,7 @@ function composeTestName(testFilePath: string, description: string) {
 }
 
 export function createTestFn(testFilePath: URL | string) {
-	const path = (testFilePath instanceof URL) ? testFilePath.pathname : testFilePath;
+	const path = intoPath(testFilePath);
 	function test(description: string, fn: () => void | Promise<void>, opts = {}) {
 		const testName: TestName = composeTestName(path, description);
 		Deno.test({
