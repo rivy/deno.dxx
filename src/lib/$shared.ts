@@ -2,9 +2,9 @@
 
 import { Path } from './$deps.ts';
 
+export const projectName: string | undefined = 'dxx';
 export const VERSION = '0.0.9';
 
-export const projectName: string | undefined = 'dxx';
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath =
 	((url: URL) => (url.protocol === 'file:') ? Path.fromFileUrl(url) : url.pathname)(projectURL);
