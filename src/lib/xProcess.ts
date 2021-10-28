@@ -1,3 +1,4 @@
+// spell-checker:ignore (names) Deno
 // spell-checker:ignore (vars) ARGX
 
 import { Path } from './$deps.ts';

@@ -1,6 +1,8 @@
 // tests ~ common code
 
-// spell-checker:ignore (names) Axel Rauschmayer
+// spell-checker:ignore (names) Deno
+// spell-checker:ignore (people) Axel Rauschmayer , Roy Ivy III * rivy
+// spell-checker:ignore (utils) dprint git
 
 export * from '../src/lib/$shared.ts';
 
