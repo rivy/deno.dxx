@@ -12,6 +12,10 @@ export { default as OSPaths } from 'https://deno.land/x/os_paths@v6.9.0/src/mod.
 export * as TTY from 'https://deno.land/x/tty@0.1.4/mod.ts';
 export { default as Yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
+export * as $logger from './axe/$mod.ts';
+import { logger } from './axe/$mod.ts';
+logger.suspend(); // suspend logger for use within local modules
+
 // assert functions (with assertion signatures) always require explicit type annotation
 // * ref: <https://github.com/microsoft/TypeScript/issues/36931> , <https://github.com/microsoft/TypeScript/issues/36067>
 // eg...

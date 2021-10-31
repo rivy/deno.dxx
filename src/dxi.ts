@@ -1,8 +1,8 @@
 // spell-checker:ignore (names) Deno ; (vars) arr gmsu ; (text) positionals
 
-import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
+import { $logger, decoder, encoder, Lodash as _, Path, Yargs } from './lib/$deps.ts';
 
-import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
+// import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Spin from './lib/xWait/$mod.ts';
 import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
@@ -10,10 +10,13 @@ import * as Me from './lib/xProcess.ts';
 // Me.warnIfImpaired(); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution from installation via `deno install ...`
 
 const isWinOS = Deno.build.os === 'windows';
-const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
+// const symbolDebug = LogSymbols.symbolStrings.emoji.debug;
 
 const version = Version.v();
 const runAsName = Me.runAs;
+const logger = $logger.logger;
+
+logger.mergeMetadata({ authority: Me.name });
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = Yargs(undefined, undefined, undefined)
@@ -44,9 +47,19 @@ const app = Yargs(undefined, undefined, undefined)
 		describe: 'options (as listed; may also include any `deno install` options)',
 	})
 	.positional('COMMAND', { describe: 'Path/URL of command to install' })
-	.option('debug', { describe: 'Show debug logging', boolean: true });
+	.option('debug', { describe: 'Show debug logging', boolean: true })
+	.option('trace', {
+		describe: 'Show trace (lower-level/higher-detail debug) logging',
+		boolean: true,
+	});
 
 const args = app.parse(Me.args(), undefined, undefined);
+
+await logger.debug({ args });
+
+if (args.debug) logger.mergeMetadata({ Filter: { level: 'debug' } });
+if (args.trace) logger.mergeMetadata({ Filter: { level: 'trace' } });
+await logger.resume();
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
@@ -58,10 +71,8 @@ if (args.version) {
 	Deno.exit(0);
 }
 
-if (args.debug) console.warn(symbolDebug, Me.name, { args });
-
-const decoder = new TextDecoder(); // defaults to 'utf-8'
-const encoder = new TextEncoder(); // defaults to 'utf-8'
+// const decoder = new TextDecoder(); // defaults to 'utf-8'
+// const encoder = new TextEncoder(); // defaults to 'utf-8'
 
 // install (using `deno install`)
 const spinnerInstallTextBase = 'Installing (using `deno install ...`) ...';
@@ -81,7 +92,7 @@ const runOptions: Deno.RunOptions = {
 	stdin: 'null',
 	stdout: 'piped',
 };
-if (args.debug) console.warn(symbolDebug, Me.name, { runOptions });
+await logger.debug({ runOptions });
 const process = Deno.run(runOptions);
 const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
 const outStd = decoder.decode(await process.output()).replace(
@@ -101,7 +112,7 @@ const shimBinPath = (() => {
 	return '';
 })();
 
-if (args.debug) console.warn(symbolDebug, Me.name, { shimBinPath });
+await logger.debug({ shimBinPath });
 
 import { eol } from './lib/eol.ts';
 import { cmdShimTemplate, shimInfo } from './lib/shim.windows.ts';

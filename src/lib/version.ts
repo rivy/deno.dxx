@@ -1,11 +1,16 @@
 // VERSION handler
 
 // `fetch()` implementation (requires read [for local runs] or network permissions)
-import { intoURL, projectPaths, projectURL } from '../../tests/$shared.ts';
 import { fetch } from './$deps.ts'; // 'file://'-compatible `fetch()`
+
+import { intoURL, projectPaths, projectURL } from '../../tests/$shared.ts';
+// import { logger } from '../../tests/$shared.ts';
+
 const newline = /\r?\n|\n/;
 const versionURL = intoURL(projectPaths.version, projectURL);
-console.log({ projectURL, projectPaths, versionURL });
+
+// logger.trace({ projectURL, projectPaths, versionURL });
+
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
 export const projectVersionText = versionURL &&
 	(await (await fetch(versionURL)).text()).split(newline).filter((s) => s)[0];
