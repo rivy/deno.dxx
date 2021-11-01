@@ -754,8 +754,6 @@ export function globToReS(s: string) {
 
 export type ArgsOptions = { nullglob: boolean };
 
-// ToDO: fix panic "error: Uncaught SyntaxError: Invalid regular expression" for args/shellExpand('{.}*')
-
 // `shellExpandAsync()`
 /** 'shell'-expand argument string(s).
 
