@@ -108,12 +108,16 @@ type TestName = string;
 const testLog: [TestName, (() => string) | string][] = [];
 
 function composeTestName(testFilePath: string, description: string) {
-	return Colors.dim(Path.parse(testFilePath).base) + ' ' + Colors.bold(description);
+	return (testFilePath ? (Colors.dim(Path.parse(testFilePath).base) + ' ') : '') +
+		Colors.bold(description);
 }
 
-export function createTestFn(testFilePath: URL | string) {
-	const path = intoPath(testFilePath);
+export function createTestFn(testFilePath?: URL | string) {
+	const pathOfTestFile = testFilePath && intoPath(testFilePath);
 	function test(description: string, fn: () => void | Promise<void>, opts = {}) {
+		const path =
+			(pathOfTestFile ? pathOfTestFile : callersFromStackTrace().pop()?.replace(/[:]\d+$/, '')) ??
+				'';
 		const testName: TestName = composeTestName(path, description);
 		Deno.test({
 			name: testName,
@@ -146,6 +150,8 @@ export function createTestFn(testFilePath: URL | string) {
 	}
 	return test;
 }
+
+export const test = createTestFn();
 
 //===
 
@@ -247,3 +253,52 @@ export const gitProjectFiles = async (path = projectPath, options = {}) => {
 		? files.map((file) => file.replace(/^[^\t]*\t/, ''))
 		: undefined;
 };
+
+//=== * stack inspection functions
+
+function getFramesFromError(error: Error): Array<string> {
+	let stack: Error['stack'] | null, frames: string[];
+	// retrieve stack from `Error`
+	// ref: <https://github.com/winstonjs/winston/issues/401#issuecomment-61913086>
+	try {
+		stack = error.stack;
+	} catch (e) {
+		try {
+			const previous = e.__previous__ || e.__previous;
+			stack = previous && previous.stack;
+		} catch (_) {
+			stack = null;
+		}
+	}
+
+	// handle different stack formats
+	if (stack) {
+		if (Array.isArray(stack)) {
+			frames = Array(stack);
+		} else {
+			frames = stack.toString().split('\n');
+		}
+	} else {
+		frames = [];
+	}
+
+	return frames;
+}
+
+function stackTrace() {
+	// ref: <https://stackoverflow.com/questions/591857/how-can-i-get-a-javascript-stack-trace-when-i-throw-an-exception>
+	// ref: [`get-current-line`](https://github.com/bevry/get-current-line/blob/9364df5392c89e9540314787493dbe142e8ce99d/source/index.ts)
+	return getFramesFromError(new Error('stack trace'));
+}
+
+function callersFromStackTrace() {
+	const callers = stackTrace()
+		.slice(1)
+		.map((s) => {
+			const match = s.match(/^.*\s[(]?(.*?)[)]?$/m);
+			if (!match) return undefined;
+			else return match[1];
+		})
+		.filter(Boolean);
+	return callers;
+}
