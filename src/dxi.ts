@@ -8,6 +8,8 @@ import * as Spin from './lib/xWait/$mod.ts';
 import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
 
+import { consoleSize } from './lib/consoleSize.ts';
+
 // Me.warnIfImpaired(); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution from installation via `deno install ...`
 
 const isWinOS = Deno.build.os === 'windows';
@@ -27,6 +29,7 @@ const app = Yargs(undefined, undefined, undefined)
 		undefined,
 		undefined,
 	)
+	.wrap(Math.min(((await consoleSize())?.columns ?? 80), 100))
 	// help and version setup
 	.help(false)
 	.version(false)
