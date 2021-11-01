@@ -1,4 +1,5 @@
 // spell-checker:ignore (libs) [tty] wcswidth
+// spell-checker:ignore (names) Deno
 // deno-lint-ignore-file no-inferrable-types
 
 import { Colors, TTY as tty } from '../$deps.ts';
