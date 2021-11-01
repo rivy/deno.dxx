@@ -891,7 +891,7 @@ export async function argsAsync(
 ) {
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
-	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
+	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
 	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
 	return (await shellExpand(expand, options)).map(shellDeQuote).concat(raw);
@@ -924,7 +924,7 @@ export function argsSync(
 ) {
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
-	const expand = arr.length ? (arr.slice(0, (idx < 0 ? undefined : (idx + 1)))) : [];
+	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
 	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
 	return shellExpandSync(expand, options).map(shellDeQuote).concat(raw);

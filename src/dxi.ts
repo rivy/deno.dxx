@@ -4,9 +4,9 @@ import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
 import { decoder, encoder, logger } from './lib/$shared.ts';
 
 // import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
-import * as Spin from './lib/xWait/$mod.ts';
 import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
+import * as Spin from './lib/xWait/$mod.ts';
 
 import { consoleSize } from './lib/consoleSize.ts';
 
@@ -29,7 +29,7 @@ const app = Yargs(undefined, undefined, undefined)
 		undefined,
 		undefined,
 	)
-	.wrap(Math.min(((await consoleSize())?.columns ?? 80), 100))
+	.wrap(Math.min((await consoleSize())?.columns ?? 80, 100))
 	// help and version setup
 	.help(false)
 	.version(false)

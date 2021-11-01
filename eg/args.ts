@@ -2,8 +2,8 @@ import * as colors from 'https://deno.land/std@0.85.0/fmt/colors.ts';
 
 import Yargs from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
-import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Me from '../src/lib/xProcess.ts';
+import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 
 Me.warnIfImpaired((s) => console.warn(colors.yellow(`WARN/[${Me.name}]: ` + s))); // WARN if executing with impaired command line capability
 
