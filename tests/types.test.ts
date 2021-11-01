@@ -16,9 +16,7 @@ import chai from 'https://cdn.skypack.dev/chai@4.3.4?dts';
 // import mocha from 'https://unpkg.com/mocha@7.2.0/mocha.js';
 import { z } from 'https://cdn.skypack.dev/zod@3.9.8?dts';
 
-import { createTestFn } from './$shared.ts';
-
-const test = createTestFn(import.meta.url);
+import { test } from './$shared.ts';
 
 type ValidatorType = {
 	validator: (_: unknown) => unknown[];

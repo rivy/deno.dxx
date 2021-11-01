@@ -1,9 +1,7 @@
 // spell-checker:ignore (names) Deno
 
 import { assertEquals, Path as $path } from './$deps.ts';
-import { createTestFn, projectPath } from './$shared.ts';
-
-const test = createTestFn(import.meta.url);
+import { projectPath, test } from './$shared.ts';
 
 import * as Parse from '../src/lib/xArgs.ts';
 

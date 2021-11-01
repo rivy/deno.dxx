@@ -5,11 +5,9 @@
 // ToDO: re-evaluate as `deno check` comes to fruition
 
 import { Args, assert, Path } from './$deps.ts';
-import { createTestFn, decode, projectPath, traversal } from './$shared.ts';
+import { decode, projectPath, test, traversal } from './$shared.ts';
 
 const expand = Args.shellExpandSync;
-
-const test = createTestFn(import.meta.url);
 
 const projectTypeScriptFiles = {
 	examples: expand(Path.join(projectPath, 'eg/*.ts')),

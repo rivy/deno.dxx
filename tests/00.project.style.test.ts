@@ -2,11 +2,9 @@
 // spell-checker:ignore (utils) dprint git
 
 import { Args, assert, assertEquals, equal, Path } from './$deps.ts';
-import { createTestFn, haveDPrint, isWinOS, projectPath } from './$shared.ts';
+import { haveDPrint, isWinOS, projectPath, test } from './$shared.ts';
 
 const args = Args.argsSync;
-
-const test = createTestFn(import.meta.url);
 
 const excludeDirsRxs = ['[_.#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
