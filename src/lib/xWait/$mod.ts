@@ -225,7 +225,7 @@ export class Spinner {
 		const denoConsoleSize = (Deno as any).consoleSize;
 		const columns = denoConsoleSize ? denoConsoleSize(this.#stream.rid)?.columns || 80 : 80;
 		const fullPrefixText = typeof this.prefix === 'string' ? this.prefix + '-' : '';
-		this.#linesCount = tty.stripAnsi(fullPrefixText + '--' + this.text).split('\n').reduce(
+		this.#linesCount = Colors.stripColor(fullPrefixText + '--' + this.text).split('\n').reduce(
 			(count, line) => {
 				return count + Math.max(1, Math.ceil(tty.wcswidth(line) / columns));
 			},
