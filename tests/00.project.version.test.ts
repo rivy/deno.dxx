@@ -1,10 +1,11 @@
 // spell-checker:ignore (names) Deno
 
-import { assertEquals, decode, equal, FS } from './$deps.ts';
+import { assertEquals, equal, FS } from './$deps.ts';
 const { existsSync } = FS;
 import {
 	createTestFn,
 	createWarnFn,
+	decode,
 	haveGit,
 	projectName,
 	projectPaths,

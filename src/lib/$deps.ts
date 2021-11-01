@@ -13,8 +13,6 @@ export * as TTY from 'https://deno.land/x/tty@0.1.4/mod.ts';
 export { default as Yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
 export * as $logger from './axe/$mod.ts';
-import { logger } from './axe/$mod.ts';
-logger.suspend(); // suspend logger for use within local modules
 
 // assert functions (with assertion signatures) always require explicit type annotation
 // * ref: <https://github.com/microsoft/TypeScript/issues/36931> , <https://github.com/microsoft/TypeScript/issues/36067>
@@ -27,11 +25,5 @@ logger.suspend(); // suspend logger for use within local modules
 //  export { assert, assertEquals, equal } from 'https://deno.land/std@0.106.0/testing/asserts.ts';
 export * as Asserts from 'https://deno.land/std@0.106.0/testing/asserts.ts';
 export { assert, assertEquals, equal } from 'https://deno.land/std@0.106.0/testing/asserts.ts';
-
-// export { decode, encode } from 'https://deno.land/std@0.85.0/encoding/utf8.ts'; // 'utf8.ts' was removed via commit 5bc18f5d86
-export const decoder = new TextDecoder();
-export const encoder = new TextEncoder();
-export const decode = (input?: Uint8Array): string => decoder.decode(input);
-export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 export { fetch } from 'https://deno.land/x/file_fetch@0.2.0/mod.ts';

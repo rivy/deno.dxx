@@ -1,6 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) arr gmsu ; (text) positionals
 
-import { $logger, decoder, encoder, Lodash as _, Path, Yargs } from './lib/$deps.ts';
+import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
+import { decoder, encoder, logger } from './lib/$shared.ts';
 
 // import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 import * as Spin from './lib/xWait/$mod.ts';
@@ -14,7 +15,6 @@ const isWinOS = Deno.build.os === 'windows';
 
 const version = Version.v();
 const runAsName = Me.runAs;
-const logger = $logger.logger;
 
 logger.mergeMetadata({ authority: Me.name });
 
@@ -70,9 +70,6 @@ if (args.version) {
 	console.log(version);
 	Deno.exit(0);
 }
-
-// const decoder = new TextDecoder(); // defaults to 'utf-8'
-// const encoder = new TextEncoder(); // defaults to 'utf-8'
 
 // install (using `deno install`)
 const spinnerInstallTextBase = 'Installing (using `deno install ...`) ...';

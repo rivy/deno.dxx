@@ -4,8 +4,8 @@
 // ref: <https://github.com/denoland/deno/discussions/12113>
 // ToDO: re-evaluate as `deno check` comes to fruition
 
-import { Args, assert, decode, Path } from './$deps.ts';
-import { createTestFn, projectPath, traversal } from './$shared.ts';
+import { Args, assert, Path } from './$deps.ts';
+import { createTestFn, decode, projectPath, traversal } from './$shared.ts';
 
 const expand = Args.shellExpandSync;
 

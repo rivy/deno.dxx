@@ -1,6 +1,11 @@
 // spell-checker:ignore (names) Deno EditorConfig
 
-import { Path } from './$deps.ts';
+import { $logger, Path } from './$deps.ts';
+
+$logger.logger.suspend(); // suspend logger to allow for use within other local modules without unwanted outputs
+export const logger = $logger.logger; // export (suspended) logger
+
+//===
 
 export const projectName: string | undefined = 'dxx';
 export const VERSION = '0.0.9';
@@ -22,6 +27,12 @@ export const projectPaths = {
 //===
 
 export const isWinOS = Deno.build.os === 'windows';
+
+// export { decode, encode } from 'https://deno.land/std@0.85.0/encoding/utf8.ts'; // 'utf8.ts' was removed via commit 5bc18f5d86
+export const decoder = new TextDecoder();
+export const encoder = new TextEncoder();
+export const decode = (input?: Uint8Array): string => decoder.decode(input);
+export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //===
 

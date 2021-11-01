@@ -8,9 +8,9 @@ export * from '../src/lib/$shared.ts';
 
 //====
 
-import { Colors, decode, Path } from './$deps.ts';
+import { Colors, Path } from './$deps.ts';
 
-import { intoPath, projectPath, traversal } from '../src/lib/$shared.ts';
+import { decode, intoPath, projectPath, traversal } from '../src/lib/$shared.ts';
 
 //====
 
