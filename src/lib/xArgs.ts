@@ -2,7 +2,7 @@
 
 // FixME: [2021-10-17; rivy] current code returns values with incorrect prefixes (eg, '**/...' has leading SEP, './**/...' is missing leading './')
 // !! *** need to re-evaluate prefix handling
-// !! *** lots of extended globs aren't matching correctly `.*` should match '.' and '..'; `?(.[^.]|)*` should match all files in directory, including dot-files, except '.' and '..'
+// !! *** lots of extended globs aren't matching correctly `.*` should match '.' and '..'; `?(.[^.]|)*` (=> `?(.[!.]^|)*` for Windows b/c of `^` and `|` special characters) should match all files in directory, including dot-files, except '.' and '..'
 
 // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 // !... * check input string for path separator and translate to that separator for outputs; but allow user selection via an option `{sep: string (null => smart sep, or separator character (take only first))}`
