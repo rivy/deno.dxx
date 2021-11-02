@@ -1,5 +1,7 @@
 // spell-checker:ignore (jargon) bikeshed falsey glob globbing truthy ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
+// FixME: (repaired by needs tests)[2021-11-01; rivy] fix trailing slash issue and write tests; `e*` => 'eg' but `e*/` => 'e*/' (POSIX is 'eg/')
+
 // FixME: [2021-10-17; rivy] current code returns values with incorrect prefixes (eg, '**/...' has leading SEP, './**/...' is missing leading './')
 // !! *** need to re-evaluate prefix handling
 // !! *** lots of extended globs aren't matching correctly `.*` should match '.' and '..'; `?(.[^.]|)*` (=> `?(.[!.]^|)*` for Windows b/c of `^` and `|` special characters) should match all files in directory, including dot-files, except '.' and '..'
@@ -481,7 +483,9 @@ export async function* filenameExpandIter(
 	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
-	const parsed = parseGlob(glob);
+	const globHasTrailingSep = glob.match(new RegExp(Path.SEP_PATTERN.source + '$'));
+	const globWithoutTrailingSep = glob.replace(new RegExp(Path.SEP_PATTERN.source + '$'), '');
+	const parsed = parseGlob(globWithoutTrailingSep);
 
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
 
@@ -536,18 +540,19 @@ export async function* filenameExpandIter(
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walk(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for await (const e of walkIt) {
-				const p = e.path.replace(
-					new RegExp(
-						'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
-							? '[\\\\/]'
-							: ''),
-					),
-					'',
-				);
+				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
+					e.path.replace(
+						new RegExp(
+							'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
+								? '[\\\\/]'
+								: ''),
+						),
+						'',
+					);
 				// console.warn({ e, p });
 				if (p) {
 					found = true;
-					yield Path.join(parsed.prefix, p); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					yield Path.join(parsed.prefix, p) + (globHasTrailingSep ? Path.SEP : ''); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -563,9 +568,16 @@ export function* filenameExpandIterSync(
 	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
-	const parsed = parseGlob(glob);
+	const globHasTrailingSep = glob.match(new RegExp(Path.SEP_PATTERN.source + '$'));
+	const globWithoutTrailingSep = glob.replace(new RegExp(Path.SEP_PATTERN.source + '$'), '');
+	const parsed = parseGlob(globWithoutTrailingSep);
 
-	// console.warn('xArgs.filenameExpandIter()', { parsed });
+	// console.warn('xArgs.filenameExpandIterSync()', {
+	// 	glob,
+	// 	globHasTrailingSep,
+	// 	globWithoutTrailingSep,
+	// 	parsed,
+	// });
 
 	let found = false;
 	if (parsed.glob.length > 0) {
@@ -597,17 +609,18 @@ export function* filenameExpandIterSync(
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for (const e of walkIt) {
-				const p = e.path.replace(
-					new RegExp(
-						'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
-							? '[\\\\/]'
-							: ''),
-					),
-					'',
-				);
+				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
+					e.path.replace(
+						new RegExp(
+							'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
+								? '[\\\\/]'
+								: ''),
+						),
+						'',
+					);
 				if (p) {
 					found = true;
-					yield Path.join(parsed.prefix, p); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					yield Path.join(parsed.prefix, p) + (globHasTrailingSep ? Path.SEP : ''); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
