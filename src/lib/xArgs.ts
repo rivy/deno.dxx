@@ -538,7 +538,7 @@ export async function* filenameExpandIter(
 			for await (const e of walkIt) {
 				const p = e.path.replace(
 					new RegExp(
-						'^' + globEscapedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
+						'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
 							? '[\\\\/]'
 							: ''),
 					),
@@ -599,7 +599,7 @@ export function* filenameExpandIterSync(
 			for (const e of walkIt) {
 				const p = e.path.replace(
 					new RegExp(
-						'^' + globEscapedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
+						'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
 							? '[\\\\/]'
 							: ''),
 					),
