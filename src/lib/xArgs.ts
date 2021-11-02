@@ -1,4 +1,4 @@
-// spell-checker:ignore (jargon) bikeshed ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
+// spell-checker:ignore (jargon) bikeshed falsey glob globbing truthy ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
 // FixME: [2021-10-17; rivy] current code returns values with incorrect prefixes (eg, '**/...' has leading SEP, './**/...' is missing leading './')
 // !! *** need to re-evaluate prefix handling

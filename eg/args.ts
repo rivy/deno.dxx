@@ -1,3 +1,5 @@
+// spell-checker:ignore (names) Deno
+
 import * as colors from 'https://deno.land/std@0.85.0/fmt/colors.ts';
 
 import Yargs from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
