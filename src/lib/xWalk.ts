@@ -13,13 +13,21 @@ const { basename, join, normalize } = Path;
 export function _createWalkEntrySync(path: string): WalkEntry {
 	path = normalize(path);
 	const name = basename(path);
-	const info = Deno.statSync(path);
+	let error;
+	let info;
+	try {
+		info = Deno.statSync(path);
+	} catch (e) {
+		error = e;
+		info = undefined;
+	}
 	return {
+		errors: error ? [error] : [],
 		path,
 		name,
-		isFile: info.isFile,
-		isDirectory: info.isDirectory,
-		isSymlink: info.isSymlink,
+		isFile: info ? info.isFile : false,
+		isDirectory: info ? info.isDirectory : false,
+		isSymlink: info ? info.isSymlink : false,
 	};
 }
 
@@ -27,13 +35,21 @@ export function _createWalkEntrySync(path: string): WalkEntry {
 export async function _createWalkEntry(path: string): Promise<WalkEntry> {
 	path = normalize(path);
 	const name = basename(path);
-	const info = await Deno.stat(path);
+	let info;
+	let error;
+	try {
+		info = await Deno.stat(path);
+	} catch (e) {
+		error = e;
+		info = undefined;
+	}
 	return {
+		errors: error ? [error] : [],
 		path,
 		name,
-		isFile: info.isFile,
-		isDirectory: info.isDirectory,
-		isSymlink: info.isSymlink,
+		isFile: info ? info.isFile : false,
+		isDirectory: info ? info.isDirectory : false,
+		isSymlink: info ? info.isSymlink : false,
 	};
 }
 
@@ -62,6 +78,7 @@ function include(path: string, exts?: string[], match?: RegExp[], skip?: RegExp[
 
 export interface WalkEntry extends Deno.DirEntry {
 	path: string;
+	errors: Error[];
 }
 
 /** Walks the file tree rooted at root, yielding each file or directory in the
@@ -95,6 +112,7 @@ export async function* walk(
 		skip = undefined,
 	}: WalkOptions = {},
 ): AsyncIterableIterator<WalkEntry> {
+	const errors: Error[] = [];
 	// console.warn('xWalk.walk()', { root, options: { match, maxDepth }, CWD: Deno.cwd() });
 	if (maxDepth < 0) {
 		return;
@@ -121,7 +139,7 @@ export async function* walk(
 
 			if (entry.isFile) {
 				if (includeFiles && include(path, exts, match, skip)) {
-					yield { path, ...entry };
+					yield { errors, path, ...entry };
 				}
 			} else {
 				yield* walk(path, {
@@ -137,6 +155,7 @@ export async function* walk(
 		}
 	} catch (_error) {
 		/* swallow any Deno.readDir() errors */
+		errors.push(_error);
 	}
 }
 
@@ -153,6 +172,7 @@ export function* walkSync(
 		skip = undefined,
 	}: WalkOptions = {},
 ): IterableIterator<WalkEntry> {
+	const errors: Error[] = [];
 	if (maxDepth < 0) {
 		return;
 	}
@@ -177,7 +197,7 @@ export function* walkSync(
 
 			if (entry.isFile) {
 				if (includeFiles && include(path, exts, match, skip)) {
-					yield { path, ...entry };
+					yield { errors, path, ...entry };
 				}
 			} else {
 				yield* walkSync(path, {
@@ -193,5 +213,6 @@ export function* walkSync(
 		}
 	} catch (_error) {
 		/* swallow any Deno.readDirSync() errors */
+		errors.push(_error);
 	}
 }
