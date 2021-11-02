@@ -1,6 +1,14 @@
 // spell-checker:ignore (libs) [tty] wcswidth
 // spell-checker:ignore (names) Deno
+// spell-checker:ignore (utils) listr
+
 // deno-lint-ignore-file no-inferrable-types
+
+// forked from [wait](https://deno.land/x/wait@0.1.12); [repo](https://github.com/denosaurs/wait); MIT
+// inspiration from...
+// * [listr](https://www.npmjs.com/package/listr); [repo](https://github.com/SamVerschueren/listr); MIT
+// * [ora](https://www.npmjs.com/package/ora) ; [repo](https://github.com/sindresorhus/ora); MIT
+// further ideas from [progress](https://deno.land/x/progress@v1.2.4); [repo](https://github.com/deno-library/progress); MIT
 
 import { Colors, TTY as tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
