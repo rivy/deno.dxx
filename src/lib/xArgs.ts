@@ -110,30 +110,56 @@ const endExpansionToken = '-+'; // ToDO: bikeshed best alternative for an end-of
 
 export const portablePathSepReS = '[\\/]';
 
-const DQ = '"';
-const SQ = "'";
-const DQStringReS = `${DQ}[^${DQ}]*(?:${DQ}|$)`; // double-quoted string (unbalanced at end-of-line is allowed)
-const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-of-line is allowed)
-// const DQStringStrictReS = '"[^"]*"'; // double-quoted string (quote balance is required)
-// const SQStringStrictReS = "'[^']*'"; // single-quoted string (quote balance is required)
+// const GlobStringBrand: unique symbol = Symbol();
+/** A glob pattern, in string form, meant to be fed to globbing functions.
+-	*branded* to mimic a nominal type (and for better Intellisense handling).
+*/
+export type GlobString = string & { '#brand': 'GlobString' };
+// const RegexStringBrand: unique symbol = Symbol();
+/** A regular expression pattern, in string form, meant to be fed to `RegExp(...)`.
+-	*branded* to mimic a nominal type (and for better Intellisense handling).
+*/
+export type RegexString = string & { '#brand': 'RegexString' };
 
-const ANSICStringReS = '[$]' + SQStringReS;
+/** Double quote character */
+const DQ = '"';
+/** Single quote character */
+const SQ = "'";
+/** Regex pattern matching a double-quoted string (unbalanced at end-of-line is allowed). */
+const DQStringReS: RegexString = `${DQ}[^${DQ}]*(?:${DQ}|$)` as RegexString;
+/** Regex pattern matching a single-quoted string (unbalanced at end-of-line is allowed). */
+const SQStringReS: RegexString = `${SQ}[^${SQ}]*(?:${SQ}|$)` as RegexString;
+// /** double-quoted string (quote balance is required) */
+// const DQStringStrictReS = '"[^"]*"';
+// /** single-quoted string (quote balance is required) */
+// const SQStringStrictReS = "'[^']*'";
+
+/** ANSIC-style string (eg, `$'...'`) */
+const ANSICStringReS: RegexString = '[$]' + SQStringReS as RegexString;
+
+const globChars = ['?', '*', '[', ']'];
+/** Regex pattern matching any glob character */
+const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as RegexString;
 
 // const pathSepRe = /[\\/]/;
-const globChars = ['?', '*', '[', ']'];
-const globCharsReS = globChars.map((c) => '\\' + c).join('|');
-
 // const sep = Path.sep;
 // const sepReS = Path.SEP_PATTERN;
-const sepReS = `[\\\\\\/]`;
+/** Regex character set matching the path separator character set */
+const sepReS: RegexString = `[\\\\\\/]` as RegexString;
 
-const QReS = `[${DQ}${SQ}]`; // double or single quote character
+/** Regex pattern for double or single quote character */
+const QReS: RegexString = `[${DQ}${SQ}]` as RegexString;
+// /** Regex pattern matching a character which is NON-glob.  */
 // const nonGlobReS = `(?:(?!${globCharsReS}).)`;
+// /** Regex pattern matching a character which is NON-glob and NON-(single or double)-quote.  */
 // const nonGlobQReS = `(?:(?!${globCharsReS}|${QReS}).)`;
-const nonGlobQSepReS = `(?:(?!${globCharsReS}|${QReS}|${sepReS}).)`;
+/** Regex pattern matching a character which is NON-glob, NON-(single or double)-quote, and NON-separator.  */
+const nonGlobQSepReS: RegexString = `(?:(?!${globCharsReS}|${QReS}|${sepReS}).)` as RegexString;
 
-const cNonQReS = `(?:(?!${QReS}).)`; // non-(double or single)-quote character
-const cNonQWSReS = `(?:(?!${QReS}|\\s).)`; // non-quote, non-whitespace character
+/** Regex pattern matching a non-(double or single)-quote character. */
+const cNonQReS = `(?:(?!${QReS}).)`;
+/** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
+const cNonQWSReS = `(?:(?!${QReS}|\\s).)`;
 
 export function splitByBareWSo(s: string): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
@@ -157,13 +183,20 @@ export function splitByBareWSo(s: string): Array<string> {
 	return arr;
 }
 
-const WordReS = {
-	bareWS: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+))(\\s+)?(.*$)`, 'msu'), // == (tokenFragment)(bareWS)?(restOfString),
-	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'), // == (tokenFragment)(restOfString)
+/** Group of regular expressions matching specific parts of a "word" (or token). */
+const WordRxs = {
+	/** RegExp matching a bare (non-quoted) portion of a word.
+	- `(tokenFragment)(bareWS)?(restOfString)` */
+	bareWS: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+))(\\s+)?(.*$)`, 'msu'),
+	/** RegExp matching a (single or double) quoted portion of a word.
+	- `(tokenFragment)(restOfString)` */
+	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'),
+	/** RegExp matching a (single or double *or __ANSI-C__*) quoted portion of a word.
+	- `(tokenFragment)(restOfString)` */
 	quote: new RegExp(
 		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`,
 		'msu',
-	), // == (tokenFragment)(restOfString)
+	),
 };
 
 export function shiftCLTextWord(
@@ -178,11 +211,11 @@ export function shiftCLTextWord(
 	const initialS = s;
 	// console.warn('xArgs.shiftCLTextWord()', { s, options, initialS });
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace // ToDO: remove? allow leading WS in first token?
-	const wordRe = WordReS.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
+	const wordRx = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let foundFullToken = false;
 	let token = '';
 	while (s && !foundFullToken) {
-		const m = s.match(wordRe);
+		const m = s.match(wordRx);
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -245,7 +278,7 @@ export function wordSplitCLText(
 	const arr: Array<string> = [];
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
 	// console.warn('xArgs.wordSplitCLText()', { s });
-	const wordRe = WordReS.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
+	const wordRe = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let text = '';
 	while (s) {
 		const m = s.match(wordRe);
@@ -379,7 +412,7 @@ export function shellDeQuote(s: string) {
 	// * no character escape sequences are recognized
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
 	// console.warn('xArgs.shellDeQuote()', { s });
-	const tokenRe = WordReS.quote; // == (ANSIC/DQ/SQ/non-Q-tokenFragment)(tailOfString)
+	const tokenRe = WordRxs.quote; // == (ANSIC/DQ/SQ/non-Q-tokenFragment)(tailOfString)
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
@@ -439,11 +472,11 @@ function escapeRegExp(s: string) {
 
 export type FilenameExpandOptions = { nullglob: boolean };
 export async function* filenameExpandIter(
-	s: string,
+	glob: GlobString,
 	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
-	const parsed = parseGlob(s);
+	const parsed = parseGlob(glob);
 
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
 
@@ -516,16 +549,16 @@ export async function* filenameExpandIter(
 	}
 
 	if (!parsed.glob || (!found && !options.nullglob)) {
-		yield s;
+		yield glob;
 	}
 }
 
 export function* filenameExpandIterSync(
-	s: string,
+	glob: GlobString,
 	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
-	const parsed = parseGlob(s);
+	const parsed = parseGlob(glob);
 
 	// console.warn('xArgs.filenameExpandIter()', { parsed });
 
@@ -576,28 +609,28 @@ export function* filenameExpandIterSync(
 	}
 
 	if (!parsed.glob || (!found && !options.nullglob)) {
-		yield s;
+		yield glob;
 	}
 }
 
 export async function filenameExpand(
-	s: string,
+	glob: GlobString,
 	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const arr = [];
-	for await (const e of filenameExpandIter(s, options)) {
+	for await (const e of filenameExpandIter(glob, options)) {
 		arr.push(e);
 	}
 	return arr;
 }
 export function filenameExpandSync(
-	s: string,
+	glob: GlobString,
 	options: FilenameExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const arr = [];
-	for (const e of filenameExpandIterSync(s, options)) {
+	for (const e of filenameExpandIterSync(glob, options)) {
 		arr.push(e);
 	}
 	return arr;
@@ -614,6 +647,9 @@ function pathToPosix(p: string) {
 // ToDO: handle long paths, "\\?\...", and UNC paths
 // ref: [1][MSDN - Windows: Naming Files, Paths, and Namespaces] http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx @@ https://archive.today/DgH7i
 
+// parseGlob()
+/** parse glob into a non-glob prefix and glob stem portion
+ */
 export function parseGlob(s: string) {
 	// options.os => undefined (aka portable), 'windows', 'posix'/'linux'
 	const options: { os?: string } = {};
@@ -772,7 +808,7 @@ export async function shellExpandAsync(
 	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpand()', { options, arr });
 	for (const e of arr) {
-		arrOut.push(...await filenameExpand(e, options));
+		arrOut.push(...await filenameExpand(e as GlobString, options));
 	}
 	return arrOut;
 }
@@ -801,7 +837,9 @@ export function shellExpandSync(
 ) {
 	const arr = Array.isArray(args) ? args : [args];
 	// console.warn('xArgs.shellExpandSync()', { options, arr });
-	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) => filenameExpandSync(e, options));
+	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) =>
+		filenameExpandSync(e as GlobString, options)
+	);
 }
 
 // `shellExpand()`
@@ -975,7 +1013,9 @@ export async function* argsItAsync(
 		[argText, argsText] = shiftCLTextWord(argsText);
 		if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) => filenameExpandIter(e, options))
+			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
+				filenameExpandIter(e as GlobString, options)
+			)
 			: [(async function* () {
 				yield argText;
 			})()];
@@ -1048,7 +1088,9 @@ export function* argsItSync(
 		[argText, argsText] = shiftCLTextWord(argsText);
 		// if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) => filenameExpandSync(e, options))
+			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
+				filenameExpandSync(e as GlobString, options)
+			)
 			: [[argText]];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
 			const argExpansion = argExpansions[idx];
