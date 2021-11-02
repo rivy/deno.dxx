@@ -5,6 +5,8 @@ import { deepEqual, pathToOsStyle, projectPath, test } from './$shared.ts';
 
 import * as Parse from '../src/lib/xArgs.ts';
 
+// FixME: by default, all tests should test that both Async and Sync versions of a function pass the test (and, therefore, match each other)
+
 // ToDO: convert to testing fixtures to avoid failures when source example files change
 const fixturePath = 'tests/fixtures';
 

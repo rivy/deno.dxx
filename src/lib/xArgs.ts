@@ -4,7 +4,12 @@
 // !! *** need to re-evaluate prefix handling
 // !! *** lots of extended globs aren't matching correctly `.*` should match '.' and '..'; `?(.[^.]|)*` should match all files in directory, including dot-files, except '.' and '..'
 
-// ToDO: review RegExp construction statements to avoid panics where appropriate (explore deno std for possible examples of good handlkng practices)
+// FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+// !... * check input string for path separator and translate to that separator for outputs; but allow user selection via an option `{sep: string (null => smart sep, or separator character (take only first))}`
+
+// FixME: [2021-11-01; rivy] many paths are being skipped, especially above the owned user directory (a permissions problem?); check for throws in walk?
+
+// ToDO: review RegExp construction statements to avoid panics where appropriate (explore deno std for possible examples of good handling practices)
 
 // ToDO: review checks for progression in splits => continue to use an assert? what do we guarantee about returned 'token'?
 
