@@ -454,6 +454,9 @@ export async function* filenameExpandIter(
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (await exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
+			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
+			// console.warn({ prefix: parsed.prefix, resolvedPrefix, initialGlobstar });
+			// FixME: make sure that Sync version *uses the same algorithm*
 			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
 			// * initial globstar requires a prefix *w/o* trailing SEP in the final RegExp
 			// * o/w the prefix should have a trailing SEP in the final RegExp
@@ -466,28 +469,24 @@ export async function* filenameExpandIter(
 			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
 			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
-			const globEscapedPrefix = (escapeRegExp(
-				resolvedPrefix + ((resolvedHasTrailingSep || parsed
-						.globScan
-						.glob
-						.startsWith('**/'))
-					? ''
-					: Path.SEP),
-			))
-				.replace(/\\\\|\//g, '[\\\\/]');
+			const globEscapedPrefix =
+				(escapeRegExp(
+					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
+						? ''
+						: Path.SEP),
+				))
+					.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			const maxDepth = (parsed
-				// deno-lint-ignore no-explicit-any
-				.globScanTokens as unknown as any)
-				.reduce(
-					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-						acc + (value.isGlob ? value.depth : 0),
-					0,
-				);
+			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
+			.globScanTokens as unknown as any)
+				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+					acc + (value.isGlob ? value.depth : 0), 0);
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
-				isWinOS ? 'imsu' : 'msu',
+				isWinOS
+					? 'imsu'
+					: 'msu',
 			);
 			// console.warn('xArgs.filenameExpandIter()', {
 			// 	resolvedPrefix,
@@ -499,10 +498,18 @@ export async function* filenameExpandIter(
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walk(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for await (const e of walkIt) {
-				const p = e.path.replace(new RegExp('^' + globEscapedPrefix), '');
+				const p = e.path.replace(
+					new RegExp(
+						'^' + globEscapedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
+							? '[\\\\/]'
+							: ''),
+					),
+					'',
+				);
+				// console.warn({ e, p });
 				if (p) {
 					found = true;
-					yield Path.join(parsed.prefix, p);
+					yield Path.join(parsed.prefix, p); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -529,55 +536,40 @@ export function* filenameExpandIterSync(
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
 		if (existsSync(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
-			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
-			// * initial globstar requires a prefix *w/o* trailing SEP in the final RegExp
-			// * o/w the prefix should have a trailing SEP in the final RegExp
-			// ToDO: add tests for the correct outputs
-			// normalize prefix to have a trailing separator
-			// ToDO: convert to use of Path.SEP_PATTERN
-			// const normalizedPrefix = resolvedPrefix +
-			// 	(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
-			// // ToDO: convert to use of Path.SEP_PATTERN
-			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
-			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
-			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
-			const globEscapedPrefix = (escapeRegExp(
-				resolvedPrefix + ((resolvedHasTrailingSep || parsed
-						.globScan
-						.glob
-						.startsWith('**/'))
-					? ''
-					: Path.SEP),
-			))
-				.replace(/\\\\|\//g, '[\\\\/]');
+			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
+			const globEscapedPrefix =
+				(escapeRegExp(
+					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
+						? ''
+						: Path.SEP),
+				))
+					.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			const maxDepth = (parsed
-				// deno-lint-ignore no-explicit-any
-				.globScanTokens as unknown as any)
-				.reduce(
-					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-						acc + (value.isGlob ? value.depth : 0),
-					0,
-				);
-			const rxS = '^' + globEscapedPrefix + parsed.globAsReS + '$';
-			// console.warn({ globEscapedPrefix, globAsReS: parsed.globAsReS, maxDepth });
-			// console.warn(`rxS=${rxS}`);
-			const re = new RegExp(rxS, isWinOS ? 'imsu' : 'msu');
-			// console.warn('xArgs.filenameExpandIter()', {
-			// 	resolvedPrefix,
-			// 	resolvedHasTrailingSep,
-			// 	globEscapedPrefix,
-			// 	maxDepth,
-			// 	re,
-			// });
+			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
+			.globScanTokens as unknown as any)
+				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+					acc + (value.isGlob ? value.depth : 0), 0);
+			const re = new RegExp(
+				'^' + globEscapedPrefix + parsed.globAsReS + '$',
+				isWinOS
+					? 'imsu'
+					: 'msu',
+			);
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for (const e of walkIt) {
-				const p = e.path.replace(new RegExp('^' + globEscapedPrefix), '');
+				const p = e.path.replace(
+					new RegExp(
+						'^' + globEscapedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
+							? '[\\\\/]'
+							: ''),
+					),
+					'',
+				);
 				if (p) {
 					found = true;
-					yield Path.join(parsed.prefix, p);
+					yield Path.join(parsed.prefix, p); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
