@@ -302,3 +302,29 @@ function callersFromStackTrace() {
 		.filter(Boolean);
 	return callers;
 }
+
+//===
+
+// export type PathString = string & { _brand: 'PathString' };
+export type PathString = string;
+
+export function pathToOsStyle(p: PathString): PathString {
+	return p.replace(new RegExp(Path.SEP_PATTERN, 'g'), Path.SEP) as PathString;
+}
+export function pathToPosixStyle(p: PathString): PathString {
+	return p.replace(new RegExp(Path.SEP_PATTERN, 'g'), '/') as PathString;
+}
+export function pathToWindowsStyle(p: PathString): PathString {
+	return p.replace(new RegExp(Path.SEP_PATTERN, 'g'), '\\') as PathString;
+}
+
+//===
+
+export function deepEqual(x: unknown, y: unknown): boolean {
+	type AnObject = { [k: PropertyKey]: unknown };
+	const ok = Object.keys;
+	return x && y && typeof x === 'object' && typeof y === 'object'
+		? (ok(x).length === ok(y).length &&
+			ok(x).every((key) => deepEqual((x as AnObject)[key], (y as AnObject)[key])))
+		: (x === y);
+}
