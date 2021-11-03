@@ -1,32 +1,21 @@
 // spell-checker:ignore (abbrev/acronym) LOGLEVEL NOTSET PRNG
 // spell-checker:ignore (names) Deno
 
-import { getLevelByName } from 'https://deno.land/std@0.93.0/log/levels.ts';
-import * as Log from 'https://deno.land/std@0.93.0/log/mod.ts';
+import { logger as log } from '../$shared.ts';
 
-const logLevels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'];
-const logFromEnv = Deno.env.get('LOG_LEVEL') ||
-	Deno.env.get('LOGLEVEL') ||
-	(Deno.env.get('DEBUG') ? 'DEBUG' : undefined) ||
-	'';
-const logLevelName = logLevels.find((v) => v === logFromEnv.toLocaleUpperCase()) || 'INFO';
-// deno-lint-ignore no-explicit-any
-const logLevel = getLevelByName(logLevelName as unknown as any);
+const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
+	Deno.env.get('LOGLEVEL') ??
+	(Deno.env.get('DEBUG') ? 'DEBUG' : undefined) ??
+	undefined;
+log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
 
-// await Log.setup({
-// 	handlers: {
-// 		console: new Log.handlers.ConsoleHandler('DEBUG'),
-// 	},
-// 	loggers: {
-// 		default: {
-// 			level: 'INFO',
-// 			handlers: ['console'],
-// 		},
-// 	},
-// });
+const mayBeLogLevelName = logLevelFromEnv &&
+	log.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+const logLevel = mayBeLogLevelName || 'note';
 
-const log = Log.getLogger();
-log.level = log.handlers[0].level = logLevel; // quick, but hackish (for handler level setting) => assumes console is `handlers[0]`
+log.setMetadata({ Filter: { level: logLevel } });
+log.debug(`log level set to '${logLevel}'`);
+await log.resume();
 
 import {
 	bench,
@@ -43,11 +32,7 @@ import { Seed } from 'https://deno.land/x/seed@1.0.0/index.ts';
 
 import * as Parser from '../../src/lib/xArgs.ts';
 
-log.debug('setup: started');
-// log.info('setup');
-// log.warning('setup');
-// log.error('setup');
-// log.critical('setup');
+await log.debug('setup: started');
 
 performance.mark('setup:start');
 
@@ -56,7 +41,7 @@ const runs = 5000;
 const usePresetPRNGSeed = false;
 const presetPRNGSeed = 'bpcc2cfyslscmgrylcy2'; // spell-checker:disable-line
 const seed = usePresetPRNGSeed ? presetPRNGSeed : (new Random()).string(20);
-log.info({ seed });
+console.log({ seed });
 
 const seededPRNG = new Seed(seed);
 const random = new Random(() => seededPRNG.randomFloat());
@@ -121,7 +106,7 @@ bench({
 performance.mark('setup:stop');
 performance.measure('setup', 'setup:start', 'setup:stop');
 
-log.debug(`setup done (duration: ${
+await log.debug(`setup done (duration: ${
 	(() => {
 		const duration = performance.getEntriesByName('setup')[0].duration;
 		const [unit, n] = (duration > 1000) ? ['s', duration / 1000] : ['ms', duration];
@@ -129,7 +114,7 @@ log.debug(`setup done (duration: ${
 	})()
 })`);
 
-log.debug('starting benchmarking');
+await log.debug('starting benchmarking');
 
 performance.mark('bench:start');
 
@@ -139,7 +124,7 @@ await runBenchmarks({ silent: true, skip: /_long/ }, prettyBenchmarkProgress()).
 
 performance.mark('bench:stop');
 performance.measure('bench', 'bench:start', 'bench:stop');
-log.debug(`benchmarking done (duration: ${
+await log.debug(`benchmarking done (duration: ${
 	(() => {
 		const duration = performance.getEntriesByName('bench')[0].duration;
 		const [unit, n] = (duration > 1000) ? ['s', duration / 1000] : ['ms', duration];
