@@ -13,7 +13,7 @@ import { projectPath, projectURL } from '../src/lib/$shared.ts';
 // ToDO: [2021-09-16; rivy] * improved equivalency to NodeJS format/inspect string quoting requires changing the preference expressed [here](https://github.com/denoland/deno/blob/5d814a4c244d489b4ae51002a0cf1d3c2fe16058/ext/console/02_console.js#L648-L669)
 
 // ref: <https://nodejs.org/api/util.html#util_util_format_format_args>
-function toFormatReplacement(specifier: string, value: unknown): string {
+function toSpecFormat(specifier: string, value: unknown): string {
 	if (specifier === '%s') {
 		if (typeof value === 'string' || value instanceof String) {
 			return value as string;
@@ -62,18 +62,18 @@ function toFormatReplacement(specifier: string, value: unknown): string {
 // modified from <https://deno.land/std@0.105.0/node/util.ts#L247-L266>
 function format(...args: unknown[]) {
 	const replacement: [number, string][] = [];
-	const regex = /%(s|d|i|f|j|o|O|c|%)/g;
+	const formatSpecifierRx = /%(s|d|i|f|j|o|O|c|%)/g;
 	const hasFormatTemplate = args.length > 0 &&
 		(typeof args[0] === 'string' || args[0] instanceof String);
 	const formatTemplate = hasFormatTemplate ? (args[0] as string) : '';
 	let i = hasFormatTemplate ? 1 : 0;
 	let arr: RegExpExecArray | null = null;
 	let done = false;
-	while ((arr = regex.exec(formatTemplate)) !== null && !done) {
+	while ((arr = formatSpecifierRx.exec(formatTemplate)) !== null && !done) {
 		if (arr[0] === '%%') {
 			replacement.push([arr['index'], '%']);
 		} else if (i < args.length) {
-			replacement.push([arr['index'], toFormatReplacement(arr[0], args[i])]);
+			replacement.push([arr['index'], toSpecFormat(arr[0], args[i])]);
 			i++;
 		} else done = true;
 	}
