@@ -57,7 +57,20 @@ export const symbolStrings: Record<string, Record<string, string>> = {
 		note: Colors.cyan('#'),
 		success: Colors.green('✓'), // success sigil => "✓" == "check mark"/U+2713
 		trace: Colors.brightYellow('▪'), // trace sigil => "▪" == "black small square"/U+25aa or "●" == "black circle"/U+25cf or "•" == "bullet"/U+2022
-		warning: Colors.magenta('◬'), // warning sigil => "up-pointing triangle with dot"/U+25ec
+		warning: Colors.magenta('\u{27c1}'), // warning sigil => "⟁" == "White Triangle Containing Small White Triangle"/u+27c1 or "◬" == "up-pointing triangle with dot"/U+25ec
+	},
+	// unicode character (double-width) prefixes
+	// * slightly larger, centered, double width form by using the "emoji"-style variation code (U+fe0f)
+	unicodeDoubleWidth: {
+		debug: Colors.yellow('•\u{fe0f}'), // debug sigil => "•" == "bullet"/U+2022 or "●" == "black circle"/U+25cf or "⊙" == "circled dot operator"/U+2299 "●" == "black circle"/U+25cf or "◉" == "fisheye"/U+25c9
+		die: Colors.red('‼\u{fe0f}'),
+		error: Colors.red('!\u{fe0f}'),
+		failure: Colors.red('×\u{fe0f}'), // failure sigil => "×" == "multiplication"/U+00d7 or "●" == "black circle"/U+25cf or "⬤" == "black large circle"/U+2b24
+		info: Colors.brightCyan('i\u{fe0f}'),
+		note: Colors.cyan('#\u{fe0f}'),
+		success: Colors.green('✓\u{fe0f}'), // success sigil => "✓" == "check mark"/U+2713
+		trace: Colors.brightYellow('▪\u{fe0f}'), // trace sigil => "▪" == "black small square"/U+25aa or "●" == "black circle"/U+25cf or "•" == "bullet"/U+2022
+		warning: Colors.magenta('\u{27c1}\u{fe0f}'), // warning sigil => "⟁" == "White Triangle Containing Small White Triangle"/u+27c1 or "◬" == "up-pointing triangle with dot"/U+25ec
 	},
 };
 
