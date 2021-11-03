@@ -11,8 +11,10 @@
 
 // console.warn({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
-import { Colors as $colors, FS as $fs, Me, Path as $path } from './lib/$deps.ts';
+import { $colors, $fs, $path, Me } from './lib/$deps.ts';
+import { decoder, encoder, logger } from './lib/$shared.ts';
 
+import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, first, map } from './lib/funk.ts';
 
 // templating engines ~ <https://colorlib.com/wp/top-templating-engines-for-javascript> @@ <https://archive.is/BKYMw>
@@ -29,9 +31,6 @@ import { collect, first, map } from './lib/funk.ts';
 // // * [skypack "pinned" URLs](https://docs.skypack.dev/skypack-cdn/api-reference/pinned-urls-optimized)
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/min/lodash.js';
 import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
-
-const decoder = new TextDecoder(); // default == 'utf-8'
-const encoder = new TextEncoder(); // default == 'utf-8'
 
 const cmdShimTemplate = `@rem:: \`<%=targetBinName%>\` (*enhanced* \`npm\` CMD shim)
 @setLocal
@@ -67,8 +66,6 @@ const pathListSeparator = isWinOS ? /;/ : /:/;
 // const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
 // const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
 
-import { eol } from '../src/lib/eol.ts';
-
 // influenced by code from <https://github.com/npm/node-which/blob/master/which.js> (ISC License)
 // handle PATHEXT for Cygwin or MSYS?
 
@@ -96,7 +93,7 @@ async function* findExecutable(
 				}
 			})();
 			if (err) {
-				console.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
+				await logger.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
 			}
 			if (exists && (isWinOS || ((await Deno.lstat(p)).mode || 0) & 0o111)) {
 				yield p;
@@ -151,11 +148,13 @@ const files = $fs.expandGlob($path.join(npmBinPath, '*.cmd'));
 const updates = await collect(map(async function (file) {
 	const name = file.path;
 	const contentsOriginal = decoder.decode(await Deno.readFile(name));
-	const targetBinPath = (eol
+	const targetBinPath = ($eol
 		.LF(contentsOriginal)
 		.match(/^[^\n]*?\x22%_prog%\x22\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
-	const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
-	const contentsUpdated = eol.CRLF(_.template(cmdShimTemplate)({ targetBinName, targetBinPath }));
+	const targetBinName = targetBinPath
+		? $path.parse(targetBinPath).name
+		: undefined;
+	const contentsUpdated = $eol.CRLF(_.template(cmdShimTemplate)({ targetBinName, targetBinPath }));
 	return { name, targetBinPath, contentsOriginal, contentsUpdated };
 }, files));
 

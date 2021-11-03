@@ -13,8 +13,10 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-import { FS as $fs, Path as $path } from './lib/$deps.ts';
+import { $fs, $path, $xWalk } from './lib/$deps.ts';
+import { decoder, encoder, logger } from './lib/$shared.ts';
 
+import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, filter, map } from './lib/funk.ts';
 
 const enablePipe = true;
@@ -35,9 +37,6 @@ const forceUpdate = true;
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/min/lodash.js';
 import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
-const decoder = new TextDecoder(); // default == 'utf-8'
-const encoder = new TextEncoder(); // default == 'utf-8'
-
 const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 // const pathListSeparator = isWinOS ? /;/ : /:/;
@@ -52,19 +51,15 @@ function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undef
 	return $path.join(...(paths as string[])); // noSonar // false positive ("assertion not necessary"); ref: <https://github.com/SonarSource/SonarJS/issues/1961>
 }
 
-import { eol } from '../src/lib/eol.ts';
-
 const denoInstallRoot = joinFullyDefinedPaths(
 	Deno.env.get('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OSPaths.home(), '.deno'),
 	'bin',
 );
 
 if (denoInstallRoot && $fs.existsSync(denoInstallRoot)) {
-	Deno.stdout.writeSync(
-		encoder.encode('`deno` binaries folder found at "' + denoInstallRoot + '"\n'),
-	);
+	await logger.info(`\`deno\` binaries folder found at ${denoInstallRoot}\n`);
 } else {
-	Deno.stderr.writeSync(encoder.encode('ERR!: `deno` binaries folder not found\n'));
+	await logger.error('`deno` binaries folder not found\n');
 	Deno.exit(1);
 }
 
@@ -99,7 +94,7 @@ const res = [re];
 const fileEntries = await collect(filter(
 	// 	// (walkEntry) => walkEntry.path !== denoInstallRoot,
 	() => true,
-	$fs.walkSync(denoInstallRoot + '/.', {
+	$xWalk.walkSync(denoInstallRoot + '/.', {
 		maxDepth: 1,
 		match: res,
 		// skip: [/[.]/],
@@ -122,11 +117,11 @@ import { cmdShimTemplate, shimInfo } from '../src/lib/shim.windows.ts';
 
 const updates = await collect(map(async function (fileEntry) {
 	const shimPath = fileEntry.path;
-	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimPath)));
+	const contentsOriginal = $eol.LF(decoder.decode(await Deno.readFile(shimPath)));
 	const shimBinName = $path.parse(shimPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget } = info;
-	const contentsUpdated = eol.CRLF(
+	const contentsUpdated = $eol.CRLF(
 		_.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
 	);
 	return { shimPath, ...info, contentsOriginal, contentsUpdated };
