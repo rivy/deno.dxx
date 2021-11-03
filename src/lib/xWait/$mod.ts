@@ -161,6 +161,7 @@ export class Spinner {
 	get text() {
 		return this.#text;
 	}
+
 	set prefix(value: string) {
 		this.#prefix = value;
 		this.updateLines();

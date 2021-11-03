@@ -84,7 +84,9 @@ export function intoURL(path: string, ...args: unknown[]) {
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
 	};
 	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1)
-	if (options.driveLetterSchemes && scheme?.length == 1) path = 'file://' + Path.normalize(path);
+	if (options.driveLetterSchemes && scheme?.length == 1) {
+		path = 'file://' + Path.normalize(path);
+	}
 	// console.warn({ path, base, options });
 	try {
 		return new URL(path, base);

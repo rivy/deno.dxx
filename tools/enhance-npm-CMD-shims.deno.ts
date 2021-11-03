@@ -95,7 +95,9 @@ async function* findExecutable(
 					return [false, e];
 				}
 			})();
-			if (err) console.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
+			if (err) {
+				console.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
+			}
 			if (exists && (isWinOS || ((await Deno.lstat(p)).mode || 0) & 0o111)) {
 				yield p;
 			}
@@ -129,7 +131,8 @@ const npmBinPath = npmPath ? $path.dirname(npmPath) : void 0;
 if (npmBinPath) {
 	Deno.stderr.writeSync(
 		encoder.encode(
-			$colors.cyan(`note/[${Me.name}] `) + '`npm` binaries folder found at "' + npmBinPath + '"' +
+			$colors.cyan(`note/[${Me.name}] `) + '`npm` binaries folder found at "' +
+				npmBinPath + '"' +
 				'\n',
 		),
 	);
