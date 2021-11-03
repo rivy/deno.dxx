@@ -28,9 +28,10 @@ export const projectPaths = {
 
 export const isWinOS = Deno.build.os === 'windows';
 
+// ref: <https://medium.com/deno-the-complete-reference/textencoder-and-textdecoder-in-deno-cfca83be1792> @@ <https://archive.is/tO0rE>
 // export { decode, encode } from 'https://deno.land/std@0.85.0/encoding/utf8.ts'; // 'utf8.ts' was removed via commit 5bc18f5d86
-export const decoder = new TextDecoder();
-export const encoder = new TextEncoder();
+export const decoder = new TextDecoder(); // default == 'utf=8'
+export const encoder = new TextEncoder(); // *always* 'utf-8'
 export const decode = (input?: Uint8Array): string => decoder.decode(input);
 export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
