@@ -252,13 +252,25 @@ export function toURL(path: string, ...args: unknown[]) {
 	}
 }
 
-export function relativePath(s: string | URL, base: string | URL = Path.toFileUrl(Deno.cwd())) {
-	const url = (s instanceof URL) ? s : asURL(s);
-	const baseURL = (base instanceof URL) ? base : asURL(base);
-	const equalOrigin = url && baseURL &&
+/**
+Determine the traversal path to `goal` from `base`.
+_Returned path will be relative if `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_.
+
+• _relative `goal` or `base` paths are evaluated relative to `Deno.cwd()`_
+
+@param [goal] • target path
+@param [base] • starting path ~ defaults to `Path.toFileUrl(Deno.cwd()+Path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+*/
+export function traversal(
+	goal: string | URL,
+	base: string | URL = Path.toFileUrl(Deno.cwd() + Path.SEP),
+) {
+	const url = (goal instanceof URL) ? goal : toURL(goal);
+	const baseURL = (base instanceof URL) ? base : toURL(base);
+	const commonOrigin = url && baseURL &&
 		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0);
-	// console.warn({ s, url, base, equalOrigin });
-	if (equalOrigin) {
+	// console.warn({ goal, source, url, baseURL, commonOrigin });
+	if (url && baseURL && commonOrigin) {
 		return Path.relative(baseURL.pathname, url.pathname);
 	} else {
 		return url ? url.href : undefined;
@@ -266,7 +278,7 @@ export function relativePath(s: string | URL, base: string | URL = Path.toFileUr
 }
 
 export function createWarnFn(testFilePath?: URL | string) {
-	const path = testFilePath ? relativePath(testFilePath) : undefined;
+	const path = testFilePath ? traversal(testFilePath) : undefined;
 	const base = path ? Path.parse(path).base : undefined;
 	// console.warn({ projectPath, testFilePath, path, base });
 	function warn(...args: unknown[]) {
