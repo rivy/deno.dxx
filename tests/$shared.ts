@@ -328,3 +328,55 @@ export function deepEqual(x: unknown, y: unknown): boolean {
 			ok(x).every((key) => deepEqual((x as AnObject)[key], (y as AnObject)[key])))
 		: (x === y);
 }
+
+//===
+
+// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat>
+export function formatDuration(
+	durationInMS: number,
+	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
+): string {
+	const [unit, n] = (durationInMS > 1000) ? ['s', durationInMS / 1000] : ['ms', durationInMS];
+	return (new Intl.NumberFormat(undefined, options).format(n)) + ' ' + unit;
+}
+export function formatN(
+	n: number,
+	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
+): string {
+	return (new Intl.NumberFormat(undefined, options).format(n));
+}
+
+//===
+
+export function mean(arr: number[]): number | undefined {
+	if (arr.length <= 0) return undefined;
+	if (arr.length === 1) return arr[0];
+	return arr.reduce((acc, v) => acc + v, 0) / arr.length;
+}
+export function median(arr: number[]): number | undefined {
+	if (arr.length <= 0) return undefined;
+	if (arr.length === 1) return arr[0];
+	const sorted = [...arr].sort();
+	const size = sorted.length;
+	const isEven = (size % 2) === 0;
+	const midpoint = Math.floor(sorted.length / 2);
+	return isEven ? ((sorted[midpoint - 1] + sorted[midpoint]) / 2) : sorted[midpoint];
+}
+export function stdDevPopulation(arr: number[], mean_?: number): number | undefined {
+	if (arr.length <= 0) return undefined;
+	if (arr.length === 1) return arr[0];
+	const m = (mean_ != undefined) ? mean_ : mean(arr);
+	if (m == undefined) return undefined;
+	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / arr.length);
+	return stdDev;
+}
+export function stdDevSample(arr: number[], mean_?: number): number | undefined {
+	if (arr.length <= 0) return undefined;
+	if (arr.length === 1) return arr[0];
+	const m = (mean_ != undefined) ? mean_ : mean(arr);
+	if (m == undefined) return undefined;
+	const stdDev = Math.sqrt(
+		arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / (arr.length - 1),
+	);
+	return stdDev;
+}
