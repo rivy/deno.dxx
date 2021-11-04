@@ -5,6 +5,7 @@
 // `deno run --allow-... PROG`
 
 // spell-checker:ignore (abbrev/names) Cygwin Deno MSYS SkyPack
+// spell-checker:ignore (env) LOGLEVEL
 // spell-checker:ignore (jargon) templating
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki , Packt
@@ -16,6 +17,34 @@ import { decoder, encoder, logger as log } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, first, map } from './lib/funk.ts';
+
+//===
+
+const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
+	Deno.env.get('LOGLEVEL') ??
+	(Deno.env.get('DEBUG') ? 'debug' : undefined) ??
+	undefined;
+await log.debug(
+	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL, LOGLEVEL, and DEBUG)`,
+);
+
+const mayBeLogLevelName = logLevelFromEnv &&
+	log.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+const logLevel = mayBeLogLevelName || 'note';
+
+log.mergeMetadata({ Filter: { level: logLevel } });
+await log.debug(`log level set to '${logLevel}'`);
+
+log.mergeMetadata({
+	// Humane: { showLabel: true, showSymbol: false },
+	// Humane: { showLabel: false, showSymbol: 'ascii' },
+	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
+	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
+});
+
+await log.resume();
+
+//===
 
 // templating engines ~ <https://colorlib.com/wp/top-templating-engines-for-javascript> @@ <https://archive.is/BKYMw>
 
@@ -93,7 +122,12 @@ async function* findExecutable(
 				}
 			})();
 			if (err) {
-				await logger.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
+				const isNotFound = err instanceof Deno.errors.NotFound;
+				// `NotFound` errors are logged to 'trace' but otherwise swallowed; other errors are surfaced as warnings
+				await log.log(
+					isNotFound ? 'trace' : 'warn',
+					`Panic: ${err.name} for '${p}' ("${err.message}").`,
+				);
 			}
 			if (maybeLStat && (isWinOS || ((maybeLStat.mode || 0) & 0o111))) {
 				yield p;
@@ -126,17 +160,9 @@ const npmPath = await first(findExecutable('npm'));
 const npmBinPath = npmPath ? $path.dirname(npmPath) : void 0;
 
 if (npmBinPath) {
-	Deno.stderr.writeSync(
-		encoder.encode(
-			$colors.cyan(`note/[${Me.name}] `) + '`npm` binaries folder found at "' +
-				npmBinPath + '"' +
-				'\n',
-		),
-	);
+	await log.info(`\`npm\` binaries folder found at "${npmBinPath}"`);
 } else {
-	Deno.stderr.writeSync(
-		encoder.encode($colors.red(`ERR!/[${Me.name}] `) + '`npm` binaries folder not found\n'),
-	);
+	await log.error('`npm` binaries folder not found');
 	Deno.exit(1);
 }
 
@@ -162,13 +188,14 @@ for await (const update of updates) {
 	// if (options.debug) {
 	// 	console.log({ update });
 	// }
-	Deno.stdout.writeSync(encoder.encode($path.basename(update.name) + '...'));
+	const name = $path.basename(update.name);
 	if (!update.targetBinPath) {
-		Deno.stdout.writeSync(encoder.encode($colors.yellow('UNKNOWN FORMAT') + '\n'));
+		await log.note(`'${name}'...no changes (${$colors.italic($colors.bold('unknown format'))})`);
 	} else if (update.contentsUpdated != update.contentsOriginal) {
+		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
 		Deno.writeFileSync(update.name, encoder.encode(update.contentsUpdated));
 		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
 	} else {
-		Deno.stdout.writeSync(encoder.encode('up-to-date' + '\n'));
+		Deno.stdout.writeSync(encoder.encode(`'${name}'...${$colors.blue('up-to-date')}\n`));
 	}
 }

@@ -13,7 +13,7 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-import { $fs, $lodash as _, $path, $xWalk } from './lib/$deps.ts';
+import { $colors, $fs, $lodash as _, $path, $xWalk } from './lib/$deps.ts';
 import { decoder, encoder, logger } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
@@ -21,6 +21,34 @@ import { collect, filter, map } from './lib/funk.ts';
 
 const enablePipe = true;
 const forceUpdate = true;
+
+//===
+
+const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
+	Deno.env.get('LOGLEVEL') ??
+	(Deno.env.get('DEBUG') ? 'debug' : undefined) ??
+	undefined;
+await logger.debug(
+	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL, LOGLEVEL, and DEBUG)`,
+);
+
+const mayBeLogLevelName = logLevelFromEnv &&
+	logger.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+const logLevel = mayBeLogLevelName || 'note';
+
+logger.mergeMetadata({ Filter: { level: logLevel } });
+await logger.debug(`log level set to '${logLevel}'`);
+
+logger.mergeMetadata({
+	// Humane: { showLabel: true, showSymbol: false },
+	// Humane: { showLabel: false, showSymbol: 'ascii' },
+	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
+	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
+});
+
+await logger.resume();
+
+//===
 
 // templating engines ~ <https://colorlib.com/wp/top-templating-engines-for-javascript> @@ <https://archive.is/BKYMw>
 
@@ -128,10 +156,7 @@ const updates = await collect(map(async function (fileEntry) {
 }, fileEntries));
 
 for await (const update of updates) {
-	// if (options.debug) {
-	console.log({ update });
-	// console.log(update.contentsUpdated);
-	// }
+	await logger.debug({ update });
 	if (!update.isEnhanced || forceUpdate) {
 		Deno.stdout.writeSync(encoder.encode($path.basename(update.shimPath) + '...'));
 		Deno.writeFileSync(update.shimPath, encoder.encode(update.contentsUpdated));
