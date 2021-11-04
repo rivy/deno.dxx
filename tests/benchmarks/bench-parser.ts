@@ -13,7 +13,7 @@ const mayBeLogLevelName = logLevelFromEnv &&
 	log.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
 const logLevel = mayBeLogLevelName || 'note';
 
-log.setMetadata({ Filter: { level: logLevel } });
+log.mergeMetadata({ Filter: { level: logLevel } });
 log.debug(`log level set to '${logLevel}'`);
 await log.resume();
 
