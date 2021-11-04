@@ -81,21 +81,21 @@ async function* findExecutable(
 	const extensions = options.extensions
 		? options.extensions
 		: (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [''];
-	for (const path_ of paths) {
+	for (const path of paths) {
 		for (const extension of extensions) {
-			const p = $path.join(path_, name) + extension;
-			const [exists, err] = await (async () => {
-				// catches "incorrect" (aka malformed) paths for broken PATH configurations
+			const p = $path.join(path, name) + extension;
+			// create an `Either<Error,FileInfo>` tuple; see similar @ <https://gcanti.github.io/fp-ts/modules/Either.ts.html>
+			const [err, maybeLStat] = await (async (): Promise<[Error?, Deno.FileInfo?]> => {
 				try {
-					return [await $fs.exists(p), null];
+					return [undefined, await Deno.lstat(p)];
 				} catch (e) {
-					return [false, e];
+					return [(typeof e === 'object' && e instanceof Error) ? e : new Error(e), undefined];
 				}
 			})();
 			if (err) {
 				await logger.warn(`${err.name}: '${p}' is malformed ("${err.message}").`);
 			}
-			if (exists && (isWinOS || ((await Deno.lstat(p)).mode || 0) & 0o111)) {
+			if (maybeLStat && (isWinOS || ((maybeLStat.mode || 0) & 0o111))) {
 				yield p;
 			}
 		}
