@@ -11,8 +11,8 @@
 
 // console.warn({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
-import { $colors, $fs, $path, Me } from './lib/$deps.ts';
-import { decoder, encoder, logger } from './lib/$shared.ts';
+import { $colors, $fs, $lodash as _, $path } from './lib/$deps.ts';
+import { decoder, encoder, logger as log } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, first, map } from './lib/funk.ts';
@@ -30,7 +30,7 @@ import { collect, first, map } from './lib/funk.ts';
 // import * as _ from 'https://deno.land/x/lodash@4.17.15-es/';
 // // * [skypack "pinned" URLs](https://docs.skypack.dev/skypack-cdn/api-reference/pinned-urls-optimized)
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/min/lodash.js';
-import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
+// import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
 const cmdShimTemplate = `@rem:: \`<%=targetBinName%>\` (*enhanced* \`npm\` CMD shim)
 @setLocal
