@@ -121,3 +121,26 @@ export function traversal(
 		return url ? url.href : undefined;
 	}
 }
+
+//===
+
+export type Truthy = false | string;
+// isFalsey()
+function _isFalsey(s: string): boolean {
+	return !isTruthy(s);
+}
+// isTruthy()
+export function isTruthy(s: string): boolean {
+	if ((s == '') || (s == 'f') || (s == 'false') || (s == 'no') || (s == 'off')) return false;
+	return true;
+}
+// toTruthy()
+export function toTruthy(
+	s?: string,
+	falseyValues: string[] = ['', 'f', 'false', 'n', 'no', 'off'],
+): Truthy {
+	if (!s || falseyValues.includes(s)) {
+		return false;
+	}
+	return s;
+}
