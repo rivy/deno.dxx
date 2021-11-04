@@ -118,16 +118,45 @@ await log.debug('starting benchmarking');
 
 performance.mark('bench:start');
 
-await runBenchmarks({ silent: true, skip: /_long/ }, prettyBenchmarkProgress()).then(
-	prettyBenchmarkResult(),
-);
+const benchMarkRunResult = await runBenchmarks(
+	{ silent: true, skip: /_long/ },
+	prettyBenchmarkProgress(),
+)
+	.then(prettyBenchmarkResult({ parts: { extraMetrics: true, graph: true } }));
+
+//===
+
+import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
+import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
+
+const table = new Table({
+	header: ['Name', 'Run count', 'Avg Time +/- StdDev(Sample)', 'Median', 'Ratio'],
+});
+
+const results = benchMarkRunResult.results;
+const minDuration = Math.min(...results.map((r) => r.measuredRunsAvgMs));
+for (const result of results) {
+	table.push([
+		result.name,
+		result.runsCount,
+		formatDuration(result.measuredRunsAvgMs) + ' +/- ' +
+		formatDuration(stdDevSample(result.measuredRunsMs) ?? 0),
+		formatDuration(median(result.measuredRunsMs) ?? 0),
+		formatN(result.measuredRunsAvgMs === minDuration ? 1 : result.measuredRunsAvgMs / minDuration, {
+			minimumFractionDigits: 1,
+		}),
+	]);
+}
+
+console.log(table.toString());
+
+//===
 
 performance.mark('bench:stop');
 performance.measure('bench', 'bench:start', 'bench:stop');
 await log.debug(`benchmarking done (duration: ${
 	(() => {
 		const duration = performance.getEntriesByName('bench')[0].duration;
-		const [unit, n] = (duration > 1000) ? ['s', duration / 1000] : ['ms', duration];
-		return (new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(n)) + ' ' + unit;
+		return formatDuration(duration, { maximumFractionDigits: 3 });
 	})()
 })`);
