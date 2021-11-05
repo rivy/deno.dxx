@@ -35,7 +35,7 @@ await logger.debug(
 );
 
 const mayBeLogLevelName = logLevelFromEnv &&
-	logger.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+	logger.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
 const logLevel = mayBeLogLevelName || 'note';
 
 logger.mergeMetadata({ Filter: { level: logLevel } });

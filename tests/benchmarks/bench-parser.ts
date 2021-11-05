@@ -10,7 +10,7 @@ const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
 log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
 
 const mayBeLogLevelName = logLevelFromEnv &&
-	log.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
 const logLevel = mayBeLogLevelName || 'note';
 
 log.mergeMetadata({ Filter: { level: logLevel } });

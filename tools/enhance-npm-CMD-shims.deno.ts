@@ -29,7 +29,7 @@ await log.debug(
 );
 
 const mayBeLogLevelName = logLevelFromEnv &&
-	log.getLogLevel(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
 const logLevel = mayBeLogLevelName || 'note';
 
 log.mergeMetadata({ Filter: { level: logLevel } });
@@ -41,6 +41,9 @@ log.mergeMetadata({
 	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
 	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
 });
+
+const logFile = await Deno.open('log.txt', { append: true, create: true });
+log.into(logFile);
 
 await log.resume();
 
