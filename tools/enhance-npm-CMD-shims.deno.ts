@@ -193,7 +193,7 @@ for await (const update of updates) {
 		await log.note(`'${name}'...no changes (${$colors.italic($colors.bold('unknown format'))})`);
 	} else if (update.contentsUpdated != update.contentsOriginal) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
-		Deno.writeFileSync(update.name, encoder.encode(update.contentsUpdated));
+		Deno.writeFile(update.name, encoder.encode(update.contentsUpdated));
 		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
 	} else {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...${$colors.blue('up-to-date')}\n`));

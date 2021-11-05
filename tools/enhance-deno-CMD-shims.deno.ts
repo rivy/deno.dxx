@@ -159,7 +159,7 @@ for await (const update of updates) {
 	await logger.debug({ update });
 	if (!update.isEnhanced || forceUpdate) {
 		Deno.stdout.writeSync(encoder.encode($path.basename(update.shimPath) + '...'));
-		Deno.writeFileSync(update.shimPath, encoder.encode(update.contentsUpdated));
+		Deno.writeFile(update.shimPath, encoder.encode(update.contentsUpdated));
 		Deno.stdout.writeSync(encoder.encode('updated' + '\n'));
 	}
 }
