@@ -4,11 +4,11 @@
 
 // `deno run --allow-... PROG`
 
-// spell-checker:ignore (abbrev/names) Cygwin Deno MSYS SkyPack
+// spell-checker:ignore (abbrev/names) Cygwin Deno MSYS Packt SkyPack
 // spell-checker:ignore (env) LOGLEVEL
 // spell-checker:ignore (jargon) templating
 // spell-checker:ignore (libraries) rambda
-// spell-checker:ignore (names/people) Frederico Kereki , Packt
+// spell-checker:ignore (names/people) Frederico Kereki
 
 // console.warn({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 

@@ -4,12 +4,12 @@
 
 // `deno run --allow-... PROG`
 
+// spell-checker:ignore (abbrev/names) Deno Packt SkyPack
+// spell-checker:ignore (env) LOGLEVEL
 // spell-checker:ignore (jargon) globstar templating
 // spell-checker:ignore (libraries) rambda
-// spell-checker:ignore (names) Deno Packt SkyPack
 // spell-checker:ignore (people) Frederico Kereki
 // spell-checker:ignore (shell/cmd) COMSPEC ERRORLEVEL PATHEXT
-// spell-checker:ignore (words) occurences
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
@@ -95,7 +95,7 @@ if (denoInstallRoot && $fs.existsSync(denoInstallRoot)) {
 // ref: [deno/std ~ `expandGlob` discussion](https://github.com/denoland/deno/issues/1856)
 
 function disableWinGlobEscape(s: string) {
-	// * disable '`' escape character (by escaping all occurences)
+	// * disable '`' escape character (by escaping all occurrences)
 	const winGlobEscapeChar = '`';
 	return s.replace(winGlobEscapeChar, winGlobEscapeChar + winGlobEscapeChar);
 }
