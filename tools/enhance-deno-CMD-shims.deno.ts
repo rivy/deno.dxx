@@ -157,9 +157,12 @@ const updates = await collect(map(async function (fileEntry) {
 
 for await (const update of updates) {
 	await logger.debug({ update });
+	const name = $path.basename(update.shimPath);
 	if (!update.isEnhanced || forceUpdate) {
-		Deno.stdout.writeSync(encoder.encode($path.basename(update.shimPath) + '...'));
+		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
 		Deno.writeFile(update.shimPath, encoder.encode(update.contentsUpdated));
-		Deno.stdout.writeSync(encoder.encode('updated' + '\n'));
+		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
+	} else if (update.isEnhanced) {
+		Deno.stdout.writeSync(encoder.encode(`'${name}'...${$colors.blue('up-to-date')}\n`));
 	}
 }

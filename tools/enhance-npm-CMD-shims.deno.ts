@@ -181,7 +181,7 @@ const updates = await collect(map(async function (file) {
 		? $path.parse(targetBinPath).name
 		: undefined;
 	const contentsUpdated = $eol.CRLF(_.template(cmdShimTemplate)({ targetBinName, targetBinPath }));
-	return { name, targetBinPath, contentsOriginal, contentsUpdated };
+	return { name, isUpdatable: !!targetBinPath, targetBinPath, contentsOriginal, contentsUpdated };
 }, files));
 
 for await (const update of updates) {
@@ -189,7 +189,7 @@ for await (const update of updates) {
 	// 	console.log({ update });
 	// }
 	const name = $path.basename(update.name);
-	if (!update.targetBinPath) {
+	if (!update.isUpdatable) {
 		await log.note(`'${name}'...no changes (${$colors.italic($colors.bold('unknown format'))})`);
 	} else if (update.contentsUpdated != update.contentsOriginal) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
