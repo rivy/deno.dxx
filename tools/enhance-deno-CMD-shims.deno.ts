@@ -24,6 +24,8 @@ const forceUpdate = true;
 
 //===
 
+// log.debug({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+
 const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
 	Deno.env.get('LOGLEVEL') ??
 	(Deno.env.get('DEBUG') ? 'debug' : undefined) ??

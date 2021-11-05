@@ -10,8 +10,6 @@
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki
 
-// console.warn({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
-
 import { $colors, $fs, $lodash as _, $path } from './lib/$deps.ts';
 import { decoder, encoder, logger as log } from './lib/$shared.ts';
 
@@ -19,6 +17,8 @@ import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, first, map } from './lib/funk.ts';
 
 //===
+
+// log.debug({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
 const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
 	Deno.env.get('LOGLEVEL') ??
