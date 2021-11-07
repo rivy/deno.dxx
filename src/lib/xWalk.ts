@@ -1,4 +1,4 @@
-// spell-checker:ignore (*) xwalk
+// spell-checker:ignore (*) xwalk (names) Deno
 
 // ToDO: create new xwalk module
 // * improve interface; guarantee no-throw, collect errors?

@@ -1,3 +1,4 @@
+// spell-checker:ignore (jargon) falsey truthy
 // spell-checker:ignore (names) Deno EditorConfig
 
 import { $logger, Path } from './$deps.ts';

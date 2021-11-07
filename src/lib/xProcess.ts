@@ -1,4 +1,5 @@
 // spell-checker:ignore (names) Deno
+// spell-checker:ignore (people) Roy Ivy III * rivy
 // spell-checker:ignore (vars) ARGX
 
 import { Path } from './$deps.ts';
