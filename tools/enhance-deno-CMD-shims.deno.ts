@@ -13,55 +13,177 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-import { $colors, $fs, $lodash as _, $logger, $path, $xWalk } from './lib/$deps.ts';
-import { decoder, encoder } from './lib/$shared.ts';
+import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $xWalk, $yargs } from './lib/$deps.ts';
+import { $consoleSize, $me, $version, decoder, encoder } from './lib/$shared.ts';
+
+import { $logger, logger } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, filter, map } from './lib/funk.ts';
 
-const enablePipe = true;
-const forceUpdate = true;
+//===
+
+const log = logger;
+log.debug(`logging to *STDERR*`);
+
+$me.warnIfImpaired((s) => log.warn(s));
+log.trace({ $me });
+log.trace({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+
+const version = $version.v();
+const runAsName = $me.runAs;
+
+// logger.mergeMetadata({ authority: $me.name });
+
+const haveDenoEnvPermission = Deno.permissions.query({ name: 'env' });
+if (!haveDenoEnvPermission) {
+	log.warn(
+		`diminished capacity; full function requires environment permissions (try \`${$me.runAs} --allow-env ...\` )`,
+	);
+}
+
+async function envGet(varName: string) {
+	try {
+		return Deno.env.get(varName);
+	} catch (_) {
+		await log.debug(`Unable to retrieve '${varName}' from environment.`);
+		return undefined;
+	}
+}
+
+const logLevelFromEnv = $logger.logLevelFromEnv() ??
+	((await envGet('DEBUG')) ? 'debug' : undefined) ??
+	undefined;
+await log.debug(
+	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
+);
+
+log.mergeMetadata({
+	// Humane: { showLabel: true, showSymbol: false },
+	// Humane: { showLabel: false, showSymbol: 'ascii' },
+	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
+	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
+	Humane: {
+		showLabel: true,
+		showSymbol: 'unicodeDoubleWidth',
+		labelFormatFn: (s: string) => ($colors.inverse(s.slice(0, -1))),
+	},
+	// Humane: {
+	// 	showLabel: false,
+	// 	showSymbol: 'unicodeDoubleWidth',
+	// 	labelFormatFn: (s: string) =>
+	// 		$colors.bgBrightMagenta($colors.yellow($colors.stripColor(s))) + ' ',
+	// },
+});
+
+log.trace({ $xdgAppPaths, state: $xdgAppPaths.state() });
+
+const logPath = $path.join($xdgAppPaths.state({ isolated: true }), 'log');
+if (!$fs.existsSync(logPath)) {
+	Deno.mkdirSync(logPath, { recursive: true });
+	log.debug(`log path ('${logPath}') created.`);
+}
+
+const logUnfilteredFileName = 'logUnfiltered.txt';
+const logUnfilteredFilePath = $path.join(logPath, logUnfilteredFileName);
+const logUnfilteredFile = await Deno.open(logUnfilteredFilePath, { append: true, create: true });
+const logUnfiltered = new $logger.Logger().into(logUnfilteredFile);
+log.previewInto(logUnfiltered);
+log.debug(`logging pre-transform inputs to '${logUnfilteredFilePath}'`);
+
+const logFileName = 'log.txt';
+const logFilePath = $path.join(logPath, logFileName);
+const logFile = await Deno.open(logFilePath, { append: true, create: true });
+log.into(logFile);
+log.debug(`logging to '${logFilePath}'`);
+
+// await log.resume();
 
 //===
 
-const log = $logger.logger;
+// ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
+const app = $yargs(undefined, undefined, undefined)
+	.scriptName($me.name)
+	.usage(`$0 ${version}\n\nUsage:\n  ${runAsName} [OPTIONS..]`, undefined, undefined, undefined)
+	.wrap(Math
+		.min(
+			(await $consoleSize.consoleSize())
+				?.columns ?? 80,
+			100,
+		))
+	// help and version setup
+	.help(false)
+	.version(false)
+	.option('help', { describe: 'Show help', boolean: true })
+	.alias('help', 'h')
+	.option('version', { describe: 'Show version number', boolean: true })
+	.alias('version', 'V')
+	.showHelpOnFail(true, `Use \`${runAsName} --help\` to show available options`)
+	// ref: <https://github.com/yargs/yargs-parser#configuration>
+	.parserConfiguration({
+		'camel-case-expansion': true,
+		'strip-aliased': true,
+		'strip-dashed': true,
+		'unknown-options-as-args': true,
+	})
+	.updateStrings({ 'Positionals:': 'Arguments:' })
+	.positional('OPTIONS', {
+		// describe: 'options (as listed; may also include any `deno install` options)',
+	})
+	// .positional('COMMAND', { describe: 'Path/URL of command to install' })
+	.option('force', { describe: 'Force update', boolean: true })
+	.option('pipe', {
+		describe: 'Enable piping of ENV/CWD from script up to shim',
+		boolean: true,
+		default: true,
+	})
+	.option('debug', { describe: 'Show debug logging', boolean: true })
+	.option('trace', {
+		describe: 'Show trace (lower-level/higher-detail debug) logging',
+		boolean: true,
+	});
 
-log.trace({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+const args = app.parse($me.args(), undefined, undefined);
 
-const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
-	Deno.env.get('LOGLEVEL') ??
-	(Deno.env.get('DEBUG') ? 'debug' : undefined) ??
-	undefined;
-await log.debug(
-	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL, LOGLEVEL, and DEBUG)`,
-);
+await logger.debug({ args });
 
-const mayBeLogLevelName = logLevelFromEnv &&
-	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
-const logLevel = mayBeLogLevelName || 'note';
+const possibleLogLevels = ((defaultLevel = 'note') => {
+	const levels = [
+		logLevelFromEnv,
+		(args.debug as boolean) ? 'debug' : undefined,
+		(args.trace as boolean) ? 'trace' : undefined,
+	]
+		.filter(Boolean);
+	return (levels.length > 0 ? levels : [defaultLevel])
+		.map((s) => log.logLevelDetail(s)?.levelNumber)
+		.filter(Boolean)
+		.sort()
+		.reverse()
+		.map((n) => log.logLevelDetail(n)?.levelName);
+})();
+const logLevel = possibleLogLevels.length > 0 ? possibleLogLevels[0] : Infinity;
+
+log.debug({ possibleLogLevels, logLevel });
 
 log.mergeMetadata({ Filter: { level: logLevel } });
 await log.debug(`log level set to '${logLevel}'`);
 
-// log.mergeMetadata({
-// 	// Humane: { showLabel: true, showSymbol: false },
-// 	// Humane: { showLabel: false, showSymbol: 'ascii' },
-// 	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
-// 	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
-// });
+await logger.resume();
 
-// const logUnfilteredFileName = 'logUnfiltered.txt';
-// const logUnfilteredFile = await Deno.open(logUnfilteredFileName, { append: true, create: true });
-// const logUnfiltered = new $logger.Logger().into(logUnfilteredFile);
-// log.previewInto(logUnfiltered);
-// log.debug(`logging pre-transform inputs to '${logUnfilteredFileName}'`);
+// ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
+if (args.help) {
+	console.log(await app.getHelp());
+	Deno.exit(0);
+}
+if (args.version) {
+	console.log(version);
+	Deno.exit(0);
+}
 
-// const logFileName = 'log.txt';
-// const logFile = await Deno.open(logFileName, { append: true, create: true });
-// log.into(logFile);
-// log.debug(`logging to '${logFileName}'`);
+//===
 
-await log.resume();
+const enablePipe = args.pipe as boolean;
+const forceUpdate = args.force as boolean;
 
 //===
 
