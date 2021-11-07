@@ -1,10 +1,7 @@
 // spell-checker:ignore (jargon) falsey truthy
 // spell-checker:ignore (names) Deno EditorConfig
 
-import { $logger, Path } from './$deps.ts';
-
-$logger.logger.suspend(); // suspend logger to allow for use within other local modules without unwanted outputs
-export const logger = $logger.logger; // export (suspended) logger
+import { Path } from './$deps.ts';
 
 //===
 
@@ -147,3 +144,50 @@ export function toTruthy(
 	}
 	return s;
 }
+
+//===
+
+// note: defined here to avoid circular dependency
+
+// VERSION handler
+
+// `fetch()` implementation (requires read [for local runs] or network permissions)
+import { fetch } from './$deps.ts'; // 'file://'-compatible `fetch()`
+
+// import { intoURL, projectPaths, projectURL } from '../../tests/$shared.ts';
+// import { logger } from '../../tests/$shared.ts';
+
+const newline = /\r?\n|\n/;
+const versionURL = intoURL(projectPaths.version, projectURL);
+
+// logger.trace({ projectURL, projectPaths, versionURL });
+
+// projectVersionText == first non-empty line (EOL trimmed) from VERSION
+const projectVersionText = versionURL &&
+	(await (await fetch(versionURL)).text()).split(newline).filter((s) => s)[0];
+
+// `import ...` implementation (requires project-level synchronization tooling)
+// import { VERSION } from './$shared.ts';
+const projectVersionTextViaImport = VERSION;
+
+function v() {
+	return projectVersionText;
+}
+
+export const $version = { projectVersionText, projectVersionTextViaImport, v };
+
+//=== * LOCAL function/module exports
+
+// * note: local functions/modules are exported from '$shared' to help avoid circular dependencies
+
+export * as $logger from './axe/$mod.ts';
+export * as $me from './xProcess.ts';
+
+export * as $consoleSize from './consoleSize.ts';
+
+//===
+
+import * as $logger from './axe/$mod.ts';
+
+$logger.logger.suspend(); // initialize common/global logger to 'suspended' state to allow for local module use without unwanted outputs
+export const logger = $logger.logger; // export logger (note: in the *suspended state*)

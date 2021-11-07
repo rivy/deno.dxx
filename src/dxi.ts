@@ -1,10 +1,10 @@
 // spell-checker:ignore (names) Deno ; (vars) arr gmsu ; (text) positionals
 
 import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
-import { decoder, encoder, logger } from './lib/$shared.ts';
+import { $version as Version, decoder, encoder, logger } from './lib/$shared.ts';
 
 // import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
-import * as Version from './lib/version.ts';
+// import * as Version from './lib/version.ts';
 import * as Me from './lib/xProcess.ts';
 import * as Spin from './lib/xWait/$mod.ts';
 

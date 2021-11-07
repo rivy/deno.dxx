@@ -40,9 +40,7 @@
 // ref: <https://stackoverflow.com/questions/61821038/how-to-use-npm-module-in-deno>
 // ref: <https://jspm.org/docs/cdn>
 
-import { assert, FS, OSPaths, Path } from './$deps.ts';
-
-const { exists, existsSync } = FS;
+import { assert, FS as $fs, OSPaths, Path } from './$deps.ts';
 
 import { walk, walkSync } from './xWalk.ts';
 
@@ -494,7 +492,7 @@ export async function* filenameExpandIter(
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
 		const resolvedPrefix = Path.resolve(parsed.prefix);
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
-		if (await exists(resolvedPrefix)) {
+		if (await $fs.exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
 			// console.warn({ prefix: parsed.prefix, resolvedPrefix, initialGlobstar });
@@ -584,7 +582,7 @@ export function* filenameExpandIterSync(
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
 		const resolvedPrefix = Path.resolve(parsed.prefix);
 		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
-		if (existsSync(resolvedPrefix)) {
+		if ($fs.existsSync(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
 			const globEscapedPrefix =
