@@ -1,4 +1,5 @@
 export {
+	$logger,
 	Colors as $colors,
 	FS as $fs,
 	Lodash as $lodash,

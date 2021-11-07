@@ -11,14 +11,32 @@
 // spell-checker:ignore (names/people) Frederico Kereki
 
 import { $colors, $fs, $lodash as _, $path } from './lib/$deps.ts';
-import { decoder, encoder, logger as log } from './lib/$shared.ts';
+import { decoder, encoder } from './lib/$shared.ts';
+
+import { $logger } from './lib/$deps.ts';
+import { logger } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, first, map } from './lib/funk.ts';
 
 //===
 
-// log.debug({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+const log = logger;
+// const log = new $logger.Logger().chain(new $logger.Filter()).chain(new $logger.Humane()).into(
+// 	Deno.stderr,
+// );
+
+// const log = (new $logger.Logger()).tee(logUnfiltered);
+// const log = (new $logger.Logger())
+// 	.previewInto(logUnfiltered)
+// 	.chain(new $logger.Filter())
+// 	.chain(new $logger.Humane())
+// 	.into(Deno.stderr);
+// log.suspend();
+
+log.debug(`logging to *STDERR*`);
+
+log.trace({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
 const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
 	Deno.env.get('LOGLEVEL') ??
@@ -42,8 +60,16 @@ log.mergeMetadata({
 	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
 });
 
-const logFile = await Deno.open('log.txt', { append: true, create: true });
+const logUnfilteredFileName = 'logUnfiltered.txt';
+const logUnfilteredFile = await Deno.open(logUnfilteredFileName, { append: true, create: true });
+const logUnfiltered = new $logger.Logger().into(logUnfilteredFile);
+log.previewInto(logUnfiltered);
+log.debug(`logging pre-transform inputs to '${logUnfilteredFileName}'`);
+
+const logFileName = 'log.txt';
+const logFile = await Deno.open(logFileName, { append: true, create: true });
 log.into(logFile);
+log.debug(`logging to '${logFileName}'`);
 
 await log.resume();
 

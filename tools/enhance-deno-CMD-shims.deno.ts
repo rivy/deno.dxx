@@ -13,8 +13,8 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
-import { $colors, $fs, $lodash as _, $path, $xWalk } from './lib/$deps.ts';
-import { decoder, encoder, logger } from './lib/$shared.ts';
+import { $colors, $fs, $lodash as _, $logger, $path, $xWalk } from './lib/$deps.ts';
+import { decoder, encoder } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
 import { collect, filter, map } from './lib/funk.ts';
@@ -24,31 +24,44 @@ const forceUpdate = true;
 
 //===
 
-// log.debug({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+const log = $logger.logger;
+
+log.trace({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
 const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
 	Deno.env.get('LOGLEVEL') ??
 	(Deno.env.get('DEBUG') ? 'debug' : undefined) ??
 	undefined;
-await logger.debug(
+await log.debug(
 	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL, LOGLEVEL, and DEBUG)`,
 );
 
 const mayBeLogLevelName = logLevelFromEnv &&
-	logger.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
 const logLevel = mayBeLogLevelName || 'note';
 
-logger.mergeMetadata({ Filter: { level: logLevel } });
-await logger.debug(`log level set to '${logLevel}'`);
+log.mergeMetadata({ Filter: { level: logLevel } });
+await log.debug(`log level set to '${logLevel}'`);
 
-logger.mergeMetadata({
-	// Humane: { showLabel: true, showSymbol: false },
-	// Humane: { showLabel: false, showSymbol: 'ascii' },
-	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
-	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
-});
+// log.mergeMetadata({
+// 	// Humane: { showLabel: true, showSymbol: false },
+// 	// Humane: { showLabel: false, showSymbol: 'ascii' },
+// 	// Humane: { showLabel: false, showSymbol: 'unicodeDoubleWidth' },
+// 	// Humane: { showLabel: true, showSymbol: 'unicodeDoubleWidth' },
+// });
 
-await logger.resume();
+// const logUnfilteredFileName = 'logUnfiltered.txt';
+// const logUnfilteredFile = await Deno.open(logUnfilteredFileName, { append: true, create: true });
+// const logUnfiltered = new $logger.Logger().into(logUnfilteredFile);
+// log.previewInto(logUnfiltered);
+// log.debug(`logging pre-transform inputs to '${logUnfilteredFileName}'`);
+
+// const logFileName = 'log.txt';
+// const logFile = await Deno.open(logFileName, { append: true, create: true });
+// log.into(logFile);
+// log.debug(`logging to '${logFileName}'`);
+
+await log.resume();
 
 //===
 
@@ -87,9 +100,9 @@ const denoInstallRoot = joinFullyDefinedPaths(
 );
 
 if (denoInstallRoot && $fs.existsSync(denoInstallRoot)) {
-	await logger.info(`\`deno\` binaries folder found at ${denoInstallRoot}\n`);
+	await log.info(`\`deno\` binaries folder found at ${denoInstallRoot}`);
 } else {
-	await logger.error('`deno` binaries folder not found\n');
+	await log.error('`deno` binaries folder not found');
 	Deno.exit(1);
 }
 
@@ -158,7 +171,7 @@ const updates = await collect(map(async function (fileEntry) {
 }, fileEntries));
 
 for await (const update of updates) {
-	await logger.debug({ update });
+	await log.trace({ update });
 	const name = $path.basename(update.shimPath);
 	if (!update.isEnhanced || forceUpdate) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
