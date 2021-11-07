@@ -131,7 +131,9 @@ function _isFalsey(s: string): boolean {
 }
 // isTruthy()
 export function isTruthy(s: string): boolean {
-	if ((s == '') || (s == 'f') || (s == 'false') || (s == 'no') || (s == 'off')) return false;
+	if ((s == '') || (s == 'f') || (s == 'false') || (s == 'no') || (s == 'off')) {
+		return false;
+	}
 	return true;
 }
 // toTruthy()
