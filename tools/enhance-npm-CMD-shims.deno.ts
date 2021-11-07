@@ -6,9 +6,9 @@
 
 // spell-checker:ignore (abbrev/names) Cygwin Deno MSYS Packt SkyPack
 // spell-checker:ignore (env) LOGLEVEL
-// spell-checker:ignore (jargon) templating
+// spell-checker:ignore (jargon) positionals templating
 // spell-checker:ignore (libraries) rambda
-// spell-checker:ignore (names/people) Frederico Kereki
+// spell-checker:ignore (names/people) Frederico Kereki ; Roy Ivy III * rivy
 
 import { $colors, $fs, $lodash as _, $path } from './lib/$deps.ts';
 import { decoder, encoder } from './lib/$shared.ts';

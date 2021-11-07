@@ -6,7 +6,7 @@
 
 // spell-checker:ignore (abbrev/names) Deno Packt SkyPack
 // spell-checker:ignore (env) LOGLEVEL
-// spell-checker:ignore (jargon) globstar templating
+// spell-checker:ignore (jargon) globstar positionals templating
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (people) Frederico Kereki
 // spell-checker:ignore (shell/cmd) COMSPEC ERRORLEVEL PATHEXT
