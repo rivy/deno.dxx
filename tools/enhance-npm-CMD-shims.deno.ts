@@ -63,6 +63,7 @@ log.mergeMetadata({
 	Humane: {
 		showLabel: true,
 		showSymbol: 'unicodeDoubleWidth',
+		// note: `labelFormatFn` should assume `s` is a unicode string (with possible surrogate pairs, not simple UTF-16 characters) and may contain ANSI escape codes
 		labelFormatFn: (s: string) => ($colors.inverse(s.slice(0, -1))),
 	},
 	// Humane: {
@@ -111,11 +112,29 @@ const app = $yargs(undefined, undefined, undefined)
 	// help and version setup
 	.help(false)
 	.version(false)
-	.option('help', { describe: 'Show help', boolean: true })
+	.option('help', { describe: 'Show help and exit (with exit status = 1)', boolean: true })
 	.alias('help', 'h')
-	.option('version', { describe: 'Show version number', boolean: true })
+	.option('version', {
+		describe: 'Show version number and exit (with exit status = 1)',
+		boolean: true,
+	})
 	.alias('version', 'V')
 	.showHelpOnFail(true, `Use \`${runAsName} --help\` to show available options`)
+	// logging options
+	.option('quiet', {
+		describe: "Quiet mode; suppress informational messages, showing 'warn' level logging",
+		boolean: true,
+	})
+	.option('silent', {
+		describe: "Silent mode; suppress non-error messages, showing 'error' level logging",
+		boolean: true,
+	})
+	.option('verbose', { describe: "Show 'info' level logging", boolean: true })
+	.option('debug', { describe: "Show 'debug' level logging", boolean: true })
+	.option('trace', {
+		describe: "Show 'trace' (lower-level/higher-detail debug) level logging",
+		boolean: true,
+	})
 	// ref: <https://github.com/yargs/yargs-parser#configuration>
 	.parserConfiguration({
 		'camel-case-expansion': true,
@@ -124,15 +143,13 @@ const app = $yargs(undefined, undefined, undefined)
 		'unknown-options-as-args': true,
 	})
 	.updateStrings({ 'Positionals:': 'Arguments:' })
-	.positional('OPTIONS', {
-		// describe: 'options (as listed; may also include any `deno install` options)',
-	})
 	// .positional('COMMAND', { describe: 'Path/URL of command to install' })
-	.option('debug', { describe: 'Show debug logging', boolean: true })
-	.option('trace', {
-		describe: 'Show trace (lower-level/higher-detail debug) logging',
-		boolean: true,
-	});
+	.positional('OPTIONS', {
+		// describe: ... (eg, 'options (as listed; may also include any `deno install` options)'),
+	})
+	.group([], 'Options:')
+	.group(['quiet', 'silent', 'verbose', 'debug', 'trace'], 'Logging:')
+	.group(['help', 'version'], 'Info/Help:');
 
 const args = app.parse($me.args(), undefined, undefined);
 
@@ -141,6 +158,9 @@ await logger.debug({ args });
 const possibleLogLevels = ((defaultLevel = 'note') => {
 	const levels = [
 		logLevelFromEnv,
+		(args.quiet as boolean) ? 'warn' : undefined,
+		(args.silent as boolean) ? 'error' : undefined,
+		(args.verbose as boolean) ? 'info' : undefined,
 		(args.debug as boolean) ? 'debug' : undefined,
 		(args.trace as boolean) ? 'trace' : undefined,
 	]
@@ -164,11 +184,11 @@ await logger.resume();
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
 	console.log(await app.getHelp());
-	Deno.exit(0);
+	Deno.exit(1);
 }
 if (args.version) {
 	console.log(version);
-	Deno.exit(0);
+	Deno.exit(1);
 }
 
 //===
