@@ -1,5 +1,6 @@
 // spell-checker:ignore (jargon) falsey truthy
 // spell-checker:ignore (names) Deno EditorConfig
+// spell-checker:ignore (modules) stringz
 
 import { Path } from './$deps.ts';
 
@@ -143,6 +144,18 @@ export function toTruthy(
 		return false;
 	}
 	return s;
+}
+
+//===
+
+// ToDO: investigate [`stringz`](https://github.com/sallar/stringz)
+
+// ref: <https://coolaj86.com/articles/how-to-count-unicode-characters-in-javascript> @@ <https://archive.is/5nzNP>
+// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length#unicode> @@ <https://archive.is/DdIu6>
+// ToDO: benchmark `getCharacterLength()` vs `s.length()`
+export function getCharacterLength(s: string) {
+	// The string iterator that is used here iterates over characters, not mere UTF-16 code units
+	return [...s].length;
 }
 
 //===
