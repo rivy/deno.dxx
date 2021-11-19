@@ -99,6 +99,15 @@ test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
 	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
 });
 
+test('hidden directory expansions', async () => {
+	assertEquals(
+		await Parse.shellExpand(
+			'{.vscode,.}/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}',
+		),
+		['.vscode/cspell.json'],
+	);
+});
+
 const mayBeRootPath = 'c:/windows';
 if ($fs.existsSync(mayBeRootPath)) {
 	test('globs at root level', async () => {
