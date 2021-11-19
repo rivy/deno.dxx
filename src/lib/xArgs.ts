@@ -787,7 +787,7 @@ export function globToReS(s: string) {
 	const parsed = Picomatch.parse(text, {
 		windows: true,
 		dot: false,
-		literalBrackets: true,
+		literalBrackets: false,
 		posix: true,
 		nocase: isWinOS,
 	});
