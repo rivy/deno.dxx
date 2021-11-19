@@ -85,13 +85,14 @@ test('style ~ non-binary project files (when non-empty) end with a newline', () 
 	assertEquals({ flawedFiles: 0 }, { flawedFiles: flawedFiles.length });
 });
 
-test('style ~ non-binary project files use LF as newline by default', () => {
+test('style ~ non-binary project files (when non-empty) use LF as newline by default', () => {
 	const flaws = projectNonBinaryFiles.flatMap((file) => {
-		const content = Deno.readTextFileSync(file).split(/(?<=\r?\n)/); // CRLF | LF | CR
+		const content = Deno.readTextFileSync(file);
+		const lines: string[] = (content.length > 0) ? content.split(/(?<=\r?\n)/) : []; // CRLF | LF | CR
 		// const content = Deno.readTextFileSync(file).split(/(?<=\r?\n|\r)/); // CRLF | LF | CR // ref: https://runkit.com/rivy/6146e4954b13950008d994ca
 		const files: [string, number, string][] = [];
 		// console.error({ file, lines: content.length });
-		content.forEach((line, index) => {
+		lines.forEach((line, index) => {
 			// console.error({ file, index, line });
 			if (!line.match(/(^|[^\r])\n$/)) files.push([file, index, line]);
 		});
