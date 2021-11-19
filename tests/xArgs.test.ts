@@ -77,6 +77,28 @@ test("brace expansion (eg, `shellExpand('{a}*')`)", async () => {
 	assertEquals(await Parse.shellExpand('{a}*'), ['{a}*']);
 });
 
+test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
+	let glob = 'eg/[a]*';
+	let actual = await Parse.shellExpand(glob);
+	console.log({ glob, actual });
+	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+
+	glob = 'eg/[aA]*';
+	actual = await Parse.shellExpand(glob);
+	console.log({ glob, actual });
+	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+
+	glob = 'eg/[a-b]*';
+	actual = await Parse.shellExpand(glob);
+	console.log({ glob, actual });
+	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+
+	glob = 'eg/[a-bA-B]*';
+	actual = await Parse.shellExpand(glob);
+	console.log({ glob, actual });
+	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+});
+
 const mayBeRootPath = 'c:/windows';
 if ($fs.existsSync(mayBeRootPath)) {
 	test('globs at root level', async () => {
