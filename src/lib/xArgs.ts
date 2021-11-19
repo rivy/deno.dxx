@@ -829,8 +829,11 @@ export async function shellExpandAsync(
 	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpand()', { options, arr });
 	for (const e of arr) {
-		arrOut.push(...await globExpand(e as GlobString, options));
+		for (const x of [e].flatMap(Braces.expand).map(tildeExpand)) {
+			arrOut.push(...await globExpandAsync(x as GlobString, options));
+		}
 	}
+
 	return arrOut;
 }
 
