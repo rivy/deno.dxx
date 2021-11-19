@@ -473,25 +473,23 @@ function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-// FixME: `filenameExpand...` is not an accurate term for the function group; possible globExpand, or other alternatives?
-
-export type FilenameExpandOptions = { nullglob: boolean };
-export async function* filenameExpandIter(
+export type GlobExpandOptions = { nullglob: boolean };
+export async function* globExpandIter(
 	glob: GlobString,
-	options: FilenameExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
 	const globHasTrailingSep = glob.match(new RegExp(Path.SEP_PATTERN.source + '$'));
 	const globWithoutTrailingSep = glob.replace(new RegExp(Path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
-	// console.warn('xArgs.filenameExpandIter()', { parsed });
+	// console.warn('xArgs.globExpandIter()', { parsed });
 
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
 		const resolvedPrefix = Path.resolve(parsed.prefix);
-		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
+		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if (await $fs.exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
@@ -528,7 +526,7 @@ export async function* filenameExpandIter(
 					? 'imsu'
 					: 'msu',
 			);
-			// console.warn('xArgs.filenameExpandIter()', {
+			// console.warn('xArgs.globExpandIter()', {
 			// 	resolvedPrefix,
 			// 	resolvedHasTrailingSep,
 			// 	globEscapedPrefix,
@@ -561,16 +559,16 @@ export async function* filenameExpandIter(
 	}
 }
 
-export function* filenameExpandIterSync(
+export function* globExpandIterSync(
 	glob: GlobString,
-	options: FilenameExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const globHasTrailingSep = glob.match(new RegExp(Path.SEP_PATTERN.source + '$'));
 	const globWithoutTrailingSep = glob.replace(new RegExp(Path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
-	// console.warn('xArgs.filenameExpandIterSync()', {
+	// console.warn('xArgs.globExpandIterSync()', {
 	// 	glob,
 	// 	globHasTrailingSep,
 	// 	globWithoutTrailingSep,
@@ -581,7 +579,7 @@ export function* filenameExpandIterSync(
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
 		const resolvedPrefix = Path.resolve(parsed.prefix);
-		// console.warn('xArgs.filenameExpandIter()', { parsed, resolvedPrefix });
+		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if ($fs.existsSync(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
@@ -629,24 +627,24 @@ export function* filenameExpandIterSync(
 	}
 }
 
-export async function filenameExpand(
+export async function globExpand(
 	glob: GlobString,
-	options: FilenameExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const arr = [];
-	for await (const e of filenameExpandIter(glob, options)) {
+	for await (const e of globExpandIter(glob, options)) {
 		arr.push(e);
 	}
 	return arr;
 }
-export function filenameExpandSync(
+export function globExpandSync(
 	glob: GlobString,
-	options: FilenameExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
 	const arr = [];
-	for (const e of filenameExpandIterSync(glob, options)) {
+	for (const e of globExpandIterSync(glob, options)) {
 		arr.push(e);
 	}
 	return arr;
@@ -824,7 +822,7 @@ export async function shellExpandAsync(
 	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpand()', { options, arr });
 	for (const e of arr) {
-		arrOut.push(...await filenameExpand(e as GlobString, options));
+		arrOut.push(...await globExpand(e as GlobString, options));
 	}
 	return arrOut;
 }
@@ -854,7 +852,7 @@ export function shellExpandSync(
 	const arr = Array.isArray(args) ? args : [args];
 	// console.warn('xArgs.shellExpandSync()', { options, arr });
 	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) =>
-		filenameExpandSync(e as GlobString, options)
+		globExpandSync(e as GlobString, options)
 	);
 }
 
@@ -1030,7 +1028,7 @@ export async function* argsItAsync(
 		if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
 			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
-				filenameExpandIter(e as GlobString, options)
+				globExpandIter(e as GlobString, options)
 			)
 			: [(async function* () {
 				yield argText;
@@ -1105,7 +1103,7 @@ export function* argsItSync(
 		// if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
 			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
-				filenameExpandSync(e as GlobString, options)
+				globExpandSync(e as GlobString, options)
 			)
 			: [[argText]];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
