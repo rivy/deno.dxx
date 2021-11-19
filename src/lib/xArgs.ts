@@ -627,12 +627,12 @@ export function* globExpandIterSync(
 	}
 }
 
-export async function globExpand(
+export async function globExpandAsync(
 	glob: GlobString,
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
-	const arr = [];
+	const arr: string[] = [];
 	for await (const e of globExpandIter(glob, options)) {
 		arr.push(e);
 	}
@@ -643,11 +643,18 @@ export function globExpandSync(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
-	const arr = [];
+	const arr: string[] = [];
 	for (const e of globExpandIterSync(glob, options)) {
 		arr.push(e);
 	}
 	return arr;
+}
+export function globExpand(
+	glob: GlobString,
+	options: GlobExpandOptions = { nullglob: envNullglob() },
+) {
+	// filename (glob) expansion
+	return globExpandAsync(glob, options);
 }
 
 function pathToPosix(p: string) {
