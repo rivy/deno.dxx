@@ -99,13 +99,16 @@ test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
 	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
 });
 
-test('hidden directory expansions', async () => {
-	assertEquals(
-		await Parse.shellExpand(
-			'{.vscode,.}/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}',
-		),
-		['.vscode/cspell.json'],
-	);
+test('brace/bracket combined expansions', async () => {
+	let glob = '.vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}';
+	let results = await shellExpandDuel(glob, { nullglob: true });
+	console.log({ glob, results });
+	assertEquals(results, ['.vscode/cspell.json'].map(pathToOsStyle));
+
+	glob = '{.vscode,.}/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}';
+	results = await shellExpandDuel(glob, { nullglob: true });
+	console.log({ glob, results });
+	assertEquals(results, ['.vscode/cspell.json'].map(pathToOsStyle));
 });
 
 const mayBeRootPath = 'c:/windows';
