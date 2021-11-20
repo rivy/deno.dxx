@@ -36,6 +36,16 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //===
 
+export function envGet(varName: string) {
+	try {
+		return Deno.env.get(varName);
+	} catch (_) {
+		return undefined;
+	}
+}
+
+//===
+
 // `isFileUrl()`
 /** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), naming a local file resource. */
 export function isFileURL(url: URL) {
