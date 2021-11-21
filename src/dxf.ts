@@ -1,7 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { $fs, $yargs } from './lib/$deps.ts';
-import { $me, $version, consoleSize, envGet } from './lib/$shared.ts';
+import { $fs, $semver, $yargs } from './lib/$deps.ts';
+import { $me, $version, consoleSize, decode, envGet } from './lib/$shared.ts';
 
 import { $logger, logger /* initialized to the suspended state */ } from './lib/$shared.ts';
 
@@ -81,7 +81,15 @@ const app = $yargs(undefined, undefined, undefined)
 	})
 	.group([], 'Options:')
 	.group(['quiet', 'silent', 'verbose', 'debug', 'trace'], 'Logging:')
-	.group(['help', 'version'], 'Info/Help:');
+	.group(['help', 'version'], 'Info/Help:')
+	.option('formatter', {
+		alias: ['f', '\b\b\b\b <FORMATTER>'], // *hack* use backspaces to fake an option argument description
+		choices: ['default', 'both', 'deno', 'dprint'],
+		// default: 'default',
+		describe: `Select the code formatter ('default' == 'dprint')`,
+		nargs: 1,
+		type: 'string',
+	});
 
 const args = app.parse($me.args(), undefined, undefined);
 
@@ -125,52 +133,100 @@ if (args.version) {
 
 //===
 
-const runOptions: Deno.RunOptions = (() => {
-	let options: Deno.RunOptions;
-	const dprintConfigPaths = ['.dprint.json', 'dprint.json', '.dprintrc.json'];
-	const dprintConfigPath = dprintConfigPaths.filter($fs.existsSync);
-	if (dprintConfigPath.length > 0) {
-		log.info('Using `dprint` formatting');
-		const dprintConfig = dprintConfigPath ? ['--config', dprintConfigPath[0]] : [];
-		const dprintConfigArgs = [...dprintConfig, ...args._];
-		const cmdPath = 'dprint';
-		const cmdArgs = ['fmt', ...dprintConfigArgs];
-		const cmd = [cmdPath, ...cmdArgs];
-		log.trace({ cmd });
-		options = {
-			cmd,
+const files = args._;
+const formatter = args.formatter as string ?? 'dprint';
 
-			stderr: 'inherit',
-			stdin: 'inherit',
-			stdout: 'inherit',
-			// env: {
-			// 	DENO_SHIM_ARG0: cmdPath,
-			// 	DENO_SHIM_ARGX: cmdArgs.join(' '),
-			// 	DENO_SHIM_URL: cmdPath,
-			// },
-		};
-	} else {
-		log.info('Using `deno` formatting');
-		const cmdPath = 'deno';
-		const cmdArgs = ['fmt', ...args._];
-		const cmd = [cmdPath, ...cmdArgs];
-		log.trace({ cmd });
-		options = {
-			cmd,
-			stderr: 'inherit',
-			stdin: 'inherit',
-			stdout: 'inherit',
-			// env: {
-			// 	DENO_SHIM_ARG0: cmdPath,
-			// 	DENO_SHIM_ARGX: cmdArgs.join(' '),
-			// 	DENO_SHIM_URL: cmdPath,
-			// },
-		};
+const denoVersion = await haveDenoVersion();
+const denoFmtHasConfig = denoVersion != undefined && $semver.gte(denoVersion, '1.14.0');
+const denoConfigPaths = ['deno.json', 'tsconfig.json'];
+const denoConfigPath = denoConfigPaths.filter($fs.existsSync);
+const haveDenoConfig = denoConfigPath.length > 0;
+
+const dprintVersion = await haveDprintVersion();
+const dprintConfigPaths = ['.dprint.json', 'dprint.json', '.dprintrc.json'];
+const dprintConfigPath = dprintConfigPaths.filter($fs.existsSync);
+const haveDprintConfig = dprintConfigPath.length > 0;
+
+await log.trace({ denoVersion, dprintVersion });
+
+const runOptions: Partial<{ [key in 'deno' | 'dprint']: Deno.RunOptions }> = {};
+
+runOptions['deno'] = {
+	cmd: ['deno', 'fmt'].concat(
+		(denoFmtHasConfig && haveDenoConfig ? ['--config', denoConfigPath[0]] : []).concat([...files]),
+	),
+	stderr: 'inherit',
+	stdin: 'inherit',
+	stdout: 'inherit',
+	// env: {
+	// 	DENO_SHIM_ARG0: cmdPath,
+	// 	DENO_SHIM_ARGX: cmdArgs.join(' '),
+	// 	DENO_SHIM_URL: cmdPath,
+	// },
+};
+
+runOptions['dprint'] = {
+	cmd: ['dprint', 'fmt'].concat(
+		(haveDprintConfig ? ['--config', dprintConfigPath[0]] : []).concat([...files]),
+	),
+	stderr: 'inherit',
+	stdin: 'inherit',
+	stdout: 'inherit',
+	// env: {
+	// 	DENO_SHIM_ARG0: cmdPath,
+	// 	DENO_SHIM_ARGX: cmdArgs.join(' '),
+	// 	DENO_SHIM_URL: cmdPath,
+	// },
+};
+
+await log.trace({ runOptions });
+
+if (['both', 'deno'].includes(formatter)) {
+	await log.info('Formatting with `deno`');
+	const process = Deno.run(runOptions['deno']);
+	const status = await process.status();
+	if (!status.success) Deno.exit(status.code);
+}
+
+if (['default', 'both', 'dprint'].includes(formatter)) {
+	await log.info('Formatting with `dprint`');
+	const process = Deno.run(runOptions['dprint']);
+	const status = await process.status();
+	if (!status.success) Deno.exit(status.code);
+}
+
+Deno.exit(0);
+
+//===
+
+function haveDprintVersion() {
+	try {
+		const process = Deno.run({
+			cmd: ['dprint', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'piped',
+		});
+		return (process.output())
+			.then((output) => decode(output).match(/^dprint\s+(\d+([.]\d+)*)/im)?.[1])
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
 	}
-	return options;
-})();
+}
 
-log.trace({ runOptions });
-const process = Deno.run(runOptions);
-const status = await process.status();
-Deno.exit(status.success ? 0 : status.code);
+function haveDenoVersion() {
+	try {
+		const process = Deno.run({
+			cmd: ['deno', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'piped',
+		});
+		return (process.output())
+			.then((output) => decode(output).match(/^deno\s+(\d+([.]\d+)*)/im)?.[1])
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
+	}
+}
