@@ -59,7 +59,7 @@ export async function consoleSizeViaDeno(
 
 	let size: { columns: number; rows: number } | undefined;
 	try {
-		// * throws if rid is redirected
+		// * `denoConsoleSize()` throws if rid is redirected
 		size = denoConsoleSize?.(rid);
 	} catch {
 		size = undefined;
@@ -68,7 +68,7 @@ export async function consoleSizeViaDeno(
 	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
 		// console.warn('fallback to ...', fallbackRID)
 		try {
-			// * throws if rid is redirected
+			// * `denoConsoleSize()` throws if rid is redirected
 			size = denoConsoleSize?.(fallbackRID);
 		} catch {
 			size = undefined;
@@ -78,8 +78,9 @@ export async function consoleSizeViaDeno(
 	if ((size == undefined) && isWinOS && options.conoutFallback) {
 		try {
 			const conOut = await Deno.open('CONOUT$');
+			// * `denoConsoleSize()` throws if rid is redirected
 			size = conOut && denoConsoleSize?.(conOut.rid);
-			// * throws if rid is redirected
+			conOut.close();
 		} catch {
 			size = undefined;
 		}
@@ -118,10 +119,12 @@ export async function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefine
 
 export async function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
+	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
+	if (isWinOS) return undefined;
 	const output = await (() => {
 		try {
 			const process = Deno.run({
-				cmd: ['stty', 'size'],
+				cmd: ['stty', 'size', 'sane'],
 				stdin: 'inherit',
 				stderr: 'null',
 				stdout: 'piped',
@@ -138,7 +141,7 @@ export async function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 }
 
 async function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
-	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two system calls
+	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two shell system calls
 	const cols = await (() => {
 		try {
 			const process = Deno.run({
