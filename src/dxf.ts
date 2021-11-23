@@ -253,6 +253,7 @@ function haveDenoVersion() {
 
 export async function restyleHelp(helpText: string) {
 	// FixME: [2021-11-22; rivy] function needs significant cleanup of technical debt and refactoring for general use
+	// FixME: [2021-11-22; rivy] fix low-width (less than 90 chars) formatting of `-f, --formatter` function
 	const optionTextIndentSize = 2;
 	const endOfLinePadding = 1;
 	const border = false;
