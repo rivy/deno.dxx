@@ -5,23 +5,39 @@
 import { decode, isWinOS } from './$shared.ts';
 
 export type ConsoleSize = { columns: number; rows: number };
+export type ConsoleSizeOptions = {
+	fallbackRIDs: number[];
+	consoleFileFallback: boolean;
+	useCache: boolean;
+};
+export type ConsoleSizeMemoKey = string;
+
+const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize>();
 
 export function consoleSize(
 	rid: number = Deno.stdout.rid,
-	options: { fallbackRIDs: number[]; conoutFallback: boolean } = {
-		fallbackRIDs: [Deno.stderr.rid],
-		conoutFallback: true,
-	},
+	options: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
+	const options_ = {
+		fallbackRIDs: [Deno.stderr.rid],
+		consoleFileFallback: true,
+		useCache: true,
+		...options,
+	};
+	if (options.useCache) {
+		const memo = consoleSizeCache.get(JSON.stringify({ rid, options_ }));
+		if (memo != undefined) return Promise.resolve(memo);
+	}
 	// attempt fast API first, with fallback to slower shell scripts
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
-	const promise = new Promise<ConsoleSize | undefined>((resolve, reject) => {
-		// ~ 5 ms for WinOS ; ~ 0.5 ms for POSIX (for open, un-redirected STDOUT or STDERR)
-		// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the consoleFileFallback)
-		consoleSizeViaDenoAPI(rid, options).then((size) =>
-			(size != undefined) ? resolve(size) : reject(undefined)
-		);
-	})
+	// ~ 5 ms for WinOS ; ~ 0.5 ms for POSIX (for open, un-redirected STDOUT or STDERR)
+	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the consoleFileFallback)
+	const promise = consoleSizeViaDenoAPI(rid, options_)
+		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
+		.then((size) => {
+			consoleSizeCache.set(JSON.stringify({ rid, options_ }), size);
+			return size;
+		})
 		.catch((_) =>
 			// shell script fallbacks
 			// ~ 150 ms for WinOS ; ~ 75 ms for POSIX
@@ -41,6 +57,10 @@ export function consoleSize(
 						(size != undefined) ? size : Promise.reject(undefined)
 					),
 				])
+				.then((size) => {
+					consoleSizeCache.set(JSON.stringify({ rid, options_ }), size);
+					return size;
+				})
 				.catch((_) => undefined)
 		);
 
@@ -51,11 +71,14 @@ export function consoleSize(
 
 export function consoleSizeViaDenoAPI(
 	rid: number = Deno.stdout.rid,
-	options: { fallbackRIDs: number[]; conoutFallback: boolean } = {
-		fallbackRIDs: [Deno.stderr.rid],
-		conoutFallback: true,
-	},
+	options: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
+	const options_ = {
+		fallbackRIDs: [Deno.stderr.rid],
+		consoleFileFallback: true,
+		useCache: true,
+		...options,
+	};
 	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
 	const denoConsoleSize = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
@@ -69,7 +92,7 @@ export function consoleSizeViaDenoAPI(
 		size = undefined;
 	}
 	let fallbackRID;
-	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
+	while (size == undefined && (fallbackRID = options_.fallbackRIDs.shift()) != undefined) {
 		// console.warn('fallback to ...', fallbackRID)
 		try {
 			// * `denoConsoleSize()` throws if rid is redirected
@@ -79,7 +102,7 @@ export function consoleSizeViaDenoAPI(
 		}
 	}
 
-	if ((size == undefined) && options.conoutFallback) {
+	if ((size == undefined) && options.consoleFileFallback) {
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
 		Deno
 			.open(isWinOS ? 'CONOUT$' : '/dev/tty')
