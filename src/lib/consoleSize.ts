@@ -36,7 +36,7 @@ export function consoleSize(
 				);
 			}),
 		])
-		.catch(undefined);
+		.catch((_) => undefined);
 
 	return retVal;
 }
