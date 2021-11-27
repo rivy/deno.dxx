@@ -150,7 +150,7 @@ const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as Re
 // const sep = Path.sep;
 // const sepReS = Path.SEP_PATTERN;
 /** Regex character set matching the path separator character set */
-const sepReS: RegexString = `[\\\\\\/]` as RegexString;
+const pathSepReS: RegexString = `[\\\\\\/]` as RegexString;
 
 /** Regex pattern for double or single quote character */
 const QReS: RegexString = `[${DQ}${SQ}]` as RegexString;
@@ -159,7 +159,7 @@ const QReS: RegexString = `[${DQ}${SQ}]` as RegexString;
 // /** Regex pattern matching a character which is NON-glob and NON-(single or double)-quote.  */
 // const nonGlobQReS = `(?:(?!${globCharsReS}|${QReS}).)`;
 /** Regex pattern matching a character which is NON-glob, NON-(single or double)-quote, and NON-separator.  */
-const nonGlobQSepReS: RegexString = `(?:(?!${globCharsReS}|${QReS}|${sepReS}).)` as RegexString;
+const nonGlobQSepReS: RegexString = `(?:(?!${globCharsReS}|${QReS}|${pathSepReS}).)` as RegexString;
 
 /** Regex pattern matching a non-(double or single)-quote character. */
 const cNonQReS = `(?:(?!${QReS}).)`;
@@ -457,7 +457,10 @@ export function tildeExpand(s: string): string {
 	const username = Deno.env.get('USER') || Deno.env.get('USERNAME') || '';
 	const usernameReS = username.replace(/(.)/gmsu, '\\$1');
 	const caseSensitive = !isWinOS;
-	const re = new RegExp(`^\s*(~(?:${usernameReS})?)(${sepReS}|$)(.*)`, caseSensitive ? '' : 'i');
+	const re = new RegExp(
+		`^\s*(~(?:${usernameReS})?)(${pathSepReS}|$)(.*)`,
+		caseSensitive ? '' : 'i',
+	);
 	const m = s.match(re);
 	if (m) {
 		s = OSPaths.home() + (m[2] ? m[2] : '') + (m[3] ? m[3] : '');
@@ -520,6 +523,7 @@ export async function* globExpandIter(
 			.globScanTokens as unknown as any)
 				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
 					acc + (value.isGlob ? value.depth : 0), 0);
+			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude+; evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
 				isWinOS
@@ -596,6 +600,7 @@ export function* globExpandIterSync(
 			.globScanTokens as unknown as any)
 				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
 					acc + (value.isGlob ? value.depth : 0), 0);
+			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude (10-20x); evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
 				isWinOS
@@ -689,7 +694,7 @@ export function parseGlob(s: string) {
 	}
 
 	const re = new RegExp(
-		`^((?:${DQStringReS}|${SQStringReS}|${nonGlobQSepReS}+)*(?:${sepReS}+|$))(.*$)`,
+		`^((?:${DQStringReS}|${SQStringReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`,
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
