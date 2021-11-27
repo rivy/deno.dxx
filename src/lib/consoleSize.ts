@@ -75,9 +75,10 @@ export async function consoleSizeViaDeno(
 		}
 	}
 
-	if ((size == undefined) && isWinOS && options.conoutFallback) {
+	if ((size == undefined) && options.conoutFallback) {
 		try {
-			const conOut = await Deno.open('CONOUT$');
+			// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
+			const conOut = await Deno.open(isWinOS ? 'CONOUT$' : '/dev/tty');
 			// * `denoConsoleSize()` throws if rid is redirected
 			size = conOut && denoConsoleSize?.(conOut.rid);
 			conOut.close();
