@@ -5,7 +5,7 @@ import {
 	$version,
 	decode,
 	env,
-	/* mightUseColor, */
+	mightUseColor,
 	mightUseUnicode,
 	projectLocations,
 	projectPath,
@@ -19,6 +19,16 @@ import { $logger, logger as log /* initialized to the suspended state */ } from 
 
 //===
 
+// const isWinOS = Deno.build.os === 'windows';
+// const pathSeparator = isWinOS ? /[\\/]/ : /\//;
+// const pathListSeparator = isWinOS ? /;/ : /:/;
+// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
+// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
+// const pathCaseSensitive = !isWinOS;
+
+// console.warn($me.name, { Me });
+
+// const log = logger;
 log.debug(`logging to *STDERR*`);
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
@@ -34,17 +44,18 @@ log.debug(
 const version = $version.v();
 const runAsName = $me.runAs;
 
-// const useColor = mightUseColor();
+const useColor = mightUseColor();
 const useUnicode = mightUseUnicode();
 
 log.mergeMetadata({
 	authority: $me.name,
 	Humane: {
 		showLabel: true,
-		showSymbol: useUnicode ? 'unicodeDoubleWidth' : false,
+		showSymbol: useColor ? (useUnicode ? 'unicodeDoubleWidth' : 'ascii') : false,
 		// note: `prefixFormatFn` should assume `s` is a unicode string (with possible surrogate pairs and variation selectors, not simple UTF-16 characters) and may contain ANSI escape codes
 		// prefixFormatFn: (s: string) => ($colors.inverse(s.replace(/:$/, ''))),
 		prefixFormatFn: (s: string) => {
+			if (!useColor) return s;
 			// ref: <https://metacpan.org/dist/Regexp-Common-Other/source/lib/Regexp/Common/ANSIescape.pm>
 			// ref: <https://stackoverflow.com/a/14693789/43774> @@ <https://archive.md/JwwBc>
 			// ref: <https://github.com/arcanis/slice-ansi> , <https://github.com/chalk/slice-ansi> , <https://github.com/mafintosh/ansi-split>
@@ -53,7 +64,7 @@ log.mergeMetadata({
 			const symbolReS = `(?:.${VariationSelectorReS}?)`;
 			const labelWithNameAndAuthSubgroupsReS = '(?:(.*?)(?:/\\[(.*?)\\])?)';
 			const prefixReS =
-				`^(${AnsiEscapeReS}*)(${symbolReS})?(${AnsiEscapeReS}*)(${labelWithNameAndAuthSubgroupsReS}):?(${AnsiEscapeReS}*)$`;
+				`^(${AnsiEscapeReS}*)(${symbolReS})?(${AnsiEscapeReS}*)\\s*(${labelWithNameAndAuthSubgroupsReS}):?(${AnsiEscapeReS}*)$`;
 			return ($colors.inverse(
 				s.replace(
 					new RegExp(prefixReS),
@@ -67,10 +78,13 @@ log.mergeMetadata({
 						_authority,
 						ansiSuffix,
 					) => {
+						const symbol = ((useUnicode && useColor) || !useColor)
+							? _symbol
+							: ` ${_symbol} `;
 						if (['note', 'info', 'debug', 'trace'].includes(_levelName.toLocaleLowerCase())) {
-							return `${ansiPrefix}${_symbol}${ansiSeparator}${ansiSuffix}`;
+							return `${ansiPrefix}${symbol}${ansiSeparator}${ansiSuffix}`;
 						}
-						return `${ansiPrefix}${_symbol}${ansiSeparator}${_label}${ansiSuffix}`;
+						return `${ansiPrefix}${symbol}${ansiSeparator}${_label}${ansiSuffix}`;
 					},
 				) ?? s,
 			));
@@ -223,7 +237,6 @@ if (argv == undefined) {
 	console.warn(`\nUse \`${runAsName} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
-
 //===
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
