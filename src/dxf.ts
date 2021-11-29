@@ -118,7 +118,7 @@ const app = $yargs(undefined, undefined, undefined)
 	.group(['help', 'version'], '*Help/Info:')
 	.option('formatter', {
 		alias: ['f', '\b\b\b\b <command>'], // *hack* use backspaces to fake an option argument description
-		choices: ['default', 'both', 'deno', 'dprint'],
+		choices: ['default', 'all', 'deno', 'dprint'],
 		// default: 'default',
 		describe: `Select the code formatter ('default' == 'dprint')`,
 		nargs: 1,
@@ -259,14 +259,14 @@ runOptions['dprint'] = {
 
 await log.trace({ runOptions });
 
-if (['both', 'deno'].includes(formatter)) {
+if (['all', 'deno'].includes(formatter)) {
 	await log.info('Formatting with `deno`');
 	const process = Deno.run(runOptions['deno']);
 	const status = await process.status();
 	if (!status.success) Deno.exit(status.code);
 }
 
-if (['default', 'both', 'dprint'].includes(formatter)) {
+if (['default', 'all', 'dprint'].includes(formatter)) {
 	await log.info('Formatting with `dprint`');
 	const process = Deno.run(runOptions['dprint']);
 	const status = await process.status();
