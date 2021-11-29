@@ -1,5 +1,5 @@
-// spell-checker:ignore (jargon) falsey truthy
-// spell-checker:ignore (names) Deno EditorConfig
+// spell-checker:ignore (jargon) distro falsey truthy
+// spell-checker:ignore (names) Alacritty Cmder ConEmu Deno EditorConfig
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
@@ -422,6 +422,64 @@ export function durationText(tag: string): string | undefined {
 	} catch (_) {
 		return undefined;
 	}
+}
+
+//===
+
+// ref: <https://stackoverflow.com/questions/3104410/identify-cygwin-linux-windows-using-environment-variables> , <https://stackoverflow.com/questions/714100/os-detecting-makefile>
+// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain>
+// ref: [CLI and emojis](https://news.ycombinator.com/item?id=25311114) @@ <https://archive.is/xL2BL>
+
+// `isWSL()`
+/** Determine if OS platform is 'Windows Subsystem for Linux'. */
+export function isWSL() {
+	// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain> @@ <https://archive.is/KWV5a>
+	// * POSIX-like and contains one of the WSL signal environment variables
+	return (!isWinOS) &&
+		(Boolean(Deno.env.get('IS_WSL')) || Boolean(Deno.env.get('WSL_DISTRO_NAME')));
+}
+
+// `canDisplayUnicode()`
+/** Determine if unicode display is supported under the current platform and console constraint. */
+export function canDisplayUnicode() {
+	if (!isWinOS) {
+		// POSIX-like
+		// ref: <https://stackoverflow.com/questions/3104410/identify-cygwin-linux-windows-using-environment-variables> , <https://stackoverflow.com/questions/714100/os-detecting-makefile>
+		// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain>
+		const isOldTerminal = ['cygwin', 'linux'].includes(Deno.env.get('TERM') ?? '');
+		const isWSL_ = isWSL();
+		return !isOldTerminal && // fail for old terminals
+		(( // * not isWSL
+			!isWSL_ &&
+			Boolean(
+				Deno
+					.env
+					.get('LC_ALL')
+					?.match(/[.]utf-?8$/i) || Deno.env.get('LANG')?.match(/[.]utf-?8$/i),
+			) /* LC_ALL or LANG handles UTF-8? */
+		) || ( // * isWSL
+			isWSL_ && Boolean(Deno.env.get('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
+		));
+	}
+
+	// WinOS
+	// note: 'alacritty' will, by default, set TERM to 'xterm-256color'
+	return (['alacritty', 'xterm-256color'].includes(Deno.env.get('TERM') ?? '')) || // [alacritty](https://github.com/alacritty/alacritty)
+		Boolean(Deno.env.get('ConEmuPID')) || // [ConEmu](https://conemu.github.io) and [cmder](https://cmder.net)
+		Boolean(Deno.env.get('WT_SESSION')); // MS Windows Terminal
+}
+
+export function mightUseColor() {
+	// respects `NO_COLOR` env var override; use 'truthy' values?
+	// ref: <https://no-color.org> @@ <https://archive.is/Z5N1d>
+	return !(Deno.env.get('NO_COLOR'));
+}
+
+export function mightUseUnicode() {
+	// respects `NO_UNICODE` and `USE_UNICODE` env var overrides (in that order of priority); use 'truthy' values?
+	if (Deno.env.get('NO_UNICODE')) return false;
+	if (Deno.env.get('USE_UNICODE')) return true;
+	return canDisplayUnicode();
 }
 
 //===
