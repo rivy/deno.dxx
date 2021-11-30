@@ -58,23 +58,24 @@ performance.mark('setup:log:stop');
 performance.mark('setup:yargs:start');
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
-const app = $yargs(undefined, undefined, undefined)
+const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.scriptName($me.name)
 	.epilog('* Copyright (c) 2021 * Roy Ivy III (MIT license)')
-	.usage(
-		`$0 ${version}\n\nUsage:\n  ${runAsName} [OPTION..] [FILE..]`,
-		undefined,
-		undefined,
-		undefined,
-	)
-	// .wrap(appHelpWrapSize)
-	.wrap(undefined)
+	.usage(`$0 ${version}\n
+Auto-format project source code files (using \`dprint\` and/or \`deno\`).\n
+Usage:\n  ${runAsName} [OPTION..] [FILE..]`)
+	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
+		if (err) throw err;
+		throw new Error(msg.replace('argument', 'option'));
+	})
+	.strict()
+	.wrap(/* columns */ undefined)
 	// help and version setup
 	.help(false)
 	.version(false)
 	.option('help', {
 		describe: 'Write help text to STDOUT and exit (with exit status = 1)',
-		boolean: true,
+		type: 'boolean',
 	})
 	.alias('help', 'h')
 	.option('version', {
@@ -82,7 +83,6 @@ const app = $yargs(undefined, undefined, undefined)
 		type: 'boolean',
 	})
 	.alias('version', 'V')
-	.showHelpOnFail(true, `Use \`${runAsName} --help\` to show usage and available options`)
 	// logging options
 	.option('silent', {
 		describe: `Silent mode; suppress non-error messages, showing 'error' level logging`,
@@ -103,15 +103,16 @@ const app = $yargs(undefined, undefined, undefined)
 		'camel-case-expansion': true,
 		'strip-aliased': true,
 		'strip-dashed': true,
-		'unknown-options-as-args': true,
+		// 'halt-at-non-option': true,
+		// 'unknown-options-as-args': true,
 	})
 	.updateStrings({ 'Positionals:': 'Arguments:' })
-	.example(`\`${runAsName} FILE\``, 'Format FILE')
 	// .positional('COMMAND', { describe: 'Path/URL of command to install' })
-	.positional('OPTION', {
-		describe: 'OPTION(s) as listed here; may also include any formatter command options',
-	})
+	// .positional('OPTION', {
+	// 	describe: 'OPTION(s) as listed here; may also include any formatter command options',
+	// })
 	.positional('FILE', { describe: 'FILE(s) to format' })
+	// .example(`\`${runAsName} FILE\``, 'Format FILE')
 	.group([], 'Options:')
 	.group(['silent', 'quiet', 'verbose', 'debug', 'trace'], '*Logging:')
 	.group(['help', 'version'], '*Help/Info:')
@@ -119,7 +120,7 @@ const app = $yargs(undefined, undefined, undefined)
 		alias: ['f', '\b\b\b\b <command>'], // *hack* use backspaces to fake an option argument description
 		choices: ['default', 'all', 'deno', 'dprint'],
 		// default: 'default',
-		describe: `Select the code formatter ('default' == 'dprint')`,
+		describe: `Select the code formatter ('default' => 'dprint')`,
 		nargs: 1,
 		type: 'string',
 	});
