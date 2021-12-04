@@ -475,6 +475,16 @@ export function mightUseColor() {
 	return !(Deno.env.get('NO_COLOR'));
 }
 
+export function mightUseFileSystemCase() {
+	// * respects `USE_FS_CASE` env var override (for WinOS); use 'truthy' values?
+	// POSIX is case-sensitive
+	// WinOS is *usually* (~99+%) case-insensitive/case-preserving, but *can* be case-sensitive (on a directory-by-directory basis)
+	// ref: <https://stackoverflow.com/questions/7199039/file-paths-in-windows-environment-not-case-sensitive> @@ <https://archive.is/i0xzb>
+	// ref: <https://nodejs.org/en/docs/guides/working-with-different-filesystems> @@ <https://archive.is/qSRjE>
+	// ref: <https://en.wikipedia.org/wiki/Filename> @@ <https://archive.is/cqe6g>
+	return !isWinOS /* assumed to be POSIX */ || !(Deno.env.get('USE_FS_CASE'));
+}
+
 export function mightUseUnicode() {
 	// respects `NO_UNICODE` and `USE_UNICODE` env var overrides (in that order of priority); use 'truthy' values?
 	if (Deno.env.get('NO_UNICODE')) return false;
