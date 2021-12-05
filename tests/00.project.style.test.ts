@@ -37,7 +37,7 @@ test('style ~ `deno lint` succeeds', async () => {
 	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
 		p.close()
 	);
-	assert(status.success);
+	assert(status.success, '`deno lint` fails');
 });
 
 if (await haveDPrint()) {
@@ -51,7 +51,7 @@ if (await haveDPrint()) {
 		const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
 			p.close()
 		);
-		assert(status.success);
+		assert(status.success, '`dprint check` fails');
 	});
 }
 
