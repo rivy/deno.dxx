@@ -2,7 +2,9 @@
 // spell-checker:ignore (shell) stty tput
 // spell-checker:ignore (shell/CMD) CONOUT
 
-import { decode, isWinOS } from './$shared.ts';
+import { decode } from './$shared.ts';
+
+const isWinOS = Deno.build.os === 'windows';
 
 export type ConsoleSize = { columns: number; rows: number };
 export type ConsoleSizeOptions = {

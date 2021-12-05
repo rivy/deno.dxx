@@ -523,14 +523,9 @@ function v() {
 
 export const $version = { projectVersionText, projectVersionTextViaImport, v };
 
-//=== * LOCAL function/module exports
-
-// * note: local functions/modules are exported from '$shared' to help avoid circular dependencies
+//=== * logger
 
 export * as $logger from './axe/$mod.ts';
-export * as $me from './xProcess.ts';
-
-export * as $consoleSize from './consoleSize.ts';
 
 //===
 
