@@ -106,19 +106,59 @@ export function format(...args: unknown[]) {
 
 type TestName = string;
 const testLog: [TestName, (() => string) | string][] = [];
+const testFilePathLineCounts: Map<string, number> = new Map();
 
-function composeTestName(testFilePath: string, description: string) {
-	return (testFilePath ? (Colors.dim(Path.parse(testFilePath).base) + ' ') : '') +
-		Colors.bold(description);
+function lineCount(filePath: string) {
+	if (!testFilePathLineCounts.has(filePath)) {
+		try {
+			testFilePathLineCounts.set(
+				filePath,
+				Deno.readTextFileSync(traversal(filePath) ?? '').replace(/\r?\n$/ms, '').split(/\n/).length,
+			);
+		} catch (_) {
+			console.error('`lineCount()`: error happened');
+			// cache negative count as an error signal
+			testFilePathLineCounts.set(filePath, -1);
+		}
+	}
+	const count = testFilePathLineCounts.get(filePath);
+	// console.error('`lineCount()`', { filePath, count });
+	return ((count != undefined) && (count >= 0)) ? count : undefined;
+}
+
+function composeTestName(
+	tag: string,
+	description: string,
+	options: { align: boolean } = { align: false },
+) {
+	const align = options.align;
+	const padding = (() => {
+		if (!align) return 0;
+		const tagLineText = tag.match(/:(\d+)$/)?.[1];
+		const tagLine = isNaN(Number(tagLineText)) ? -1 : Number(tagLineText);
+		const maxLines = ((tagLine >= 0) ? lineCount(tag.replace(/(:\d+)*$/, '')) : undefined) ?? -1;
+		return ((tagLine >= 0) && (maxLines >= 0) && (maxLines > tagLine))
+			? ([...maxLines.toString()].length - [...tagLine.toString()].length)
+			: 0;
+	})();
+	const filePathText =
+		(tag
+			? (Colors.dim(Path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) + ' ')
+			: '');
+	return filePathText + Colors.bold(description);
 }
 
 export function createTestFn(testFilePath?: URL | string) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
 	function test(description: string, fn: () => void | Promise<void>, opts = {}) {
-		const path =
-			(pathOfTestFile ? pathOfTestFile : callersFromStackTrace().pop()?.replace(/[:]\d+$/, '')) ??
-				'';
-		const testName: TestName = composeTestName(path, description);
+		const tag =
+			(pathOfTestFile
+				? pathOfTestFile
+				: callersFromStackTrace().pop()?.replace(
+					/:\d+$/,
+					'',
+				) /* remove trailing character position */) ?? '';
+		const testName: TestName = composeTestName(tag, description, { align: !(pathOfTestFile) });
 		Deno.test({
 			name: testName,
 			fn: async () => {
