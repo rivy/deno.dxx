@@ -30,7 +30,7 @@ performance.mark('setup:log:start');
 // const log = logger;
 log.debug(`logging to *STDERR*`);
 
-$me.warnIfImpaired((s: string) => log.warn(s));
+$me.warnIfImpaired((msg) => log.warn(msg));
 log.trace({ $me });
 log.trace({ args: Deno.args, execPath: Deno.execPath(), main: Deno.mainModule });
 
