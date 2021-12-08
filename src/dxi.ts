@@ -1,7 +1,9 @@
 // spell-checker:ignore (names) Deno ; (vars) arr gmsu ; (text) positionals
 
 import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
-import { $version as Version, decoder, encoder, logger } from './lib/$shared.ts';
+import { $version as Version, decoder, encoder } from './lib/$shared.ts';
+
+import { logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
 
 // import * as LogSymbols from '../src/lib/xWait/log_symbols.ts';
 // import * as Version from './lib/version.ts';
@@ -18,7 +20,7 @@ const isWinOS = Deno.build.os === 'windows';
 const version = Version.v();
 const runAsName = Me.runAs;
 
-logger.mergeMetadata({ authority: Me.name });
+log.mergeMetadata({ authority: Me.name });
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = Yargs(undefined, undefined, undefined)
@@ -58,11 +60,11 @@ const app = Yargs(undefined, undefined, undefined)
 
 const args = app.parse(Me.args(), undefined, undefined);
 
-await logger.debug({ args });
+await log.debug({ args });
 
-if (args.debug) logger.mergeMetadata({ Filter: { level: 'debug' } });
-if (args.trace) logger.mergeMetadata({ Filter: { level: 'trace' } });
-await logger.resume();
+if (args.debug) log.mergeMetadata({ Filter: { level: 'debug' } });
+if (args.trace) log.mergeMetadata({ Filter: { level: 'trace' } });
+await log.resume();
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
@@ -92,7 +94,7 @@ const runOptions: Deno.RunOptions = {
 	stdin: 'null',
 	stdout: 'piped',
 };
-await logger.debug({ runOptions });
+await log.debug({ runOptions });
 const process = Deno.run(runOptions);
 const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
 const outStd = decoder.decode(await process.output()).replace(
@@ -112,7 +114,7 @@ const shimBinPath = (() => {
 	return '';
 })();
 
-await logger.debug({ shimBinPath });
+await log.debug({ shimBinPath });
 
 import { eol } from './lib/eol.ts';
 import { cmdShimTemplate, shimInfo } from './lib/shim.windows.ts';
