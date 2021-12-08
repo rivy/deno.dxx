@@ -1,4 +1,4 @@
-// spell-checker:ignore (names) Deno ; (vars) arr gmsu ; (text) positionals
+// spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
 import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
 import { $version as Version, decoder, encoder } from './lib/$shared.ts';
