@@ -96,12 +96,11 @@ export const impairedWarningMessage = () => {
 		: undefined;
 };
 
-// deno-lint-ignore no-explicit-any
-export const warnIfImpaired = (writer?: (...args: any[]) => void) => {
-	if (impaired && impairedWarningMessage()) {
-		if (writer) writer(impairedWarningMessage());
-		else console.warn(`WARN/[${name}]: ` + impairedWarningMessage());
-	}
+export const warnIfImpaired = (
+	writer: (...args: unknown[]) => void = (args) => console.warn(`WARN/[${name}]:`, args),
+) => {
+	const msg = impairedWarningMessage();
+	if (msg != undefined) writer(msg);
 };
 
 /** * information related to any 'shim'-executable initiating the main script, when available */
