@@ -56,7 +56,8 @@ export const targetURL = Deno.env.get('DENO_SHIM_URL');
 export const enhanced = shimArg0 ? true : underEnhancedShell;
 export const impaired = isWinOS && !enhanced;
 
-// ... ToDO: add `alreadyExpanded` boolean to correctly avoid re-expansion for `args()`
+// ... ToDO: add `preExpanded` boolean to correctly avoid re-expansion for `args()`
+// export const preExpanded = argsTextPreExpanded ? true : false;
 
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
