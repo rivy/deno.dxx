@@ -469,7 +469,7 @@ export function tildeExpand(s: string): string {
 }
 
 export function subShellExpand(_s: string): Array<string> {
-	throw 'unimplemented';
+	throw '`subShellExpand()`: unimplemented';
 }
 
 function escapeRegExp(s: string) {
