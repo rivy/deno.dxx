@@ -8,7 +8,7 @@ export * from '../src/lib/$shared.ts';
 
 //====
 
-import { Colors, Path } from './$deps.ts';
+import { $colors, $path } from './$deps.ts';
 
 import { decode, intoPath, projectPath, traversal } from '../src/lib/$shared.ts';
 
@@ -143,9 +143,10 @@ function composeTestName(
 	})();
 	const filePathText =
 		(tag
-			? (Colors.dim(Path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) + ' ')
+			? ($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) +
+				' ')
 			: '');
-	return filePathText + Colors.bold(description);
+	return filePathText + $colors.bold(description);
 }
 
 export function createTestFn(testFilePath?: URL | string) {
@@ -179,8 +180,8 @@ export function createTestFn(testFilePath?: URL | string) {
 						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : []
 					);
 					if (logText.length > 0) {
-						logText.unshift(Colors.dim(`## test log:begin>`));
-						logText.push(Colors.dim(`## test log:end.`));
+						logText.unshift($colors.dim(`## test log:begin>`));
+						logText.push($colors.dim(`## test log:end.`));
 					}
 					throw (new Error([''].concat(logText).concat([e.toString()]).join('\n')));
 				}
@@ -202,14 +203,14 @@ export const isGHA = Deno.env.get('GITHUB_ACTIONS'); // ref: <https://docs.githu
 
 export function createWarnFn(testFilePath?: URL | string) {
 	const path = testFilePath ? traversal(testFilePath) : undefined;
-	const base = path ? Path.parse(path).base : undefined;
+	const base = path ? $path.parse(path).base : undefined;
 	// console.warn({ projectPath, testFilePath, path, base });
 	function warn(...args: unknown[]) {
 		//# * for GHA CI, convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
 		const s = format(...args);
 		if (isCI && isGHA) {
-			console.log(Colors.stripColor(`::warning ::${base ? (base + ': ') : ''}${s}`));
-		} else console.warn(Colors.dim(base || '*'), Colors.yellow('Warning:'), s);
+			console.log($colors.stripColor(`::warning ::${base ? (base + ': ') : ''}${s}`));
+		} else console.warn($colors.dim(base || '*'), $colors.yellow('Warning:'), s);
 	}
 	return warn;
 }
@@ -349,13 +350,13 @@ function callersFromStackTrace() {
 export type PathString = string;
 
 export function pathToOsStyle(p: PathString): PathString {
-	return p.replace(new RegExp(Path.SEP_PATTERN, 'g'), Path.SEP) as PathString;
+	return p.replace(new RegExp($path.SEP_PATTERN, 'g'), $path.SEP) as PathString;
 }
 export function pathToPosixStyle(p: PathString): PathString {
-	return p.replace(new RegExp(Path.SEP_PATTERN, 'g'), '/') as PathString;
+	return p.replace(new RegExp($path.SEP_PATTERN, 'g'), '/') as PathString;
 }
 export function pathToWindowsStyle(p: PathString): PathString {
-	return p.replace(new RegExp(Path.SEP_PATTERN, 'g'), '\\') as PathString;
+	return p.replace(new RegExp($path.SEP_PATTERN, 'g'), '\\') as PathString;
 }
 
 //===

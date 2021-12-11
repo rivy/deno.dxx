@@ -2,4 +2,4 @@
 
 export * from '../src/lib/$deps.ts';
 
-export * as Args from '../src/lib/xArgs.ts';
+export * as $args from '../src/lib/xArgs.ts';

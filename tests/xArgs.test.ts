@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno
 
-import { assert, assertEquals, FS as $fs, Path as $path } from './$deps.ts';
+import { $fs, $path, assert, assertEquals } from './$deps.ts';
 import { deepEqual, pathToOsStyle, projectPath, test } from './$shared.ts';
 
 import * as Parse from '../src/lib/xArgs.ts';

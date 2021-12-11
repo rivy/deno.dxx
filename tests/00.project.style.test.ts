@@ -1,10 +1,10 @@
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (utils) dprint git
 
-import { Args, assert, assertEquals, equal, Path } from './$deps.ts';
+import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
 import { haveDPrint, isWinOS, projectPath, test } from './$shared.ts';
 
-const args = Args.argsSync;
+const args = $args.argsSync;
 
 const excludeDirsRxs = ['[_.#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
@@ -13,11 +13,11 @@ const _tabbedFilesRxs = '[.](bat|cmd)';
 
 // ToDO: instead, use `git ls -r` for project files
 
-const projectPaths = args(Path.join(projectPath, `!(${excludeDirsRxs.join('|')}){*,*/**/*}`))
+const projectPaths = args($path.join(projectPath, `!(${excludeDirsRxs.join('|')}){*,*/**/*}`))
 	.filter((path) =>
-		!Path.relative(projectPath, path).match(
+		!$path.relative(projectPath, path).match(
 			new RegExp(
-				`(^|${Path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${Path.SEP_PATTERN}|$)`,
+				`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
 				isWinOS ? 'i' : '',
 			),
 		)
@@ -25,7 +25,7 @@ const projectPaths = args(Path.join(projectPath, `!(${excludeDirsRxs.join('|')})
 
 const projectFiles = projectPaths.filter((path) => Deno.lstatSync(path).isFile);
 const projectNonBinaryFiles = projectFiles.filter((file) =>
-	!Path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : ''))
+	!$path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : ''))
 );
 // const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
 
@@ -102,7 +102,7 @@ test('style ~ non-binary project files (when non-empty) use LF as newline by def
 		console.warn(`The following ${flaws.length} line(s) have non-LF newlines:`);
 		console.warn(
 			flaws.map(([file, index, line]) =>
-				`File: '${Path.relative(projectPath, file)}', Line: ${index}, "${line}"`
+				`File: '${$path.relative(projectPath, file)}', Line: ${index}, "${line}"`
 			),
 		);
 	}
@@ -122,7 +122,7 @@ test('style ~ non-binary project files have no lines containing trailing whitesp
 		console.warn(`The following ${flaws.length} line(s) contain trailing whitespace:`);
 		console.warn(
 			flaws.map(([file, index, _line]) =>
-				`File: '${Path.relative(projectPath, file)}', Line: ${index}`
+				`File: '${$path.relative(projectPath, file)}', Line: ${index}`
 			),
 		);
 	}

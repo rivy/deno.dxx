@@ -4,16 +4,16 @@
 // ref: <https://github.com/denoland/deno/discussions/12113>
 // ToDO: re-evaluate as `deno check` comes to fruition
 
-import { Args, assert, Path } from './$deps.ts';
+import { $args, $path, assert } from './$deps.ts';
 import { decode, projectPath, test, traversal } from './$shared.ts';
 
-const expand = Args.shellExpandSync;
+const expand = $args.shellExpandSync;
 
 const projectTypeScriptFiles = {
-	examples: expand(Path.join(projectPath, 'eg/*.ts')),
-	source: expand(Path.join(projectPath, 'src/**/*.ts')),
-	tools: expand(Path.join(projectPath, 'tools/*.ts')),
-	tests: expand(Path.join(projectPath, 'tests/**/*.ts')),
+	examples: expand($path.join(projectPath, 'eg/*.ts')),
+	source: expand($path.join(projectPath, 'src/**/*.ts')),
+	tools: expand($path.join(projectPath, 'tools/*.ts')),
+	tests: expand($path.join(projectPath, 'tests/**/*.ts')),
 };
 
 test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.length} found)`, async () => {

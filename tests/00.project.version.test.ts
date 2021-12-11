@@ -1,7 +1,7 @@
 // spell-checker:ignore (names) Deno
 
-import { assertEquals, equal, FS } from './$deps.ts';
-const { existsSync } = FS;
+import { $fs, assertEquals, equal } from './$deps.ts';
+const { existsSync } = $fs;
 import {
 	createWarnFn,
 	decode,
