@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { /* $colors, */ $fs, $semver, $yargs, YargsArguments } from './lib/$deps.ts';
+import { $colors, $fs, $semver, $yargs, YargsArguments } from './lib/$deps.ts';
 import {
 	$version,
 	decode,
@@ -42,8 +42,39 @@ log.mergeMetadata({
 	Humane: {
 		showLabel: true,
 		showSymbol: useUnicode ? 'unicodeDoubleWidth' : false,
-		// note: `prefixFormatFn` should assume `s` is a unicode string (with possible surrogate pairs, not simple UTF-16 characters) and may contain ANSI escape codes
+		// note: `prefixFormatFn` should assume `s` is a unicode string (with possible surrogate pairs and variation selectors, not simple UTF-16 characters) and may contain ANSI escape codes
 		// prefixFormatFn: (s: string) => ($colors.inverse(s.replace(/:$/, ''))),
+		prefixFormatFn: (s: string) => {
+			// ref: <https://metacpan.org/dist/Regexp-Common-Other/source/lib/Regexp/Common/ANSIescape.pm>
+			// ref: <https://stackoverflow.com/a/14693789/43774> @@ <https://archive.md/JwwBc>
+			// ref: <https://github.com/arcanis/slice-ansi> , <https://github.com/chalk/slice-ansi> , <https://github.com/mafintosh/ansi-split>
+			const AnsiEscapeReS = '(?:\x1b(?:[@-Z_-]|\[[0-?]*[ -/]*[@-~]))'; // 7-bit ANSI escapes
+			const VariationSelectorReS = '(?:[\ufe00-\ufe0f])'; // unicode variation selectors ; ref: <https://en.wikipedia.org/wiki/Variation_Selectors_(Unicode_block)>
+			const symbolReS = `(?:.${VariationSelectorReS}?)`;
+			const labelWithNameAndAuthSubgroupsReS = '(?:(.*?)(?:/\\[(.*?)\\])?)';
+			const prefixReS =
+				`^(${AnsiEscapeReS}*)(${symbolReS})?(${AnsiEscapeReS}*)(${labelWithNameAndAuthSubgroupsReS}):?(${AnsiEscapeReS}*)$`;
+			return ($colors.inverse(
+				s.replace(
+					new RegExp(prefixReS),
+					(
+						_,
+						ansiPrefix,
+						_symbol,
+						ansiSeparator,
+						_label,
+						_levelName: string,
+						_authority,
+						ansiSuffix,
+					) => {
+						if (['note', 'info', 'debug', 'trace'].includes(_levelName.toLocaleLowerCase())) {
+							return `${ansiPrefix}${_symbol}${ansiSeparator}${ansiSuffix}`;
+						}
+						return `${ansiPrefix}${_symbol}${ansiSeparator}${_label}${ansiSuffix}`;
+					},
+				) ?? s,
+			));
+		},
 	},
 });
 
