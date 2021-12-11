@@ -10,10 +10,19 @@ import { decode, projectPath, test, traversal } from './$shared.ts';
 const expand = $args.shellExpandSync;
 
 const projectTypeScriptFiles = {
-	examples: expand($path.join(projectPath, 'eg/*.ts')),
-	source: expand($path.join(projectPath, 'src/**/*.ts')),
-	tools: expand($path.join(projectPath, 'tools/*.ts')),
-	tests: expand($path.join(projectPath, 'tests/**/*.ts')),
+	examples: expand(['eg', 'egs', 'examples'].map((s) => $path.join(projectPath, s, '*.ts')), {
+		nullglob: true,
+	}),
+	source: expand(['source', 'src'].map((s) => $path.join(projectPath, s, '**/*.ts')), {
+		nullglob: true,
+	}),
+	tools: expand($path.join(projectPath, 'tools/*.ts'), { nullglob: true }),
+	tests: expand(
+		['t', 'test', 'tests', 'bench', 'benchmark', 'benchmarks'].map((s) =>
+			$path.join(projectPath, s, '**/*.ts')
+		),
+		{ nullglob: true },
+	),
 };
 
 test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.length} found)`, async () => {
