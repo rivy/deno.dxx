@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (yargs) nargs positionals
 
-import { $yargs, YargsArguments } from './lib/$deps.ts';
+import { $path, $yargs, YargsArguments } from './lib/$deps.ts';
 import {
 	$version,
 	envGet,
@@ -168,7 +168,7 @@ if (argv.version) {
 //===
 
 const args = argv._.map(String);
-const targetPath = args.shift() || '';
+const targetPath = (args.shift() || '').replace(/^-/, `.${$path.SEP}-`);
 const targetArgs = args;
 
 let targetURL: string;
