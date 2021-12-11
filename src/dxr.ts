@@ -182,7 +182,9 @@ await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 // !NOTE: maximum command line or environment variable length is likely 8192 characters; see ref: <https://superuser.com/questions/1070272/why-does-windows-have-a-limit-on-environment-variables-at-all/1070354#1070354>
 // FixME: fail gracefully (with warning?) if expanded command line is longer than a <max_length>
 
-const denoOptions = ['run', '-A', argv.unstable ? '--unstable' : '', '--'].filter(Boolean);
+const commonOptions = [argv.unstable ? '--unstable' : ''].filter(Boolean);
+const denoOptions = ['run', '-A', ...commonOptions].filter(Boolean);
+const shimOptions = [...commonOptions].filter(Boolean);
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoOptions, targetPath, ...targetArgs],
 	stderr: 'inherit',
@@ -190,9 +192,9 @@ const runOptions: Deno.RunOptions = {
 	stdout: 'inherit',
 	env: {
 		DENO_SHIM_ARG0: `${
-			$me.shimArg0
-				? $me.shimArg0
-				: ['deno', ...denoOptions].join(' ')
+			[$me.shimArg0 ?? $me.runAs, ...shimOptions]
+				.filter(Boolean)
+				.join(' ')
 		} ${targetPath}`,
 		DENO_SHIM_ARGS: targetArgs.map($args.reQuote).join(' '),
 		DENO_SHIM_URL: targetURL,
