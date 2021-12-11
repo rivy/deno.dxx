@@ -2,9 +2,22 @@
 
 import { $colors, $fs, $semver, $yargs } from './lib/$deps.ts';
 // import { $fs, $semver, $yargs } from './lib/$deps.ts';
-import { $consoleSize, $me, $version, decode, envGet, restyleYargsHelp } from './lib/$shared.ts';
+import {
+	$consoleSize,
+	$me,
+	$version,
+	decode,
+	durationText,
+	envGet,
+	restyleYargsHelp,
+} from './lib/$shared.ts';
 
 import { $logger, logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
+
+//===
+
+performance.mark('setup:start');
+performance.mark('setup:log:start');
 
 // const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
@@ -39,7 +52,11 @@ log.mergeMetadata({
 	},
 });
 
+performance.mark('setup:log:stop');
+
 //===
+
+performance.mark('setup:yargs:start');
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(undefined, undefined, undefined)
@@ -108,6 +125,10 @@ const app = $yargs(undefined, undefined, undefined)
 		type: 'string',
 	});
 
+performance.mark('setup:yargs:stop');
+
+performance.mark('setup:parseArgs:start');
+
 const args = app.parse($me.args(), undefined, undefined);
 
 log.debug({ args });
@@ -138,10 +159,49 @@ log.debug(`log level set to '${logLevel}'`);
 
 await log.resume();
 
+performance.mark('setup:parseArgs:stop');
+
+//===
+
+performance.mark('setup:consoleSize');
+performance.mark('setup:consoleSize:promise');
+const consoleSizePromise = $consoleSize.consoleSize();
+performance.mark('setup:consoleSize:promise');
+performance.mark('setup:consoleSize:await');
+const consoleSize = await consoleSizePromise;
+performance.mark('setup:consoleSize:await');
+performance.mark('setup:consoleSize');
+
+await log.debug({ consoleSize });
+
+//===
+
+performance.mark('setup:stop');
+
+await log.debug(durationText('setup:log'));
+await log.debug(durationText('setup:yargs'));
+await log.debug(durationText('setup:parseArgs'));
+await log.debug(durationText('setup:consoleSize:promise'));
+await log.debug(durationText('setup:consoleSize:await'));
+await log.debug(durationText('setup:consoleSize'));
+await log.debug(durationText('setup'));
+
+//===
+
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
-	const help = await app.getHelp();
-	console.log(await restyleHelp(help));
+	performance.mark('run:generateHelp');
+	performance.mark('run:generateHelp:yargs');
+	const yargsHelp = await app.getHelp();
+	performance.mark('run:generateHelp:yargs');
+	await log.debug(durationText('run:generateHelp:yargs'));
+	performance.mark('run:generateHelp:customize');
+	const help = await restyleYargsHelp(yargsHelp, { consoleWidth: consoleSize?.columns ?? 80 });
+	performance.mark('run:generateHelp:customize');
+	performance.mark('run:generateHelp');
+	await log.debug(durationText('run:generateHelp:customize'));
+	await log.debug(durationText('run:generateHelp'));
+	console.log(help);
 	Deno.exit(1);
 }
 if (args.version) {
