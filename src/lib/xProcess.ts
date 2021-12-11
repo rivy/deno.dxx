@@ -91,7 +91,9 @@ export const name = Path.parse(path).name;
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs = shimArg0 ||
-	((path === Deno.mainModule) ? `deno run -A ${traversal(path)}` : name);
+	((path === Deno.mainModule)
+		? `deno run -A ${traversal(path)?.replace(/^-/, '.' + Path.SEP + '-')}`
+		: name);
 
 export const impairedWarningMessage = () => {
 	return impaired
