@@ -12,7 +12,7 @@ export { default as $osPaths } from 'https://deno.land/x/os_paths@v6.9.0/src/mod
 export * as $semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 export * as $tty from 'https://deno.land/x/tty@0.1.4/mod.ts';
 export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v7.0.0/src/mod.deno.ts';
-export { default as $yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
+export { default as $yargs } from 'https://deno.land/x/yargs@v17.3.0-deno/deno.ts';
 
 //=== features (functions, objects, and/or values)
 
@@ -31,4 +31,4 @@ export { fetch } from 'https://deno.land/x/file_fetch@0.2.0/mod.ts';
 
 //=== types
 
-export type { Arguments as YargsArguments } from 'https://deno.land/x/yargs@v17.0.1-deno/deno-types.ts';
+export type { Arguments as YargsArguments } from 'https://deno.land/x/yargs@v17.3.0-deno/deno-types.ts';
