@@ -3,15 +3,11 @@
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
-import { $colors, $path } from './$deps.ts';
+import { $cliffyTable, $colors, $path } from './$deps.ts';
 
 //===
 
 import * as $consoleSize from './consoleSize.ts';
-
-//===
-
-import { Cell, Table } from 'https://deno.land/x/cliffy@v0.20.1/table/mod.ts';
 
 //===
 
@@ -185,6 +181,8 @@ export function getCharacterLength(s: string) {
 
 export async function restyleYargsHelp(helpText: string, options?: { consoleWidth: number }) {
 	// performance.mark('restyleYargsHelp():start');
+	const Cell: typeof $cliffyTable.Cell = $cliffyTable.Cell;
+	const Table: typeof $cliffyTable.Table = $cliffyTable.Table;
 	// FixME: [2021-11-22; rivy] function needs significant cleanup of technical debt and refactoring for general use
 	const optionTextIndentSize = 2;
 	const endOfLinePadding = 1;
@@ -192,7 +190,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 	const maxWidth = options?.consoleWidth ?? (await $consoleSize.consoleSize())?.columns ?? 80; // `consoleSize()` may take ~ 150 ms if fallback to shell scripts are needed
 	const maxWidths = [maxWidth / 6, 1, 1, maxWidth / 6, 1, 3 * maxWidth / 6];
 	const minWidths = [4, 0, 0, 8, 0, 3 * maxWidth / 6];
-	const sectionTable: Table = new Table()
+	const sectionTable = new Table()
 		.maxColWidth(maxWidths)
 		.minColWidth(minWidths)
 		.border(border)
