@@ -1,9 +1,9 @@
-export * as $colors from 'https://deno.land/std@0.113.0/fmt/colors.ts';
-export * as $path from 'https://deno.land/std@0.113.0/path/mod.ts';
+export * as $colors from 'https://deno.land/std@0.117.0/fmt/colors.ts';
+export * as $path from 'https://deno.land/std@0.117.0/path/mod.ts';
 
 // * import needed stable portions of `std/fs`
-import { exists, existsSync } from 'https://deno.land/std@0.113.0/fs/exists.ts';
-import { expandGlob, expandGlobSync } from 'https://deno.land/std@0.113.0/fs/expand_glob.ts';
+import { exists, existsSync } from 'https://deno.land/std@0.117.0/fs/exists.ts';
+import { expandGlob, expandGlobSync } from 'https://deno.land/std@0.117.0/fs/expand_glob.ts';
 export const $fs = { exists, existsSync, expandGlob, expandGlobSync };
 
 export * as $lodash from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
@@ -19,13 +19,13 @@ export { default as $yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.t
 // assert functions (with assertion signatures) always require explicit type annotation
 // * ref: <https://github.com/microsoft/TypeScript/issues/36931> , <https://github.com/microsoft/TypeScript/issues/36067>
 // eg...
-//  import * as $asserts from 'https://deno.land/std@0.113.0/testing/asserts.ts';
+//  import * as $asserts from 'https://deno.land/std@0.117.0/testing/asserts.ts';
 //  export const assert: typeof $asserts.assert = $asserts.assert;
 //  export const assertEquals: typeof $asserts.assertEquals = $asserts.assertEquals;
 //  export const equal: typeof $asserts.equal = $asserts.equal;
 // or use more direct exports...
-//  export { assert, assertEquals, equal } from 'https://deno.land/std@0.113.0/testing/asserts.ts';
-export { assert, assertEquals, equal } from 'https://deno.land/std@0.113.0/testing/asserts.ts';
+//  export { assert, assertEquals, equal } from 'https://deno.land/std@0.117.0/testing/asserts.ts';
+export { assert, assertEquals, equal } from 'https://deno.land/std@0.117.0/testing/asserts.ts';
 
 export { fetch } from 'https://deno.land/x/file_fetch@0.2.0/mod.ts';
 
