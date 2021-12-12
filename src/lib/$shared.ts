@@ -6,9 +6,8 @@ export const VERSION = '0.0.9';
 
 export const projectName: string | undefined = 'dxx';
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
-export const projectPath = (projectURL.protocol === 'file:')
-	? Path.fromFileUrl(projectURL)
-	: projectURL.pathname;
+export const projectPath =
+	((url: URL) => (url.protocol === 'file:') ? Path.fromFileUrl(url) : url.pathname)(projectURL);
 export const projectPaths = {
 	// absolute or relative to `projectPath`
 	editorconfig: Path.join(projectPath, '.editorconfig'),
