@@ -6,8 +6,8 @@ import {
 	createWarnFn,
 	decode,
 	haveGit,
+	projectLocations,
 	projectName,
-	projectPaths,
 	test,
 	VERSION,
 } from './$shared.ts';
@@ -60,12 +60,12 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 
 test(`project version matches 'VERSION' file`, () => {
 	const expected = VERSION;
-	const actual = Deno.readTextFileSync(projectPaths.version).replace(newlines, '');
+	const actual = Deno.readTextFileSync(projectLocations.version).replace(newlines, '');
 	assertEquals(actual, expected);
 });
 
-if ((projectName && (projectName.length > 0)) && existsSync(projectPaths.readme)) {
-	const readmeText = Deno.readTextFileSync(projectPaths.readme);
+if ((projectName && (projectName.length > 0)) && existsSync(projectLocations.readme)) {
+	const readmeText = Deno.readTextFileSync(projectLocations.readme);
 	const URLrx = new RegExp(`https?://deno.land/x/${projectName}@v?((?:\\d+[.])*\\d+)(?=/)`, 'gim');
 	const readmeURLs = Array.from(readmeText.matchAll(URLrx));
 

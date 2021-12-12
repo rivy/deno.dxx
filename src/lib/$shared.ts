@@ -21,10 +21,14 @@ export const VERSION = '0.0.9';
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath =
 	((url: URL) => (url.protocol === 'file:') ? $path.fromFileUrl(url) : url.pathname)(projectURL);
-export const projectPaths = {
-	// absolute or relative to `projectPath`
+export const projectLocations = {
+	benchmarks: $path.join(projectPath, 'bench'),
 	editorconfig: $path.join(projectPath, '.editorconfig'),
+	examples: $path.join(projectPath, 'eg'),
 	readme: $path.join(projectPath, 'README.md'),
+	source: $path.join(projectPath, 'src'),
+	tests: $path.join(projectPath, 'tests'),
+	vendor: $path.join(projectPath, 'vendor'),
 	version: $path.join(projectPath, 'VERSION'),
 };
 
@@ -501,13 +505,13 @@ export function mightUseUnicode() {
 // `fetch()` implementation (requires read [for local runs] or network permissions)
 import { fetch } from './$deps.ts'; // 'file://'-compatible `fetch()`
 
-// import { intoURL, projectPaths, projectURL } from '../../tests/$shared.ts';
+// import { intoURL, projectLocations, projectURL } from '../../tests/$shared.ts';
 // import { logger } from '../../tests/$shared.ts';
 
 const newline = /\r?\n|\n/;
-const versionURL = intoURL(projectPaths.version, projectURL);
+const versionURL = intoURL(projectLocations.version, projectURL);
 
-// logger.trace({ projectURL, projectPaths, versionURL });
+// logger.trace({ projectURL, projectLocations, versionURL });
 
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
 const projectVersionText = versionURL &&
