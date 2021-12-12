@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
-import { Lodash as _, Path, Yargs } from './lib/$deps.ts';
+import { $lodash as _, $path, $yargs } from './lib/$deps.ts';
 import { $version as Version, decoder, encoder } from './lib/$shared.ts';
 
 import { logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
@@ -23,7 +23,7 @@ const runAsName = Me.runAs;
 log.mergeMetadata({ authority: Me.name });
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
-const app = Yargs(undefined, undefined, undefined)
+const app = $yargs(undefined, undefined, undefined)
 	.scriptName(Me.name)
 	.usage(
 		`$0 ${version}\n\nUsage:\n  ${runAsName} [OPTIONS..] <COMMAND>`,
@@ -124,7 +124,7 @@ const enablePipe = true;
 // enhance shim for successful installs on the Windows platform
 if (status.success && isWinOS) {
 	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimBinPath)));
-	const shimBinName = Path.parse(shimBinPath).name;
+	const shimBinName = $path.parse(shimBinPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget } = info;
 	const contentsUpdated = eol.CRLF(

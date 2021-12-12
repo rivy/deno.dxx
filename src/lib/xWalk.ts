@@ -6,8 +6,8 @@
 // Documentation and interface for walk were adapted from Go
 // https://golang.org/pkg/path/filepath/#Walk
 // Copyright 2009 The Go Authors. All rights reserved. BSD license.
-import { assert, Path } from './$deps.ts';
-const { basename, join, normalize } = Path;
+import { $path, assert } from './$deps.ts';
+const { basename, join, normalize } = $path;
 
 /** Create WalkEntry for the `path` synchronously */
 export function _createWalkEntrySync(path: string): WalkEntry {

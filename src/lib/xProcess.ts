@@ -2,7 +2,7 @@
 // spell-checker:ignore (people) Roy Ivy III * rivy
 // spell-checker:ignore (vars) ARGX
 
-import { Path } from './$deps.ts';
+import { $path } from './$deps.ts';
 import { traversal } from './$shared.ts';
 
 import * as xArgs from '../lib/xArgs.ts';
@@ -40,7 +40,7 @@ function deQuote(s?: string) {
 }
 
 // needs ~ for best CLI operations
-// ToDO: add conversion to URL (robustly; handling thrown error if present) o/w Path.toFileUrl(Path.resolve(...))
+// ToDO: add conversion to URL (robustly; handling thrown error if present) o/w $path.toFileUrl($path.resolve(...))
 export const shimTargetURL = deQuote(Deno.env.get('DENO_SHIM_URL'));
 // console.warn('xProcess', { shimTargetURL });
 const isShimTarget = (shimTargetURL === Deno.mainModule); // ToDO: use `isShimTarget` to gate SHIM_ARGS/ARGx
@@ -81,18 +81,18 @@ export const path = (() => {
 	const nameFromArg0 = shimArg0 ? xArgs.wordSplitCLText(shimArg0).pop() : undefined;
 	return nameFromArg0
 		? nameFromArg0
-		: !Path.basename(denoExec).match(/^deno([.]exe)?$/)
+		: !$path.basename(denoExec).match(/^deno([.]exe)?$/)
 		? denoExec
 		: Deno.mainModule;
 })();
 
 /** * name of main script file (best guess from all available sources) */
-export const name = Path.parse(path).name;
+export const name = $path.parse(path).name;
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs = shimArg0 ||
 	((path === Deno.mainModule)
-		? `deno run -A ${traversal(path)?.replace(/^-/, '.' + Path.SEP + '-')}`
+		? `deno run -A ${traversal(path)?.replace(/^-/, '.' + $path.SEP + '-')}`
 		: name);
 
 export const impairedWarningMessage = () => {

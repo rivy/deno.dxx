@@ -6,7 +6,7 @@
 // !! *** need to re-evaluate prefix handling
 // !! *** lots of extended globs aren't matching correctly `.*` should match '.' and '..'; `?(.[^.]|)*` (=> `?(.[!.]^|)*` for Windows b/c of `^` and `|` special characters) should match all files in directory, including dot-files, except '.' and '..'
 
-// FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+// FixME: [2021-11-01; rivy] `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 // !... * check input string for path separator and translate to that separator for outputs; but allow user selection via an option `{sep: string (null => smart sep, or separator character (take only first))}`
 
 // FixME: [2021-11-01; rivy] many paths are being skipped, especially above the owned user directory (a permissions problem?); check for throws in walk?
@@ -40,7 +40,7 @@
 // ref: <https://stackoverflow.com/questions/61821038/how-to-use-npm-module-in-deno>
 // ref: <https://jspm.org/docs/cdn>
 
-import { assert, FS as $fs, OSPaths, Path } from './$deps.ts';
+import { $fs, $osPaths, $path, assert } from './$deps.ts';
 
 import { walk, walkSync } from './xWalk.ts';
 
@@ -147,8 +147,8 @@ const globChars = ['?', '*', '[', ']'];
 const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as RegexString;
 
 // const pathSepRe = /[\\/]/;
-// const sep = Path.sep;
-// const sepReS = Path.SEP_PATTERN;
+// const sep = $path.sep;
+// const sepReS = $path.SEP_PATTERN;
 /** Regex character set matching the path separator character set */
 const pathSepReS: RegexString = `[\\\\\\/]` as RegexString;
 
@@ -463,7 +463,7 @@ export function tildeExpand(s: string): string {
 	);
 	const m = s.match(re);
 	if (m) {
-		s = OSPaths.home() + (m[2] ? m[2] : '') + (m[3] ? m[3] : '');
+		s = $osPaths.home() + (m[2] ? m[2] : '') + (m[3] ? m[3] : '');
 	}
 	return s;
 }
@@ -482,8 +482,8 @@ export async function* globExpandIter(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
-	const globHasTrailingSep = glob.match(new RegExp(Path.SEP_PATTERN.source + '$'));
-	const globWithoutTrailingSep = glob.replace(new RegExp(Path.SEP_PATTERN.source + '$'), '');
+	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
+	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
 	// console.warn('xArgs.globExpandIter()', { parsed });
@@ -491,7 +491,7 @@ export async function* globExpandIter(
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
-		const resolvedPrefix = Path.resolve(parsed.prefix);
+		const resolvedPrefix = $path.resolve(parsed.prefix);
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if (await $fs.exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
@@ -503,10 +503,10 @@ export async function* globExpandIter(
 			// * o/w the prefix should have a trailing SEP in the final RegExp
 			// ToDO: add tests for the correct outputs
 			// normalize prefix to have a trailing separator
-			// ToDO: convert to use of Path.SEP_PATTERN
+			// ToDO: convert to use of $path.SEP_PATTERN
 			// const normalizedPrefix = resolvedPrefix +
-			// 	(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : Path.SEP);
-			// // ToDO: convert to use of Path.SEP_PATTERN
+			// 	(resolvedPrefix.endsWith('/') || resolvedPrefix.endsWith('\\') ? '' : $path.SEP);
+			// // ToDO: convert to use of $path.SEP_PATTERN
 			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
 			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
@@ -514,7 +514,7 @@ export async function* globExpandIter(
 				(escapeRegExp(
 					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
 						? ''
-						: Path.SEP),
+						: $path.SEP),
 				))
 					.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
@@ -552,7 +552,7 @@ export async function* globExpandIter(
 				// console.warn({ e, p });
 				if (p) {
 					found = true;
-					yield Path.join(parsed.prefix, p) + (globHasTrailingSep ? Path.SEP : ''); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					yield $path.join(parsed.prefix, p) + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2021-11-01; rivy] `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -568,8 +568,8 @@ export function* globExpandIterSync(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
-	const globHasTrailingSep = glob.match(new RegExp(Path.SEP_PATTERN.source + '$'));
-	const globWithoutTrailingSep = glob.replace(new RegExp(Path.SEP_PATTERN.source + '$'), '');
+	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
+	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
 	// console.warn('xArgs.globExpandIterSync()', {
@@ -582,7 +582,7 @@ export function* globExpandIterSync(
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
-		const resolvedPrefix = Path.resolve(parsed.prefix);
+		const resolvedPrefix = $path.resolve(parsed.prefix);
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if ($fs.existsSync(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
@@ -591,7 +591,7 @@ export function* globExpandIterSync(
 				(escapeRegExp(
 					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
 						? ''
-						: Path.SEP),
+						: $path.SEP),
 				))
 					.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
@@ -621,7 +621,7 @@ export function* globExpandIterSync(
 					);
 				if (p) {
 					found = true;
-					yield Path.join(parsed.prefix, p) + (globHasTrailingSep ? Path.SEP : ''); // FixME: [2021-11-01; rivy] `Path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					yield $path.join(parsed.prefix, p) + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2021-11-01; rivy] `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -663,7 +663,7 @@ export function globExpand(
 }
 
 function pathToPosix(p: string) {
-	// ToDO: convert to use of Path.SEP_PATTERN
+	// ToDO: convert to use of $path.SEP_PATTERN
 	return p.replace(/\\/g, '/');
 }
 // function pathToWindows(p: string) {
@@ -682,7 +682,7 @@ export function parseGlob(s: string) {
 	let prefix = '';
 	let glob = '';
 
-	// console.warn('xArgs.parseNonGlobPathPrefix()', { globCharsReS, SEP: Path.SEP, SEP_PATTERN: Path.SEP_PATTERN });
+	// console.warn('xArgs.parseNonGlobPathPrefix()', { globCharsReS, SEP: $path.SEP, SEP_PATTERN: $path.SEP_PATTERN });
 
 	// for 'windows' or portable, strip any leading `\\?\` as a prefix
 	if (!options.os || options.os === 'windows') {
@@ -711,7 +711,7 @@ export function parseGlob(s: string) {
 		// console.warn('xArgs.parseGlob()', { prefix, glob });
 	}
 
-	const pJoin = Path.join(prefix, glob);
+	const pJoin = $path.join(prefix, glob);
 	const pJoinToPosix = pathToPosix(pJoin);
 	// console.warn('xArgs.parseGlob()',
 	//  {
@@ -719,13 +719,13 @@ export function parseGlob(s: string) {
 	// 	glob,
 	// 	pJoin,
 	// 	pJoinToPosix,
-	// 	pJoinParsed: Path.parse(pJoin),
-	// 	pJoinToPosixParsed: Path.parse(pJoinToPosix),
+	// 	pJoinParsed: $path.parse(pJoin),
+	// 	pJoinToPosixParsed: $path.parse(pJoinToPosix),
 	// });
 	const globAsReS = glob && globToReS(glob);
 	// console.warn('xArgs.parseGlob()', { globAsReS });
-	// const globScan: any = Picomatch.scan(Path.join(prefix, glob), {
-	// console.warn('xArgs.parseGlob()', { prefix, glob, pathJoin: Path.posix.join(prefix, glob) });
+	// const globScan: any = Picomatch.scan($path.join(prefix, glob), {
+	// console.warn('xArgs.parseGlob()', { prefix, glob, pathJoin: $path.posix.join(prefix, glob) });
 	// * 'picomatch' has incomplete typing => ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
 	const globScan: any = Picomatch.scan(pJoinToPosix, {

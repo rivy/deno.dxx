@@ -10,7 +10,7 @@
 // * [ora](https://www.npmjs.com/package/ora) ; [repo](https://github.com/sindresorhus/ora); MIT
 // further ideas from [progress](https://deno.land/x/progress@v1.2.4); [repo](https://github.com/deno-library/progress); MIT
 
-import { Colors, TTY as tty } from '../$deps.ts';
+import { $colors, $tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
 
 import spinners from './spinners.ts';
@@ -20,15 +20,15 @@ export { symbols, symbolStrings } from './log_symbols.ts';
 
 type ColorFunction = (message: string) => string;
 const colorMap: { [key: string]: ColorFunction } = {
-	black: Colors.black,
-	red: Colors.red,
-	green: Colors.green,
-	yellow: Colors.yellow,
-	blue: Colors.blue,
-	magenta: Colors.magenta,
-	cyan: Colors.cyan,
-	white: Colors.white,
-	gray: Colors.gray,
+	black: $colors.black,
+	red: $colors.red,
+	green: $colors.green,
+	yellow: $colors.yellow,
+	blue: $colors.blue,
+	magenta: $colors.magenta,
+	cyan: $colors.cyan,
+	white: $colors.white,
+	gray: $colors.gray,
 };
 
 export interface SpinnerAnimation {
@@ -63,7 +63,7 @@ export function wait(opts: string | SpinnerOptions) {
 	return new Spinner({
 		text: opts.text,
 		prefix: opts.prefix ?? '',
-		color: opts.color ?? Colors.cyan,
+		color: opts.color ?? $colors.cyan,
 		spinner: opts.spinner ?? 'dots',
 		hideCursor: opts.hideCursor ?? true,
 		indent: opts.indent ?? 0,
@@ -112,17 +112,17 @@ export class Spinner {
 
 		this.#enabled = typeof opts.enabled === 'boolean'
 			? opts.enabled
-			: tty.isInteractive(this.#stream);
+			: $tty.isInteractive(this.#stream);
 
 		if (opts.hideCursor) {
 			addEventListener('unload', () => {
-				tty.showCursorSync(this.#stream);
+				$tty.showCursorSync(this.#stream);
 			});
 		}
 	}
 
 	#spinner: SpinnerAnimation = spinners.dots;
-	#color: ColorFunction = Colors.cyan;
+	#color: ColorFunction = $colors.cyan;
 	#text: string = '';
 	#prefix: string = '';
 	#symbols: typeof Symbols = Symbols;
@@ -186,7 +186,7 @@ export class Spinner {
 		if (this.isSpinning) return this;
 
 		if (this.#opts.hideCursor) {
-			tty.hideCursorSync(this.#stream);
+			$tty.hideCursorSync(this.#stream);
 		}
 
 		this.render();
@@ -220,9 +220,9 @@ export class Spinner {
 		if (!this.#enabled) return;
 
 		for (let i = 0; i < this.#linesToClear; i++) {
-			tty.goUpSync(1, this.#stream);
-			tty.clearLineSync(this.#stream);
-			tty.goRightSync(this.indent - 1, this.#stream);
+			$tty.goUpSync(1, this.#stream);
+			$tty.clearLineSync(this.#stream);
+			$tty.goRightSync(this.indent - 1, this.#stream);
 		}
 
 		this.#linesToClear = 0;
@@ -234,9 +234,9 @@ export class Spinner {
 		const denoConsoleSize = (Deno as any).consoleSize;
 		const columns = denoConsoleSize ? denoConsoleSize(this.#stream.rid)?.columns || 80 : 80;
 		const fullPrefixText = typeof this.prefix === 'string' ? this.prefix + '-' : '';
-		this.#linesCount = Colors.stripColor(fullPrefixText + '--' + this.text).split('\n').reduce(
+		this.#linesCount = $colors.stripColor(fullPrefixText + '--' + this.text).split('\n').reduce(
 			(count, line) => {
-				return count + Math.max(1, Math.ceil(tty.wcswidth(line) / columns));
+				return count + Math.max(1, Math.ceil($tty.wcswidth(line) / columns));
 			},
 			0,
 		);
@@ -249,7 +249,7 @@ export class Spinner {
 		this.#frameIndex = 0;
 		this.clear();
 		if (this.#opts.hideCursor) {
-			tty.showCursorSync(this.#stream);
+			$tty.showCursorSync(this.#stream);
 		}
 	}
 
