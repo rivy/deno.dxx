@@ -96,7 +96,15 @@ export function shimInfo(contentsOriginal: string) {
 
 	// summarize flags/options for `--allow-all` or (unrestricted) `--allow-run`
 	if (denoRunOptions.match(/(?<=^|\s)[\x22\x27]?--allow-(all|run)(?:[\x22\x27]|\s|$)/m)) {
-		denoRunOptions = '"--allow-all"';
+		denoRunOptions = [
+			'"--allow-all"',
+			denoRunOptions.replace(
+				/(?<=^|\s)[\x22\x27]?--allow-\S+(?:=.*?[\x22\x27]|[\x22\x27]|\s|$)/g,
+				'',
+			),
+		]
+			.filter(Boolean)
+			.join(' ');
 	}
 
 	denoRunOptions = denoRunOptions
