@@ -1,7 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
 import { $yargs, YargsArguments } from '../src/lib/$deps.ts';
-import { $version, envGet, restyleYargsHelp } from '../src/lib/$shared.ts';
+import { $version, durationText, envGet, restyleYargsHelp } from '../src/lib/$shared.ts';
 
 import { $consoleSize, $me } from '../src/lib/$locals.ts';
 import {
@@ -10,6 +10,9 @@ import {
 } from '../src/lib/$shared.ts';
 
 //===
+
+performance.mark('setup:start');
+performance.mark('setup:log:start');
 
 // const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
@@ -34,7 +37,11 @@ const runAsName = $me.runAs;
 
 log.mergeMetadata({ authority: $me.name });
 
+performance.mark('setup:log:stop');
+
 //===
+
+performance.mark('setup:yargs:start');
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
@@ -112,7 +119,11 @@ Usage:\n  ${runAsName} [OPTION..] [ARG..]`)
 	.option('lines', { describe: 'Display arguments on separate lines', boolean: true })
 	.alias('lines', 'l');
 
+performance.mark('setup:yargs:stop');
+
 //===
+
+performance.mark('setup:parseArgs:start');
 
 const bakedArgs = $me.args();
 
@@ -171,6 +182,8 @@ log.debug(`log level set to '${logLevel}'`);
 
 await log.resume();
 
+performance.mark('setup:parseArgs:stop');
+
 //===
 
 if (argv == undefined) {
@@ -180,17 +193,44 @@ if (argv == undefined) {
 
 //===
 
+performance.mark('setup:consoleSize');
+performance.mark('setup:consoleSize:promise');
 const consoleSizePromise = $consoleSize.consoleSize();
+performance.mark('setup:consoleSize:promise');
+performance.mark('setup:consoleSize:await');
 const consoleSize = await consoleSizePromise;
+performance.mark('setup:consoleSize:await');
+performance.mark('setup:consoleSize');
 
 await log.debug({ consoleSize });
 
 //===
 
+performance.mark('setup:stop');
+
+await log.debug(durationText('setup:log'));
+await log.debug(durationText('setup:yargs'));
+await log.debug(durationText('setup:parseArgs'));
+await log.debug(durationText('setup:consoleSize:promise'));
+await log.debug(durationText('setup:consoleSize:await'));
+await log.debug(durationText('setup:consoleSize'));
+await log.debug(durationText('setup'));
+
+//===
+
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (argv.help) {
+	performance.mark('run:generateHelp');
+	performance.mark('run:generateHelp:yargs');
 	const yargsHelp = await app.getHelp();
+	performance.mark('run:generateHelp:yargs');
+	await log.debug(durationText('run:generateHelp:yargs'));
+	performance.mark('run:generateHelp:customize');
 	const help = await restyleYargsHelp(yargsHelp, { consoleWidth: consoleSize?.columns ?? 80 });
+	performance.mark('run:generateHelp:customize');
+	performance.mark('run:generateHelp');
+	await log.debug(durationText('run:generateHelp:customize'));
+	await log.debug(durationText('run:generateHelp'));
 	console.log(help);
 	const onlyHelp = (argv._.length === 0) &&
 		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
