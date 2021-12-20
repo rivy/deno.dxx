@@ -100,11 +100,13 @@ test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
 });
 
 test('brace/bracket combined expansions', async () => {
+	// spell-checker:disable-next-line
 	let glob = '.vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}';
 	let results = await shellExpandDuel(glob, { nullglob: true });
 	console.log({ glob, results });
 	assertEquals(results, ['.vscode/cspell.json'].map(pathToOsStyle));
 
+	// spell-checker:disable-next-line
 	glob = '{.vscode,.}/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}';
 	results = await shellExpandDuel(glob, { nullglob: true });
 	console.log({ glob, results });
