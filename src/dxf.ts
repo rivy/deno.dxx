@@ -1,67 +1,60 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { $colors, $fs, $semver, $yargs } from './lib/$deps.ts';
-import { $version, decode, durationText, envGet, restyleYargsHelp } from './lib/$shared.ts';
+import { /* $colors, */ $fs, $semver, $yargs, YargsArguments } from './lib/$deps.ts';
+import { $version, decode, envGet, mightUseUnicode, restyleYargsHelp } from './lib/$shared.ts';
 
-import { $consoleSize, $me } from './lib/$locals.ts';
+import { $me } from './lib/$locals.ts';
 import { $logger, logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
 
 //===
 
-performance.mark('setup:start');
-performance.mark('setup:log:start');
-
-// const isWinOS = Deno.build.os === 'windows';
-// const pathSeparator = isWinOS ? /[\\/]/ : /\//;
-// const pathListSeparator = isWinOS ? /;/ : /:/;
-// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
-// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
-// const pathCaseSensitive = !isWinOS;
-
-// console.warn($me.name, { Me });
-
-// const log = logger;
 log.debug(`logging to *STDERR*`);
 
-$me.warnIfImpaired((msg) => log.warn(msg));
+$me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me });
-log.trace({ args: Deno.args, execPath: Deno.execPath(), main: Deno.mainModule });
+log.trace('Deno', { execPath: Deno.execPath(), main: Deno.mainModule, denoArgs: Deno.args });
+
+const logLevelFromEnv = $logger.logLevelFromEnv() ?? (envGet('DEBUG') ? 'debug' : undefined);
+log.debug(
+	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
+);
 
 const version = $version.v();
 const runAsName = $me.runAs;
 
-const logLevelFromEnv = $logger.logLevelFromEnv() ?? (envGet('DEBUG') ? 'debug' : undefined);
-await log.debug(
-	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
-);
+// const useColor = mightUseColor();
+const useUnicode = mightUseUnicode();
 
 log.mergeMetadata({
+	authority: $me.name,
 	Humane: {
 		showLabel: true,
-		showSymbol: 'unicodeDoubleWidth',
-		// note: `labelFormatFn` should assume `s` is a unicode string (with possible surrogate pairs, not simple UTF-16 characters) and may contain ANSI escape codes
-		labelFormatFn: (s: string) => ($colors.inverse(s.replace(/:$/, ''))),
+		showSymbol: useUnicode ? 'unicodeDoubleWidth' : false,
+		// note: `prefixFormatFn` should assume `s` is a unicode string (with possible surrogate pairs, not simple UTF-16 characters) and may contain ANSI escape codes
+		// prefixFormatFn: (s: string) => ($colors.inverse(s.replace(/:$/, ''))),
 	},
 });
 
-performance.mark('setup:log:stop');
-
 //===
-
-performance.mark('setup:yargs:start');
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.scriptName($me.name)
 	.epilog('* Copyright (c) 2021 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
-Auto-format project source code files (using \`dprint\` and/or \`deno\`).\n
-Usage:\n  ${runAsName} [OPTION..] [FILE..]`)
+Auto-format project files (using \`dprint\` and/or \`deno\`).\n
+Usage:\n  ${runAsName} [OPTION..] [-- [FORMAT_OPTION..]] [FILE..]`)
+	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
+	.updateStrings({ 'Positionals:': 'Arguments:' })
+	.positional('OPTION', { describe: 'OPTION(s) as listed here (below)' })
+	.positional('FORMAT_OPTION', { describe: 'FORMAT_OPTION(s) delegated to the formatter command' })
+	.positional('FILE', {
+		describe: `FILE(s) to format (when missing, format all project files [formatter-defined])`,
+	})
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
-		throw new Error(msg.replace('argument', 'option'));
+		throw new Error(msg);
 	})
-	.strict()
 	.wrap(/* columns */ undefined)
 	// help and version setup
 	.help(false)
@@ -77,135 +70,149 @@ Usage:\n  ${runAsName} [OPTION..] [FILE..]`)
 	})
 	.alias('version', 'V')
 	// logging options
+	.option('log-level', {
+		alias: ['\b\b\b\b LOG_LEVEL'],
+		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
+		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		type: 'string',
+	})
 	.option('silent', {
-		describe: `Silent mode; suppress non-error messages, showing 'error' level logging`,
+		describe: `Silent mode; suppress non-error messages (sets 'error' level logging)`,
 		type: 'boolean',
 	})
 	.option('quiet', {
-		describe: `Quiet mode; suppress informational messages, showing 'warn' level logging`,
+		describe: `Quiet mode; suppress informational messages (sets 'warn' level logging)`,
 		type: 'boolean',
 	})
-	.option('verbose', { describe: `Show 'info' level logging`, boolean: true })
-	.option('debug', { describe: `Show 'debug' level logging`, boolean: true })
-	.option('trace', {
-		describe: `Show 'trace' (lower-level/higher-detail debug) level logging`,
-		type: 'boolean',
+	.option('verbose', { describe: `Set 'info' level logging`, type: 'boolean' })
+	.option('debug', { describe: `Set 'debug' level logging`, type: 'boolean' })
+	.option('trace', { describe: `Set 'trace' (high-detail 'debug') level logging`, type: 'boolean' })
+	.group([], 'Options:')
+	.group(['log-level', 'silent', 'quiet', 'verbose', 'debug', 'trace'], '*Logging:')
+	.group(['help', 'version'], '*Help/Info:')
+	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
+	.updateStrings({
+		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
 	})
 	// ref: <https://github.com/yargs/yargs-parser#configuration>
 	.parserConfiguration({
 		'camel-case-expansion': true,
+		'short-option-groups': true,
 		'strip-aliased': true,
 		'strip-dashed': true,
 		// 'halt-at-non-option': true,
 		// 'unknown-options-as-args': true,
 	})
-	.updateStrings({ 'Positionals:': 'Arguments:' })
-	// .positional('COMMAND', { describe: 'Path/URL of command to install' })
-	// .positional('OPTION', {
-	// 	describe: 'OPTION(s) as listed here; may also include any formatter command options',
-	// })
-	.positional('FILE', { describe: 'FILE(s) to format' })
 	// .example(`\`${runAsName} FILE\``, 'Format FILE')
-	.group([], 'Options:')
-	.group(['silent', 'quiet', 'verbose', 'debug', 'trace'], '*Logging:')
-	.group(['help', 'version'], '*Help/Info:')
+	/* Options... */
+	.strictOptions(/* enable */ true)
 	.option('formatter', {
-		alias: ['f', '\b\b\b\b <command>'], // *hack* use backspaces to fake an option argument description
+		alias: ['f', '\b\b\b\b COMMAND'], // *hack* use backspaces to fake an option argument description
 		choices: ['default', 'all', 'deno', 'dprint'],
 		// default: 'default',
-		describe: `Select the code formatter ('default' => 'dprint')`,
+		describe: `Select COMMAND as the code formatter ('default' => 'dprint')`,
 		nargs: 1,
 		type: 'string',
 	});
 
-performance.mark('setup:yargs:stop');
+//===
 
-performance.mark('setup:parseArgs:start');
+const bakedArgs = $me.args();
 
-const args = app.parse($me.args(), undefined, undefined);
+const optionArgs = bakedArgs;
+const nonOptionArgs: typeof bakedArgs = [];
 
-log.debug({ args });
+log.trace({ optionArgs, nonOptionArgs });
 
-const possibleLogLevels = ((defaultLevel = 'note') => {
+const argv = ((() => {
+	try {
+		return app.parse(optionArgs) as YargsArguments;
+	} catch (e) {
+		log.error(e.message);
+		return;
+	}
+})());
+if (argv && Array.isArray(argv._)) {
+	argv._.push(...nonOptionArgs);
+}
+
+log.trace({ bakedArgs, argv });
+
+const possibleLogLevels = ((defaultLevel = 'notice') => {
 	const levels = [
 		logLevelFromEnv,
-		(args.silent as boolean) ? 'error' : undefined,
-		(args.quiet as boolean) ? 'warn' : undefined,
-		(args.verbose as boolean) ? 'info' : undefined,
-		(args.debug as boolean) ? 'debug' : undefined,
-		(args.trace as boolean) ? 'trace' : undefined,
+		(argv?.silent) ? 'error' : undefined,
+		(argv?.quiet) ? 'warn' : undefined,
+		(argv?.verbose) ? 'info' : undefined,
+		(argv?.debug) ? 'debug' : undefined,
+		(argv?.trace) ? 'trace' : undefined,
 	]
 		.filter(Boolean);
-	return (levels.length > 0 ? levels : [defaultLevel])
-		.map((s) => log.logLevelDetail(s)?.levelNumber)
-		.filter(Boolean)
-		.sort()
-		.reverse()
-		.map((n) => log.logLevelDetail(n)?.levelName);
+	const logLevelFromArgv =
+		(Array.isArray(argv?.logLevel)
+			? argv?.logLevel as string[]
+			: [argv?.logLevel as string | undefined])
+			.pop();
+	log.trace({ logLevelFromEnv, levels, logLevelFromArgv });
+	return [log.logLevelDetail(logLevelFromArgv)?.levelName]
+		.concat(
+			(levels.length > 0 ? levels : [defaultLevel])
+				.map((s) => log.logLevelDetail(s)?.levelNumber)
+				.filter(Boolean)
+				.sort()
+				.reverse()
+				.map((n) => log.logLevelDetail(n)?.levelName),
+		)
+		.filter(Boolean);
 })();
 const logLevel = possibleLogLevels.length > 0 ? possibleLogLevels[0] : Infinity;
 
-log.trace({ possibleLogLevels, logLevel });
+log.trace({ possibleLogLevels });
 
 log.mergeMetadata({ Filter: { level: logLevel } });
 log.debug(`log level set to '${logLevel}'`);
 
 await log.resume();
 
-performance.mark('setup:parseArgs:stop');
-
 //===
 
-performance.mark('setup:consoleSize');
-performance.mark('setup:consoleSize:promise');
-const consoleSizePromise = $consoleSize.consoleSize();
-performance.mark('setup:consoleSize:promise');
-performance.mark('setup:consoleSize:await');
-const consoleSize = await consoleSizePromise;
-performance.mark('setup:consoleSize:await');
-performance.mark('setup:consoleSize');
-
-await log.debug({ consoleSize });
-
-//===
-
-performance.mark('setup:stop');
-
-await log.debug(durationText('setup:log'));
-await log.debug(durationText('setup:yargs'));
-await log.debug(durationText('setup:parseArgs'));
-await log.debug(durationText('setup:consoleSize:promise'));
-await log.debug(durationText('setup:consoleSize:await'));
-await log.debug(durationText('setup:consoleSize'));
-await log.debug(durationText('setup'));
+if (argv == undefined) {
+	console.warn(`\nUse \`${runAsName} --help\` to show full usage and available options`);
+	Deno.exit(1);
+}
 
 //===
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
-if (args.help) {
-	performance.mark('run:generateHelp');
-	performance.mark('run:generateHelp:yargs');
+if (argv.help) {
 	const yargsHelp = await app.getHelp();
-	performance.mark('run:generateHelp:yargs');
-	await log.debug(durationText('run:generateHelp:yargs'));
-	performance.mark('run:generateHelp:customize');
-	const help = await restyleYargsHelp(yargsHelp, { consoleWidth: consoleSize?.columns ?? 80 });
-	performance.mark('run:generateHelp:customize');
-	performance.mark('run:generateHelp');
-	await log.debug(durationText('run:generateHelp:customize'));
-	await log.debug(durationText('run:generateHelp'));
+	const help = await restyleYargsHelp(yargsHelp);
 	console.log(help);
 	Deno.exit(1);
 }
-if (args.version) {
+if (argv.version) {
 	console.log(version);
 	Deno.exit(1);
 }
 
+//=== ***
+
+const args = argv._.map(String);
+
 //===
 
-const files = args._;
-const formatter = args.formatter as string ?? 'dprint';
+// if (args.length < 1) {
+// 	await log.error(`... argument(s) required`);
+// 	const yargsHelp = await app.getHelp();
+// 	const usage = (await restyleYargsHelp(yargsHelp) as string).match(/\n(.*?usage.*?\n)\n/ims)?.[1];
+// 	console.warn(`${usage}\nUse \`${runAsName} --help\` to show full usage and available options`);
+// 	Deno.exit(1);
+// }
+
+//=== ***
+
+const files = args;
+const formatter = argv.formatter as string | undefined ?? 'dprint';
 
 const denoVersion = await haveDenoVersion();
 const denoFmtHasConfig = denoVersion != undefined && $semver.gte(denoVersion, '1.14.0');
@@ -223,31 +230,23 @@ await log.trace({ denoVersion, dprintVersion });
 const runOptions: Partial<{ [key in 'deno' | 'dprint']: Deno.RunOptions }> = {};
 
 runOptions['deno'] = {
-	cmd: ['deno', 'fmt'].concat(
-		(denoFmtHasConfig && haveDenoConfig ? ['--config', denoConfigPath[0]] : []).concat([...files]),
-	),
+	cmd: ['deno', 'fmt'].concat((denoFmtHasConfig && haveDenoConfig
+		? ['--config', denoConfigPath[0]]
+		: [])
+		.concat([...files])),
 	stderr: 'inherit',
 	stdin: 'inherit',
 	stdout: 'inherit',
-	// env: {
-	// 	DENO_SHIM_ARG0: cmdPath,
-	// 	DENO_SHIM_ARGX: cmdArgs.join(' '),
-	// 	DENO_SHIM_URL: cmdPath,
-	// },
 };
 
 runOptions['dprint'] = {
-	cmd: ['dprint', 'fmt'].concat(
-		(haveDprintConfig ? ['--config', dprintConfigPath[0]] : []).concat([...files]),
-	),
+	cmd: ['dprint', 'fmt'].concat((haveDprintConfig
+		? ['--config', dprintConfigPath[0]]
+		: [])
+		.concat([...files])),
 	stderr: 'inherit',
 	stdin: 'inherit',
 	stdout: 'inherit',
-	// env: {
-	// 	DENO_SHIM_ARG0: cmdPath,
-	// 	DENO_SHIM_ARGX: cmdArgs.join(' '),
-	// 	DENO_SHIM_URL: cmdPath,
-	// },
 };
 
 await log.trace({ runOptions });
