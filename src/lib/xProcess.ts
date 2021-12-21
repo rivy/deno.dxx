@@ -8,6 +8,8 @@ import { traversal } from './$shared.ts';
 import * as xArgs from '../lib/xArgs.ts';
 
 const isWinOS = Deno.build.os === 'windows';
+
+// `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
 const underEnhancedShell =
 	((Deno.env.get('SHELL') || '').match(/[\\\/][^\\\/]*?sh$/msu) || []).length > 0;
 
@@ -46,7 +48,7 @@ export const shimTargetURL = deQuote(Deno.env.get('DENO_SHIM_URL'));
 const isShimTarget = (shimTargetURL === Deno.mainModule); // ToDO: use `isShimTarget` to gate SHIM_ARGS/ARGx
 /** * executable string which initiated execution of the current process */
 export const shimArg0 = isShimTarget ? Deno.env.get('DENO_SHIM_ARG0') : undefined; // note: DENO_SHIM_ARG0 == `[runner [runner_args ]]name`
-/** * raw argument text string for current process (needed for modern Windows argument processing, but generally not useful for POSIX) */
+/** * raw argument text string for current process (needed for correct WinOS argument processing, but generally not useful for POSIX) */
 export const argsTextRaw = Deno.env.get('DENO_SHIM_ARGS');
 /** * already expanded argument text (re-quoted); when present, avoids double-expansions for sub-processes */
 export const argsTextPreExpanded = Deno.env.get('DENO_SHIM_ARGX');
@@ -54,10 +56,15 @@ export const argsText = argsTextPreExpanded || argsTextRaw;
 
 export const targetURL = Deno.env.get('DENO_SHIM_URL');
 
+// ref: <https://github.com/denoland/deno/issues/9871>
+/** * raw arguments are available for interpretation/expansion OR calling shell is assumed to have already done correct argument expansion and de-quoting */
 export const enhanced = shimArg0 ? true : underEnhancedShell;
+/** unable to distinguish between some non-quoted/double-quoted arguments
+- ie, only processed arguments are available (via `Deno.args()`), which have *lost quote-context* and cannot distinguish `...` from `"..."`
+*/
 export const impaired = isWinOS && !enhanced;
 
-// ... ToDO: add `preExpanded` boolean to correctly avoid re-expansion for `args()`
+// ToDO?: add `preExpanded` boolean to correctly avoid re-expansion for `args()`; alternatively, if correctly re-quoted, re-expansion should yield equivalent results
 // export const preExpanded = argsTextPreExpanded ? true : false;
 
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
@@ -97,7 +104,7 @@ export const runAs = shimArg0 ||
 
 export const impairedWarningMessage = () => {
 	return impaired
-		? `diminished capacity; full function requires an enhanced runner (use \`dxr\` or install with \`dxi\`)`
+		? `degraded capacity (faulty argument interpretation); full/correct function requires an enhanced runner (use \`dxr\` or install with \`dxi\`)`
 		: undefined;
 };
 
