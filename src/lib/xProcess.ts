@@ -1,110 +1,252 @@
+// spell-checker:ignore (js/ts) gmsu
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (people) Roy Ivy III * rivy
+// spell-checker:ignore (shell/CMD) PATHEXT
 // spell-checker:ignore (vars) ARGX
 
-import { $path } from './$deps.ts';
-import { traversal } from './$shared.ts';
+import { $fs, $path } from './$deps.ts';
+import { deQuote, env, intoURL, isWinOS, traversal } from './$shared.ts';
 
-import * as xArgs from '../lib/xArgs.ts';
+import * as $commandLine from '../lib/commandLine.ts';
+import * as $args from '../lib/xArgs.ts';
 
-const isWinOS = Deno.build.os === 'windows';
+//===
 
+// ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
+const caseSensitiveFiles = !isWinOS;
+
+const execPathExtensions = isWinOS
+	? Deno.env.get('PATHEXT')?.split($path.delimiter).filter(Boolean).map(toCommonCase) ?? []
+	: undefined;
+
+const pathsOfPATH = env('PATH')?.split($path.delimiter) ?? [];
+
+//===
+
+// assumptions
+// * These are assumptions (of varying _fragility_) based on current (2021-12-28) practice of the Deno executable.
+// * If the runner (ie, `deno`) would supply `argv0`, the raw args, and the args supplied to itself, much of this fragility would evaporate
+// * and compatibility with other runners (such as NodeJS) should be more achievable.
+const runnerNameReS = '^deno(?:[.]exe)?$'; // *note*: using a runner with a different, unexpected name will cause failures at multiple points
+const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]js$`;
+const enhancedShell = new RegExp('[\\\/][^\\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
+const removableExtensions = (execPathExtensions ?? []).concat(
+	'.cjs',
+	'.mjs',
+	'.js',
+	'.ts',
+	'.deno.ts',
+);
+// *
 // `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
-const underEnhancedShell =
-	((Deno.env.get('SHELL') || '').match(/[\\\/][^\\\/]*?sh$/msu) || []).length > 0;
+const underEnhancedShell = ((env('SHELL') || '').match(enhancedShell) || []).length > 0;
 
-// FixME: problematic transfer of information down to sub-processes
-// ?... consume/reset all ENV variables when accessed;
-//      this might work if using customized env variables so only xProcess-aware apps would access the variables
-//      EXCEPT what of intervening non-xProcess aware app? The sub-process would see the API ENV vars but set for the non-aware parent by the grandparent.
-//      Seems to need a variable which is process specific (similar to `GetCommandLine()`) or a way to specify the target sub-process.
-// ?... same for SHIM_PIPE? (rename to xProcess_PIPE?)
+//===
 
-// FixME: avoid double-expansions of command lines
-// ?... use a stop-expansion token; but not transparent, requires coop of user process for option/argument processing
-// ?... use separate ENV var for expanded command line (re-quoted) ... sub-processes would only "bareWS" tokenize and de-quote
+/** * process was invoked by direct execution */
+export const isDirectExecution = !$path.basename(Deno.execPath()).match(runnerNameReS);
+/** * process was invoked as an eval script (eg, `deno eval ...`) */
+export const isEval = !!Deno.mainModule.match(isDenoEvalReS);
 
-const DQ = '"';
-const SQ = "'";
-// const DQStringReS = `${DQ}[^${DQ}]*(?:${DQ}|$)`; // double-quoted string (unbalanced at end-of-line is allowed)
-// const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-of-line is allowed)
-// const DQStringStrictReS = '"[^"]*"'; // double-quoted string (quote balance is required)
-// const SQStringStrictReS = "'[^']*'"; // single-quoted string (quote balance is required)
+//===
 
-function deQuote(s?: string) {
-	// ToDO: refactor/refine function
-	if (!s) return s;
-	let m = s.match(new RegExp(`${DQ}([^${DQ}]*)(?:${DQ}|$)`, 'msu'));
-	if (m) return m[1];
-	m = s.match(new RegExp(`${SQ}([^${SQ}]*)(?:${SQ}|$)`, 'msu'));
-	if (m) return m[1];
-	return s;
-}
+// NOTE: when multiple sources of process information are available, enhanced-shim supplied information is given priority
+// * enhanced-shim supplied data will generally have the most accurate/cleanest information, especially the best `argv0`
 
-// needs ~ for best CLI operations
-// ToDO: add conversion to URL (robustly; handling thrown error if present) o/w $path.toFileUrl($path.resolve(...))
-export const shimTargetURL = deQuote(Deno.env.get('DENO_SHIM_URL'));
-// console.warn('xProcess', { shimTargetURL });
-const isShimTarget = (shimTargetURL === Deno.mainModule); // ToDO: use `isShimTarget` to gate SHIM_ARGS/ARGx
-/** * executable string which initiated execution of the current process */
-export const shimArg0 = isShimTarget ? Deno.env.get('DENO_SHIM_ARG0') : undefined; // note: DENO_SHIM_ARG0 == `[runner [runner_args ]]name`
-/** * raw argument text string for current process (needed for correct WinOS argument processing, but generally not useful for POSIX) */
-export const argsTextRaw = Deno.env.get('DENO_SHIM_ARGS');
-/** * already expanded argument text (re-quoted); when present, avoids double-expansions for sub-processes */
-export const argsTextPreExpanded = Deno.env.get('DENO_SHIM_ARGX');
-export const argsText = argsTextPreExpanded || argsTextRaw;
+//===
 
-export const targetURL = Deno.env.get('DENO_SHIM_URL');
+// shim-supplied process information
 
-// ref: <https://github.com/denoland/deno/issues/9871>
-/** * raw arguments are available for interpretation/expansion OR calling shell is assumed to have already done correct argument expansion and de-quoting */
-export const enhanced = shimArg0 ? true : underEnhancedShell;
-/** unable to distinguish between some non-quoted/double-quoted arguments
-- ie, only processed arguments are available (via `Deno.args()`), which have *lost quote-context* and cannot distinguish `...` from `"..."`
-*/
-export const impaired = isWinOS && !enhanced;
+// ... TARGET and ARGS could be avoided if Deno supplies raw argument text or Win32 `GetCommandLine()` is available and full text formatting control of sub-process arguments is enabled
+// ref: [🐛/🙏🏻 CLI apps need original command line (WinOS)](https://github.com/denoland/deno/issues/9871)
+// ref: [The quotation in cmd of Deno.run](https://github.com/denoland/deno/issues/8852)
+// ... b/c `deno` runs scripts either directly or via a shim; ARG0 still has value to assist the target process to reveal true executable text (needed when generating correct help text)
+// ref: [🙏🏻 [feat/req] supply $0/%0 to shimmed scripts (cross-platform)](https://github.com/denoland/deno/issues/9874
 
-// ToDO?: add `preExpanded` boolean to correctly avoid re-expansion for `args()`; alternatively, if correctly re-quoted, re-expansion should yield equivalent results
-// export const preExpanded = argsTextPreExpanded ? true : false;
+// ToDO? ~ decide whether to check permissions and error/warn or gracefully degrade; if unable to set (and clear) SHIM env variables, should we proceed? is using SHIM_TARGET good enough? what about calling self?
 
-/** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
-export const argsAsync = async () => {
-	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return await xArgs.argsAsync(argsText || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
-};
-
-/** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
-export const argsSync = () => {
-	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return xArgs.argsSync(argsText || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
-};
-
-/** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
-export const args = argsSync;
-
-/** * path string of main script file (best guess from all available sources) */
-export const path = (() => {
-	const denoExec = Deno.execPath();
-	const nameFromArg0 = shimArg0 ? xArgs.wordSplitCLText(shimArg0).pop() : undefined;
-	return nameFromArg0
-		? nameFromArg0
-		: !$path.basename(denoExec).match(/^deno([.]exe)?$/)
-		? denoExec
-		: Deno.mainModule;
+/** * summary of information transmitted by 'shim'-executable initiating the main script, when available */
+export const shim = (() => {
+	const parts: {
+		/** * path/URL of script targeted by shim */
+		TARGET?: string;
+		/** * original `argv[0]` which invoked this process (if/when available) */
+		ARGV0?: string;
+		/** * original argument text string */
+		ARGS?: string;
+		// useful ~ for Windows modification of parent environment (needed for creation of equivalents for enhanced-`cd` (`enhan-cd`, `goto`, `scd`, ...) and `source` applications) // spell-checker:ignore enhan
+		// ... PIPE is used to allow passage of ENV variable and CWD changes back up to the parent SHIM process (needed for utilities like `cdd`, `source`, etc.)
+		/** * path of pipe file (an escape hatch which allows modification of parent environment (variables and CWD)) */
+		PIPE?: string;
+		// implementation detail // ToDO? remove as implementation detail?
+		// ... EXEC is really an implementation detail (for maximum command line content flexibility within a no-'Terminate batch job (Y/N)?' formulated batch file)
+		/** * executable path of secondary shim (when needed; generally defined only for Windows) */
+		EXEC?: string;
+		/** * URL of process script targeted by enhanced-shim process data
+		(used to gate shim-provided information to the correct process, avoiding interpretation of information passed through xProcess-naive intermediary processes)
+		*/
+		targetURL?: string;
+		runner?: string;
+		runnerArgs?: string[];
+		scriptName?: string;
+		scriptArgs?: string[];
+	} = {};
+	parts.TARGET = env('SHIM_TARGET') || env('SHIM_URL') || env('DENO_SHIM_URL');
+	parts.ARGV0 = env('SHIM_ARGV0') ?? env('SHIM_ARG0') ?? env('DENO_SHIM_ARG0');
+	parts.ARGS = env('SHIM_ARGS') ?? env('DENO_SHIM_ARGS');
+	parts.PIPE = env('SHIM_PIPE') ?? env('DENO_SHIM_PIPE');
+	parts.EXEC = env('SHIM_EXEC') ?? env('DENO_SHIM_EXEC');
+	//
+	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
+	if (parts.targetURL && pathEqual(parts.targetURL, Deno.execPath())) { // shim is targeting runner
+		if (!parts.ARGS) parts.runner = parts.ARGV0;
+		// o/w assume execution in `deno` style as `<runner>` + `<options..> run <options..> script_name <script_options..>`
+		// * so, find *second* non-option in ARGS
+		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
+		let idx = 0;
+		let nonOptionN = 0;
+		for (const word of words) {
+			idx++;
+			if (!deQuote(word)?.startsWith('-')) nonOptionN++;
+			if (nonOptionN > 1) {
+				parts.runner = parts.ARGV0;
+				parts.runnerArgs = words.slice(0, idx - 1);
+				parts.scriptName = words.slice(idx - 1, idx)[0];
+				parts.scriptArgs = words.slice(idx);
+				break;
+			}
+		}
+	}
+	return parts;
 })();
 
-/** * name of main script file (best guess from all available sources) */
-export const name = $path.parse(path).name;
+// ToDO?: evaluate the proper course for shim info targeted at other processes
+// consume/reset SHIM environment variables to avoid interpretation by a subsequent process
+const envPrefix = ['DENO_SHIM_', 'SHIM_'];
+const envBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXEC'];
+const envVarNames = envPrefix.flatMap((prefix) => envBaseNames.map((base) => prefix + base));
+envVarNames.forEach((name) => Deno.env.delete(name));
+
+export const isEnhancedShimTarget = (shim.targetURL === Deno.mainModule);
+
+//===
+
+// command line data for current process
+
+/** * process command line, when available */
+export const commandLine = $commandLine.GetCommandLine();
+/** * process command line ~ split into semantic parts */
+export const commandLineParts = (() => {
+	// note: algorithm requires finding non-option words, so final text is a reconstruction instead of verbatim (though it should only differ in whitespace between words, if at all)
+	// * necessary b/c `deno`, which already does this work, doesn't/won't supply the raw args
+	const parts: {
+		runner?: string;
+		runnerArgs?: string[];
+		scriptName?: string;
+		scriptArgs?: string[];
+	} = {};
+	const words = commandLine ? $args.wordSplitCLText(commandLine) : undefined;
+	if (words == null) return parts;
+	if (isDirectExecution) {
+		parts.scriptName = words.slice(0, 1)[0];
+		parts.scriptArgs = words.slice(1);
+	} else {
+		// o/w assume execution in `deno` style as `<runner> <options..> run <options..> script_name <script_options..>`
+		// * so, find *third* non-option
+		let idx = 0;
+		let nonOptionN = 0;
+		for (const word of words) {
+			idx++;
+			if (!deQuote(word)?.startsWith('-')) nonOptionN++;
+			if (nonOptionN > 2) {
+				parts.runner = words.slice(0, 1)[0];
+				parts.runnerArgs = words.slice(1, idx - 1);
+				parts.scriptName = words.slice(idx - 1, idx)[0];
+				parts.scriptArgs = words.slice(idx);
+				break;
+			}
+		}
+	}
+	return parts;
+})();
+
+//===
+
+const defaultRunner = 'deno';
+const defaultRunnerArgs = ['run', '-A'];
+
+/** * executable text string which initiated/invoked execution of the current process */
+export const argv0 = shim.runner ?? commandLineParts.runner ?? Deno.execPath();
+/** * runner specific command line options */
+export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
+
+// /** * argument text string for current process (needed for correct WinOS argument processing [if/when `commandLine` is not available], but generally not useful for POSIX) */
+// export const argsText = isEnhancedShimTarget ? shim.ARGS : undefined;
+
+/** * path string of main script file (best guess from all available sources) */
+export const path = shim.scriptName ??
+	(isDirectExecution ? Deno.execPath() : (commandLineParts.scriptName ?? Deno.mainModule));
+
+/** * base name (eg, NAME.EXT) of main script file (from best guess path) */
+const pathBase = $path.parse(path).base;
+/** * determine if base has a removable extension and return it (note: longer extensions have priority) */
+const removableExtension = removableExtensions.sort((a, b) => b.length - a.length).find((e) =>
+	caseSensitiveFiles ? pathBase.endsWith(e) : toCommonCase(pathBase).endsWith(toCommonCase(e))
+);
+
+/** * name of main script file (from best guess path) */
+export const name = removableExtension
+	? pathBase.slice(0, removableExtension.length * -1)
+	: pathBase;
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
-export const runAs = shimArg0 ||
-	((path === Deno.mainModule)
-		? `deno run -A ${traversal(path)?.replace(/^-/, '.' + $path.SEP + '-')}`
-		: name);
+export const runAs = shim.runner
+	? ([shim.runner, ...shim.runnerArgs ?? [], shim.scriptName].filter(Boolean).join(' '))
+	: commandLineParts.runner
+	? ([commandLineParts.runner, ...commandLineParts.runnerArgs ?? [], commandLineParts.scriptName]
+		.filter(Boolean)
+		.join(' '))
+	: isDirectExecution
+	? ([commandLineParts.scriptName, ...commandLineParts.scriptArgs ?? []].filter(Boolean).join(' '))
+	: ((path === Deno.mainModule)
+		? [defaultRunner, ...defaultRunnerArgs, traversal(path)?.replace(/^-/, '.' + $path.SEP + '-')]
+			.join(' ')
+		: // use `base` if it's found first in PATH with full `traversal(path)` as fallback
+			(firstPathContaining(pathBase, ['.', ...pathsOfPATH]) === $path.parse(path).dir)
+			? pathBase
+			: traversal(path));
+
+//===
+
+/** * calculated or supplied `argv0` is available for interpretation/expansion */
+export const haveSuppliedArgv0 = Boolean(
+	shim.runner || commandLineParts.runner || isDirectExecution,
+);
+
+// ref: [🐛/🙏🏻? ~ CLI apps need original command line (WinOS)](https://github.com/denoland/deno/issues/9871)
+/** * raw arguments are available for interpretation/expansion OR an "advanced" runner/shell is assumed to have already done correct argument expansion */
+export const haveEnhancedArgs = Boolean(
+	shim.scriptArgs ?? commandLineParts.scriptArgs ?? underEnhancedShell,
+);
+/** impaired '$0' and/or argument resolution, ie:
+- process name (eg, '$0') is not supplied and must be determined heuristically
+- and/or only *processed* arguments are available (via `Deno.args()`) which have *lost quote-context* and cannot distinguish `...` from `"..."`
+*/
+export const impaired = isWinOS
+	? !(haveEnhancedArgs && haveSuppliedArgv0)
+	: /* POSIX-like */ !haveSuppliedArgv0;
 
 export const impairedWarningMessage = () => {
 	return impaired
-		? `degraded capacity (faulty argument interpretation); full/correct function requires an enhanced runner (use \`dxr\` or install with \`dxi\`)`
+		? `degraded capacity (faulty ` + [
+			!haveSuppliedArgv0
+				? '"$0"'
+				: '',
+			!haveEnhancedArgs ? 'argument' : '',
+		]
+			.filter(Boolean)
+			.join(' and ') +
+			` resolution); full/correct function requires an enhanced runner or shim (use \`dxr\` or install with \`dxi\`)`
 		: undefined;
 };
 
@@ -115,23 +257,66 @@ export const warnIfImpaired = (
 	if (msg != undefined) writer(msg);
 };
 
-/** * information related to any 'shim'-executable initiating the main script, when available */
-export const shim = {
-	// useful ~ for Windows modification of parent environment (needed for creation of equivalents for enhanced-`cd` (`enhan-cd`, `goto`, `scd`, ...) and `source` applications) // spell-checker:ignore enhan
-	/** * path of pipe file (an escape hatch which allows modification of parent environment (variables and CWD)) */
-	PIPE: Deno.env.get('DENO_SHIM_PIPE'),
-	// implementation detail // ToDO? remove as implementation detail?
-	/** * executable path of secondary shim (when needed; generally defined only for Windows) */
-	EXEC: Deno.env.get('DENO_SHIM_EXEC'),
+//===
+
+/** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
+export const argsAsync = async () => {
+	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
+	return await $args.argsAsync(shim.scriptArgs || commandLineParts.scriptArgs || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
-// consume/reset SHIM environment variables to avoid interpretation by a sub-process
-Deno.env.set('DENO_SHIM_ARG0', '');
-// ... ARGS, ARGX, and URL could be avoided if `GetCommandLine()` is available and full text control of sub-process arguments is enabled
-Deno.env.set('DENO_SHIM_ARGS', '');
-Deno.env.set('DENO_SHIM_ARGX', '');
-Deno.env.set('DENO_SHIM_URL', '');
-// ... EXEC is really an implementation detail (for maximum command line content flexibility within a no-'Terminate batch job (Y/N)?' formulated batch file)
-Deno.env.set('DENO_SHIM_EXEC', '');
-// ... PIPE is used to allow passage of ENV variable and CWD changes back up to the parent SHIM process (needed for utilities like `cdd`, `source`, etc.)
-Deno.env.set('DENO_SHIM_PIPE', '');
+/** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
+export const argsSync = () => {
+	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
+	return $args.argsSync(shim.scriptArgs || commandLineParts.scriptArgs || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+};
+
+/** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
+export const args = argsSync;
+
+//===
+
+// * move to $shared
+
+function toCommonCase(s: string) {
+	return s.toLocaleLowerCase();
+}
+
+function existsSync(path: string) {
+	try {
+		return $fs.existsSync(path);
+	} catch {
+		return false;
+	}
+}
+function firstPathContaining(goal: string, paths: string[]) {
+	for (const path of paths) {
+		const p = $path.join(path, goal);
+		if (existsSync(p)) return path;
+	}
+}
+
+// function _firstExisting(base: string, paths: string[]) {
+// 	for (const path of paths) {
+// 		const p = $path.join(path, base);
+// 		if (existsSync(p)) return p;
+// 	}
+// }
+
+// function pathToPOSIX(path: string) {
+// 	// normalize to POSIX-type separators (forward slashes)
+// 	return path.replaceAll('\\', '/');
+// }
+
+// function pathNormalizeSlashes(path: string) {
+// 	// normalize to POSIX-type separators (forward slashes)
+// 	// * replace all doubled-slashes with singles except for leading (for WinOS network paths) and those following schemes
+// 	// * note: 'scheme' is defined per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+// 	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
+// }
+
+function pathEqual(a: string, b: string) {
+	// console.warn({ a, b });
+	// console.warn({ aURL: intoURL(a), bURL: intoURL(b) });
+	return (a === b) || (intoURL(a)?.href === intoURL(b)?.href);
+}
