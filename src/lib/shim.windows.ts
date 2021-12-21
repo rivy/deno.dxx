@@ -11,7 +11,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @set "DENO_SHIM_URL="
 @:...prep...
 @:launch
-@rem:: DENO_SHIM_EXEC convolution is to avoid \`%*\` within the final parse group [o/w paren args cause parsing misbehavior]
+@rem:: DENO_SHIM_EXEC convolution is to avoid \`%*\` within the final parse group [o/w parens within args may cause parsing/execution misbehavior]
 @>>"%DENO_SHIM_EXEC%" echo @set DENO_SHIM_ARGS=%*
 @>>"%DENO_SHIM_EXEC%" echo @goto _undef_ 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%DENO_SHIM_ARGS%%
 @(
