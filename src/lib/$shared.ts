@@ -73,7 +73,7 @@ export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $pa
 
 // `intoPath()`
 /** Extract a path string from a path string (identity function) or URL. */
-export function intoPath(path: string | URL) {
+export function intoPath(path?: string | URL) {
 	if (!(path instanceof URL)) return path;
 	return (path.protocol === 'file:') ? $path.fromFileUrl(path) : path.pathname;
 }
@@ -91,9 +91,10 @@ const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: tr
 @param [base] • baseline URL ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param [options] ~ defaults to `{driveLetterSchemes: true}`
 */
-export function intoURL(path: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
+export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
 export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
-export function intoURL(path: string, ...args: unknown[]) {
+export function intoURL(path?: string, ...args: unknown[]) {
+	if (path == undefined) return undefined;
 	const base = (args?.length > 0 && (args[0] instanceof URL))
 		? args.shift() as URL
 		: $path.toFileUrl(Deno.cwd() + $path.SEP);
