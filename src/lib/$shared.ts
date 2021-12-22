@@ -72,7 +72,7 @@ export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $pa
 //===
 
 // `intoPath()`
-/** Extract a path string from a path string (identity function) or URL. */
+/** Extract a path string from a path string (as an identity function) or URL. */
 export function intoPath(path?: string | URL) {
 	if (!(path instanceof URL)) return path;
 	return (path.protocol === 'file:') ? $path.fromFileUrl(path) : path.pathname;
@@ -86,7 +86,6 @@ const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: tr
 
 // `intoURL()`
 /** Convert a `path` string into an URL, relative to a `base` URL.
-
 @param [path]
 @param [base] • baseline URL ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param [options] ~ defaults to `{driveLetterSchemes: true}`
@@ -102,7 +101,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 		...IntoUrlOptionsDefault,
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
 	};
-	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1)
+	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 	if (options.driveLetterSchemes && scheme?.length == 1) {
 		path = 'file://' + $path.normalize(path);
 	}
@@ -118,10 +117,8 @@ export function intoURL(path?: string, ...args: unknown[]) {
 
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
-_Returned path will be relative if `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_.
-
-- _relative `goal` or `base` paths are evaluated relative to the `Deno.cwd()` directory_
-
+- _Returned path will be relative to `base` iff `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_
+- _Relative `goal` or `base` paths are evaluated as relative to the `Deno.cwd()` directory_
 @param [goal] • target path
 @param [base] • starting path ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 */
