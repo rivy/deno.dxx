@@ -7,11 +7,11 @@ Me.warnIfImpaired((s) => Log.warning(`[${Me.name}]: ` + s)); // WARN if executin
 
 console.log(Me.name, 'xProcess:', Me);
 
-const argsText = Me.argsText;
+const argsText = Me.shim.scriptArgs?.join(' ') ?? '';
 const args = Me.args();
 
 const argIts = [];
-for await (const argInc of xArgs.argsIt(argsText || '')) {
+for await (const argInc of xArgs.argsIt(argsText)) {
 	// console.log({ argInc });
 	argIts.push(argInc);
 }

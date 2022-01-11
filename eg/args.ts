@@ -246,7 +246,7 @@ if (argv.version) {
 //===
 
 if (argv.zero) {
-	console.log('$0 =', $me.shimArg0);
+	console.log('$0 =', $me.argv0);
 }
 
 const output = (argv._.map(String))?.join(argv.lines ? '\n' : ' ');
