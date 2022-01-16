@@ -32,8 +32,8 @@ export function consoleSize(
 	}
 	// attempt fast API first, with fallback to slower shell scripts
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
-	// ~ 5 ms for WinOS ; ~ 0.5 ms for POSIX (for open, un-redirected STDOUT or STDERR)
-	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the consoleFileFallback)
+	// ~ 0.5 ms for WinOS or POSIX (for open, un-redirected STDOUT or STDERR, using the fast [Deno] API)
+	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
 	const promise = consoleSizeViaDenoAPI(rid, options_)
 		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
 		.then((size) => {
@@ -42,13 +42,16 @@ export function consoleSize(
 		})
 		.catch((_) =>
 			// shell script fallbacks
-			// ~ 150 ms for WinOS ; ~ 75 ms for POSIX
+			// ~ 25 ms for WinOS ; ~ 75 ms for POSIX
 			// * Promise constructors are synchronously eager, but `.then(...)/.catch(...)` is guaranteed to execute on the async stack
 			// ref: https://medium.com/@mpodlasin/3-most-common-mistakes-in-using-promises-in-javascript-575fc31939b6 @@ <https://archive.is/JmH5N>
 			// ref: https://medium.com/@mpodlasin/promises-vs-observables-4c123c51fe13 @@ <https://archive.is/daGxV>
 			// ref: https://stackoverflow.com/questions/21260602/how-to-reject-a-promise-from-inside-then-function
 			Promise
 				.any([
+					consoleSizeViaMode().then((size) =>
+						(size != undefined) ? size : Promise.reject(undefined)
+					),
 					consoleSizeViaPowerShell().then((size) =>
 						(size != undefined) ? size : Promise.reject(undefined)
 					),
@@ -121,7 +124,52 @@ export function consoleSizeViaDenoAPI(
 	return Promise.resolve(size);
 }
 
+export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
+	// ~ 25 ms (WinOS-only)
+	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
+	const output = (() => {
+		try {
+			const process = Deno.run({
+				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'piped',
+			});
+			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+
+	// ref: <https://superuser.com/questions/680746/is-it-possible-to-fetch-the-current-cmd-window-size-rows-and-columns-in-window>
+	// ```text
+	// C:> mode con /status
+	//
+	// Status for device CON:
+	// ----------------------
+	//     Lines:          45
+	//     Columns:        132
+	//     Keyboard rate:  31
+	//     Keyboard delay: 0
+	//     Code page:      65001
+	// ```
+	const promise = output
+		.then((text) =>
+			text
+				?.split(/\r?\n/)
+				.filter((s) => s.length > 0)
+				.slice(2, 4)
+				.map((s) => s.match(/(\d+)\s*$/)?.[1])
+				.filter((s) => s && (s.length > 0)) ?? []
+		)
+		.then((values) =>
+			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined
+		);
+	return promise;
+}
+
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
+	// ~ 150 ms (for WinOS)
 	const output = (() => {
 		try {
 			const process = Deno.run({
@@ -221,6 +269,46 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 		);
 	return promise;
 }
+
+// export function windowSizeViaWMIC(): Promise<ConsoleSize | undefined> { // * in pixels *
+// 	if (!isWinOS) return Promise.resolve(undefined); // no `wmic` on non-WinOS platforms
+// 	const output = (() => {
+// 		try {
+// 			const process = Deno.run({
+// 				cmd: [
+// 					'wmic',
+// 					'path',
+// 					'Win32_VideoController',
+// 					'get',
+// 					'CurrentHorizontalResolution,CurrentVerticalResolution',
+// 				],
+// 				stdin: 'null',
+// 				stderr: 'null',
+// 				stdout: 'piped',
+// 			});
+// 			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+// 		} catch (_) {
+// 			return Promise.resolve(undefined);
+// 		}
+// 	})();
+// 	// ref: <https://superuser.com/questions/270718/get-display-resolution-from-windows-command-line>
+// 	// ```text
+// 	// C:> wmic path Win32_VideoController get CurrentHorizontalResolution,CurrentVerticalResolution
+// 	// CurrentHorizontalResolution  CurrentVerticalResolution
+// 	// 2560                         1440
+// 	// ```
+// 	const promise = output
+// 		.then((text) => {
+// 			console.warn({ text, text_split: text?.split(/\r*\n/) });
+// 			return text?.split(/\r?\n/)[1].split(/\s+/).filter((s) => s && (s.length > 0)) ?? [];
+// 		})
+// 		.then((values) =>
+// 			values.length > 0
+// 				? { columns: Number(values.shift()), rows: Number(values.shift()) }
+// 				: undefined
+// 		);
+// 	return promise;
+// }
 
 // const consoleSizes = {
 // 	consoleSizeViaDeno: await consoleSizeViaDeno(),
