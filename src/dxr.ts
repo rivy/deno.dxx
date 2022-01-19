@@ -3,7 +3,7 @@
 import { $path, $yargs, YargsArguments } from './lib/$deps.ts';
 import {
 	$version,
-	envGet,
+	env,
 	// mightUseColor,
 	mightUseUnicode,
 	restyleYargsHelp,
@@ -22,7 +22,7 @@ $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired c
 log.trace({ $me });
 log.trace('Deno', { execPath: Deno.execPath(), main: Deno.mainModule, denoArgs: Deno.args });
 
-const logLevelFromEnv = $logger.logLevelFromEnv() ?? (envGet('DEBUG') ? 'debug' : undefined);
+const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(
 	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );

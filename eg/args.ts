@@ -1,7 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
 import { $yargs, YargsArguments } from '../src/lib/$deps.ts';
-import { $version, durationText, envGet, restyleYargsHelp } from '../src/lib/$shared.ts';
+import { $version, durationText, env, restyleYargsHelp } from '../src/lib/$shared.ts';
 
 import { $consoleSize, $me } from '../src/lib/$locals.ts';
 import {
@@ -27,7 +27,7 @@ $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired c
 log.trace({ $me });
 log.trace('Deno', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
 
-const logLevelFromEnv = $logger.logLevelFromEnv() ?? (envGet('DEBUG') ? 'debug' : undefined);
+const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(
 	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );

@@ -39,7 +39,7 @@ if (!haveDenoEnvPermission) {
 	);
 }
 
-async function envGet(varName: string) {
+async function env(varName: string) {
 	try {
 		return Deno.env.get(varName);
 	} catch (_) {
@@ -49,7 +49,7 @@ async function envGet(varName: string) {
 }
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ??
-	((await envGet('DEBUG')) ? 'debug' : undefined) ??
+	((await env('DEBUG')) ? 'debug' : undefined) ??
 	undefined;
 await log.debug(
 	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,

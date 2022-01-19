@@ -5,7 +5,7 @@ import {
 	$version,
 	decoder,
 	encoder,
-	envGet,
+	env,
 	isWinOS,
 	// mightUseColor,
 	mightUseUnicode,
@@ -25,7 +25,7 @@ log.debug(`logging to *STDERR*`);
 log.trace({ $me });
 log.trace('Deno', { execPath: Deno.execPath(), main: Deno.mainModule, denoArgs: Deno.args });
 
-const logLevelFromEnv = $logger.logLevelFromEnv() ?? (envGet('DEBUG') ? 'debug' : undefined);
+const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(
 	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );
