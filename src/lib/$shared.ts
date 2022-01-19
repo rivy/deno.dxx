@@ -47,6 +47,28 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //===
 
+const DQ = '"';
+const SQ = "'";
+
+// const DQStringReS = `${DQ}[^${DQ}]*(?:${DQ}|$)`; // double-quoted string (unbalanced at end-of-line is allowed)
+// const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-of-line is allowed)
+// const DQStringStrictReS = '"[^"]*"'; // double-quoted string (quote balance is required)
+// const SQStringStrictReS = "'[^']*'"; // single-quoted string (quote balance is required)
+
+const deDQStringReS = `${DQ}([^${DQ}]*)(?:${DQ}|$)`; // sub-match/extractor for contents of double-quoted string (unbalanced at end-of-line is allowed)
+const deSQStringReS = `${SQ}([^${SQ}]*)(?:${SQ}|$)`; // sub-match/extractor for contents of single-quoted string (unbalanced at end-of-line is allowed)
+
+const deQuoteRx = new RegExp(`([^${DQ}${SQ}]+)|${deDQStringReS}|${deSQStringReS}`, 'gmsu');
+
+// `deQuote()`
+/** Remove quotes from text string (`s`). */
+export function deQuote(s?: string) {
+	if (!s) return s;
+	return s.replace(deQuoteRx, '$1$2$3');
+}
+
+//===
+
 // `envGet()`
 /** Return the value of the environment variable `varName`; `undefined` if non-existent or not-allowed access (ie, *non-throwing*) */
 export function envGet(varName: string) {
