@@ -1,4 +1,5 @@
 // spell-checker:ignore (jargon) distro falsey truthy
+// spell-checker:ignore (js/ts) gmsu
 // spell-checker:ignore (names) Alacritty Cmder ConEmu Deno EditorConfig
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
@@ -34,6 +35,7 @@ export const projectLocations = {
 
 //===
 
+/** Host platform is a Windows OS. */
 export const isWinOS = Deno.build.os === 'windows';
 
 // ref: <https://medium.com/deno-the-complete-reference/textencoder-and-textdecoder-in-deno-cfca83be1792> @@ <https://archive.is/tO0rE>
@@ -45,6 +47,8 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //===
 
+// `envGet()`
+/** Return the value of the environment variable `varName`; `undefined` if non-existent or not-allowed access (ie, *non-throwing*) */
 export function envGet(varName: string) {
 	try {
 		return Deno.env.get(varName);
@@ -55,16 +59,20 @@ export function envGet(varName: string) {
 
 //===
 
-// `isFileUrl()`
+// `isFileURL()`
 /** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), naming a local file resource. */
 export function isFileURL(url: URL) {
 	return (url.protocol === 'file:');
 }
 
+// `isValidURL()`
+/** Determine if the supplied text string (`s`) is a valid URL. */
 export function isValidURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
 	return !!validURL(s, base);
 }
 
+// `validURL()`
+/** Convert the supplied text string (`s`) into a valid URL (or `undefined` if `s` [relative to `base`] isn't a valid URL). */
 export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
 	return intoURL(s, base);
 }
@@ -85,9 +93,9 @@ export type IntoUrlOptions = {
 const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: true };
 
 // `intoURL()`
-/** Convert a `path` string into an URL, relative to a `base` URL.
+/** Convert a `path` string into an URL, relative to a `base` reference URL.
 @param [path]
-@param [base] • baseline URL ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+@param [base] • baseline URL reference point ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param [options] ~ defaults to `{driveLetterSchemes: true}`
 */
 export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
@@ -482,7 +490,7 @@ export function mightUseFileSystemCase() {
 	// ref: <https://stackoverflow.com/questions/7199039/file-paths-in-windows-environment-not-case-sensitive> @@ <https://archive.is/i0xzb>
 	// ref: <https://nodejs.org/en/docs/guides/working-with-different-filesystems> @@ <https://archive.is/qSRjE>
 	// ref: <https://en.wikipedia.org/wiki/Filename> @@ <https://archive.is/cqe6g>
-	return !isWinOS /* assumed to be POSIX */ || !(Deno.env.get('USE_FS_CASE'));
+	return !isWinOS /* assumed to be POSIX-like */ || !(Deno.env.get('USE_FS_CASE'));
 }
 
 export function mightUseUnicode() {
