@@ -69,9 +69,9 @@ export function deQuote(s?: string) {
 
 //===
 
-// `envGet()`
+// `env()`
 /** Return the value of the environment variable `varName`; `undefined` if non-existent or not-allowed access (ie, *non-throwing*) */
-export function envGet(varName: string) {
+export function env(varName: string) {
 	try {
 		return Deno.env.get(varName);
 	} catch (_) {
