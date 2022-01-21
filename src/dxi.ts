@@ -80,7 +80,7 @@ Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND`)
 	.alias('version', 'V')
 	// logging options
 	.option('log-level', {
-		alias: ['\b\b\b\b LOG_LEVEL'],
+		alias: ['\b\b\b\b LOG_LEVEL'], // *hack* use backspaces to fake an option argument description (ref: <https://github.com/yargs/yargs/issues/833>)
 		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
 		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
 		type: 'string',
