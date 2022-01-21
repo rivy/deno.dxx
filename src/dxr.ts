@@ -4,6 +4,7 @@ import { $path, $yargs, YargsArguments } from './lib/$deps.ts';
 import {
 	$version,
 	env,
+	intoURL,
 	// mightUseColor,
 	mightUseUnicode,
 	restyleYargsHelp,
@@ -236,12 +237,7 @@ if (args.length < 1) {
 const targetPath = (args.shift() || '').replace(/^-/, `.${$path.SEP}-`);
 const targetArgs = args;
 
-let targetURL: string;
-try {
-	targetURL = (new URL(targetPath, 'file://' + Deno.cwd() + '/')).href;
-} catch {
-	targetURL = '';
-}
+let targetURL = intoURL(targetPath)?.href;
 await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 
 // !NOTE: maximum command line or environment variable length is likely less than 8192 characters; see ref: <https://superuser.com/questions/1070272/why-does-windows-have-a-limit-on-environment-variables-at-all/1070354#1070354>
@@ -264,7 +260,7 @@ const runOptions: Deno.RunOptions = {
 				.join(' ')
 		} ${targetPath}`,
 		DENO_SHIM_ARGS: targetArgs.map($args.reQuote).join(' '),
-		DENO_SHIM_URL: targetURL,
+		DENO_SHIM_URL: targetURL ?? '',
 	},
 };
 await log.trace({ runOptions });
