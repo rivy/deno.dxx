@@ -135,6 +135,8 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	if (options.driveLetterSchemes && scheme?.length == 1) {
 		path = 'file://' + $path.normalize(path);
 	}
+	// normalize slashes ~ replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
+	path = path.replaceAll('\\', '/').replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu, '/');
 	// console.warn({ path, base, options });
 	try {
 		return new URL(path, base);
