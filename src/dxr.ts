@@ -254,9 +254,9 @@ const runOptions: Deno.RunOptions = {
 	stdin: 'inherit',
 	stdout: 'inherit',
 	env: {
-		DENO_SHIM_ARG0: `${[$me.runAs, ...shimOptions].filter(Boolean).join(' ')} ${targetPath}`,
-		DENO_SHIM_ARGS: targetArgs.map($args.reQuote).join(' '),
-		DENO_SHIM_URL: targetURL ?? '',
+		SHIM_ARGV0: `${[$me.runAs, ...shimOptions].filter(Boolean).join(' ')} ${targetPath}`,
+		SHIM_ARGS: targetArgs.map($args.reQuote).join(' '),
+		SHIM_TARGET: targetURL ?? '',
 	},
 };
 await log.trace({ runOptions });
