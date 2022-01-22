@@ -11,7 +11,7 @@
 // spell-checker:ignore (names/people) Frederico Kereki ; Roy Ivy III * rivy
 
 import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $yargs } from './lib/$deps.ts';
-import { $me, $version, decoder, encoder } from './lib/$shared.ts';
+import { $me, $version, decoder, encoder, restyleYargsHelp } from './lib/$shared.ts';
 
 import { $logger, logger } from './lib/$shared.ts';
 
@@ -195,7 +195,9 @@ await logger.resume();
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (args.help) {
-	console.log(await app.getHelp());
+	const yargsHelp = await app.getHelp();
+	const help = await restyleYargsHelp(yargsHelp);
+	console.log(help);
 	Deno.exit(1);
 }
 if (args.version) {
