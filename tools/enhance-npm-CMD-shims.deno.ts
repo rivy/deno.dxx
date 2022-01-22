@@ -25,7 +25,7 @@ log.debug(`logging to *STDERR*`);
 
 $me.warnIfImpaired((s) => log.warn(s));
 log.trace({ $me });
-log.trace({ args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
+log.trace('Deno:', { args: Deno.args, execPath: Deno.execPath, main: Deno.mainModule });
 
 const version = $version.v();
 const runAsName = $me.runAs;
