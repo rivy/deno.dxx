@@ -237,7 +237,7 @@ if (args.length < 1) {
 const targetPath = (args.shift() || '').replace(/^-/, `.${$path.SEP}-`);
 const targetArgs = args;
 
-let targetURL = intoURL(targetPath)?.href;
+const targetURL = intoURL(targetPath)?.href;
 await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 
 // !NOTE: maximum command line or environment variable length is likely less than 8192 characters; see ref: <https://superuser.com/questions/1070272/why-does-windows-have-a-limit-on-environment-variables-at-all/1070354#1070354>
