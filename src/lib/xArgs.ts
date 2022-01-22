@@ -275,7 +275,7 @@ export function wordSplitCLText(
 	s: string,
 	options: { autoQuote: boolean } = { autoQuote: true },
 ): Array<string> {
-	// parse string into tokens separated by unquoted-whitespace
+	// parse string into tokens (aka words) separated by unquoted-whitespace
 	// * supports both single and double quotes
 	// * no character escape sequences are recognized
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
