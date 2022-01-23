@@ -180,9 +180,6 @@ export const argv0 = shim.runner ?? commandLineParts.runner ?? Deno.execPath();
 /** * runner specific command line options */
 export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
 
-// /** * argument text string for current process (needed for correct WinOS argument processing [if/when `commandLine` is not available], but generally not useful for POSIX) */
-// export const argsText = isEnhancedShimTarget ? shim.ARGS : undefined;
-
 /** * path string of main script file (best guess from all available sources) */
 export const path = shim.scriptName ??
 	(isDirectExecution ? Deno.execPath() : (commandLineParts.scriptName ?? Deno.mainModule));
