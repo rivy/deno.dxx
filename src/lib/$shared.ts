@@ -247,7 +247,7 @@ export function firstPathContaining(goal: string, paths: string[]) {
 // 	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
 // }
 
-export function pathEquivalent(a: string, b: string) {
+export function pathEquivalent(a?: string, b?: string) {
 	// console.warn({ a, b });
 	// console.warn({ aURL: intoURL(a), bURL: intoURL(b) });
 	return (a === b) || (intoURL(a)?.href === intoURL(b)?.href);
