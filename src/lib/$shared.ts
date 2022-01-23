@@ -164,9 +164,9 @@ export function traversal(
 		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0);
 	// console.warn({ goal, source, url, baseURL, commonOrigin });
 	if (url && baseURL && commonOrigin) {
-		return $path.relative(baseURL.pathname, url.pathname);
+		return decodeURIComponent($path.relative(baseURL.pathname, url.pathname));
 	} else {
-		return url ? url.href : undefined;
+		return url ? decodeURIComponent(url.href) : undefined;
 	}
 }
 
