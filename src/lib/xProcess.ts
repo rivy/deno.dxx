@@ -279,13 +279,15 @@ export const warnIfImpaired = (
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return await $args.argsAsync(shim.scriptArgs || commandLineParts.scriptArgs || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+	return await $args.argsAsync(
+		shim.scriptArgs ?? shim.ARGS ?? commandLineParts.scriptArgs ?? Deno.args,
+	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsSync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return $args.argsSync(shim.scriptArgs || commandLineParts.scriptArgs || Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+	return $args.argsSync(shim.scriptArgs ?? shim.ARGS ?? commandLineParts.scriptArgs ?? Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
