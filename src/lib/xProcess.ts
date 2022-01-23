@@ -106,8 +106,17 @@ export const shim = (() => {
 	parts.PIPE = env('SHIM_PIPE') ?? env('DENO_SHIM_PIPE');
 	parts.EXEC = env('SHIM_EXEC') ?? env('DENO_SHIM_EXEC');
 	//
+	parts.runner = undefined;
+	parts.runnerArgs = undefined;
+	parts.scriptName = undefined;
+	parts.scriptArgs = undefined;
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
-	if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.execPath())) { // shim is targeting runner
+	if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.mainModule)) {
+		// shim is targeting current process
+		parts.runner = parts.ARGV0;
+		parts.runnerArgs = [];
+	} else if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.execPath())) {
+		// shim is targeting runner
 		if (!parts.ARGS) parts.runner = parts.ARGV0;
 		// o/w assume execution in `deno` style as `<runner>` + `<options..> run <options..> script_name <script_options..>`
 		// * so, find *second* non-option in ARGS
