@@ -235,13 +235,13 @@ export const runAs = shim.runner
 
 /** * calculated or supplied `argv0` is available for interpretation/expansion */
 export const haveSuppliedArgv0 = Boolean(
-	shim.runner || commandLineParts.runner || isDirectExecution,
+	shim.ARGV0 || commandLineParts.runner || isDirectExecution,
 );
 
 // ref: [🐛/🙏🏻? ~ CLI apps need original command line (WinOS)](https://github.com/denoland/deno/issues/9871)
 /** * raw arguments are available for interpretation/expansion OR an "advanced" runner/shell is assumed to have already done correct argument expansion */
 export const haveEnhancedArgs = Boolean(
-	shim.scriptArgs ?? commandLineParts.scriptArgs ?? underEnhancedShell,
+	shim.ARGS ?? commandLineParts.scriptArgs ?? underEnhancedShell,
 );
 /** impaired '$0' and/or argument resolution, ie:
 - process name (eg, '$0') is not supplied and must be determined heuristically
