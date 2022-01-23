@@ -169,23 +169,20 @@ export function traversal(
 
 //===
 
+const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off'];
+// const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'never', 'no', 'none', 'off'];
+
 export type Truthy = false | string;
-// isFalsey()
-function _isFalsey(s: string): boolean {
-	return !isTruthy(s);
+// `isFalsey()`
+export function isFalsey(s: string): boolean {
+	return toTruthy(s) == false;
 }
-// isTruthy()
-export function isTruthy(s: string): boolean {
-	if ((s == '') || (s == 'f') || (s == 'false') || (s == 'no') || (s == 'off')) {
-		return false;
-	}
-	return true;
+// `isTruthy()`
+export function isTruthy(s?: string): boolean {
+	return toTruthy(s) != false;
 }
-// toTruthy()
-export function toTruthy(
-	s?: string,
-	falseyValues: string[] = ['', 'f', 'false', 'n', 'no', 'off'],
-): Truthy {
+// `toTruthy()`
+export function toTruthy(s?: string): Truthy {
 	if (!s || falseyValues.includes(s)) {
 		return false;
 	}
