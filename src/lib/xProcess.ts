@@ -199,19 +199,21 @@ export const argv0 = shim.runner ?? commandLineParts.runner ?? Deno.execPath();
 export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
 
 /** * path string of main script file (best guess from all available sources) */
-export const path = deQuote(shim.scriptName) ??
-	(isDirectExecution ? Deno.execPath() : (deQuote(commandLineParts.scriptName) ?? Deno.mainModule));
+export const pathURL = intoURL(deQuote(shim.scriptName))?.href ??
+	(isDirectExecution
+		? Deno.execPath()
+		: (intoURL(deQuote(commandLineParts.scriptName))?.href ?? Deno.mainModule));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
-const pathBase = $path.parse(path).base;
+const pathUrlBase = $path.parse(pathURL).base;
 /** * determine if base has a removable extension and return it (note: longer extensions have priority) */
 const removableExtension = removableExtensions.sort((a, b) => b.length - a.length).find((e) =>
-	caseSensitiveFiles ? pathBase.endsWith(e) : toCommonCase(pathBase).endsWith(toCommonCase(e))
+	caseSensitiveFiles ? pathUrlBase.endsWith(e) : toCommonCase(pathUrlBase).endsWith(toCommonCase(e))
 );
 
 /** * name of main script file (from best guess path) */
 export const name = decodeURIComponent(
-	removableExtension ? pathBase.slice(0, removableExtension.length * -1) : pathBase,
+	removableExtension ? pathUrlBase.slice(0, removableExtension.length * -1) : pathUrlBase,
 );
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
@@ -223,13 +225,20 @@ export const runAs = shim.runner
 		.join(' '))
 	: isDirectExecution
 	? ([commandLineParts.scriptName].filter(Boolean).join(' '))
-	: ((path === Deno.mainModule)
-		? [defaultRunner, ...defaultRunnerArgs, traversal(path)?.replace(/^-/, '.' + $path.SEP + '-')]
+	: ((pathURL === Deno.mainModule)
+		? [
+			defaultRunner,
+			...defaultRunnerArgs,
+			$args.reQuote(
+				decodeURIComponent(traversal(pathURL)?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
+			),
+		]
 			.join(' ')
 		: // use `base` if it's found first in PATH with full `traversal(path)` as fallback
-			(firstPathContaining(pathBase, ['.', ...pathsOfPATH]) === $path.parse(path).dir)
-			? pathBase
-			: traversal(path));
+			(firstPathContaining(decodeURIComponent(pathUrlBase), ['.', ...pathsOfPATH]) ===
+					$path.parse(decodeURIComponent(pathURL)).dir)
+			? decodeURIComponent(pathUrlBase)
+			: decodeURIComponent(traversal(pathURL) ?? ''));
 
 //===
 
