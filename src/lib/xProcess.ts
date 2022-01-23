@@ -222,7 +222,7 @@ export const runAs = shim.runner
 		.filter(Boolean)
 		.join(' '))
 	: isDirectExecution
-	? ([commandLineParts.scriptName, ...commandLineParts.scriptArgs ?? []].filter(Boolean).join(' '))
+	? ([commandLineParts.scriptName].filter(Boolean).join(' '))
 	: ((path === Deno.mainModule)
 		? [defaultRunner, ...defaultRunnerArgs, traversal(path)?.replace(/^-/, '.' + $path.SEP + '-')]
 			.join(' ')
