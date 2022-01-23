@@ -400,12 +400,12 @@ function decodeANSIC(s: string) {
 }
 
 export function reQuote(s: string) {
-	// re-quote string protect from later re-expansion
-	const specialChars = ['*', '?', '{', '}', '$', "'", '"', '[', ']'];
+	// re-quote string to protect from later re-expansion
+	const specialChars = ['*', '?', '{', '}', '[', ']', "'", '"', '$', '<', '>', '|', '&'];
 	const hasSpecialChar = specialChars.find((c) => s.includes(c));
 	const hasWhiteSpace = s.match(/\s/msu);
 	if (hasSpecialChar || hasWhiteSpace) {
-		s = "'" + s.replaceAll("'", '"\'"') + "'";
+		s = isWinOS ? ('"' + s.replaceAll('"', '""""') + '"') : ("'" + s.replaceAll("'", '"\'"') + "'");
 	}
 	return s;
 }
