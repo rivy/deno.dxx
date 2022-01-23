@@ -150,7 +150,9 @@ const envVarNames = shimEnvPrefix.flatMap((prefix) =>
 );
 envVarNames.forEach((name) => Deno.env.delete(name));
 
-export const isEnhancedShimTarget = (shim.targetURL === Deno.mainModule);
+//===
+
+export const isEnhancedShimTarget = pathEquivalent(shim.targetURL, Deno.mainModule);
 
 //===
 
