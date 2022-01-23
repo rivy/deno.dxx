@@ -8,7 +8,6 @@ import { $path } from './$deps.ts';
 import {
 	deQuote,
 	env,
-	firstPathContaining,
 	intoURL,
 	isWinOS,
 	pathEquivalent,
@@ -28,7 +27,7 @@ const execPathExtensions = isWinOS
 	? Deno.env.get('PATHEXT')?.split($path.delimiter).filter(Boolean).map(toCommonCase) ?? []
 	: undefined;
 
-const pathsOfPATH = env('PATH')?.split($path.delimiter) ?? [];
+// const pathsOfPATH = env('PATH')?.split($path.delimiter) ?? [];
 
 //===
 
@@ -225,20 +224,14 @@ export const runAs = shim.runner
 		.join(' '))
 	: isDirectExecution
 	? ([commandLineParts.scriptName].filter(Boolean).join(' '))
-	: ((pathURL === Deno.mainModule)
-		? [
-			defaultRunner,
-			...defaultRunnerArgs,
-			$args.reQuote(
-				decodeURIComponent(traversal(pathURL)?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
-			),
-		]
-			.join(' ')
-		: // use `base` if it's found first in PATH with full `traversal(path)` as fallback
-			(firstPathContaining(decodeURIComponent(pathUrlBase), ['.', ...pathsOfPATH]) ===
-					$path.parse(decodeURIComponent(pathURL)).dir)
-			? decodeURIComponent(pathUrlBase)
-			: decodeURIComponent(traversal(pathURL) ?? ''));
+	: [
+		defaultRunner,
+		...defaultRunnerArgs,
+		$args.reQuote(
+			decodeURIComponent(traversal(pathURL)?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
+		),
+	]
+		.join(' ');
 
 //===
 
