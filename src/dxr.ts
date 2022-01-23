@@ -259,7 +259,7 @@ const runOptions: Deno.RunOptions = {
 	stdout: 'inherit',
 	env: {
 		DENO_SHIM_ARG0: `${
-			[$me.shimArg0 ?? $me.runAs, ...shimOptions]
+			[$me.arg0 ?? $me.runAs, ...shimOptions]
 				.filter(Boolean)
 				.join(' ')
 		} ${targetPath}`,
