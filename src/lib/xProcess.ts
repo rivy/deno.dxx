@@ -190,8 +190,8 @@ export const argv0 = shim.runner ?? commandLineParts.runner ?? Deno.execPath();
 export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
 
 /** * path string of main script file (best guess from all available sources) */
-export const path = shim.scriptName ??
-	(isDirectExecution ? Deno.execPath() : (commandLineParts.scriptName ?? Deno.mainModule));
+export const path = deQuote(shim.scriptName) ??
+	(isDirectExecution ? Deno.execPath() : (deQuote(commandLineParts.scriptName) ?? Deno.mainModule));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
 const pathBase = $path.parse(path).base;
