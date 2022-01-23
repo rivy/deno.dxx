@@ -249,12 +249,18 @@ if (delegatedArgs.length < 1) {
 } else shimOptions.push(...[usesEndOfOptions ? '--' : ''].filter(Boolean), ...delegatedArgs);
 const denoArgs = ['run', ...delegatedArgs].filter(Boolean);
 const runOptions: Deno.RunOptions = {
+	// note: `Deno.run` automatically quotes any `cmd` elements which contain spaces
 	cmd: ['deno', ...denoArgs, targetPath, ...targetArgs],
 	stderr: 'inherit',
 	stdin: 'inherit',
 	stdout: 'inherit',
 	env: {
-		SHIM_ARGV0: `${[$me.runAs, ...shimOptions].filter(Boolean).join(' ')} ${targetPath}`,
+		SHIM_ARGV0: `${$me.runAs} ${
+			[...shimOptions, targetPath]
+				.filter(Boolean)
+				.map((e) => e && $args.reQuote(e))
+				.join(' ')
+		}`,
 		SHIM_ARGS: targetArgs.map($args.reQuote).join(' '),
 		SHIM_TARGET: targetURL ?? '',
 	},
