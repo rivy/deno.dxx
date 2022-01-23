@@ -210,9 +210,9 @@ const removableExtension = removableExtensions.sort((a, b) => b.length - a.lengt
 );
 
 /** * name of main script file (from best guess path) */
-export const name = removableExtension
-	? pathBase.slice(0, removableExtension.length * -1)
-	: pathBase;
+export const name = decodeURIComponent(
+	removableExtension ? pathBase.slice(0, removableExtension.length * -1) : pathBase,
+);
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs = shim.runner
