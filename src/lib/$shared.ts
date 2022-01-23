@@ -4,7 +4,7 @@
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
-import { $cliffyTable, $colors, $path } from './$deps.ts';
+import { $cliffyTable, $colors, $fs, $path } from './$deps.ts';
 
 //===
 
@@ -207,6 +207,51 @@ export function getCharacterLength(s: string) {
 	return [...s].length;
 }
 
+export function toCommonCase(s: string) {
+	return s.toLocaleLowerCase();
+}
+
+//===
+
+function existsSync(path: string) {
+	try {
+		return $fs.existsSync(path);
+	} catch {
+		return false;
+	}
+}
+
+export function firstPathContaining(goal: string, paths: string[]) {
+	for (const path of paths) {
+		const p = $path.join(path, goal);
+		if (existsSync(p)) return path;
+	}
+}
+
+// function _firstExisting(base: string, paths: string[]) {
+// 	for (const path of paths) {
+// 		const p = $path.join(path, base);
+// 		if (existsSync(p)) return p;
+// 	}
+// }
+
+// function pathToPOSIX(path: string) {
+// 	// normalize to POSIX-type separators (forward slashes)
+// 	return path.replaceAll('\\', '/');
+// }
+
+// function pathNormalizeSlashes(path: string) {
+// 	// normalize to POSIX-type separators (forward slashes)
+// 	// * replace all doubled-slashes with singles except for leading (for WinOS network paths) and those following schemes
+// 	// * note: 'scheme' is defined per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+// 	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
+// }
+
+export function pathEquivalent(a: string, b: string) {
+	// console.warn({ a, b });
+	// console.warn({ aURL: intoURL(a), bURL: intoURL(b) });
+	return (a === b) || (intoURL(a)?.href === intoURL(b)?.href);
+}
 //===
 
 export async function restyleYargsHelp(helpText: string, options?: { consoleWidth: number }) {
