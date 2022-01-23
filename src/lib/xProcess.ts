@@ -31,7 +31,7 @@ const execPathExtensions = isWinOS
 
 //===
 
-// assumptions
+// assumptions/configuration
 // * These are assumptions (of varying _fragility_) based on current (2021-12-28) practice of the Deno executable.
 // * If the runner (ie, `deno`) would supply `argv0`, the raw args, and the args supplied to itself, much of this fragility would evaporate
 // * and compatibility with other runners (such as NodeJS) should be more achievable.
@@ -48,6 +48,12 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 // *
 // `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
 const underEnhancedShell = ((env('SHELL') || '').match(enhancedShell) || []).length > 0;
+
+const defaultRunner = 'deno';
+const defaultRunnerArgs = ['run', '-A'];
+
+const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_'];
+const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXEC'];
 
 //===
 
@@ -139,9 +145,9 @@ export const shim = (() => {
 
 // ToDO?: evaluate the proper course for shim info targeted at other processes
 // consume/reset SHIM environment variables to avoid interpretation by a subsequent process
-const envPrefix = ['DENO_SHIM_', 'SHIM_'];
-const envBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXEC'];
-const envVarNames = envPrefix.flatMap((prefix) => envBaseNames.map((base) => prefix + base));
+const envVarNames = shimEnvPrefix.flatMap((prefix) =>
+	shimEnvBaseNames.map((base) => prefix + base)
+);
 envVarNames.forEach((name) => Deno.env.delete(name));
 
 export const isEnhancedShimTarget = (shim.targetURL === Deno.mainModule);
@@ -188,9 +194,6 @@ export const commandLineParts = (() => {
 })();
 
 //===
-
-const defaultRunner = 'deno';
-const defaultRunnerArgs = ['run', '-A'];
 
 /** * executable text string which initiated/invoked execution of the current process */
 export const argv0 = shim.runner ?? commandLineParts.runner ?? Deno.execPath();
