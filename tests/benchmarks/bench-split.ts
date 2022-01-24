@@ -66,6 +66,19 @@ for (let i = 0; i < size; i++) {
 
 await log.debug({ arrEg: arr.slice(0, 10) });
 
+const finalEolRx = new RegExp(`${EOL}\$`);
+function chompThenSplitPrebuiltRegExp(s: string) {
+	s = s.replace(finalEolRx, '');
+	const arr = s.split(EOL);
+	return arr;
+}
+
+function chompThenSplitNewRegExp(s: string) {
+	s = s.replace(new RegExp(`${EOL}\$`), '');
+	const arr = s.split(EOL);
+	return arr;
+}
+
 function chompThenSplit(s: string) {
 	s = s.replace(/\n$/, '');
 	const arr = s.split(EOL);
@@ -86,7 +99,7 @@ for (let i = 0; i < arr.length; i++) {
 performance.mark('setup:verify:stop');
 
 bench({
-	name: 'Chomp then split',
+	name: 'Chomp then split (const/static RegExp)',
 	runs,
 	func: (() => {
 		let passN = 0;
@@ -94,6 +107,34 @@ bench({
 			const idx = passN++ % arr.length;
 			b.start();
 			chompThenSplit(arr[idx]);
+			b.stop();
+		};
+	})(),
+});
+
+bench({
+	name: 'Chomp then split (pre-built RegExp)',
+	runs,
+	func: (() => {
+		let passN = 0;
+		return (b: BenchmarkTimer) => {
+			const idx = passN++ % arr.length;
+			b.start();
+			chompThenSplitPrebuiltRegExp(arr[idx]);
+			b.stop();
+		};
+	})(),
+});
+
+bench({
+	name: 'Chomp then split (just-in-time RegExp)',
+	runs,
+	func: (() => {
+		let passN = 0;
+		return (b: BenchmarkTimer) => {
+			const idx = passN++ % arr.length;
+			b.start();
+			chompThenSplitPrebuiltRegExp(arr[idx]);
 			b.stop();
 		};
 	})(),
