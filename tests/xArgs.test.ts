@@ -31,7 +31,7 @@ test('`shellExpand()` basics', () => {
 			console.log({ exampleFiles });
 
 			const globPatterns = ['./**/*.ext', '.\\**/*.ext', '.\\**\\*.ext', '**/*.ext', '**\\*.ext'];
-			assertEquals((await Parse.shellExpand(globPatterns[0])).length, 4);
+			assertEquals((await Parse.shellExpand(globPatterns[0])).length, 7);
 
 			assertEquals(
 				await Parse.shellExpand(globPatterns[0].replace($path.SEP_PATTERN, '/')),
@@ -78,25 +78,31 @@ test("brace expansion (eg, `shellExpand('{a}*')`)", async () => {
 });
 
 test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
-	let glob = 'eg/[a]*';
+	let glob = 'tests/fixtures/dir/[a]*';
+	const expected = [
+		'tests/fixtures/dir/a',
+		'tests/fixtures/dir/ab.ext',
+		'tests/fixtures/dir/another filename with internal spaces.ext',
+	]
+		.map(pathToOsStyle);
 	let actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+	assertEquals(actual, expected);
 
-	glob = 'eg/[aA]*';
+	glob = 'tests/fixtures/dir/[aA]*';
 	actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+	assertEquals(actual, expected);
 
-	glob = 'eg/[a-b]*';
+	glob = 'tests/fixtures/dir/[a-b]*';
 	actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+	assertEquals(actual, expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')));
 
-	glob = 'eg/[a-bA-B]*';
+	glob = 'tests/fixtures/dir/[a-bA-B]*';
 	actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, ['eg/args.ts', 'eg/argsIt.ts'].map(pathToOsStyle));
+	assertEquals(actual, expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')));
 });
 
 test('brace/bracket combined expansions', async () => {
