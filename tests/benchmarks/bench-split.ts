@@ -43,7 +43,7 @@ performance.mark('setup:start');
 const runs = 10000;
 
 const usePresetPRNGSeed = false;
-const presetPRNGSeed = 'couw68a3vtyod5bpyw5x'; // spell-checker:disable-line
+const presetPRNGSeed = 'rft6tgk10mg1szn83nam'; // spell-checker:disable-line
 const seed = usePresetPRNGSeed ? presetPRNGSeed : (new Random()).string(20);
 console.log({ seed });
 
