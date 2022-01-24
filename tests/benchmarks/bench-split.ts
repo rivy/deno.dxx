@@ -3,6 +3,24 @@
 
 import { assertEquals } from '../$deps.ts';
 import { /* deepEqual,*/ logger as log } from '../$shared.ts';
+import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
+
+import {
+	bench,
+	BenchmarkTimer,
+	runBenchmarks,
+} from 'https://deno.land/std@0.93.0/testing/bench.ts';
+import {
+	prettyBenchmarkProgress,
+	prettyBenchmarkResult,
+} from 'https://deno.land/x/pretty_benching@v0.3.3/mod.ts';
+
+import Random from 'https://deno.land/x/random@v1.1.2/Random.js';
+import { Seed } from 'https://deno.land/x/seed@1.0.0/index.ts';
+
+import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
+
+//===
 
 const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
 	Deno.env.get('LOGLEVEL') ??
@@ -17,19 +35,6 @@ const logLevel = mayBeLogLevelName || 'note';
 log.mergeMetadata({ Filter: { level: logLevel } });
 log.debug(`log level set to '${logLevel}'`);
 await log.resume();
-
-import {
-	bench,
-	BenchmarkTimer,
-	runBenchmarks,
-} from 'https://deno.land/std@0.93.0/testing/bench.ts';
-import {
-	prettyBenchmarkProgress,
-	prettyBenchmarkResult,
-} from 'https://deno.land/x/pretty_benching@v0.3.3/mod.ts';
-
-import Random from 'https://deno.land/x/random@v1.1.2/Random.js';
-import { Seed } from 'https://deno.land/x/seed@1.0.0/index.ts';
 
 await log.debug('setup: started');
 
@@ -132,9 +137,6 @@ const benchMarkRunResult = await runBenchmarks(
 await log.debug({ benchMarkRunResult });
 
 //===
-
-import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
-import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
 
 const table = new Table({
 	header: ['Name', 'Run count', 'Avg Time +/- StdDev(Sample)', 'Median', 'Ratio'],

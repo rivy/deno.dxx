@@ -2,20 +2,7 @@
 // spell-checker:ignore (names) Deno
 
 import { logger as log } from '../$shared.ts';
-
-const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
-	Deno.env.get('LOGLEVEL') ??
-	(Deno.env.get('DEBUG') ? 'DEBUG' : undefined) ??
-	undefined;
-log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
-
-const mayBeLogLevelName = logLevelFromEnv &&
-	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
-const logLevel = mayBeLogLevelName || 'note';
-
-log.mergeMetadata({ Filter: { level: logLevel } });
-log.debug(`log level set to '${logLevel}'`);
-await log.resume();
+import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
 
 import {
 	bench,
@@ -30,7 +17,27 @@ import {
 import Random from 'https://deno.land/x/random@v1.1.2/Random.js';
 import { Seed } from 'https://deno.land/x/seed@1.0.0/index.ts';
 
+import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
+
+//===
+
 import * as Parser from '../../src/lib/xArgs.ts';
+
+//===
+
+const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
+	Deno.env.get('LOGLEVEL') ??
+	(Deno.env.get('DEBUG') ? 'DEBUG' : undefined) ??
+	undefined;
+log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
+
+const mayBeLogLevelName = logLevelFromEnv &&
+	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+const logLevel = mayBeLogLevelName || 'note';
+
+log.mergeMetadata({ Filter: { level: logLevel } });
+log.debug(`log level set to '${logLevel}'`);
+await log.resume();
 
 await log.debug('setup: started');
 
@@ -125,9 +132,6 @@ const benchMarkRunResult = await runBenchmarks(
 	.then(prettyBenchmarkResult({ parts: { extraMetrics: true, graph: true } }));
 
 //===
-
-import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
-import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
 
 const table = new Table({
 	header: ['Name', 'Run count', 'Avg Time +/- StdDev(Sample)', 'Median', 'Ratio'],
