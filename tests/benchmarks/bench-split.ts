@@ -68,12 +68,12 @@ await log.debug({ arrEg: arr.slice(0, 10) });
 
 function chompThenSplit(s: string) {
 	s = s.replace(/\n$/, '');
-	const arr = s.split('\n');
+	const arr = s.split(EOL);
 	return arr;
 }
 
 function splitThenSlice(s: string) {
-	const arr = s.split('\n');
+	const arr = s.split(EOL);
 	if (!arr.slice(-1)[0]) arr.pop();
 	return arr;
 }
