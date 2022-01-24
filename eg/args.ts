@@ -32,10 +32,11 @@ log.debug(
 	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );
 
+const appName = $me.name;
 const version = $version.v();
 const runAsName = $me.runAs;
 
-log.mergeMetadata({ authority: $me.name });
+log.mergeMetadata({ authority: appName });
 
 performance.mark('setup:log:stop');
 
@@ -45,7 +46,7 @@ performance.mark('setup:yargs:start');
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
-	.scriptName($me.name)
+	.scriptName(appName)
 	.epilog('* Copyright (c) 2021 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
 Display all arguments.\n
@@ -237,7 +238,7 @@ if (argv.help) {
 	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv.version) {
-	console.log(`${$me.name} ${version}`);
+	console.log(`${appName} ${version}`);
 	const onlyVersion = (argv._.length === 0) &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyVersion ? 0 : 1);
