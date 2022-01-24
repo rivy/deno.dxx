@@ -47,7 +47,7 @@ performance.mark('setup:yargs:start');
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.scriptName(appName)
-	.epilog('* Copyright (c) 2021 * Roy Ivy III (MIT license)')
+	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
 Display all arguments.\n
 Usage:\n  ${runAsName} [OPTION..] [ARG..]`)

@@ -105,7 +105,7 @@ log.debug(`logging to '${logFilePath}'`);
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.scriptName($me.name)
-	.epilog('* Copyright (c) 2021 * Roy Ivy III (MIT license)')
+	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n\nUsage:\n  ${runAsName} [OPTION..]`)
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({ 'Positionals:': 'Arguments:' })

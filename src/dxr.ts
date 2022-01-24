@@ -49,7 +49,7 @@ log.mergeMetadata({
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.scriptName($me.name)
-	.epilog('* Copyright (c) 2021 * Roy Ivy III (MIT license)')
+	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
 Run a JavaScript or TypeScript program (with enhanced WinOS command line capabilities).\n
 Usage:\n  ${runAsName} [OPTION..] [[--] [RUN_OPTION..]] [--] SCRIPT [SCRIPT_ARG..]`)
