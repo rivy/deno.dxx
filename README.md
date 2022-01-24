@@ -52,14 +52,14 @@ automatically runs `dprint fmt` if `dprint` is available and a config is found i
 
 ```shell
 # `dxi`
-deno install -A "https://deno.land/x/dxx@v0.0.9/src/dxi.ts"
+deno install -A "https://deno.land/x/dxx@v0.0.10/src/dxi.ts"
 #
-dxi -A "https://deno.land/x/dxx@v0.0.9/src/dxf.ts"
-dxi -A "https://deno.land/x/dxx@v0.0.9/src/dxr.ts"
+dxi -A "https://deno.land/x/dxx@v0.0.10/src/dxf.ts"
+dxi -A "https://deno.land/x/dxx@v0.0.10/src/dxr.ts"
 # WIP: dxi .../dxx
 #...or (via CDN, with optional version/version-range/latest/commit support)...
-# dxi -A "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@v0.0.9/src/dxf.ts" // v0.0.9
-# dxi -A "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@COMMIT/src/dxf.ts" // commit
+# dxi -A "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@v0.0.10/src/dxf.ts" // v0.0.10
+# dxi -A "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@COMMIT/src/dxf.ts"  // commit
 ```
 
 ## Using the 'xProcess' library
