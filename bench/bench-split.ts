@@ -1,9 +1,9 @@
 // spell-checker:ignore (abbrev/acronym) LOGLEVEL NOTSET PRNG
 // spell-checker:ignore (names) Deno
 
-import { assertEquals } from '../$deps.ts';
-import { /* deepEqual,*/ logger as log } from '../$shared.ts';
-import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
+import { assertEquals } from '../tests/$deps.ts';
+import { /* deepEqual,*/ logger as log } from '../tests/$shared.ts';
+import { formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
 
 import {
 	bench,
@@ -73,7 +73,7 @@ function chompThenSplitPrebuiltRegExp(s: string) {
 	return arr;
 }
 
-function chompThenSplitNewRegExp(s: string) {
+function chompThenSplitJitRegExp(s: string) {
 	s = s.replace(new RegExp(`${EOL}\$`), '');
 	const arr = s.split(EOL);
 	return arr;
@@ -134,7 +134,7 @@ bench({
 		return (b: BenchmarkTimer) => {
 			const idx = passN++ % arr.length;
 			b.start();
-			chompThenSplitPrebuiltRegExp(arr[idx]);
+			chompThenSplitJitRegExp(arr[idx]);
 			b.stop();
 		};
 	})(),

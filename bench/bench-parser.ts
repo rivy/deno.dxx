@@ -1,8 +1,8 @@
 // spell-checker:ignore (abbrev/acronym) LOGLEVEL NOTSET PRNG
 // spell-checker:ignore (names) Deno
 
-import { logger as log } from '../$shared.ts';
-import { formatDuration, formatN, median, stdDevSample } from '../$shared.ts';
+import { logger as log } from '../tests/$shared.ts';
+import { formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
 
 import {
 	bench,
@@ -21,7 +21,7 @@ import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
 
 //===
 
-import * as Parser from '../../src/lib/xArgs.ts';
+import * as Parser from '../src/lib/xArgs.ts';
 
 //===
 
