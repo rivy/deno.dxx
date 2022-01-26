@@ -482,6 +482,7 @@ export async function* globExpandIter(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
+	const caseSensitive = !isWinOS;
 	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
 	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
@@ -526,9 +527,9 @@ export async function* globExpandIter(
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude+; evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
-				isWinOS
-					? 'imsu'
-					: 'msu',
+				caseSensitive
+					? 'msu'
+					: 'imsu',
 			);
 			// console.warn('xArgs.globExpandIter()', {
 			// 	resolvedPrefix,
@@ -568,6 +569,7 @@ export function* globExpandIterSync(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
+	const caseSensitive = !isWinOS;
 	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
 	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
@@ -603,9 +605,9 @@ export function* globExpandIterSync(
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude (10-20x); evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
-				isWinOS
-					? 'imsu'
-					: 'msu',
+				caseSensitive
+					? 'msu'
+					: 'imsu',
 			);
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
@@ -682,6 +684,8 @@ export function parseGlob(s: string) {
 	let prefix = '';
 	let glob = '';
 
+	const caseSensitive = !isWinOS;
+
 	// console.warn('xArgs.parseNonGlobPathPrefix()', { globCharsReS, SEP: $path.SEP, SEP_PATTERN: $path.SEP_PATTERN });
 
 	// for 'windows' or portable, strip any leading `\\?\` as a prefix
@@ -734,7 +738,7 @@ export function parseGlob(s: string) {
 		nobrace: true,
 		noquantifiers: true,
 		posix: true,
-		nocase: isWinOS,
+		nocase: !caseSensitive,
 		tokens: true,
 		parts: true,
 	});
@@ -747,7 +751,7 @@ export function parseGlob(s: string) {
 	// 	nobrace: true,
 	// 	noquantifiers: true,
 	// 	posix: true,
-	// 	nocase: isWinOS,
+	// 	nocase: !caseSensitive,
 	// 	tokens: true,
 	// });
 	// const globParsedTokens = ((globParsed as unknown) as any).tokens;
@@ -768,6 +772,7 @@ export function parseGlob(s: string) {
 }
 
 export function globToReS(s: string) {
+	const caseSensitive = !isWinOS;
 	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, '');
 	let text = '';
 	while (s) {
@@ -799,7 +804,7 @@ export function globToReS(s: string) {
 		dot: false,
 		literalBrackets: false,
 		posix: true,
-		nocase: isWinOS,
+		nocase: !caseSensitive,
 	});
 	// console.warn('xArgs.globToReS()', { parsed });
 	// deno-lint-ignore no-explicit-any
