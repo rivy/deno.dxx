@@ -13,7 +13,7 @@ import * as $consoleSize from './consoleSize.ts';
 //===
 
 export const projectName: string | undefined = 'dxx';
-export const VERSION = '0.0.10';
+export const VERSION = '0.0.11';
 
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath =

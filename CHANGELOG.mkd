@@ -13,9 +13,38 @@
 
 ---
 
+## [0.0.11](https://github.com/rivy/deno.dxx/compare/v0.0.10...0.0.11) <small>(2022-01-25)</small>
+
+<details open><summary><small><em>[0.0.11; details]</em></small></summary>
+
+#### Fixes
+
+* fix *(xArgs)*: correct calculation and use of glob prefixes, preserving separators where possible &ac; [`5b3649f`](https://github.com/rivy/deno.dxx/commit/5b3649ff2b9b24e615395ed2560d65b7458c545a)
+
+#### Documentation
+
+* docs ~ add spell-checker exceptions &ac; [`9cf9e84`](https://github.com/rivy/deno.dxx/commit/9cf9e84a943c66238ffce9cc961682518d8e2d6d)
+* docs *(tests)*: add spell-checker exceptions &ac; [`d60077e`](https://github.com/rivy/deno.dxx/commit/d60077ec0beacf03297641d61455b4a02afb2e30)
+
+#### Refactoring
+
+* refactor *(xArgs)*: revise and expand path conversion functions (with ToDO for '$shared' move) &ac; [`08d3e8b`](https://github.com/rivy/deno.dxx/commit/08d3e8b4cce17fe181994ce72f5544c0c7319511)
+* refactor *(xArgs)*: use variable naming to be specific about file system case sensitivity &ac; [`8ecd4c4`](https://github.com/rivy/deno.dxx/commit/8ecd4c48057236295ee344d38583e0d11c3b1ab1)
+
+#### Test Improvements
+
+* tests ~ fix path conversion functions &ac; [`0691b6c`](https://github.com/rivy/deno.dxx/commit/0691b6ca0752bee5eb011cc08e31a3dbb2c1c30c)
+* tests ~ (xArgs) add additional brace expansion testing &ac; [`610739e`](https://github.com/rivy/deno.dxx/commit/610739ea00d8554e826d4ee37687eb9d4cfe966f)
+* test *(fix)*: (xArgs) correct invalid assumption about sort order &ac; [`ab6fb08`](https://github.com/rivy/deno.dxx/commit/ab6fb081676bf5d33bb071823ad8f93a9ef84dc3)
+* test *(fix)*: (xArgs) revise tests to more OS-platform portable form &ac; [`e1f4a8f`](https://github.com/rivy/deno.dxx/commit/e1f4a8f94401b021685968b8ab2795b828298a49)
+
+</details>
+
+---
+
 ## [v0.0.10](https://github.com/rivy/deno.dxx/compare/v0.0.9...v0.0.10) <small>(2022-01-24)</small>
 
-<details open><summary><small><em>[v0.0.10; details]</em></small></summary>
+<details><summary><small><em>[v0.0.10; details]</em></small></summary>
 
 #### Features
 
