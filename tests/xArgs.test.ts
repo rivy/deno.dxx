@@ -97,35 +97,38 @@ test("brace expansion (eg, `shellExpand('{a}*')`)", async () => {
 
 test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
 	let glob = 'tests/fixtures/dir/[a]*';
+	// ToDO: [2022-01-25; rivy] investigate returning files in a deterministic order (vs user sort after return?)
+	// note: order of returned values is not guaranteed
 	const expected = [
 		'tests/fixtures/dir/a',
 		'tests/fixtures/dir/ab.ext',
 		'tests/fixtures/dir/another filename with internal spaces.ext',
 	]
-		.map(pathToOsStyle);
-	let actual = await Parse.shellExpand(glob);
+		.map(pathToOsStyle)
+		.sort();
+	let actual = (await Parse.shellExpand(glob)).sort();
 	console.log({ glob, actual });
 	assertEquals(actual.map(pathToOsStyle), expected.map(pathToOsStyle));
 
 	glob = 'tests/fixtures/dir/[aA]*';
-	actual = await Parse.shellExpand(glob);
+	actual = (await Parse.shellExpand(glob)).sort();
 	console.log({ glob, actual });
 	assertEquals(actual.map(pathToOsStyle), expected.map(pathToOsStyle));
 
 	glob = 'tests/fixtures/dir/[a-b]*';
-	actual = await Parse.shellExpand(glob);
+	actual = (await Parse.shellExpand(glob)).sort();
 	console.log({ glob, actual });
 	assertEquals(
 		actual.map(pathToOsStyle),
-		expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')).map(pathToOsStyle),
+		expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')).map(pathToOsStyle).sort(),
 	);
 
 	glob = 'tests/fixtures/dir/[a-bA-B]*';
-	actual = await Parse.shellExpand(glob);
+	actual = (await Parse.shellExpand(glob)).sort();
 	console.log({ glob, actual });
 	assertEquals(
 		actual.map(pathToOsStyle),
-		expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')).map(pathToOsStyle),
+		expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')).map(pathToOsStyle).sort(),
 	);
 });
 
