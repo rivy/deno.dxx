@@ -92,6 +92,7 @@ test("brace expansion (eg, `shellExpand('{a}*')`)", async () => {
 	assertEquals(await Parse.shellExpand('{}*'), ['{}*']);
 	assertEquals(await Parse.shellExpand('{.}*'), ['{.}*']);
 	assertEquals(await Parse.shellExpand('{a}*'), ['{a}*']);
+	assertEquals(await Parse.shellExpand('{a,b}'), ['a', 'b']);
 });
 
 test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
