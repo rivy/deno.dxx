@@ -1,4 +1,4 @@
-// spell-checker:ignore (types) isize
+// spell-checker:ignore (fn) dlopen ; (names) Deno ; (types) isize usize wchar
 
 // from <...>
 
