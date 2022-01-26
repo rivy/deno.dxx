@@ -31,29 +31,46 @@ test('`shellExpand()` basics', () => {
 			console.log({ exampleFiles });
 
 			const globPatterns = ['./**/*.ext', '.\\**/*.ext', '.\\**\\*.ext', '**/*.ext', '**\\*.ext'];
-			assertEquals((await Parse.shellExpand(globPatterns[0])).length, 7);
 
-			assertEquals(
-				await Parse.shellExpand(globPatterns[0].replace($path.SEP_PATTERN, '/')),
-				await Parse.shellExpand(globPatterns[0].replace($path.SEP_PATTERN, '\\')),
-			);
+			assertEquals(await Parse.shellExpand(globPatterns[0]), exampleFiles);
+			console.log('#1: passed');
 
+			// * equivalent globs, with alternate path separators, should produce results differing only by path separator
 			assertEquals(
-				await Parse.shellExpand(globPatterns[0]),
-				await Parse.shellExpand(globPatterns[1]),
+				(await Parse.shellExpand(globPatterns[0].replace($path.SEP_PATTERN, '/'))).map(
+					pathToOsStyle,
+				),
+				(await Parse.shellExpand(globPatterns[0].replace($path.SEP_PATTERN, '\\'))).map(
+					pathToOsStyle,
+				),
 			);
+			console.log('#2: passed');
 
+			// * globs with same prefix, differing glob path separators
 			assertEquals(
-				await Parse.shellExpand(globPatterns[0]),
-				await Parse.shellExpand(globPatterns[2]),
+				(await Parse.shellExpand(globPatterns[0])).map(pathToOsStyle),
+				(await Parse.shellExpand(globPatterns[1])).map(pathToOsStyle),
 			);
+			console.log('#3: passed');
 			assertEquals(
-				await Parse.shellExpand(globPatterns[0]),
+				(await Parse.shellExpand(globPatterns[0])).map(pathToOsStyle),
+				(await Parse.shellExpand(globPatterns[2])).map(pathToOsStyle),
+			);
+			console.log('#4: passed');
+			assertEquals(
 				await Parse.shellExpand(globPatterns[3]),
+				await Parse.shellExpand(globPatterns[4]),
+			);
+			console.log('#5: passed');
+
+			// * globs with differing, but equivalent, prefixes should produce equivalent results
+			assertEquals(
+				(await Parse.shellExpand(globPatterns[0])).map((p) => $path.resolve(pathToOsStyle(p))),
+				(await Parse.shellExpand(globPatterns[3])).map((p) => $path.resolve(pathToOsStyle(p))),
 			);
 			assertEquals(
-				await Parse.shellExpand(globPatterns[0]),
-				await Parse.shellExpand(globPatterns[4]),
+				(await Parse.shellExpand(globPatterns[0])).map((p) => $path.resolve(pathToOsStyle(p))),
+				(await Parse.shellExpand(globPatterns[4])).map((p) => $path.resolve(pathToOsStyle(p))),
 			);
 		})
 		.finally(() => Deno.chdir(projectPath));
@@ -87,22 +104,28 @@ test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
 		.map(pathToOsStyle);
 	let actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, expected);
+	assertEquals(actual.map(pathToOsStyle), expected.map(pathToOsStyle));
 
 	glob = 'tests/fixtures/dir/[aA]*';
 	actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, expected);
+	assertEquals(actual.map(pathToOsStyle), expected.map(pathToOsStyle));
 
 	glob = 'tests/fixtures/dir/[a-b]*';
 	actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')));
+	assertEquals(
+		actual.map(pathToOsStyle),
+		expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')).map(pathToOsStyle),
+	);
 
 	glob = 'tests/fixtures/dir/[a-bA-B]*';
 	actual = await Parse.shellExpand(glob);
 	console.log({ glob, actual });
-	assertEquals(actual, expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')));
+	assertEquals(
+		actual.map(pathToOsStyle),
+		expected.concat(pathToOsStyle('tests/fixtures/dir/b.ext')).map(pathToOsStyle),
+	);
 });
 
 test('brace/bracket combined expansions', async () => {
@@ -110,13 +133,13 @@ test('brace/bracket combined expansions', async () => {
 	let glob = '.vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}';
 	let results = await shellExpandDuel(glob, { nullglob: true });
 	console.log({ glob, results });
-	assertEquals(results, ['.vscode/cspell.json'].map(pathToOsStyle));
+	assertEquals(results?.map(pathToOsStyle), ['.vscode/cspell.json'].map(pathToOsStyle));
 
 	// spell-checker:disable-next-line
 	glob = '{.vscode,.}/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml}';
 	results = await shellExpandDuel(glob, { nullglob: true });
 	console.log({ glob, results });
-	assertEquals(results, ['.vscode/cspell.json'].map(pathToOsStyle));
+	assertEquals(results?.map(pathToOsStyle), ['.vscode/cspell.json'].map(pathToOsStyle));
 });
 
 const mayBeRootPath = 'c:/windows';
@@ -126,7 +149,7 @@ if ($fs.existsSync(mayBeRootPath)) {
 		console.log({ results, mayBeRootPath });
 		assert(
 			results?.find((s) =>
-				s.toLocaleLowerCase() === pathToOsStyle(mayBeRootPath).toLocaleLowerCase()
+				pathToOsStyle(s).toLocaleLowerCase() === pathToOsStyle(mayBeRootPath).toLocaleLowerCase()
 			) != undefined,
 		);
 	});
