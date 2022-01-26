@@ -349,14 +349,15 @@ function callersFromStackTrace() {
 // export type PathString = string & { _brand: 'PathString' };
 export type PathString = string;
 
+const pathSepRx = new RegExp(/[\\\/]/, 'gms');
 export function pathToOsStyle(p: PathString): PathString {
-	return p.replace(new RegExp($path.SEP_PATTERN, 'g'), $path.SEP) as PathString;
+	return p.replace(pathSepRx, $path.SEP) as PathString;
 }
 export function pathToPosixStyle(p: PathString): PathString {
-	return p.replace(new RegExp($path.SEP_PATTERN, 'g'), '/') as PathString;
+	return p.replace(pathSepRx, '/') as PathString;
 }
 export function pathToWindowsStyle(p: PathString): PathString {
-	return p.replace(new RegExp($path.SEP_PATTERN, 'g'), '\\') as PathString;
+	return p.replace(pathSepRx, '\\') as PathString;
 }
 
 //===
