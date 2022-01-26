@@ -492,7 +492,7 @@ export async function* globExpandIter(
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
-		const resolvedPrefix = $path.resolve(parsed.prefix);
+		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if (await $fs.exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
@@ -553,7 +553,8 @@ export async function* globExpandIter(
 				// console.warn({ e, p });
 				if (p) {
 					found = true;
-					yield $path.join(parsed.prefix, p) + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2021-11-01; rivy] `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					// using string interpolation concatenation to preserve prefix path separators (avoiding `$path.join`)
+					yield `${parsed.prefix}${p}` + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2022-01-25; rivy] interpolated string concatenation is used instead of `$path.join`; b/c `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -584,7 +585,7 @@ export function* globExpandIterSync(
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
-		const resolvedPrefix = $path.resolve(parsed.prefix);
+		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if ($fs.existsSync(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
@@ -623,7 +624,8 @@ export function* globExpandIterSync(
 					);
 				if (p) {
 					found = true;
-					yield $path.join(parsed.prefix, p) + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2021-11-01; rivy] `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					// using string interpolation concatenation to preserve prefix path separators (avoiding `$path.join`)
+					yield `${parsed.prefix}${p}` + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2022-01-25; rivy] interpolated string concatenation is used instead of `$path.join`; b/c `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -715,8 +717,8 @@ export function parseGlob(s: string) {
 		// console.warn('xArgs.parseGlob()', { prefix, glob });
 	}
 
-	const pJoin = $path.join(prefix, glob);
-	const pJoinToPosix = pathToPosix(pJoin);
+	const pJoin = $path.join(pathToOS(prefix), glob);
+	const pJoinToPosix = pathToPOSIX(pJoin);
 	// console.warn('xArgs.parseGlob()',
 	//  {
 	// 	prefix,
