@@ -666,13 +666,17 @@ export function globExpand(
 	return globExpandAsync(glob, options);
 }
 
-function pathToPosix(p: string) {
+// ToDO: [2022-01-25; rivy] move to '$shared'
+function pathToOS(p: string) {
+	return isWinOS ? pathToWinOS(p) : pathToPOSIX(p);
+}
+function pathToPOSIX(p: string) {
 	// ToDO: convert to use of $path.SEP_PATTERN
 	return p.replace(/\\/g, '/');
 }
-// function pathToWindows(p: string) {
-// 	return p.replace(/\//g, '\\');
-// }
+function pathToWinOS(p: string) {
+	return p.replace(/\//g, '\\');
+}
 
 // ToDO: handle long paths, "\\?\...", and UNC paths
 // ref: [1][MSDN - Windows: Naming Files, Paths, and Namespaces] http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx @@ https://archive.today/DgH7i
