@@ -116,8 +116,12 @@ export const shim = (() => {
 	parts.scriptName = undefined;
 	parts.scriptArgs = undefined;
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
-	if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.mainModule)) {
+	if (
+		/* aka `isEnhancedShimTarget` */
+		parts.targetURL && pathEquivalent(parts.targetURL, Deno.mainModule)
+	) {
 		// shim is targeting current process
+		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an enhanced shim
 		parts.runner = parts.ARGV0;
 		parts.runnerArgs = [];
 	} else if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.execPath())) {
@@ -152,7 +156,8 @@ envVarNames.forEach((name) => Deno.env.delete(name));
 
 //===
 
-export const isEnhancedShimTarget = pathEquivalent(shim.targetURL, Deno.mainModule);
+export const isEnhancedShimTarget = shim.targetURL &&
+	pathEquivalent(shim.targetURL, Deno.mainModule);
 
 //===
 
@@ -248,7 +253,7 @@ export const haveSuppliedArgv0 = Boolean(
 // ref: [🐛/🙏🏻? ~ CLI apps need original command line (WinOS)](https://github.com/denoland/deno/issues/9871)
 /** * raw arguments are available for interpretation/expansion OR an "advanced" runner/shell is assumed to have already done correct argument expansion */
 export const haveEnhancedArgs = Boolean(
-	shim.ARGS ?? commandLineParts.scriptArgs ?? underEnhancedShell,
+	isEnhancedShimTarget || shim.scriptArgs || commandLine || underEnhancedShell,
 );
 /** impaired '$0' and/or argument resolution, ie:
 - process name (eg, '$0') is not supplied and must be determined heuristically
@@ -285,14 +290,20 @@ export const warnIfImpaired = (
 export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return await $args.argsAsync(
-		shim.scriptArgs ?? shim.ARGS ?? commandLineParts.scriptArgs ?? Deno.args,
+		shim.scriptArgs ?? (isEnhancedShimTarget ? shim.ARGS : undefined) ?? commandLineParts
+			.scriptArgs ?? Deno
+			.args,
 	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsSync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return $args.argsSync(shim.scriptArgs ?? shim.ARGS ?? commandLineParts.scriptArgs ?? Deno.args); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+	return $args.argsSync(
+		shim.scriptArgs ?? (isEnhancedShimTarget ? shim.ARGS : undefined) ?? commandLineParts
+			.scriptArgs ?? Deno
+			.args,
+	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
