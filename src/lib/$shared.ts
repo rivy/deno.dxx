@@ -590,12 +590,11 @@ const versionURL = intoURL(projectLocations.version, projectURL);
 const projectVersionText = versionURL &&
 	(await (await fetch(versionURL)).text()).split(newline).filter((s) => s)[0];
 
-// `import ...` implementation (requires project-level synchronization tooling)
-// import { VERSION } from './$shared.ts';
+// `import ...` implementation (note: requires project-level synchronization tooling)
 const projectVersionTextViaImport = VERSION;
 
 function v() {
-	return projectVersionText;
+	return projectVersionTextViaImport;
 }
 
 export const $version = { projectVersionText, projectVersionTextViaImport, v };
