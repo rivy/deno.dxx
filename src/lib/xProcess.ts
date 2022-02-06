@@ -40,9 +40,13 @@ const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]js$`;
 const enhancedShell = new RegExp('[\\\/][^\\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
 const removableExtensions = (execPathExtensions ?? []).concat(
 	'.cjs',
+	'.cts',
 	'.mjs',
+	'.mts',
 	'.js',
+	'.jsx',
 	'.ts',
+	'.tsx',
 	'.deno.ts',
 );
 // *
