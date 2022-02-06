@@ -1,7 +1,16 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
 import { /* $colors, */ $fs, $semver, $yargs, YargsArguments } from './lib/$deps.ts';
-import { $version, decode, env, mightUseUnicode } from './lib/$shared.ts';
+import {
+	$version,
+	decode,
+	env,
+	/* mightUseColor, */
+	mightUseUnicode,
+	projectLocations,
+	projectPath,
+	projectURL,
+} from './lib/$shared.ts';
 
 import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
 
@@ -13,7 +22,8 @@ import { $logger, logger as log /* initialized to the suspended state */ } from 
 log.debug(`logging to *STDERR*`);
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
-log.trace({ $me });
+log.trace({ $me, $version });
+log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), main: Deno.mainModule, denoArgs: Deno.args });
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);

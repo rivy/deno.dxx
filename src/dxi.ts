@@ -7,8 +7,11 @@ import {
 	encoder,
 	env,
 	isWinOS,
-	// mightUseColor,
 	mightUseUnicode,
+	projectLocations,
+	projectPath,
+	// mightUseColor,
+	projectURL,
 } from './lib/$shared.ts';
 
 import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
@@ -23,7 +26,8 @@ import * as $spin from './lib/xWait/$mod.ts';
 log.debug(`logging to *STDERR*`);
 
 // $me.warnIfImpaired((msg) => log.warn(msg)); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution from installation via `deno install ...`
-log.trace({ $me });
+log.trace({ $me, $version });
+log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), main: Deno.mainModule, denoArgs: Deno.args });
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);

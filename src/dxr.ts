@@ -7,6 +7,9 @@ import {
 	intoURL,
 	// mightUseColor,
 	mightUseUnicode,
+	projectLocations,
+	projectPath,
+	projectURL,
 } from './lib/$shared.ts';
 
 import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
@@ -21,7 +24,8 @@ import * as $args from './lib/xArgs.ts';
 log.debug(`logging to *STDERR*`);
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
-log.trace({ $me });
+log.trace({ $me, $version });
+log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), main: Deno.mainModule, denoArgs: Deno.args });
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
