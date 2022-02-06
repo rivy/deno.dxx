@@ -3,7 +3,7 @@ name: CICD
 # spell-checker:ignore (acronyms) CICD MSVC musl
 # spell-checker:ignore (env/flags) Awarnings BASHOPTS Ccodegen Coverflow Cpanic RUSTDOCFLAGS RUSTFLAGS Zpanic
 # spell-checker:ignore (jargon) deps dequote SHAs softprops subshell toolchain
-# spell-checker:ignore (names) CodeCOV Cygwin Deno DenoLand MacOS MinGW
+# spell-checker:ignore (names) CodeCOV Cygwin Deno DenoLand GitHack JSdelivr MacOS MinGW
 # spell-checker:ignore (people) Roy Ivy III * rivy
 # spell-checker:ignore (people) Dawid Dziurla * dawidd6 , Roy Ivy III * rivy
 # spell-checker:ignore (shell/tools) choco clippy dmake dpkg esac fakeroot gmake grcov halium lcov libssl mapfile mkdir popd printf pushd rustc rustfmt rustup shopt xargs
@@ -14,12 +14,16 @@ env:
   PROJECT_DESC: 'Enhanced Deno commands'
   PROJECT_AUTH: 'rivy'
   DENO_MIN_VER: '1.0.0'
-  #
+  # * config
   BIN_FILE_GLOB: './source/[^$]*.ts ./source/bin/*.ts ./source/cli/*.ts ./src/[^$]*.ts ./src/bin/*.ts ./src/cli/*.ts'
   LIB_FILE_GLOB: './source/$mod.ts ./source/lib/$mod.ts ./src/lib/$mod.ts ./src/$mod.ts'
   # SRC_FILE_GLOB: './source/**/*.ts ./src/**/*.ts' ## note: double globstar not supported at CLI b/c MacOS includes only bash v3 which doesn't support double globstar
   #
   COMPILE_OPTIONS: '--allow-all --unstable'
+  #
+  CDN_PREFIX: 'https://cdn.jsdelivr.net/gh'
+  #.or.# CDN_PREFIX: 'https://cdn.statically.io/gh'
+  #.or.# CDN_PREFIX: 'https://rawcdn.githack.com'
 
 on: [push, pull_request]
 
@@ -205,7 +209,9 @@ jobs:
             target="${{ steps.vars.outputs.STAGING }}/${{ steps.vars.outputs.PKG_BASENAME }}/bin/${basename}${{ steps.vars.outputs.EXE_suffix }}"
             echo "[ target='${target}' ]"
             # NOTE: a duplicate basename will overwrite any earlier compilation
-            deno compile ${COMPILE_OPTIONS} -o "${target}" "${file}"
+            # * compile from CDN; makes best efforts to maintain project/script context (ie, for `import.meta.url`)
+            deno compile ${COMPILE_OPTIONS} -o "${target}" "${CDN_PREFIX}/${GITHUB_REPOSITORY}@${GITHUB_SHA:0:10}/${file}" ## jsdelivr
+            # deno compile ${COMPILE_OPTIONS} -o "${target}" "${CDN_PREFIX}/${GITHUB_REPOSITORY}/${GITHUB_SHA:0:10}/${file}" ## statically/githack
           done
       - name: Package
         if: steps.vars.outputs.ARTIFACTS
