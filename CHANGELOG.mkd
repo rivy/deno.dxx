@@ -13,9 +13,44 @@
 
 ---
 
-## [0.0.11](https://github.com/rivy/deno.dxx/compare/v0.0.10...0.0.11) <small>(2022-01-25)</small>
+## [v0.0.12](https://github.com/rivy/deno.dxx/compare/v0.0.11...v0.0.12) <small>(2022-02-06)</small>
 
-<details open><summary><small><em>[0.0.11; details]</em></small></summary>
+<details open><summary><small><em>[v0.0.12; details]</em></small></summary>
+
+#### Changes
+
+* change *(version)*: add `versionURL` to $version data object &ac; [`a0a2bd3`](https://github.com/rivy/deno.dxx/commit/a0a2bd305899044063f2e2990f3f9775e181d526)
+* change *(xProcess)*: add more common JS/TS extensions for automatic extension removal &ac; [`3a68167`](https://github.com/rivy/deno.dxx/commit/3a68167d74a285c80bc44c21ec01164923e401f3)
+
+#### Fixes
+
+* fix *(version)*: revise version fetch method to return correct text (or undefined) &ac; [`cb3bc12`](https://github.com/rivy/deno.dxx/commit/cb3bc129ff706e89ba36e8444dbbc5e3868f4c41)
+* fix *(version)*: revise to directly imported VERSION instead of `fetch(...)` &ac; [`fb0ba70`](https://github.com/rivy/deno.dxx/commit/fb0ba706e8b72c6aad327d21c6758af8c2c9e52f)
+* fix *(xProcess)*: correct calculations of script-related variables and argument production &ac; [`3030eb6`](https://github.com/rivy/deno.dxx/commit/3030eb673b17f06cf2010ba29cc31b7a0f9fcfaf)
+
+#### Documentation
+
+* docs ~ ($shared) add notation about `projectURL` instability when compiled &ac; [`f0c9e6d`](https://github.com/rivy/deno.dxx/commit/f0c9e6d85825d467771d76b433d2a4ec95df59c5)
+
+#### Maintenance
+
+* maint *(CICD)*: revise `REF_SHA` (improved name, expanded size) &ac; [`b40b65b`](https://github.com/rivy/deno.dxx/commit/b40b65b5500067066b489372719af5c56ddc0c6e)
+* maint *(CICD)*: compile from CDN to preserve project context &ac; [`0af5e45`](https://github.com/rivy/deno.dxx/commit/0af5e45e835bcbff87b333990dbfce5bfda11bfc)
+* maint *(CICD)*: fix style/spellcheck &ac; [`fc2292c`](https://github.com/rivy/deno.dxx/commit/fc2292cb601132bcba6290b62916b75b35613325)
+* maint *(CICD)*: merge style tests into sub-jobs under 'Style' &ac; [`23c942c`](https://github.com/rivy/deno.dxx/commit/23c942c00a62db813ff7ca0fc68152514c37262a)
+* maint *(CICD)*: separate 'Publish' to ensure passing 'Style' and 'Build' before publishing &ac; [`7498f69`](https://github.com/rivy/deno.dxx/commit/7498f693d9b1414b8760e394fbe289beecc8bd47)
+* maint *(CICD)*: combine 'Test' and 'Publish' job workflows &ac; [`82ec19f`](https://github.com/rivy/deno.dxx/commit/82ec19fee22345b5ef1c65c128729067ba24177a)
+* maint *(CICD)*: expand CICD, add 'Build' and 'Publish' steps &ac; [`3e7c065`](https://github.com/rivy/deno.dxx/commit/3e7c065e0d46f7e52c2ecf4273b8fd9927fc7504)
+* maint *(dev)*: revise DPrint configuration (avoid examining coverage data) &ac; [`07c6ddb`](https://github.com/rivy/deno.dxx/commit/07c6ddb81d3370deca96e2f7faaa20a72fb29ba4)
+* maint *(dev)*: add gitignore &ac; [`55c29de`](https://github.com/rivy/deno.dxx/commit/55c29dedf8c7d030fcaa234c1a1b181eedce4dee)
+
+</details>
+
+---
+
+## [v0.0.11](https://github.com/rivy/deno.dxx/compare/v0.0.10...v0.0.11) <small>(2022-01-25)</small>
+
+<details><summary><small><em>[v0.0.11; details]</em></small></summary>
 
 #### Fixes
 

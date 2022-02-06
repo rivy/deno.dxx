@@ -13,7 +13,7 @@ import * as $consoleSize from './consoleSize.ts';
 //===
 
 export const projectName: string | undefined = 'dxx';
-export const VERSION = '0.0.11';
+export const VERSION = '0.0.12';
 
 // note: `projectURL` has some inherent instability for compiled scripts; this can be mitigated by using a CDN source for the compilation (eg, JSdelivr.net, Statically.io, GitHack.com)
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
