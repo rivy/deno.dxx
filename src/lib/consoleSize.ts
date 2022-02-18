@@ -89,7 +89,7 @@ export function consoleSizeViaDenoAPI(
 	const denoConsoleSize = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
 	if (denoConsoleSize == undefined) return Promise.resolve(undefined);
 
-	let size: ConsoleSize | undefined;
+	let size: ConsoleSize | undefined | Promise<ConsoleSize | undefined>;
 	try {
 		// * `denoConsoleSize()` throws if rid is redirected
 		size = denoConsoleSize?.(rid);
@@ -98,7 +98,7 @@ export function consoleSizeViaDenoAPI(
 	}
 	let fallbackRID;
 	while (size == undefined && (fallbackRID = options_.fallbackRIDs.shift()) != undefined) {
-		// console.warn('fallback to ...', fallbackRID)
+		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
 		try {
 			// * `denoConsoleSize()` throws if rid is redirected
 			size = denoConsoleSize?.(fallbackRID);
@@ -107,18 +107,22 @@ export function consoleSizeViaDenoAPI(
 		}
 	}
 
-	if ((size == undefined) && options.consoleFileFallback) {
+	if ((size == undefined) && options_.consoleFileFallback) {
+		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
+		// console.warn({ fallbackFileName });
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
-		Deno
-			.open(isWinOS ? 'CONOUT$' : '/dev/tty')
-			.then((file) => {
+		size = Deno.open(fallbackFileName).then((file) =>
+			(() => {
 				try {
-					size = denoConsoleSize?.(file.rid);
+					return denoConsoleSize?.(file.rid);
+				} catch (_) {
+					// swallow errors
 				} finally {
-					file.close();
+					Deno.close(file.rid);
 				}
-			})
-			.catch((_) => size = undefined);
+				return undefined;
+			})()
+		);
 	}
 
 	return Promise.resolve(size);
