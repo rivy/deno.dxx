@@ -19,6 +19,30 @@ const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize>();
 
 //===
 
+function denoConsoleSizeNT(rid: number): ConsoleSize | undefined {
+	// no-throw `Deno.consoleSize(..)`
+	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
+	// deno-lint-ignore no-explicit-any
+	const fn = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
+	try {
+		// * `Deno.consoleSize()` throws if rid is redirected
+		return fn?.(rid);
+	} catch {
+		return undefined;
+	}
+}
+
+function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions) {
+	// no-throw `Deno.openSync(..)`
+	try {
+		return Deno.openSync(path, options);
+	} catch {
+		return undefined;
+	}
+}
+
+//===
+
 export const consoleSize = consoleSizeAsync;
 
 //=== * sync
@@ -46,47 +70,23 @@ export function consoleSizeViaDenoAPI(
 		useCache: true,
 		...options_,
 	};
-	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
-	// deno-lint-ignore no-explicit-any
-	const denoConsoleSize = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
-	if (denoConsoleSize == undefined) return undefined;
+	if (denoConsoleSizeNT == undefined) return undefined;
 
-	let size: ConsoleSize | undefined;
-	try {
-		// * `denoConsoleSize()` throws if rid is redirected
-		size = denoConsoleSize?.(rid);
-	} catch {
-		size = undefined;
-	}
+	let size = denoConsoleSizeNT(rid);
+
 	let fallbackRID;
 	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
 		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
-		try {
-			// * `denoConsoleSize()` throws if rid is redirected
-			size = denoConsoleSize?.(fallbackRID);
-		} catch {
-			size = undefined;
-		}
+		size = denoConsoleSizeNT(fallbackRID);
 	}
 
 	if ((size == undefined) && options.consoleFileFallback) {
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
-		try {
-			const file = (() => {
-				try {
-					return Deno.openSync(fallbackFileName);
-				} catch {
-					return undefined;
-				}
-			})();
-			// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
-			// * `denoConsoleSize()` throws if rid is redirected
-			size = file && denoConsoleSize?.(file.rid);
-			file && Deno.close(file.rid);
-		} catch {
-			size = undefined;
-		}
+		const file = denoOpenSyncNT(fallbackFileName);
+		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
+		size = file && denoConsoleSizeNT(file.rid);
+		file && Deno.close(file.rid);
 	}
 
 	return size;
