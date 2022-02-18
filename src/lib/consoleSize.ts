@@ -18,26 +18,26 @@ const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize>();
 
 export function consoleSize(
 	rid: number = Deno.stdout.rid,
-	options: Partial<ConsoleSizeOptions> = {},
+	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
-	const options_ = {
+	const options = {
 		fallbackRIDs: [Deno.stderr.rid],
 		consoleFileFallback: true,
 		useCache: true,
-		...options,
+		...options_,
 	};
 	if (options.useCache) {
-		const memo = consoleSizeCache.get(JSON.stringify({ rid, options_ }));
+		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
 		if (memo != undefined) return Promise.resolve(memo);
 	}
 	// attempt fast API first, with fallback to slower shell scripts
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
 	// ~ 0.5 ms for WinOS or POSIX (for open, un-redirected STDOUT or STDERR, using the fast [Deno] API)
 	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
-	const promise = consoleSizeViaDenoAPI(rid, options_)
+	const promise = consoleSizeViaDenoAPI(rid, options)
 		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
 		.then((size) => {
-			consoleSizeCache.set(JSON.stringify({ rid, options_ }), size);
+			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 			return size;
 		})
 		.catch((_) =>
@@ -63,7 +63,7 @@ export function consoleSize(
 					),
 				])
 				.then((size) => {
-					consoleSizeCache.set(JSON.stringify({ rid, options_ }), size);
+					consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 					return size;
 				})
 				.catch((_) => undefined)
@@ -76,13 +76,13 @@ export function consoleSize(
 
 export function consoleSizeViaDenoAPI(
 	rid: number = Deno.stdout.rid,
-	options: Partial<ConsoleSizeOptions> = {},
+	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
-	const options_ = {
+	const options = {
 		fallbackRIDs: [Deno.stderr.rid],
 		consoleFileFallback: true,
 		useCache: true,
-		...options,
+		...options_,
 	};
 	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
@@ -97,7 +97,7 @@ export function consoleSizeViaDenoAPI(
 		size = undefined;
 	}
 	let fallbackRID;
-	while (size == undefined && (fallbackRID = options_.fallbackRIDs.shift()) != undefined) {
+	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
 		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
 		try {
 			// * `denoConsoleSize()` throws if rid is redirected
@@ -107,7 +107,7 @@ export function consoleSizeViaDenoAPI(
 		}
 	}
 
-	if ((size == undefined) && options_.consoleFileFallback) {
+	if ((size == undefined) && options.consoleFileFallback) {
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
 		// console.warn({ fallbackFileName });
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
