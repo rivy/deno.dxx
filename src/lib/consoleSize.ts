@@ -17,7 +17,86 @@ export type ConsoleSizeMemoKey = string;
 
 const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize>();
 
-export function consoleSize(
+//===
+
+export const consoleSize = consoleSizeAsync;
+
+//=== * sync
+
+// * `consoleSizeSync()` requires the `--unstable` flag to succeed; b/c `Deno.consoleSize()` is unstable API (as of Deno v1.19.0, 2022-02-17)
+
+export function consoleSizeSync(
+	rid: number = Deno.stdout.rid,
+	options: Partial<ConsoleSizeOptions> = {},
+): ConsoleSize | undefined {
+	if (options.useCache) {
+		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
+		if (memo != undefined) return memo;
+	}
+	return consoleSizeViaDenoAPI(rid, options);
+}
+
+export function consoleSizeViaDenoAPI(
+	rid: number = Deno.stdout.rid,
+	options_: Partial<ConsoleSizeOptions> = {},
+): ConsoleSize | undefined {
+	const options = {
+		fallbackRIDs: [Deno.stderr.rid],
+		consoleFileFallback: true,
+		useCache: true,
+		...options_,
+	};
+	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
+	// deno-lint-ignore no-explicit-any
+	const denoConsoleSize = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
+	if (denoConsoleSize == undefined) return undefined;
+
+	let size: ConsoleSize | undefined;
+	try {
+		// * `denoConsoleSize()` throws if rid is redirected
+		size = denoConsoleSize?.(rid);
+	} catch {
+		size = undefined;
+	}
+	let fallbackRID;
+	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
+		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
+		try {
+			// * `denoConsoleSize()` throws if rid is redirected
+			size = denoConsoleSize?.(fallbackRID);
+		} catch {
+			size = undefined;
+		}
+	}
+
+	if ((size == undefined) && options.consoleFileFallback) {
+		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
+		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
+		try {
+			const file = (() => {
+				try {
+					return Deno.openSync(fallbackFileName);
+				} catch {
+					return undefined;
+				}
+			})();
+			// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
+			// * `denoConsoleSize()` throws if rid is redirected
+			size = file && denoConsoleSize?.(file.rid);
+			file && Deno.close(file.rid);
+		} catch {
+			size = undefined;
+		}
+	}
+
+	return size;
+}
+
+//=== * async
+
+// * `consoleSizeAsync()` can succeed without the `--unstable` flag (but requires async to enable falling back to shell executable output when `Deno.consoleSize()` is non-functional)
+
+export function consoleSizeAsync(
 	rid: number = Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
@@ -35,7 +114,8 @@ export function consoleSize(
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
 	// ~ 0.5 ms for WinOS or POSIX (for open, un-redirected STDOUT or STDERR, using the fast [Deno] API)
 	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
-	const promise = consoleSizeViaDenoAPI(rid, options)
+	const promise = Promise
+		.resolve(consoleSizeViaDenoAPI(rid, options))
 		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
 		.then((size) => {
 			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
@@ -71,62 +151,6 @@ export function consoleSize(
 		);
 
 	return promise;
-}
-
-//===
-
-export function consoleSizeViaDenoAPI(
-	rid: number = Deno.stdout.rid,
-	options_: Partial<ConsoleSizeOptions> = {},
-): Promise<ConsoleSize | undefined> {
-	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
-		consoleFileFallback: true,
-		useCache: true,
-		...options_,
-	};
-	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
-	// deno-lint-ignore no-explicit-any
-	const denoConsoleSize = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
-	if (denoConsoleSize == undefined) return Promise.resolve(undefined);
-
-	let size: ConsoleSize | undefined | Promise<ConsoleSize | undefined>;
-	try {
-		// * `denoConsoleSize()` throws if rid is redirected
-		size = denoConsoleSize?.(rid);
-	} catch {
-		size = undefined;
-	}
-	let fallbackRID;
-	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
-		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
-		try {
-			// * `denoConsoleSize()` throws if rid is redirected
-			size = denoConsoleSize?.(fallbackRID);
-		} catch {
-			size = undefined;
-		}
-	}
-
-	if ((size == undefined) && options.consoleFileFallback) {
-		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
-		// console.warn({ fallbackFileName });
-		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
-		size = Deno.open(fallbackFileName).then((file) =>
-			(() => {
-				try {
-					return denoConsoleSize?.(file.rid);
-				} catch (_) {
-					// swallow errors
-				} finally {
-					Deno.close(file.rid);
-				}
-				return undefined;
-			})()
-		);
-	}
-
-	return Promise.resolve(size);
 }
 
 export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
