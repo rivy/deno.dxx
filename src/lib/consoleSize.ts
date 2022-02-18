@@ -2,7 +2,8 @@
 // spell-checker:ignore (shell) stty tput
 // spell-checker:ignore (shell/CMD) CONOUT
 
-import { decode } from './$shared.ts';
+export const decoder = new TextDecoder(); // default == 'utf=8'
+export const decode = (input?: Uint8Array): string => decoder.decode(input);
 
 const isWinOS = Deno.build.os === 'windows';
 
