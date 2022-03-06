@@ -1,6 +1,15 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
-import { $lodash as _, $path, $yargs, YargsArguments } from './lib/$deps.ts';
+import {
+	$lodash as _,
+	$path,
+	$yargs,
+	mergeReadableStreams,
+	readableStreamFromReader,
+	readAll,
+	readerFromStreamReader,
+	YargsArguments,
+} from './lib/$deps.ts';
 import {
 	$version,
 	decoder,
@@ -250,6 +259,67 @@ const spinnerForInstall = $spin
 	.start();
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// ref: <https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultController>
+// ref: <https://deno.land/std@0.128.0/streams/merge.ts>
+
+// import { deferred } from 'https://deno.land/std@0.128.0/async/deferred.ts';
+// /**
+//  * Merge multiple streams into a single one, not taking order into account.
+//  * If a stream ends before other ones, the other will continue adding data,
+//  * and the finished one will not add any more data.
+//  */
+// export function mergeReadableStreams<T>(...streams: ReadableStream<T>[]): ReadableStream<T> {
+// 	const resolvePromises = streams.map(() => deferred<void>());
+// 	return new ReadableStream<T>({
+// 		start(controller) {
+// 			Promise.all(resolvePromises).then(() => {
+// 				controller.close();
+// 			});
+// 			try {
+// 				for (const [key, stream] of Object.entries(streams)) {
+// 					(async () => {
+// 						for await (const data of stream) controller.enqueue(data);
+// 						resolvePromises[+key].resolve();
+// 					})();
+// 				}
+// 			} catch (e) {
+// 				controller.error(e);
+// 			}
+// 		},
+// 	});
+// }
+
+// ref: <https://deno.land/std@0.128.0/streams/conversion.ts>
+
+// import { Buffer } from 'https://deno.land/std@0.128.0/io/buffer.ts';
+// /** Read Reader `r` until EOF (`null`) and resolve to the content as
+//  * Uint8Array`.
+//  *
+//  * ```ts
+//  * import { Buffer } from "../io/buffer.ts";
+//  * import { readAll } from "./conversion.ts";
+//  *
+//  * // Example from stdin
+//  * const stdinContent = await readAll(Deno.stdin);
+//  *
+//  * // Example from file
+//  * const file = await Deno.open("my_file.txt", {read: true});
+//  * const myFileContent = await readAll(file);
+//  * Deno.close(file.rid);
+//  *
+//  * // Example from buffer
+//  * const myData = new Uint8Array(100);
+//  * // ... fill myData array with data
+//  * const reader = new Buffer(myData.buffer);
+//  * const bufferContent = await readAll(reader);
+//  * ```
+//  */
+// export async function readAll(r: Deno.Reader): Promise<Uint8Array> {
+// 	const buf = new Buffer();
+// 	await buf.readFrom(r);
+// 	return buf.bytes();
+// }
+
 const denoArgs = ['install', ...delegatedArgs].filter(Boolean);
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoArgs, ...args],
@@ -259,20 +329,24 @@ const runOptions: Deno.RunOptions = {
 };
 await log.debug({ runOptions });
 const process = Deno.run(runOptions);
-const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
-const outStd = decoder.decode(await process.output()).replace(
-	/^(\S+)(?=\s+Success)/gmsu,
-	$spin.symbolStrings.emoji.success,
+const mergedOutput = mergeReadableStreams(
+	readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),
+	readableStreamFromReader(process.stdout || { read: (_) => Promise.resolve(null) }),
 );
-const outErr = decoder.decode(await process.stderrOutput());
+const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
+const out =
+	(await readAll(readerFromStreamReader(mergedOutput.getReader())).then((arr) =>
+		decoder.decode(arr)
+	))
+		?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
+
 if (status.success) {
 	spinnerForInstall.succeed(spinnerInstallTextBase + ' done');
 } else spinnerForInstall.fail(spinnerInstallTextBase + ' failed');
-Deno.stdout.writeSync(encoder.encode(outStd));
-Deno.stdout.writeSync(encoder.encode(outErr));
+Deno.stdout.writeSync(encoder.encode(out));
 
 const shimBinPath = (() => {
-	const m = outStd.match(/^\s*(.*[.](?:bat|cmd))\s*$/mu);
+	const m = out.match(/^\s*(.*[.](?:bat|cmd))\s*$/mu);
 	if (m) return m[1];
 	return '';
 })();

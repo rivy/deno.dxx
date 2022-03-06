@@ -1,5 +1,11 @@
 export * as $colors from 'https://deno.land/std@0.117.0/fmt/colors.ts';
 export * as $path from 'https://deno.land/std@0.117.0/path/mod.ts';
+export {
+	readableStreamFromReader,
+	readAll,
+	readerFromStreamReader,
+} from 'https://deno.land/std@0.128.0/streams/conversion.ts';
+export { mergeReadableStreams } from 'https://deno.land/std@0.128.0/streams/merge.ts';
 
 // * import needed stable portions of `std/fs`
 import { exists, existsSync } from 'https://deno.land/std@0.117.0/fs/exists.ts';
