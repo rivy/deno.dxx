@@ -4,7 +4,6 @@ name: CICD
 # spell-checker:ignore (env/flags) Awarnings BASHOPTS Ccodegen Coverflow Cpanic RUSTDOCFLAGS RUSTFLAGS Zpanic
 # spell-checker:ignore (jargon) deps dequote SHAs softprops subshell toolchain
 # spell-checker:ignore (names) CodeCOV Cygwin Deno DenoLand GitHack JSdelivr MacOS MinGW
-# spell-checker:ignore (people) Roy Ivy III * rivy
 # spell-checker:ignore (people) Dawid Dziurla * dawidd6 , Roy Ivy III * rivy
 # spell-checker:ignore (shell/tools) choco clippy dmake dpkg esac fakeroot gmake grcov halium lcov libssl mapfile mkdir popd printf pushd rustc rustfmt rustup shopt xargs
 # spell-checker:ignore (misc) aarch alnum armhf bindir busytest coreutils gnueabihf issuecomment maint nullglob onexitbegin onexitend pell runtest tempfile testsuite uutils
