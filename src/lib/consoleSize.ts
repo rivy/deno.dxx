@@ -15,7 +15,7 @@ export type ConsoleSizeOptions = {
 };
 export type ConsoleSizeMemoKey = string;
 
-const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize>();
+const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
 
 //===
 
@@ -51,13 +51,21 @@ export const consoleSize = consoleSizeAsync;
 
 export function consoleSizeSync(
 	rid: number = Deno.stdout.rid,
-	options: Partial<ConsoleSizeOptions> = {},
+	options_: Partial<ConsoleSizeOptions> = {},
 ): ConsoleSize | undefined {
+	const options = {
+		fallbackRIDs: [Deno.stderr.rid],
+		consoleFileFallback: true,
+		useCache: true,
+		...options_,
+	};
 	if (options.useCache) {
 		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
 		if (memo != undefined) return memo;
 	}
-	return consoleSizeViaDenoAPI(rid, options);
+	const size = consoleSizeViaDenoAPI(rid, options);
+	consoleSizeCache.set(JSON.stringify({ rid, options }), size);
+	return size;
 }
 
 export function consoleSizeViaDenoAPI(
@@ -116,11 +124,11 @@ export function consoleSizeAsync(
 	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
 	const promise = Promise
 		.resolve(consoleSizeViaDenoAPI(rid, options))
-		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
 		.then((size) => {
 			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 			return size;
 		})
+		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
 		.catch((_) =>
 			// shell script fallbacks
 			// ~ 25 ms for WinOS ; ~ 75 ms for POSIX
