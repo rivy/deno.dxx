@@ -70,14 +70,9 @@ export function consoleSizeSync(
 
 export function consoleSizeViaDenoAPI(
 	rid: number = Deno.stdout.rid,
-	options_: Partial<ConsoleSizeOptions> = {},
+	options_: Partial<Omit<ConsoleSizeOptions, 'useCache'>> = {},
 ): ConsoleSize | undefined {
-	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
-		consoleFileFallback: true,
-		useCache: true,
-		...options_,
-	};
+	const options = { fallbackRIDs: [Deno.stderr.rid], consoleFileFallback: true, ...options_ };
 	if (denoConsoleSizeNT == undefined) return undefined;
 
 	let size = denoConsoleSizeNT(rid);
