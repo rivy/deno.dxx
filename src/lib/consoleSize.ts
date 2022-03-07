@@ -19,13 +19,13 @@ const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
 
 //===
 
-function denoConsoleSizeNT(rid: number): ConsoleSize | undefined {
+function denoConsoleSizeNT(rid: number) {
 	// no-throw `Deno.consoleSize(..)`
 	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
 	const fn = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
 	try {
-		// * `Deno.consoleSize()` throws if rid is redirected
+		// * `Deno.consoleSize()` throws if rid is non-TTY/redirected
 		return fn?.(rid);
 	} catch {
 		return undefined;
