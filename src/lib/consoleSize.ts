@@ -9,8 +9,8 @@ const isWinOS = Deno.build.os === 'windows';
 
 export type ConsoleSize = { columns: number; rows: number };
 export type ConsoleSizeOptions = {
-	fallbackRIDs: number[];
 	consoleFileFallback: boolean;
+	fallbackRIDs: number[];
 	useCache: boolean;
 };
 export type ConsoleSizeMemoKey = string;
