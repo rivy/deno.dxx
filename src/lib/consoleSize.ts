@@ -2,36 +2,57 @@
 // spell-checker:ignore (shell) stty tput
 // spell-checker:ignore (shell/CMD) CONOUT
 
-export const decoder = new TextDecoder(); // default == 'utf=8'
+export const decoder = new TextDecoder(); // default == 'utf-8'
 export const decode = (input?: Uint8Array): string => decoder.decode(input);
 
 const isWinOS = Deno.build.os === 'windows';
 
+type ConsoleSizeMemoKey = string;
+const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
+
+//===
+
 export type ConsoleSize = { columns: number; rows: number };
+
+/** Options for ConsoleSize functions ...
+ * * `consoleFileFallback` ~ fallback to use of a "console" file if `rid` and fallback(s) fail ; default = true
+ * * `fallbackRIDs` ~ list of fallback resource IDs if initial `rid` fails ; default = `Deno.stderr.rid`
+ * * `useCache` ~ cache/memoize prior values ; default = true
+ */
 export type ConsoleSizeOptions = {
 	consoleFileFallback: boolean;
 	fallbackRIDs: number[];
 	useCache: boolean;
 };
-export type ConsoleSizeMemoKey = string;
-
-const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
 
 //===
 
+/** Get the size of the console used by `rid` as columns/rows.
+ * * _`no-throw`_ function (returns `undefined` upon any error [or missing `Deno.consoleSize()`])
+ *
+ * ```ts
+ * const { columns, rows } = denoConsoleSizeNT(Deno.stdout.rid);
+ * ```
+ *
+ * @param rid ~ resource ID
+ */
 function denoConsoleSizeNT(rid: number) {
 	// no-throw `Deno.consoleSize(..)`
 	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
 	const fn = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
 	try {
-		// * `Deno.consoleSize()` throws if rid is non-TTY/redirected
+		// * `Deno.consoleSize()` throws if rid is non-TTY (including redirected streams)
 		return fn?.(rid);
 	} catch {
 		return undefined;
 	}
 }
 
+/** Open a file specified by `path`, using `options`.
+ * * _`no-throw`_ function (returns `undefined` upon any error)
+ * @returns an instance of `Deno.FsFile`
+ */
 function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions) {
 	// no-throw `Deno.openSync(..)`
 	try {
@@ -43,12 +64,32 @@ function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions) {
 
 //===
 
-export const consoleSize = consoleSizeAsync;
+/** Get the size of the console used by `rid` as columns/rows, using `options`.
+ * * _async_
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSize(Deno.stdout.rid, {...});
+ * ```
+ *
+ * @param rid ~ resource ID
+ */
+export const consoleSize = consoleSizeAsync; // default to fully functional `consoleSizeAsync()`
 
 //=== * sync
 
-// * `consoleSizeSync()` requires the `--unstable` flag to succeed; b/c `Deno.consoleSize()` is unstable API (as of Deno v1.19.0, 2022-02-17)
+// * `consoleSizeSync()` requires the Deno `--unstable` flag to succeed; b/c `Deno.consoleSize()` is unstable API (as of Deno v1.19.0, 2022-02-17)
 
+// consoleSizeSync(rid, options)
+/** Get the size of the console used by `rid` as columns/rows, using `options`.
+ * * _unstable_ ~ requires the Deno `--unstable` flag for successful resolution (b/c the used `Deno.consoleSize()` function is unstable API [as of Deno v1.19.0, 2022-02-17])
+ * * results are cached; cache may be disabled via the `{ useCache: false }` option
+ *
+ * ```ts
+ * const { columns, rows } = consoleSizeSync(Deno.stdout.rid, {...});
+ * ```
+ *
+ * @param rid ~ resource ID
+ */
 export function consoleSizeSync(
 	rid: number = Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
@@ -68,6 +109,16 @@ export function consoleSizeSync(
 	return size;
 }
 
+// consoleSizeViaDenoAPI(rid, options)
+/** Get the size of the console used by `rid` as columns/rows, using `options`, via the Deno API.
+ * * _unstable_ ~ requires the Deno `--unstable` flag for successful resolution (b/c the used `Deno.consoleSize()` function is unstable API [as of Deno v1.19.0, 2022-02-17])
+ *
+ * ```ts
+ * const { columns, rows } = consoleSizeViaDenoAPI(Deno.stdout.rid, {...});
+ * ```
+ *
+ * @param rid ~ resource ID
+ */
 export function consoleSizeViaDenoAPI(
 	rid: number = Deno.stdout.rid,
 	options_: Partial<Omit<ConsoleSizeOptions, 'useCache'>> = {},
@@ -84,8 +135,9 @@ export function consoleSizeViaDenoAPI(
 	}
 
 	if ((size == undefined) && options.consoleFileFallback) {
-		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
+		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
+		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
 		const file = denoOpenSyncNT(fallbackFileName);
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
 		size = file && denoConsoleSizeNT(file.rid);
@@ -97,8 +149,20 @@ export function consoleSizeViaDenoAPI(
 
 //=== * async
 
-// * `consoleSizeAsync()` can succeed without the `--unstable` flag (but requires async to enable falling back to shell executable output when `Deno.consoleSize()` is non-functional)
+// * `consoleSizeAsync()` can succeed without the Deno `--unstable` flag (but requires async to enable falling back to shell executable output when `Deno.consoleSize()` is missing/non-functional)
 
+// consoleSizeAsync(rid, options)
+/** Get the size of the console used by `rid` as columns/rows, using `options`.
+ * * _async_
+ * * results are cached; cache may be disabled via the `{ useCache: false }` option
+ * * a fast synchronous method (with fallback to multiple racing asynchronous methods) is used for a robust, yet quick, result
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeAsync(Deno.stdout.rid, {...});
+ * ```
+ *
+ * @param rid ~ resource ID
+ */
 export function consoleSizeAsync(
 	rid: number = Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
@@ -156,6 +220,13 @@ export function consoleSizeAsync(
 	return promise;
 }
 
+// consoleSizeViaMode()
+/** Get the size of the console as columns/rows, using the `mode` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaMode();
+ * ```
+ */
 export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ~ 25 ms (WinOS-only)
 	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
@@ -200,6 +271,13 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	return promise;
 }
 
+// consoleSizeViaPowerShell()
+/** Get the size of the console as columns/rows, using `PowerShell`.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaPowerShell();
+ * ```
+ */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
 	const output = (() => {
@@ -234,6 +312,13 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	return promise;
 }
 
+// consoleSizeViaSTTY()
+/** Get the size of the console as columns/rows, using the `stty` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaSTTY();
+ * ```
+ */
 export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
 	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
@@ -262,6 +347,13 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	return promise;
 }
 
+// consoleSizeViaTPUT()
+/** Get the size of the console as columns/rows, using the `tput` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaTPUT();
+ * ```
+ */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two system shell calls
 	const colsOutput = (() => {
