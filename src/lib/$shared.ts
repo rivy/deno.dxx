@@ -375,6 +375,13 @@ export function durationText(tag: string): string | undefined {
 export function isWSL() {
 	// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain> @@ <https://archive.is/KWV5a>
 	// * POSIX-like and contains one of the WSL signal environment variables
+	// FixME!: environment variables are *not* preserved across side-logins (ie, `sudo -i` causes them to disappear)
+	// ** likely need to test uname, version, and/or files ... ref: <https://github.com/microsoft/WSL/issues/4555>
+	// ** shortcut without touching the file system if the environment variable(s) are present
+	// NOTE, in general, for better user usability... (ref: <https://superuser.com/questions/232231/how-do-i-make-sudo-preserve-my-environment-variables>)
+	// * add `sudo echo 'Default:%sudo env_keep+="IS_WSL WSLENV WSL_*"' > /etc/sudoers.d/WSL-env_keep` for WSL
+	// * add `sudo echo 'Default:%sudo env_keep+="WT_*"' > /etc/sudoers.d/WT-env_keep` for MS Windows Terminal variables
+	// * (as an aside...) add `sudo echo 'Default:%sudo env_keep+="LANG LC_*"' > /etc/sudoers.d/SSH-env_keep` for SSH
 	return (!isWinOS) &&
 		(Boolean(Deno.env.get('IS_WSL')) || Boolean(Deno.env.get('WSL_DISTRO_NAME')));
 }
