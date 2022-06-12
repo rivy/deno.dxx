@@ -840,7 +840,7 @@ export async function* take<
 	for (; n > 0; n--) {
 		const next = await it.next();
 		if (!next.done) {
-			yield next.value;
+			yield next.value as TValue;
 		}
 	}
 }
@@ -853,7 +853,7 @@ export function* takeSync<
 	for (; n > 0; n--) {
 		const next = it.next();
 		if (!next.done) {
-			yield next.value;
+			yield next.value as TValue;
 		}
 	}
 }
@@ -867,7 +867,7 @@ export async function* takeKV<
 	for (; n > 0; n--) {
 		const next = await it.next();
 		if (!next.done) {
-			yield next.value;
+			yield next.value as [TKey, TValue];
 		}
 	}
 }
@@ -880,7 +880,7 @@ export function* takeKVSync<
 	for (; n > 0; n--) {
 		const next = it.next();
 		if (!next.done) {
-			yield next.value;
+			yield next.value as [TKey, TValue];
 		}
 	}
 }
@@ -896,7 +896,7 @@ export async function* drop<
 	const it = iterate(en);
 	for await (const e of it) {
 		if (n <= 0) {
-			yield e;
+			yield e as TValue;
 		}
 		n--;
 	}
@@ -909,7 +909,7 @@ export function* dropSync<
 	const it = iterateSync(en);
 	for (const e of it) {
 		if (n <= 0) {
-			yield e;
+			yield e as TValue;
 		}
 		n--;
 	}
@@ -953,7 +953,7 @@ export async function* slice<
 		if (idx < start) {
 			idx++;
 		} else if (idx < end) {
-			yield e;
+			yield e as TValue;
 		}
 	}
 }
@@ -968,7 +968,7 @@ export function* sliceSync<
 		if (idx < start) {
 			idx++;
 		} else if (idx < end) {
-			yield e;
+			yield e as TValue;
 		}
 	}
 }
@@ -1082,7 +1082,7 @@ export async function head<T extends Enumerable<T>, TKey = unknown, TValue = Enu
 ): Promise<TValue | undefined> {
 	const it = iterate(en);
 	const next = await it.next();
-	return next.done ? undefined : next.value;
+	return next.done ? undefined : next.value as TValue;
 }
 export function headSync<
 	T extends EnumerableSync<T>,
@@ -1091,7 +1091,7 @@ export function headSync<
 >(en: T): TValue | undefined {
 	const it = iterateSync(en);
 	const next = it.next();
-	return next.done ? undefined : next.value;
+	return next.done ? undefined : next.value as TValue;
 }
 
 export async function headKV<
@@ -1101,7 +1101,7 @@ export async function headKV<
 >(en: T): Promise<[TKey, TValue] | undefined> {
 	const it = enumerate<T, TKey, TValue>(en);
 	const next = await it.next();
-	return next.done ? undefined : next.value;
+	return next.done ? undefined : next.value as [TKey, TValue];
 }
 export function headKVSync<
 	T extends EnumerableSync<T>,
@@ -1110,7 +1110,7 @@ export function headKVSync<
 >(en: T): [TKey, TValue] | undefined {
 	const it = enumerateSync<T, TKey, TValue>(en);
 	const next = it.next();
-	return next.done ? undefined : next.value;
+	return next.done ? undefined : next.value as [TKey, TValue];
 }
 
 export async function* tail<T extends Enumerable<T>>(en: T) {
@@ -1146,10 +1146,10 @@ export async function last<T extends Enumerable<T>, TKey = unknown, TValue = Enu
 ): Promise<TValue | undefined> {
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
-		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) : undefined;
+		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) as TValue : undefined;
 	}
 	const arr = await collect(list);
-	return arr.length > 0 ? arr[arr.length - 1] : undefined;
+	return arr.length > 0 ? arr[arr.length - 1] as TValue : undefined;
 }
 export function lastSync<
 	T extends EnumerableSync<T>,
@@ -1158,10 +1158,10 @@ export function lastSync<
 >(list: T): TValue | undefined {
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
-		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) : undefined;
+		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) as TValue : undefined;
 	}
 	const arr = collectSync(list);
-	return arr.length > 0 ? arr[arr.length - 1] : undefined;
+	return arr.length > 0 ? arr[arr.length - 1] as TValue : undefined;
 }
 
 export async function lastKV<
@@ -1171,7 +1171,9 @@ export async function lastKV<
 >(list: T): Promise<[TKey, TValue] | undefined> {
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
-		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) : undefined;
+		return list.length > 0
+			? (list[list.length - 1] as EnumerableValueOfT<T>) as [TKey, TValue]
+			: undefined;
 	}
 	const arr = await collectEntries<T, TKey, TValue>(list);
 	return arr.length > 0 ? arr[arr.length - 1] : undefined;
@@ -1183,7 +1185,9 @@ export function lastKVSync<
 >(list: T): [TKey, TValue] | undefined {
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
-		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) : undefined;
+		return list.length > 0
+			? (list[list.length - 1] as EnumerableValueOfT<T>) as [TKey, TValue]
+			: undefined;
 	}
 	const arr = collectEntriesSync<T, TKey, TValue>(list);
 	return arr.length > 0 ? arr[arr.length - 1] : undefined;
