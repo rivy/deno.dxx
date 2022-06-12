@@ -29,7 +29,7 @@ export class PQueue extends Queue {
 // import deepMerge from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
 export { default as deepMerge } from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
 
-export { format } from 'https://cdn.jsdelivr.net/gh/rivy/deno.dxx@c72e3cfef1/tests/$shared.ts';
+export { format } from 'https://deno.land/std@0.143.0/node/util.ts';
 export * as $symbols from '../xWait/log_symbols.ts';
 
 export * as $levels from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
