@@ -22,14 +22,14 @@
 // ref: <https://jspm.org/docs/cdn>
 
 // esm.sh
-// import Braces from 'https://cdn.esm.sh/braces@3.0.2';
+import Braces from 'https://cdn.esm.sh/braces@3.0.2';
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://cdn.esm.sh/braces@3.0.2?dev';
 
 // jspm.dev
-import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
-import BracesM from 'https://jspm.dev/npm:braces@3.0.2';
-const Braces = BracesM as typeof BracesT;
+// import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
+// import BracesM from 'https://jspm.dev/npm:braces@3.0.2';
+// const Braces = BracesM as typeof BracesT;
 
 const DQ = '"';
 const SQ = "'";
