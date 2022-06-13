@@ -14,11 +14,12 @@
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
 import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $xWalk, $yargs } from './lib/$deps.ts';
-import { $me, $version, decoder, encoder, restyleYargsHelp } from './lib/$shared.ts';
+import { $me, $version, decoder, encoder } from './lib/$shared.ts';
 
 import { $logger, logger } from './lib/$shared.ts';
 
 import { eol as $eol } from '../src/lib/eol.ts';
+import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 import { collect, filter, map } from './lib/funk.ts';
 
 //===

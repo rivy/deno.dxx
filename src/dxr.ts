@@ -7,8 +7,9 @@ import {
 	intoURL,
 	// mightUseColor,
 	mightUseUnicode,
-	restyleYargsHelp,
 } from './lib/$shared.ts';
+
+import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
 
 import { $me } from './lib/$locals.ts';
 import { $logger, logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
