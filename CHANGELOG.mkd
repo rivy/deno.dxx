@@ -13,9 +13,35 @@
 
 ---
 
+## [v0.0.13](https://github.com/rivy/deno.dxx/compare/v0.0.12...v0.0.13) <small>(2022-06-12)</small>
+
+<details open><summary><small><em>[v0.0.13; details]</em></small></summary>
+
+#### Fixes
+
+* fix ~ convert from JSDelivr CDN to esm.sh and vendored types for 'picomatch' &ac; [`ff4aa75`](https://github.com/rivy/deno.dxx/commit/ff4aa753636558327ebc63bf0623bd45c7aa653d)
+
+#### Dependency Updates
+
+* update ~ vendor types for 'picomatch' (required for fix of JSDelivr type load failues) &ac; [`def2d1b`](https://github.com/rivy/deno.dxx/commit/def2d1b1b4680c91031a1bb86b8bb1037bfd25e5)
+
+#### Maintenance
+
+* maint *(dev)*: revise DPrint configuration &ac; [`f3fdb74`](https://github.com/rivy/deno.dxx/commit/f3fdb74e87fc00168fb2e96b49e7e811ef060299)
+
+#### Refactoring
+
+* refactor ~ relocate 'restyleYargsHelp' into own file (to remove circular 'consoleSize.ts' ref) &ac; [`8624379`](https://github.com/rivy/deno.dxx/commit/862437914485ffb0d7de8dc5b440c16fc4ed8cd8)
+* refactor ~ pro-actively convert from JSDelivr CDN to esm.sh 'braces' &ac; [`1a708c1`](https://github.com/rivy/deno.dxx/commit/1a708c1bb73d349b931c68b3bc9b4b1e7a944ec8)
+* refactor *(axe)*: use deno/std `format` function &ac; [`414e62e`](https://github.com/rivy/deno.dxx/commit/414e62ea6e9803805be66cd65af337ed727adef8)
+
+</details>
+
+---
+
 ## [v0.0.12](https://github.com/rivy/deno.dxx/compare/v0.0.11...v0.0.12) <small>(2022-02-06)</small>
 
-<details open><summary><small><em>[v0.0.12; details]</em></small></summary>
+<details><summary><small><em>[v0.0.12; details]</em></small></summary>
 
 #### Changes
 
