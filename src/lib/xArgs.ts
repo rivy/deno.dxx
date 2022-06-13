@@ -51,7 +51,10 @@ export { expand as braceExpand } from './xBraces.ts';
 // esm.sh
 // import Braces from 'https://cdn.esm.sh/braces@3.0.2';
 // import Micromatch from 'https://cdn.esm.sh/micromatch@4.0.2';
-// import Picomatch from 'https://cdn.esm.sh/picomatch@2.2.2';
+// import Picomatch from 'https://esm.sh/picomatch@2.3.0?no-check';
+import PicomatchM from 'https://esm.sh/picomatch@2.3.1?no-check'; // '?no-check' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
+import PicomatchT from '../@types/picomatch@2.2.1/index.d.ts'; // use locally vendored types
+const Picomatch = PicomatchM as typeof PicomatchT;
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://cdn.esm.sh/braces@3.0.2?dev';
 // import Micromatch from 'https://cdn.esm.sh/micromatch@4.0.2?dev';
@@ -64,13 +67,13 @@ export { expand as braceExpand } from './xBraces.ts';
 // jspm.dev
 // import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
 // import * as MicromatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/micromatch/index.d.ts';
-import * as PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
+// import * as PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
 // import BracesM from 'https://jspm.dev/npm:braces@3.0.2';
 // import MicromatchM from 'https://jspm.dev/npm:micromatch@4.0.2';
-import PicomatchM from 'https://jspm.dev/npm:picomatch@2.3.0';
+// import PicomatchM from 'https://jspm.dev/npm:picomatch@2.3.0';
 // const Braces = BracesM as typeof BracesT;
 // const Micromatch = MicromatchM as typeof MicromatchT;
-const Picomatch = PicomatchM as typeof PicomatchT; // noSonar ; disable "type assertion not necessary"; needed for correct typings as 'picomatch' develops
+// const Picomatch = PicomatchM as typeof PicomatchT; // noSonar ; disable "type assertion not necessary"; needed for correct typings as 'picomatch' develops
 
 // import Braces from 'http://localhost/braces@3.0.2?bundle';
 // import Micromatch from 'http://localhost/micromatch@4.0.2?bundle';
