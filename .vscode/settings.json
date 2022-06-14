@@ -1,5 +1,4 @@
 {
-	"[typescript]": { "editor.defaultFormatter": "dprint.dprint" },
 	"deno.enable": true,
 	"deno.lint": true,
 	"deno.unstable": true,
