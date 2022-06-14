@@ -14,5 +14,8 @@
 		".history": true,
 		".nyc_output": true
 	},
-	"todo-tree.filtering.excludeGlobs": ["build", "dist"]
+	"todo-tree.filtering.excludeGlobs": ["build", "dist"],
+	// remove `"typescript.validate.enable": false` when 'denoland/vscode_deno' issue is resolved
+	// ref: <https://github.com/denoland/vscode_deno/issues/455>, <https://github.com/denoland/vscode_deno/issues/581>
+	"typescript.validate.enable": false
 }
