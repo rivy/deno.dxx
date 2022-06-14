@@ -1,6 +1,7 @@
-// `cspell` settings
+// `cspell` configuration/settings
+// ref: <https://cspell.org/configuration/https://cspell.org/configuration>
 {
-	"version": "0.1", // Version of the setting file.  Always 0.1
+	"version": "0.2", // configuration/settings file version
 	"language": "en", // language - current active spelling language
 	"dictionaries": ["acronyms+names", "jargon", "people", "shell", "workspace"],
 	"dictionaryDefinitions": [
