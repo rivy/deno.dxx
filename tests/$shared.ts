@@ -144,8 +144,9 @@ function composeTestName(
 	})();
 	const filePathText =
 		(tag
-			? ($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) +
-				' ')
+			? ':' +
+				($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) +
+					' ')
 			: '');
 	// return filePathText + $colors.bold(description);
 	return $colors.bold(description);
@@ -153,7 +154,11 @@ function composeTestName(
 
 export function createTestFn(testFilePath?: URL | string) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
-	function test(description: string, fn: () => void | Promise<void>, opts = {}) {
+	function test(
+		description: string,
+		fn_: (t?: Deno.TestContext) => void | Promise<void>,
+		opts = {},
+	) {
 		const tag =
 			(pathOfTestFile
 				? pathOfTestFile
@@ -164,8 +169,9 @@ export function createTestFn(testFilePath?: URL | string) {
 		const testName: TestName = composeTestName(tag, description, { align: !(pathOfTestFile) });
 		DenoTest({
 			name: testName,
-			fn: async () => {
+			fn: async (t?: Deno.TestContext) => {
 				// * capture `console.log()` and `console.warn()` messages via intercepts; display only on failure (as part of the error message)
+				// ... other `console.error/info/debug/trace/...` functions all continue to provide immediate output
 				// ref: <https://stackoverflow.com/questions/9216441/intercept-calls-to-console-log-in-chrome> , <https://www.bayanbennett.com/posts/how-does-mdn-intercept-console-log-devlog-003> @@ <https://archive.is/dfg7H>
 				// ref: <https://www.npmjs.com/package/output-interceptor>
 				// * "lazy" formatting for `args`
@@ -176,7 +182,7 @@ export function createTestFn(testFilePath?: URL | string) {
 					testLog.push([testName, () => format(...args)]);
 				};
 				try {
-					await fn();
+					await fn_(t);
 				} catch (e) {
 					const logText = testLog.flatMap(([n, v]) =>
 						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : []
@@ -185,7 +191,9 @@ export function createTestFn(testFilePath?: URL | string) {
 						logText.unshift($colors.dim(`## test log:begin>`));
 						logText.push($colors.dim(`## test log:end.`));
 					}
-					throw (new Error([''].concat(logText).concat([e.toString()]).join('\n')));
+					const msg = [description + ':' + $path.parse(tag).base].concat(logText).join('\n');
+					throw new Error(msg, { cause: e });
+					// throw e;
 				}
 			},
 			...opts,

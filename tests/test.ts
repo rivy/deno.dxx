@@ -35,15 +35,15 @@ Deno.test = function test(_opts: { name: string; fn: () => void | Promise<void> 
 
 Deno.test({
 	name: 'always passes',
-	fn: () => {
-		console.log('debug: test');
+	fn: (_t?: Deno.TestContext) => {
+		console.log('inside test');
 		assert(false);
 	},
 });
 
 Deno.test({
 	name: 'adding works',
-	fn: () => {
+	fn: (_t?: Deno.TestContext) => {
 		assertEquals(1 + 1, 2);
 	},
 });
