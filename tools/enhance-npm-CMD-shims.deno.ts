@@ -233,7 +233,7 @@ goto :_START_
 :set_real_dp0
 @rem:: ref: "https://stackoverflow.com/questions/19781569/cmd-failure-of-d0-when-call-quotes-the-name-of-the-batch-file"
 @rem:: ref: "https://stackoverflow.com/questions/12141482/what-is-the-reason-for-batch-file-path-referenced-with-dp0-sometimes-changes-o/26851883#26851883"
-@rem:: ref: "https://www.dostips.com/forum/viewtopic.php?f=3&t=5057"
+@rem:: ref: "https://www.dostips.com/forum/viewtopic.php?f=3&t=5057" @@ "https://archive.is/NQ5Pv"
 set dp0=%~dp0
 set "dp0=%dp0:~0,-1%" &@rem:: clip trailing path separator
 goto :EOF
