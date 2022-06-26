@@ -10,7 +10,7 @@
 //===
 
 import { PQueue } from './$deps.ts';
-import { encode, inspect } from './$shared.ts';
+import { DEFAULT_INSPECT_OPTIONS, encode, inspect } from './$shared.ts';
 
 const COMPOSED_ID_SEP = '/'; // ToDO: implement composition/decomposition of IDs (within Metadata?)
 
@@ -162,13 +162,7 @@ export class TransformWriter<I = unknown, O = I> implements Writer<I>, Transform
 					if (typeof data !== 'undefined') {
 						s = typeof data === 'string'
 							? data
-							: (inspect(data, {
-								colors: false,
-								compact: true,
-								depth: Infinity,
-								iterableLimit: Infinity,
-							})
-								.replaceAll(/\n\s*/gim, ' '));
+							: (inspect(data, DEFAULT_INSPECT_OPTIONS).replaceAll(/\n\s*/gim, ' '));
 					}
 					isTransformed = true;
 				}
