@@ -10,7 +10,7 @@
 //===
 
 import { PQueue } from './$deps.ts';
-import { encode, inspect } from './$deps.ts'; // * shared
+import { encode, inspect } from './$shared.ts';
 
 const COMPOSED_ID_SEP = '/'; // ToDO: implement composition/decomposition of IDs (within Metadata?)
 
