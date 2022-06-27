@@ -169,8 +169,9 @@ export function traversal(
 	const url = (goal instanceof URL) ? goal : intoURL(goal);
 	const baseURL = (base instanceof URL) ? base : intoURL(base);
 	const commonOrigin = url && baseURL &&
-		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0);
-	// console.warn({ goal, source, url, baseURL, commonOrigin });
+		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0) &&
+		(url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0);
+	// console.warn({ goal, url, base, baseURL, commonOrigin });
 	if (url && baseURL && commonOrigin) {
 		return decodeURIComponent($path.relative(baseURL.pathname, url.pathname));
 	} else {
