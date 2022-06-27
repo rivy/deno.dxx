@@ -132,7 +132,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	if (options.driveLetterSchemes && scheme?.length == 1) {
 		path = 'file://' + $path.normalize(path);
 	}
-	// normalize slashes ~ replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
+	// normalize slashes ~ back-slashes to forward & replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
 	path = path.replaceAll('\\', '/').replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu, '/');
 	// ref: [File path formats on Windows Systems](https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/AOS2n>
 	// note: '\\?\...' is equivalent to '\\.\...' for windows paths; '.' is a valid host/hostname, but '?' *is not*
