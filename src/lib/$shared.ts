@@ -173,7 +173,25 @@ export function traversal(
 		(url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0);
 	// console.warn({ goal, url, base, baseURL, commonOrigin });
 	if (url && baseURL && commonOrigin) {
-		return decodeURIComponent($path.relative(baseURL.pathname, url.pathname));
+		const basePath = pathFromURL(baseURL);
+		const goalPath = pathFromURL(url);
+		const commonPathPrefix = longestCommonPrefix(
+			// ToDO: add option to turn on/off file comparison case-sensitivity
+			mightUseFileSystemCase() ? basePath : toCommonCase(basePath),
+			mightUseFileSystemCase() ? goalPath : toCommonCase(goalPath),
+		)
+			.replace(/[^\/]*$/, '');
+		// console.warn({ basePath, goalPath, commonPathPrefix });
+		// console.warn({
+		// 	basePathSlice: basePath.slice(commonPathPrefix.length),
+		// 	goalPathSlice: goalPath.slice(commonPathPrefix.length),
+		// });
+		return decodeURIComponent(
+			$path.relative(
+				basePath.slice(commonPathPrefix.length),
+				goalPath.slice(commonPathPrefix.length),
+			),
+		);
 	} else {
 		return url ? decodeURIComponent(url.href) : undefined;
 	}
@@ -211,6 +229,20 @@ export function toTruthy(s?: string): Truthy {
 export function getCharacterLength(s: string) {
 	// The string iterator that is used here iterates over characters, not mere UTF-16 code units
 	return [...s].length;
+}
+
+export function longestCommonPrefix(...arr: string[]) {
+	let prefix = '';
+	if (arr.length === 0) return prefix;
+	if (arr.length === 1) return arr[0];
+	for (let i = 0; i < arr[0].length; i++) {
+		const char = arr[0][i];
+		for (let j = 1; j < arr.length; j++) {
+			if (arr[j][i] !== char) return prefix;
+		}
+		prefix += char;
+	}
+	return prefix;
 }
 
 export function toCommonCase(s: string) {
