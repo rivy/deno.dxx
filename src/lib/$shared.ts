@@ -134,12 +134,23 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	}
 	// normalize slashes ~ replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
 	path = path.replaceAll('\\', '/').replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu, '/');
+	// ref: [File path formats on Windows Systems](https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/AOS2n>
+	// note: '\\?\...' is equivalent to '\\.\...' for windows paths; '.' is a valid host/hostname, but '?' *is not*
+	// * replacing leading DOS device prefix ('//?/') with '//./%3f/' will provide the correct path upon later extraction
+	path = path.replace(/^\/\/\?\//, '//./%3f/');
 	// console.warn({ path, base, options });
 	try {
 		return new URL(path, base);
 	} catch (_error) {
 		return undefined;
 	}
+}
+
+export function pathFromURL(url: URL) {
+	return url.href.replace(/^file:\/\/[.]\/%3[fF]\//, '\/\/?\/').replace(/^file:\/\/\//, '').replace(
+		/^file:/,
+		'',
+	);
 }
 
 //===
