@@ -15,11 +15,12 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 	const endOfLinePadding = 1;
 	const border = false;
 	const maxWidth = options?.consoleWidth ?? (await $consoleSize.consoleSize())?.columns ?? 80; // `consoleSize()` may take ~ 150 ms if fallback to shell scripts are needed
-	const maxWidths = [maxWidth / 6, 1, 1, maxWidth / 6, 1, 3 * maxWidth / 6];
-	const minWidths = [4, 0, 0, 8, 0, 3 * maxWidth / 6];
+	const helpColumns = 6; // division of screen for help (for segmentation of help text elements)
+	const maxWidths = [maxWidth / 2, 1, 1, maxWidth / 2, 1, maxWidth / 2];
+	const minWidths = [4, 0, 0, 8, 0, 3 * maxWidth / helpColumns];
 	const sectionTable = new Table()
-		.maxColWidth(maxWidths)
-		.minColWidth(minWidths)
+		// .maxColWidth(maxWidths)
+		// .minColWidth(minWidths)
 		.border(border)
 		.padding(0)
 		.indent(optionTextIndentSize - 1);
@@ -56,9 +57,13 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 		// const initialState: typeof state = state;
 		// console.warn({ length: line.length, line });
 		if (line.length === 0) {
+			// empty line
 			if (sectionTable.length) {
+				// empty line with section data => end of section; render final formatting of section and add to help text
+				// * last column is given floating max width
 				// performance.mark(`restyleYargsHelp():renderTable(${initialState})`);
-				// console.warn(`render table for ${initialState}`, { sectionTable });
+				// console.warn(`render table for ${state}`, { sectionTable });
+				// console.warn({ line: sectionTable[0] });
 				let realMaxWidths = sectionTable.getMaxColWidth();
 				let realMinWidths = sectionTable.getMinColWidth();
 				// console.warn({ realMaxWidths, realMinWidths });
@@ -72,25 +77,43 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 					}
 					return max;
 				})();
-				if (maxLineLength < maxWidth) {
-					if (Array.isArray(realMaxWidths)) {
-						realMaxWidths = [...realMaxWidths];
-						realMaxWidths[realMaxWidths.length - 1] += maxWidth - maxLineLength - endOfLinePadding;
-						if (Array.isArray(realMinWidths)) {
-							realMinWidths = [...realMinWidths];
-							realMinWidths[realMinWidths.length - 1] = realMaxWidths[realMaxWidths.length - 1];
-						}
-						tableLines = sectionTable
-							.maxColWidth(realMaxWidths, true)
-							.minColWidth(realMinWidths, true)
-							.toString()
-							.split(/\r?\n/);
-					}
+				// console.warn({ maxLineLength, maxWidth });
+				// if (maxLineLength < maxWidth) {
+				if (!Array.isArray(realMaxWidths)) {
+					realMaxWidths = [
+						realMaxWidths,
+						realMaxWidths,
+						realMaxWidths,
+						realMaxWidths,
+						realMaxWidths,
+						maxWidth,
+					];
 				}
+				if (!Array.isArray(realMinWidths)) {
+					realMinWidths = [0, 0, 0, 0, 0, 0];
+				}
+
+				const maxSizeLast = realMinWidths[realMinWidths.length - 1] + maxWidth - maxLineLength;
+				// console.warn({ maxSizeLast });
+				// if (Array.isArray(realMaxWidths)) {
+				// realMaxWidths = [...realMaxWidths];
+				realMaxWidths[realMaxWidths.length - 1] = maxSizeLast;
+				// if (Array.isArray(realMinWidths)) {
+				// 	realMinWidths = [...realMinWidths];
+				realMinWidths[realMinWidths.length - 1] = realMaxWidths[realMaxWidths.length - 1];
+				// }
+				// console.warn({ realMaxWidths, realMinWidths });
+				tableLines = sectionTable
+					.maxColWidth(realMaxWidths, true)
+					// .minColWidth(realMinWidths, true)
+					.toString()
+					.split(/\r?\n/);
+				// }
+				// }
 				// console.warn({ tableLines });
 				help.push(...tableLines.filter(Boolean).filter((s) => s.match(/\S/)));
 				sectionTable.length = 0;
-				sectionTable.maxColWidth(maxWidths, true).minColWidth(minWidths, true);
+				sectionTable.maxColWidth(Infinity, true).minColWidth(0, true);
 				// performance.mark(`restyleYargsHelp():renderTable(${initialState})`);
 				// await logger.trace(durationText(`restyleYargsHelp():renderTable(${initialState})`));
 				// performance.clearMarks(`restyleYargsHelp():renderTable(${initialState})`);
@@ -117,12 +140,18 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 				help.push(line);
 			} else {
 				const [_s, item, desc] = matchOption as RegExpMatchArray;
-				// console.warn(state, s, item, desc);
+				// console.warn(state, _s, item, desc);
 				sectionTable.push([
 					Cell.from(item).colSpan(1),
 					Cell.from('').colSpan(1),
 					Cell.from(desc).colSpan(4),
 				]);
+				let x = sectionTable.getMinColWidth();
+				if (!Array.isArray(x)) x = [x, x, x, x, x, x];
+				x[0] = Math.max(x[0], $colors.stripColor(item).length);
+				x[5] = Math.max(x[5], $colors.stripColor(desc).length);
+				// console.warn({ x });
+				sectionTable.minColWidth(x, true);
 			}
 			continue;
 		}
@@ -153,19 +182,73 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 					/\[(.*?)\]/g,
 					(_: string, content: string) => $colors.dim(`{${content}}`),
 				);
-				if ((item.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
-					sectionTable.push([Cell.from(item).colSpan(6)], [
+				// resolve any BS within item
+				let item_ = item;
+				while (item_.match(/[^\b][\b]/)) item_ = item_.replace(/[^\b][\b]/g, '');
+
+				// console.warn({ state, line, _s, item, _sep, desc, _sep2, info, i, item_ });
+				// console.warn({
+				// 	maxWidth,
+				// 	maxDiv6: maxWidth / 6,
+				// 	itemLength: item_.length,
+				// 	infoLength: info.length,
+				// });
+				// if ((item.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
+				if ((item_.length > (2 * maxWidth / 6)) || (info.length > (2 * maxWidth / 6))) {
+					// |  |  |  |  |  |  |
+					// | item            |
+					// | | info          |
+					// | | * | desc      |
+					sectionTable.push([Cell.from(item_).colSpan(6)], [
 						Cell.from('').colSpan(1),
 						Cell.from(i).colSpan(5),
 					], [Cell.from('').colSpan(1), Cell.from('*').colSpan(1), Cell.from(desc).colSpan(4)]);
-				} else {
+					// } else if ((item_.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
+					// } else if ((item_.length + info.length) > (2 * maxWidth / 6)) {
+					let x = sectionTable.getMinColWidth();
+					if (!Array.isArray(x)) x = [x, x, x, x, x, x];
+					// x[0] = Math.max(x[0], $colors.stripColor(item_).length);
+					x[5] = Math.max(
+						x[5],
+						$colors.stripColor(item_).length,
+						$colors.stripColor(i).length,
+						$colors.stripColor(desc).length,
+					);
+					// console.warn({ x });
+					sectionTable.minColWidth(x, true);
+					// } else if ((item_.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
+				} else if (((item_.length + info.length) > (maxWidth / 2))) {
+					// |   |   |   |   |   |   |
+					// | item  ||||| info      |
+					// |   | * | desc          |
 					sectionTable.push([
-						Cell.from(item).colSpan(1),
+						Cell.from(item_).colSpan(1),
+						Cell.from('').colSpan(1),
+						Cell.from(i).colSpan(4),
+					], [Cell.from('').colSpan(2), Cell.from('*').colSpan(1), Cell.from(desc).colSpan(3)]);
+					let x = sectionTable.getMinColWidth();
+					if (!Array.isArray(x)) x = [x, x, x, x, x, x];
+					x[0] = Math.max(x[0], $colors.stripColor(item_).length);
+					x[5] = Math.max(x[5], $colors.stripColor(i).length, $colors.stripColor(desc).length);
+					// console.warn({ x });
+					sectionTable.minColWidth(x, true);
+				} else {
+					// |    |    |    |    |    |    |
+					// | item   || info | * | desc   |
+					sectionTable.push([
+						Cell.from(item_).colSpan(1),
 						Cell.from('').colSpan(1),
 						Cell.from(i).colSpan(2),
 						Cell.from('*').colSpan(1),
 						Cell.from(desc).colSpan(1),
 					]);
+					let x = sectionTable.getMinColWidth();
+					if (!Array.isArray(x)) x = [x, x, x, x, x, x];
+					x[0] = Math.max(x[0], $colors.stripColor(item_).length);
+					x[3] = Math.max(x[3], $colors.stripColor(i).length);
+					x[5] = Math.max(x[5], $colors.stripColor(desc).length);
+					// console.warn({ x });
+					sectionTable.minColWidth(x, true);
 				}
 			}
 			continue;
