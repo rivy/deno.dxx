@@ -567,6 +567,10 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 	// 	return this.#context;
 	// }
 
+	logLevels() {
+		return this.#context.levels;
+	}
+
 	/** Alias for {@link logLevelDetail} using the configured logger levels. */
 	logLevelDetail(value?: number | string) {
 		return (value != undefined)
