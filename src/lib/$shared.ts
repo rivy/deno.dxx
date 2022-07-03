@@ -207,6 +207,15 @@ export function toCommonCase(s: string) {
 
 //===
 
+export function stableSort<T = unknown>(arr: T[], compare: (a: T, b: T) => number) {
+	return arr
+		.map((item, index) => ({ item, index }))
+		.sort((a, b) => compare(a.item, b.item) || a.index - b.index)
+		.map(({ item }) => item);
+}
+
+//===
+
 function existsSync(path: string) {
 	try {
 		return $fs.existsSync(path);
