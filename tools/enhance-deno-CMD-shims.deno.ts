@@ -318,13 +318,21 @@ const updates = await collect(map(async function (fileEntry) {
 	const contentsUpdated = $eol.CRLF(
 		_.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
 	);
-	return { shimPath, ...info, contentsOriginal, contentsUpdated };
+	return {
+		shimPath,
+		knownFormat: !!info.denoRunTarget,
+		...info,
+		contentsOriginal,
+		contentsUpdated,
+	};
 }, fileEntries));
 
 for await (const update of updates) {
 	await log.trace({ update });
 	const name = $path.basename(update.shimPath);
-	if (!update.isEnhanced || forceUpdate) {
+	if (!update.knownFormat) {
+		await log.note(`'${name}'...no changes (${$colors.italic($colors.bold('unknown format'))})`);
+	} else if (!update.isEnhanced || forceUpdate) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
 		Deno.writeFile(update.shimPath, encoder.encode(update.contentsUpdated));
 		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
