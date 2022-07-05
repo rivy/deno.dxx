@@ -199,6 +199,20 @@ export function traversal(
 
 //===
 
+export function isEmpty(x: unknown) {
+	if (x == null) return true;
+	if (typeof x === 'function') return true;
+	if (typeof x === 'object') {
+		if (x.constructor === Object && Object.keys(x).length === 0) {
+			return true;
+		}
+	}
+	if ((x as { length: number }).length === 0) return true;
+	return false;
+}
+
+//===
+
 const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off'];
 // const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'never', 'no', 'none', 'off'];
 
