@@ -1,7 +1,7 @@
 // spell-checker:ignore (vars) ARGX
 
 const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\`) %
-@rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
+@rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
 @set "ERRORLEVEL="
 @set "DENO_SHIM_ERRORLEVEL="
 @setLocal EnableDelayedExpansion
