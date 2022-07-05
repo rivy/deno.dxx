@@ -4,14 +4,15 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
 @set "ERRORLEVEL="
 @set "DENO_SHIM_ERRORLEVEL="
-@setLocal
+@setLocal EnableDelayedExpansion
+@set SHIM_ARGS=%*
+@set SHIM_ARGS=!SHIM_ARGS:%%=%%%%!
 @set "SHIM_PIPE="
-@set "SHIM_ARGS="
 @set "SHIM_TARGET="
 @:...prep...
 @:launch
 @rem:: SHIM_EXEC circumlocution is to avoid \`%*\` within the final parse group [o/w parens within args may cause parsing/execution misbehavior]
-@>>"%SHIM_EXEC%" echo @set SHIM_ARGS=%*
+@>>"%SHIM_EXEC%" echo @set SHIM_ARGS=%SHIM_ARGS%
 @>>"%SHIM_EXEC%" echo @goto _undef_ 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%SHIM_ARGS%%
 @(
 @goto _undef_ 2>NUL
