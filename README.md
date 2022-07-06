@@ -6,8 +6,8 @@
 
 Fixes...
 
-- ref: [🙏🏻[feat/req] supply $0/%0 to shimmed scripts (cross-platform)](https://github.com/denoland/deno/issues/9874)
-- ref: [🙏🏻[feat/req] suppress annoying "Terminate batch job (Y/N)?" for shimmed deno scripts (Windows)](https://github.com/denoland/deno/issues/9873)
+- ref: [🙏[feat/req] supply $0/%0 to shimmed scripts (cross-platform)](https://github.com/denoland/deno/issues/9874)
+- ref: [🙏[feat/req] suppress annoying "Terminate batch job (Y/N)?" for shimmed deno scripts (Windows)](https://github.com/denoland/deno/issues/9873)
 - ref: [🐛(or feat request?) CLI apps need original command line (Windows)](https://github.com/denoland/deno/issues/9871)
 - ref: [🐛`deno` v1.13 breaks shims using `--allow-plugin`](https://github.com/denoland/deno/issues/11819)
 
