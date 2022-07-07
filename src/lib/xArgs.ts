@@ -1,4 +1,4 @@
-// spell-checker:ignore (jargon) bikeshed falsey glob globbing truthy ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
+// spell-checker:ignore (jargon) bikeshed falsey glob globbing truthy vendored ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
 // FixME: (repaired by needs tests)[2021-11-01; rivy] fix trailing slash issue and write tests; `e*` => 'eg' but `e*/` => 'e*/' (POSIX is 'eg/')
 
