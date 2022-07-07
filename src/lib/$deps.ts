@@ -27,8 +27,6 @@ export { default as $yargs } from 'https://deno.land/x/yargs@v17.3.0-deno/deno.t
 //  export { assert, assertEquals, equal } from 'https://deno.land/std@0.117.0/testing/asserts.ts';
 export { assert, assertEquals, equal } from 'https://deno.land/std@0.117.0/testing/asserts.ts';
 
-export { fetch } from 'https://deno.land/x/file_fetch@0.2.0/mod.ts';
-
 //=== types
 
 export type { Arguments as YargsArguments } from 'https://deno.land/x/yargs@v17.3.0-deno/deno-types.ts';

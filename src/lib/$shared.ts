@@ -427,7 +427,7 @@ export function mightUseUnicode() {
 // VERSION handler
 
 // `fetch()` implementation (requires read [for local runs] or network permissions)
-import { fetch } from './$deps.ts'; // 'file://'-compatible `fetch()`
+import { fetch } from './xFetch.ts'; // 'file://'-compatible `fetch()`
 
 // import { intoURL, projectLocations, projectURL } from '../../tests/$shared.ts';
 // import { logger } from '../../tests/$shared.ts';
