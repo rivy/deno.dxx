@@ -219,6 +219,20 @@ export const warn = createWarnFn();
 
 //===
 
+export const haveCSpell = () => {
+	try {
+		const process = Deno.run({
+			cmd: ['cmd', '/x/d/c', 'cspell', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'null',
+		});
+		return (process.status()).then((status) => status.success).finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(false);
+	}
+};
+
 export const haveDPrint = () => {
 	try {
 		const process = Deno.run({
