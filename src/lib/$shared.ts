@@ -199,14 +199,12 @@ export function traversal(
 		// 	basePathSlice: basePath.slice(commonPathPrefix.length),
 		// 	goalPathSlice: goalPath.slice(commonPathPrefix.length),
 		// });
-		return decodeURIComponent(
-			$path.relative(
-				basePath.slice(commonPathPrefix.length),
-				goalPath.slice(commonPathPrefix.length),
-			),
+		return $path.relative(
+			basePath.slice(commonPathPrefix.length),
+			goalPath.slice(commonPathPrefix.length),
 		);
 	} else {
-		return url ? decodeURIComponent(url.href) : undefined;
+		return url ? url.href : undefined;
 	}
 }
 
