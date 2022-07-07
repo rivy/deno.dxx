@@ -10,6 +10,7 @@ import {
 	env,
 	intoURL,
 	isWinOS,
+	/* mightUseFileSystemCase, */
 	pathEquivalent,
 	toCommonCase,
 	traversal,
@@ -21,6 +22,7 @@ import * as $args from '../lib/xArgs.ts';
 //===
 
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
+// const caseSensitiveFiles = mightUseFileSystemCase();
 const caseSensitiveFiles = !isWinOS;
 
 const execPathExtensions = isWinOS
@@ -37,7 +39,7 @@ const execPathExtensions = isWinOS
 // * and compatibility with other runners (such as NodeJS) should be more achievable.
 const runnerNameReS = '^deno(?:[.]exe)?$'; // *note*: using a runner with a different, unexpected name will cause failures at multiple points
 const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]js$`;
-const enhancedShell = new RegExp('[\\\/][^\\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
+const enhancedShellRx = new RegExp('[\\\/][^\\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
 const removableExtensions = (execPathExtensions ?? []).concat(
 	'.cjs',
 	'.cts',
@@ -51,7 +53,7 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 );
 // *
 // `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
-const underEnhancedShell = ((env('SHELL') || '').match(enhancedShell) || []).length > 0;
+const underEnhancedShell = ((env('SHELL') || '').match(enhancedShellRx) || []).length > 0;
 
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
