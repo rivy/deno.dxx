@@ -28,6 +28,8 @@ export const symbolStrings: Record<string, Record<string, string>> = {
 	// ref: <https://en.wikipedia.org/wiki/Variation_Selectors_(Unicode_block)> @@ <https://archive.is/vyfzp>
 	// ref: <https://unicode.org/emoji/charts/emoji-variants.html> @@ <https://archive.md/mI8co>
 	// ref: <http://www.iemoji.com> (note double-width "emoji-style" versions [vs single width "text-style"])
+	// ref: <http://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm> (calculate 16-bit surrogate pair from 21-bit unicode code unit)
+	// ref: <https://www.browserling.com/tools/utf8-encode> (text/unicode to UTF-8 encoding)
 	// ref: <https://r12a.github.io/app-conversion> (conversions between various types of character encodings)
 	// * note: use `String.fromCodePoint(codePointValue)` or `'\u{HEX}` to convert UTF-32 code points to internal UTF-8 format
 	// ref: <https://mathiasbynens.be/notes/javascript-escapes> @@ <https://archive.is/Dcfol>
