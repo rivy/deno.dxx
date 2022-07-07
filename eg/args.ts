@@ -140,7 +140,15 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	.option('lines', { describe: 'Display arguments on separate lines', boolean: true })
 	.alias('lines', 'l')
 	/* Examples...*/
-	.example(`${runAsName} ARG`, `Display 'shell-expanded' ARG`)
+	.example(
+		`${appRunAs} \$'\\xe2\\x98\\x80\\ufe0f\\u2601\\ufe0f\\U1f308' is ☀️☁️🌈`,
+		`ANSI-C strings`,
+	)
+	.example(
+		`env nullglob=1 ${appRunAs} **/*.{[cm]js,js,ts}`,
+		`Bash-like brace, bracket, and advanced file globbing (with NULLGLOB support [for WinOS])`,
+	)
+	.example(`${appRunAs} '*' "*" *`, `Portable, correct, single and double-quoted ARGs`)
 	.example([]);
 
 performance.mark('setup:yargs:stop');
