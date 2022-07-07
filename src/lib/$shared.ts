@@ -128,16 +128,22 @@ export function intoURL(path?: string, ...args: unknown[]) {
 		...IntoUrlOptionsDefault,
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
 	};
-	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+	let scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 	if (options.driveLetterSchemes && scheme?.length == 1) {
-		path = 'file://' + $path.normalize(path);
+		scheme = 'file';
+		path = scheme + '://' + path;
 	}
+	scheme = scheme || 'file';
 	// normalize slashes ~ back-slashes to forward & replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
 	path = path.replaceAll('\\', '/').replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu, '/');
 	// ref: [File path formats on Windows Systems](https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/AOS2n>
 	// note: '\\?\...' is equivalent to '\\.\...' for windows paths; '.' is a valid host/hostname, but '?' *is not*
-	// * replacing leading DOS device prefix ('//?/') with '//./%3f/' will provide the correct path upon later extraction
-	path = path.replace(/^\/\/\?\//, '//./%3f/');
+	// # replacing leading DOS device prefix ('//?/') with '//./?/' (reversed upon later extraction with `pathFromURL()`)
+	path = path.replace(/^\/\/\?\//, '//./?/');
+	if (scheme === 'file') {
+		// '%'-encode '?' and '#' characters to avoid URI interpretation as query and/or fragment strings
+		path = path.replaceAll(/[%?#]/gmsu, (c) => '%' + c.charCodeAt(0).toString(16));
+	}
 	// console.warn({ path, base, options });
 	try {
 		return new URL(path, base);
@@ -147,10 +153,17 @@ export function intoURL(path?: string, ...args: unknown[]) {
 }
 
 export function pathFromURL(url: URL) {
-	return url.href.replace(/^file:\/\/[.]\/%3[fF]\//, '\/\/?\/').replace(/^file:\/\/\//, '').replace(
-		/^file:/,
-		'',
-	);
+	let path = url.href;
+	if (url.protocol === 'file:') {
+		// regenerate path from any '%'-encoded characters
+		path = path.replaceAll(
+			/%([a-fA-F0-9][a-fA-F0-9])/gmsu,
+			(_, v) => String.fromCharCode(parseInt(v, 16)),
+		);
+	}
+	// regenerate correct paths for 'file:' protocol
+	path = path.replace(/^file:\/\/[.]\/?\//, '\/\/?\/').replace(/^file:\/\/\//, '');
+	return path;
 }
 
 //===
