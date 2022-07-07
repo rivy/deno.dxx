@@ -234,6 +234,7 @@ if (argv.help) {
 	performance.mark('run:generateHelp');
 	performance.mark('run:generateHelp:yargs');
 	const yargsHelp = await app.getHelp();
+	await log.trace({ yargsHelp });
 	performance.mark('run:generateHelp:yargs');
 	await log.debug(durationText('run:generateHelp:yargs'));
 	performance.mark('run:generateHelp:customize');
