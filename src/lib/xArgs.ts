@@ -371,8 +371,12 @@ function decodeANSIC(s: string) {
 			const escapeCodeType = escapeCode[0];
 			let decoded = '';
 			if ((escapeCodeType === 'u') || (escapeCodeType === 'U')) {
-				const decodedCharCode = parseInt(escapeCode.slice(1), 16);
-				decoded = String.fromCharCode(decodedCharCode);
+				const decodedCode = parseInt(escapeCode.slice(1), 16);
+				try {
+					decoded = String.fromCodePoint(decodedCode);
+				} catch (_) {
+					decoded = String.fromCharCode(decodedCode);
+				}
 			} else if ((escapeCodeType === 'x') || (escapeCodeType.match(/[0-9]/))) {
 				// hex (`\x..`) or octal (`\nnn`) sequences may result in a non-UTF string
 				// * all sequential escapes are collected as one into a Uint8Array and the converted to UTF-8 via a no-error lossy conversion
