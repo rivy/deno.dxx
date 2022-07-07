@@ -1,7 +1,14 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
 import { $path, $yargs, YargsArguments } from '../src/lib/$deps.ts';
-import { $version, durationText, env } from '../src/lib/$shared.ts';
+import {
+	$version,
+	durationText,
+	env,
+	projectLocations,
+	projectPath,
+	projectURL,
+} from '../src/lib/$shared.ts';
 
 import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 
@@ -26,7 +33,8 @@ performance.mark('setup:log:start');
 log.debug(`logging to *STDERR*`);
 
 // $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
-// log.trace({ $me });
+// log.trace({ $me, $version });
+log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
@@ -35,8 +43,9 @@ log.debug(
 );
 
 const appName = /* $me.name */ $path.parse(Deno.execPath()).name;
-const version = $version.v();
-const runAsName = /* $me.runAs */ appName;
+const appCopyright = '* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)';
+const appVersion = $version.v();
+const appRunAs = /* $me.runAs */ appName;
 
 log.mergeMetadata({ authority: appName });
 
@@ -48,23 +57,32 @@ performance.mark('setup:yargs:start');
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
-	.scriptName(appName)
-	.epilog('* Copyright (c) 2022 * Roy Ivy III (MIT license)')
-	.usage(`$0 ${version}\n
+	// * usage, description, and epilog (ie, notes/copyright)
+	.usage(`$0 ${appVersion}\n
 Display all arguments.\n
-Usage:\n  ${runAsName} [OPTION..] [ARG..]`)
-	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
-	.updateStrings({ 'Positionals:': 'Arguments:' })
-	.positional('OPTION', { describe: 'OPTION(s) as listed here (below)' })
+Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
+	.updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
+	.positional('OPTION', { describe: 'OPTION(s); see listed *Options*' })
 	.positional('ARG', { describe: `ARG(s) to display ('shell'-expanded)` })
+	.epilog(`${appCopyright}`)
+	// * (boilerplate)
+	.scriptName(appName)
+	.wrap(/* columns */ null) // disable built-in Yargs display text wrapping (required for later custom formatting with `restyleYargsHelp()`)
+	// * (boilerplate) revised terminology for errors/help text
+	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
+	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
+	.updateStrings({
+		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+	})
+	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
-		throw new Error(msg);
+		log.error(msg);
+		// appUsageError = true;
 	})
-	.wrap(/* columns */ undefined)
-	// help and version setup
-	.help(false)
-	.version(false)
+	// * (boilerplate) help and version setup
+	.help(false) // disable built-in 'help' (for later customization)
+	.version(false) // disable built-in 'version' handling (for later customization)
 	.option('help', {
 		describe:
 			'Write help text to STDOUT and exit (exit status => 1 if combined with other arguments/options)',
@@ -77,13 +95,14 @@ Usage:\n  ${runAsName} [OPTION..] [ARG..]`)
 		type: 'boolean',
 	})
 	.alias('version', 'V')
-	// logging options
+	// * (boilerplate) logging options
 	.option('log-level', {
-		alias: ['\b\b\b\b LOG_LEVEL'],
-		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
+		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
 		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
 		type: 'string',
+		choices: ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace'], // required for help display of choices
 	})
+	.choices('logLevel', ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace']) // fixme/hack: required for correct error handling of incorrect choices by Yargs
 	.option('silent', {
 		describe: `Silent mode; suppress non-error output (sets 'error' level logging)`,
 		type: 'boolean',
@@ -98,29 +117,31 @@ Usage:\n  ${runAsName} [OPTION..] [ARG..]`)
 	})
 	.option('debug', { describe: `Set 'debug' level logging`, type: 'boolean' })
 	.option('trace', { describe: `Set 'trace' (high-detail 'debug') level logging`, type: 'boolean' })
+	// * (boilerplate) configure Options, Logging, and Help/Info groups
 	.group([], 'Options:')
 	.group(['log-level', 'silent', 'quiet', 'verbose', 'debug', 'trace'], '*Logging:')
 	.group(['help', 'version'], '*Help/Info:')
-	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
-	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
-	})
-	// ref: <https://github.com/yargs/yargs-parser#configuration>
+	// * Yargs parser configuration
+	// ref: [Yargs Parser ~ Configuration](https://github.com/yargs/yargs-parser#configuration)
 	.parserConfiguration({
-		'camel-case-expansion': true,
-		'short-option-groups': true,
-		'strip-aliased': true,
-		'strip-dashed': true,
-		// 'halt-at-non-option': true,
-		// 'unknown-options-as-args': true,
+		// * per app configuration options
+		'boolean-negation': false, // disable automatic interpretation of `--no-...` as option negations (required when configuring options which are *only* `--no-...`)
+		'halt-at-non-option': false, // disable halting parse at first non-option/argument
+		// 'unknown-options-as-args': true, // treat unknown options as arguments
+		// * (boilerplate) usual parser options
+		'camel-case-expansion': true, // enable camelCase aliases for hyphenated options (only within generated Yargs parse result object)
+		'strip-aliased': true, // remove option aliases from parse result object
+		'strip-dashed': true, // remove hyphenated option aliases from parse result object
 	})
-	// .example(`\`${runAsName} ARG\``, 'Display 'shell-expanded ARG')
 	/* Options... */
 	.strictOptions(/* enable */ true)
 	.option('zero', { describe: 'Display $0 (executable)', boolean: true })
 	.alias('zero', ['0', 'z'])
 	.option('lines', { describe: 'Display arguments on separate lines', boolean: true })
-	.alias('lines', 'l');
+	.alias('lines', 'l')
+	/* Examples...*/
+	.example(`${appRunAs} ARG`, `Display 'shell-expanded' ARG`)
+	.example([]);
 
 performance.mark('setup:yargs:stop');
 
@@ -190,7 +211,7 @@ performance.mark('setup:parseArgs:stop');
 //===
 
 if (argv == undefined) {
-	console.warn(`\nUse \`${runAsName} --help\` to show full usage and available options`);
+	console.warn(`\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
 
@@ -226,6 +247,7 @@ if (argv.help) {
 	performance.mark('run:generateHelp');
 	performance.mark('run:generateHelp:yargs');
 	const yargsHelp = await app.getHelp();
+	await log.trace({ yargsHelp });
 	performance.mark('run:generateHelp:yargs');
 	await log.debug(durationText('run:generateHelp:yargs'));
 	performance.mark('run:generateHelp:customize');
@@ -240,7 +262,7 @@ if (argv.help) {
 	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv.version) {
-	console.log(`${appName} ${version}`);
+	console.log(`${appName} ${appVersion}`);
 	const onlyVersion = (argv._.length === 0) &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyVersion ? 0 : 1);
