@@ -1,7 +1,8 @@
-import * as Log from 'https://deno.land/std@0.93.0/log/mod.ts';
+import { logger as log /* initialized to the suspended state */ } from '../src/lib/$shared.ts';
 
-import * as Me from '../src/lib/xProcess.ts';
+import * as $me from '../src/lib/xProcess.ts';
 
-Me.warnIfImpaired(Log.warning);
+$me.warnIfImpaired((s) => log.warn(s));
+await log.resume();
 
-console.log(Me.args().join(' '));
+console.log($me.args().join(' '));
