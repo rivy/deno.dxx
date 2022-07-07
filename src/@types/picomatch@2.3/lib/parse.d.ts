@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+// spell-checker:ignore (vars) ExtGlob
 
 declare function parse(
 	input: string,

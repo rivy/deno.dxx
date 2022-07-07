@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+//spell-checker:ignore (vars) extGlob noExt noNegate noParen
 
 declare function scan(input: string, options?: scan.Options): scan.State;
 

@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+// spell-checker:ignore (names) PicoMatch (vars) nocase
 
 // Type definitions for picomatch 2.2
 // Project: https://github.com/micromatch/picomatch
