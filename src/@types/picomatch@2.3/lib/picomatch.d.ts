@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+// spell-checker:ignore (jargon) dotfile dotfiles globstar globstars lookbehind lookbehinds uniquification unixify (names) PicoMatch (vars) extGlob extGlobs failGlob fastPaths noBrace noBracket noCase noDupes noExt noExtGlob noGlobstar noNegate noQuantifiers noUnique
 
 import constantsImport = require('./constants.d.ts');
 import parseImport = require('./parse.d.ts');

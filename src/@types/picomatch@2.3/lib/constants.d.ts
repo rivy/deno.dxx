@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+// spell-checker:ignore (vars) BACKREF NOBREAK QMARK alnum cntrl punct xdigit
 
 declare const POSIX_CHARS: {
 	DOT_LITERAL: string;
