@@ -6,7 +6,7 @@ import { haveDPrint, isWinOS, projectPath, test } from './$shared.ts';
 
 const args = $args.argsSync;
 
-const excludeDirsRxs = ['[_.#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
+const excludeDirsRxs = ['[._@#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
 const _crlfFilesRxs = '[.](bat|cmd)';
 const _tabbedFilesRxs = '[.](bat|cmd)';
