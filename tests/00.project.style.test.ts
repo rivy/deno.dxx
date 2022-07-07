@@ -2,7 +2,7 @@
 // spell-checker:ignore (utils) dprint git
 
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
-import { haveDPrint, isWinOS, projectPath, test } from './$shared.ts';
+import { haveCSpell, haveDPrint, isWinOS, projectPath, test } from './$shared.ts';
 
 const args = $args.argsSync;
 
@@ -31,6 +31,19 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectPath, projectDirs });
+
+test('style ~ `cspell --config ./.vscode/cspell.json check **` succeeds', async () => {
+	const p = Deno.run({
+		cmd: ['cmd', '/x/d/c', 'cspell', '--config', './.vscode/cspell.json', 'check', '**'],
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+	});
+	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
+		p.close()
+	);
+	assert(status.success, '`cspell check` fails');
+}, { ignore: !(await haveCSpell()) });
 
 test('style ~ `deno lint` succeeds', async () => {
 	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
