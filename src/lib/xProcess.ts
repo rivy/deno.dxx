@@ -10,6 +10,7 @@ import {
 	env,
 	intoURL,
 	isWinOS,
+	/* mightUseFileSystemCase, */
 	pathEquivalent,
 	toCommonCase,
 	traversal,
@@ -21,6 +22,7 @@ import * as $args from '../lib/xArgs.ts';
 //===
 
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
+// const caseSensitiveFiles = mightUseFileSystemCase();
 const caseSensitiveFiles = !isWinOS;
 
 const execPathExtensions = isWinOS
