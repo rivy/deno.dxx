@@ -1,5 +1,9 @@
 // spell-checker:ignore (names) Deno
 
+// !note: deno v1.23.0 has a regression which causes TS2306 errors for chai/sinon imports
+//    ... ref: [🐛TS2306 "not a module" errors](https://github.com/denoland/deno/issues/14937)
+//    ... fixed in v1.23.1+
+
 // import { assert } from 'https://deno.land/std@0.93.0/testing/asserts.ts';
 // import { writeAllSync } from 'https://deno.land/std@0.93.0/io/mod.ts';
 
