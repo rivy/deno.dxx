@@ -7,3 +7,5 @@ files:
     - // v%.%.%
   VERSION: '%.%.%'
   src/lib/$shared.ts: const VERSION = '%.%.%';
+  # eg/*.ts: 'rivy/deno.dxx@v%.%.%'
+  eg/WanCopy.ts: 'rivy/deno.dxx@v%.%.%'
