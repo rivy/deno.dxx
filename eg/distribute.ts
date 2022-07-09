@@ -1,9 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { $yargs, fetch, YargsArguments } from '../src/lib/$deps.ts';
+import { $yargs, YargsArguments } from '../src/lib/$deps.ts';
 import { $version, durationText, env } from '../src/lib/$shared.ts';
-
-import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 
 import { $consoleSize, $me } from '../src/lib/$locals.ts';
 import {
@@ -14,6 +12,9 @@ import {
 	traversal,
 	validURL,
 } from '../src/lib/$shared.ts';
+
+import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
+import { fetch } from '../src/lib/xFetch.ts';
 
 //===
 
