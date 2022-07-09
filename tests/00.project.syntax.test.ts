@@ -4,6 +4,23 @@
 // ref: <https://github.com/denoland/deno/discussions/12113>
 // ToDO: re-evaluate as `deno check` comes to fruition
 
+const permissionsRequired = ['--allow-read', '--allow-run'];
+const permissionsGranted = await Promise.all(permissionsRequired.map(async (cliPermission) => {
+	return ((await Deno.permissions.query(
+		{ name: cliPermission.replace(/^--allow-/, '') } as Deno.PermissionDescriptor,
+	))
+		.state) === 'granted';
+}));
+const allPermissionsGranted = permissionsGranted.find((v) => !v) ?? true;
+// console.warn({ permissionsRequired, permissionsGranted, allPermissionsGranted });
+if (!allPermissionsGranted) {
+	console.warn('Re-run test file with all required permissions', permissionsRequired);
+	throw new Error(
+		'Missing required permissions; re-run test file with all required permissions ' + Deno
+			.inspect(permissionsRequired),
+	);
+}
+
 import { $args, $path, assert } from './$deps.ts';
 import { decode, projectPath, test, traversal } from './$shared.ts';
 
