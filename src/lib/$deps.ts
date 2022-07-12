@@ -14,6 +14,8 @@ import { exists, existsSync } from 'https://deno.land/std@0.117.0/fs/exists.ts';
 import { expandGlob, expandGlobSync } from 'https://deno.land/std@0.117.0/fs/expand_glob.ts';
 export const $fs = { exists, existsSync, expandGlob, expandGlobSync };
 
+// export { default as $xdgAppPaths } from 'https://cdn.jsdelivr.net/gh/rivy/js.xdg-app-paths@9466e97/src/mod.deno.ts';
+
 export * as $lodash from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 export * as $cliffyTable from 'https://deno.land/x/cliffy@v0.20.1/table/mod.ts';
 export { default as $osPaths } from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
