@@ -357,7 +357,9 @@ if (!argv?.serialize) {
 		}
 	}));
 } else {
-	// note: if targets may overlap, need to serialize copy work (eg, `rcp FILE - - -` "succeeds" when in parallel but has "BadResource" promise rejection errors)
+	// note: if targets may overlap, need to serialize copy work
+	// note: `rcp FILE - - -` "succeeds" when in parallel but has "BadResource" promise rejection errors (from auto-closure within `pipeTo()`)
+	//   ... partially fixed with `t === '-'`, but might need more definitive comparison to STDOUT
 	// * maybe check for overlaps with `traversal`, and parallelize if no overlap?
 	// await TARGET.reduce((chain, t) => {
 	// 	return chain.then(async () => {
