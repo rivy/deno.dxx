@@ -7,7 +7,7 @@
 import { $path } from './$deps.ts';
 import {
 	deQuote,
-	env,
+	envAsync,
 	intoURL,
 	isWinOS,
 	/* mightUseFileSystemCase, */
@@ -21,12 +21,16 @@ import * as $args from '../lib/xArgs.ts';
 
 //===
 
+const allowRead = ((await Deno.permissions?.query({ name: 'read' })).state === 'granted');
+
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
 // const caseSensitiveFiles = mightUseFileSystemCase();
 const caseSensitiveFiles = !isWinOS;
 
 const execPathExtensions = isWinOS
-	? Deno.env.get('PATHEXT')?.split($path.delimiter).filter(Boolean).map(toCommonCase) ?? []
+	? (await envAsync('PATHEXT', { guard: true }))?.split($path.delimiter).filter(Boolean).map(
+		toCommonCase,
+	) ?? []
 	: undefined;
 
 // const pathsOfPATH = env('PATH')?.split($path.delimiter) ?? [];
@@ -53,7 +57,8 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 );
 // *
 // `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
-const underEnhancedShell = ((env('SHELL') || '').match(enhancedShellRx) || []).length > 0;
+const underEnhancedShell =
+	(((await envAsync('SHELL', { guard: true })) || '').match(enhancedShellRx) || []).length > 0;
 
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
@@ -64,9 +69,11 @@ const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXE
 //===
 
 /** * process was invoked by direct execution */
-export const isDirectExecution = !$path.basename(Deno.execPath()).match(runnerNameReS);
+export const isDirectExecution = allowRead
+	? !$path.basename(Deno.execPath()).match(runnerNameReS)
+	: undefined;
 /** * process was invoked as an eval script (eg, `deno eval ...`) */
-export const isEval = !!Deno.mainModule.match(isDenoEvalReS);
+export const isEval = allowRead ? !!Deno.mainModule.match(isDenoEvalReS) : undefined;
 
 //===
 
@@ -86,7 +93,7 @@ export const isEval = !!Deno.mainModule.match(isDenoEvalReS);
 // ToDO? ~ decide whether to check permissions and error/warn or gracefully degrade; if unable to set (and clear) SHIM env variables, should we proceed? is using SHIM_TARGET good enough? what about calling self?
 
 /** * summary of information transmitted by 'shim'-executable initiating the main script, when available */
-export const shim = (() => {
+export const shim = await (async () => {
 	const parts: {
 		/** * path/URL of script targeted by shim */
 		TARGET?: string;
@@ -111,11 +118,13 @@ export const shim = (() => {
 		scriptName?: string;
 		scriptArgs?: string[];
 	} = {};
-	parts.TARGET = env('SHIM_TARGET') || env('SHIM_URL') || env('DENO_SHIM_URL');
-	parts.ARGV0 = env('SHIM_ARGV0') ?? env('SHIM_ARG0') ?? env('DENO_SHIM_ARG0');
-	parts.ARGS = env('SHIM_ARGS') ?? env('DENO_SHIM_ARGS');
-	parts.PIPE = env('SHIM_PIPE') ?? env('DENO_SHIM_PIPE');
-	parts.EXEC = env('SHIM_EXEC') ?? env('DENO_SHIM_EXEC');
+	parts.TARGET = (await envAsync('SHIM_TARGET')) || (await envAsync('SHIM_URL')) ||
+		(await envAsync('DENO_SHIM_URL'));
+	parts.ARGV0 = (await envAsync('SHIM_ARGV0')) ?? (await envAsync('SHIM_ARG0')) ??
+		(await envAsync('DENO_SHIM_ARG0'));
+	parts.ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('DENO_SHIM_ARGS'));
+	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
+	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC'));
 	//
 	parts.runner = undefined;
 	parts.runnerArgs = undefined;
@@ -158,12 +167,16 @@ export const shim = (() => {
 const envVarNames = shimEnvPrefix.flatMap((prefix) =>
 	shimEnvBaseNames.map((base) => prefix + base)
 );
-envVarNames.forEach((name) => Deno.env.delete(name));
+await Promise.all(envVarNames.map(async (name) => {
+	if ((await Deno.permissions?.query({ name: 'env', variable: 'name' })).state === 'granted') {
+		Deno.env.delete(name);
+	}
+}));
 
 //===
 
 export const isEnhancedShimTarget = shim.targetURL &&
-	pathEquivalent(shim.targetURL, Deno.mainModule);
+	pathEquivalent(shim.targetURL, allowRead ? Deno.mainModule : undefined);
 
 //===
 
@@ -209,18 +222,20 @@ export const commandLineParts = (() => {
 //===
 
 /** * executable text string which initiated/invoked execution of the current process */
-export const argv0 = shim.runner ?? commandLineParts.runner ?? Deno.execPath();
+export const argv0 = shim.runner ?? commandLineParts.runner ??
+	(allowRead ? Deno.execPath() : undefined);
 /** * runner specific command line options */
 export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
 
 /** * path string of main script file (best guess from all available sources) */
 export const pathURL = intoURL(deQuote(shim.scriptName))?.href ??
 	(isDirectExecution
-		? Deno.execPath()
-		: (intoURL(deQuote(commandLineParts.scriptName))?.href ?? Deno.mainModule));
+		? (allowRead ? Deno.execPath() : undefined)
+		: (intoURL(deQuote(commandLineParts.scriptName))?.href ??
+			(allowRead ? Deno.mainModule : undefined)));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
-const pathUrlBase = $path.parse(pathURL).base;
+const pathUrlBase = $path.parse(pathURL || '').base;
 /** * determine if base has a removable extension and return it (note: longer extensions have priority) */
 const removableExtension = removableExtensions.sort((a, b) => b.length - a.length).find((e) =>
 	caseSensitiveFiles ? pathUrlBase.endsWith(e) : toCommonCase(pathUrlBase).endsWith(toCommonCase(e))
@@ -244,7 +259,7 @@ export const runAs = shim.runner
 		defaultRunner,
 		...defaultRunnerArgs,
 		$args.reQuote(
-			decodeURIComponent(traversal(pathURL)?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
+			decodeURIComponent(traversal(pathURL || '')?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
 		),
 	]
 		.join(' ');

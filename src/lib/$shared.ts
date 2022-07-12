@@ -144,7 +144,9 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	if (path == undefined) return undefined;
 	const base = (args?.length > 0 && (args[0] instanceof URL))
 		? args.shift() as URL
-		: $path.toFileUrl(Deno.cwd() + $path.SEP);
+		: allowRead
+		? ($path.toFileUrl(Deno.cwd() + $path.SEP))
+		: '';
 	const options = {
 		...IntoUrlOptionsDefault,
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
@@ -189,6 +191,8 @@ export function pathFromURL(url: URL) {
 
 //===
 
+const allowRead = ((await Deno.permissions?.query({ name: 'read' })).state === 'granted');
+
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
 - _Returned path will be relative to `base` iff `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_
@@ -198,7 +202,7 @@ export function pathFromURL(url: URL) {
 */
 export function traversal(
 	goal: string | URL,
-	base: string | URL = $path.toFileUrl(Deno.cwd() + $path.SEP),
+	base: string | URL = allowRead ? $path.toFileUrl(Deno.cwd() + $path.SEP) : '',
 ) {
 	const url = (goal instanceof URL) ? goal : intoURL(goal);
 	const baseURL = (base instanceof URL) ? base : intoURL(base);
@@ -478,7 +482,11 @@ const versionURL = intoURL(projectLocations.version, projectURL);
 
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
 const projectVersionTextViaFetch =
-	await (versionURL
+	await (versionURL &&
+			((versionURL.protocol === 'file:')
+				? ((await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted')
+				: ((await Deno.permissions.query({ name: 'net', host: versionURL.host })).state ===
+					'granted'))
 		? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
 			text?.split(newline).filter((s) => s)[0]
 		))
