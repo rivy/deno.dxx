@@ -10,7 +10,7 @@
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki ; Roy Ivy III * rivy
 
-import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $yargs } from './lib/$deps.ts';
+import { $colors, $fs, $lodash as _, $path, $xdgAppPaths } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
 
 import { $logger, logger } from './lib/$shared.ts';
@@ -18,6 +18,10 @@ import { $logger, logger } from './lib/$shared.ts';
 import { eol as $eol } from '../src/lib/eol.ts';
 import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 import { collect, first, map } from './lib/funk.ts';
+
+//===
+
+import { $yargs } from '../src/lib/$deps.eg+reqPerm.ts';
 
 //===
 
