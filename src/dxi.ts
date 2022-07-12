@@ -3,12 +3,10 @@
 import {
 	$lodash as _,
 	$path,
-	$yargs,
 	mergeReadableStreams,
 	readableStreamFromReader,
 	readAll,
 	readerFromStreamReader,
-	YargsArguments,
 } from './lib/$deps.ts';
 import {
 	$version,
@@ -29,6 +27,10 @@ import { $me } from './lib/$locals.ts';
 import { $logger, logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
 
 import * as $spin from './lib/xWait/$mod.ts';
+
+//===
+
+import { $yargs, YargsArguments } from './lib/$deps.eg+reqPerm.ts';
 
 //===
 

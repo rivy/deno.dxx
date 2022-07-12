@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { $colors, $fs, $semver, $yargs, YargsArguments } from './lib/$deps.ts';
+import { $colors, $fs, $semver } from './lib/$deps.ts';
 import {
 	$version,
 	decode,
@@ -16,6 +16,10 @@ import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
 
 import { $me } from './lib/$locals.ts';
 import { $logger, logger as log /* initialized to the suspended state */ } from './lib/$shared.ts';
+
+//===
+
+import { $yargs, YargsArguments } from './lib/$deps.eg+reqPerm.ts';
 
 //===
 
