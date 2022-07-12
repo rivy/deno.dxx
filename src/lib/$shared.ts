@@ -80,6 +80,23 @@ export function env(varName: string) {
 	}
 }
 
+// `envAsync()`
+/** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
+ * - will *not panic*
+ * - will *not prompt* for permission if `guard` is `true`
+@param [`options.guard`] verify environment access permission prior to access attempt (avoids Deno prompts/panics)
+*/
+export async function envAsync(varName: string, options?: { guard: boolean }) {
+	const allowEnv = !options?.guard ||
+		((await (Deno.permissions?.query({ name: 'env', variable: varName }))).state ?? 'granted') !==
+			'granted';
+	try {
+		return allowEnv ? Deno.env.get(varName) : undefined;
+	} catch (_) {
+		return undefined;
+	}
+}
+
 //===
 
 // `isFileURL()`
