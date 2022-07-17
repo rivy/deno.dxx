@@ -448,7 +448,7 @@ export default <{ [key: string]: SpinnerAnimation }> {
 	simpleDotsScrolling: { interval: 200, frames: ['.  ', '.. ', '...', ' ..', '  .', '   '] },
 	star: { interval: 70, frames: ['✶', '✸', '✹', '✺', '✹', '✷'] },
 	star2: { interval: 80, frames: ['+', 'x', '*'] },
-	flip: { interval: 70, frames: ['_', '_', '_', '-', '`', '`', "'", '´', '-', '_', '_', '_'] },
+	flip: { interval: 70, frames: ['_', '_', '_', '-', '`', '`', `'`, '´', '-', '_', '_', '_'] },
 	hamburger: { interval: 100, frames: ['☱', '☲', '☴'] },
 	growVertical: { interval: 120, frames: ['▁', '▃', '▄', '▅', '▆', '▇', '▆', '▅', '▄', '▃'] },
 	growHorizontal: {

@@ -273,7 +273,7 @@ if (!argv || usageError) {
 
 //===
 
-console.log("SOURCE = '%s' (aka: '%s')", validURL(SOURCE)?.href, traversal(SOURCE));
+console.log(`SOURCE = '%s' (aka: '%s')`, validURL(SOURCE)?.href, traversal(SOURCE));
 console.log(
 	'TARGET = %O (aka: %O)',
 	TARGET.map((e) => validURL(e)?.href),

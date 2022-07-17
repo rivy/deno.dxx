@@ -58,7 +58,7 @@ function randomBoolean() {
 }
 
 function randomTokenFragment() {
-	const quote = randomBoolean() ? '' : (randomBoolean() ? '"' : "'");
+	const quote = randomBoolean() ? '' : (randomBoolean() ? '"' : `'`);
 	const length = random.int(1, 10);
 	return (quote +
 		random.string(length, Random.LOWER_ALPHA_NUMERICS + (quote ? '' : '           ')) +

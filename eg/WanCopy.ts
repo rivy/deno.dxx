@@ -155,7 +155,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	// .option('force', { alias: ['f'], describe: 'Copy over existing TARGET', type: 'boolean' })
 	.option('no-clobber', {
 		alias: ['n'],
-		describe: "Don't overwrite a TARGET that already exists",
+		describe: `Don't overwrite a TARGET that already exists`,
 		type: 'boolean',
 	})
 	.option('serialize', { describe: 'Serialize copies to TARGET(s)', type: 'boolean' })
@@ -301,11 +301,11 @@ if (isEmpty(argv) || appUsageError) {
 
 //===
 
-await log.debug("SOURCE = '%s'", SOURCE);
+await log.debug(`SOURCE = '%s'`, SOURCE);
 await log.debug('TARGET = %O', TARGET);
 
 await log.trace(
-	"SOURCE = '%s' is '%s' (aka/traversal: '%s')",
+	`SOURCE = '%s' is '%s' (aka/traversal: '%s')`,
 	SOURCE,
 	validURL(SOURCE)?.href,
 	traversal(SOURCE),
