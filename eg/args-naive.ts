@@ -15,7 +15,7 @@ import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 import { $consoleSize } from '../src/lib/$locals.ts';
 import {
 	$logger,
-	logger as log, /* initialized to the suspended state */
+	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
 } from '../src/lib/$shared.ts';
 
 //===
