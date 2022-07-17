@@ -18,7 +18,7 @@ import {
 	$logger,
 	intoPath,
 	intoURL,
-	logger as log, /* note: initialized to the suspended state */
+	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
 	traversal,
 	validURL,
 } from '../src/lib/$shared.ts';

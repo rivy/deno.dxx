@@ -17,8 +17,7 @@ import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
 import { $me } from './lib/$locals.ts';
 import {
 	$logger,
-	logger as log,
-	/* note: `log` (aka `logger`) is initialized to the suspended state */
+	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
 } from './lib/$shared.ts';
 
 import * as $args from './lib/xArgs.ts';
