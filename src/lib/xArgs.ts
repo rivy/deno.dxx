@@ -132,9 +132,9 @@ export type GlobString = string & { '#brand': 'GlobString' };
 export type RegexString = string & { '#brand': 'RegexString' };
 
 /** Double quote character */
-const DQ = '"';
+const DQ = `"`;
 /** Single quote character */
-const SQ = "'";
+const SQ = `'`;
 /** Regex pattern matching a double-quoted string (unbalanced at end-of-line is allowed). */
 const DQStringReS: RegexString = `${DQ}[^${DQ}]*(?:${DQ}|$)` as RegexString;
 /** Regex pattern matching a single-quoted string (unbalanced at end-of-line is allowed). */
@@ -336,7 +336,7 @@ export function wordSplitCLText(
 // ref: <https://www.whoishostingthis.com/resources/ascii> @@ <https://archive.is/92sIR>
 const ANSICDecodeTable: Record<string, string> = {};
 ANSICDecodeTable['\\'] = '\\';
-ANSICDecodeTable["'"] = "'";
+ANSICDecodeTable[`'`] = `'`;
 ANSICDecodeTable['?'] = '?';
 ANSICDecodeTable['a'] = '\x07';
 ANSICDecodeTable['b'] = '\b';
@@ -410,11 +410,11 @@ function decodeANSIC(s: string) {
 
 export function reQuote(s: string) {
 	// re-quote string to protect from later re-expansion
-	const specialChars = ['*', '?', '{', '}', '[', ']', "'", '"', '$', '<', '>', '|', '&'];
+	const specialChars = ['*', '?', '{', '}', '[', ']', `'`, `"`, '$', '<', '>', '|', '&'];
 	const hasSpecialChar = specialChars.find((c) => s.includes(c));
 	const hasWhiteSpace = s.match(/\s/msu);
 	if (hasSpecialChar || hasWhiteSpace) {
-		s = isWinOS ? ('"' + s.replaceAll('"', '""""') + '"') : ("'" + s.replaceAll("'", '"\'"') + "'");
+		s = isWinOS ? (`"` + s.replaceAll(`"`, `""""`) + `"`) : (`'` + s.replaceAll(`'`, `"'"`) + `'`);
 	}
 	return s;
 }
