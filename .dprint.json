@@ -42,6 +42,7 @@
 		"lineWidth": 100,
 		"preferSingleLine": true,
 		"quoteStyle": "preferSingle",
+		"trailingCommas": "onlyMultiLine",
 		//
 		"ignoreNodeCommentText": "dprint-ignore", // from Deno's "deno-fmt-ignore"
 		"ignoreFileCommentText": "dprint-ignore-file", // from Deno's "deno-fmt-ignore-file"
