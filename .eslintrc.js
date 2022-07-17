@@ -31,7 +31,7 @@ module.exports = {
 		'no-console': ['off'], // ref: https://eslint.org/docs/rules/no-console
 		'no-restricted-syntax': ['error', {
 			'selector':
-				"CallExpression[callee.object.name='console'][callee.property.name!=/^(log|warn|error|info|trace)$/]",
+				`CallExpression[callee.object.name='console'][callee.property.name!=/^(log|warn|error|info|trace)$/]`,
 			'message': 'Unexpected property on console object was called',
 		}],
 		'no-undefined': ['off'], // ref: https://eslint.org/docs/rules/no-undefined

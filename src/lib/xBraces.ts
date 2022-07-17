@@ -31,8 +31,8 @@ import Braces from 'https://esm.sh/braces@3.0.2';
 // import BracesM from 'https://jspm.dev/npm:braces@3.0.2';
 // const Braces = BracesM as typeof BracesT;
 
-const DQ = '"';
-const SQ = "'";
+const DQ = `"`;
+const SQ = `'`;
 const DQStringReS = `${DQ}[^${DQ}]*(?:${DQ}|$)`; // double-quoted string (unbalanced at end-anchor is allowed)
 const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-anchor is allowed)
 const QReS = `[${DQ}${SQ}]`; // double or single quote character class

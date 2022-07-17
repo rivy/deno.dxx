@@ -88,14 +88,14 @@ test('compare `shellExpand()` to `shellExpandSync()`', async () => {
 	assertEquals(await Parse.shellExpand('eg\\**\\*.ts'), Parse.shellExpandSync('eg\\**\\*.ts'));
 });
 
-test("brace expansion (eg, `shellExpand('{a}*')`)", async () => {
+test(`brace expansion (eg, \`shellExpand('{a}*')\`)`, async () => {
 	assertEquals(await Parse.shellExpand('{}*'), ['{}*']);
 	assertEquals(await Parse.shellExpand('{.}*'), ['{.}*']);
 	assertEquals(await Parse.shellExpand('{a}*'), ['{a}*']);
 	assertEquals(await Parse.shellExpand('{a,b}'), ['a', 'b']);
 });
 
-test("bracket expansion (eg, `shellExpand('[a]*')`)", async () => {
+test(`bracket expansion (eg, \`shellExpand('[a]*')\`)`, async () => {
 	let glob = 'tests/fixtures/dir/[a]*';
 	// ToDO: [2022-01-25; rivy] investigate returning files in a deterministic order (vs user sort after return?)
 	// note: order of returned values is not guaranteed

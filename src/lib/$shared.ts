@@ -46,7 +46,7 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 //===
 
 const DQ = '"';
-const SQ = "'";
+const SQ = `'`;
 
 // const DQStringReS = `${DQ}[^${DQ}]*(?:${DQ}|$)`; // double-quoted string (unbalanced at end-of-line is allowed)
 // const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-of-line is allowed)
