@@ -1,6 +1,6 @@
 {
 	// `dprint` configuration; ref: <https://dprint.dev/config>
-	// v2022.06.23 [rivy]
+	// v2022.07.16 [rivy]
 	//
 	// * "$schema": "https://dprint.dev/schemas/v0.json",
 	// * "projectType": "openSource",
@@ -11,19 +11,27 @@
 	//
 	"includes": ["**/*.{ts,tsx,js,jsx,cjs,cjx,mjs,mts,mtx,json,jsonc,md,mkd,rs,yaml,yml}"],
 	"excludes": [
-		".history",
-		".coverage",
-		".changelog/*.tpl.*",
+		// * build/coverage/dev artifacts
+		"{,.,_,@,#,$}build",
+		"{,.,_,@,#,$}coverage",
+		".nyc_output",
 		"CHANGELOG{,.}*",
+		"dist",
+		"target",
+		// * format-sensitive files
+		".changelog/*.tpl{,.}*",
+		// * third-party (or otherwise managed) files
 		"**/node_modules",
 		"**/*-lock.json",
-		"**/target",
-		"**/vendor"
+		".history",
+		".vscode",
+		"package.json",
+		"vendor"
 	],
 	//
 	"json": { "preferSingleLine": true },
 	"markdown": { "textWrap": "always", "lineWidth": 99999 },
-	"prettier": { "printWidth": 100, "singleQuote": true, "tabWidth": 2 },
+	"prettier": { "printWidth": 100, "proseWrap": "preserve", "singleQuote": true, "tabWidth": 2 },
 	"rustfmt": { "hard_tabs": false, "tab_spaces": 4 },
 	"typescript": {
 		// ref: <https://dprint.dev/plugins/typescript/config>
