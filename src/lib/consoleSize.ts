@@ -3,7 +3,7 @@
 // spell-checker:ignore (shell/CMD) CONOUT
 
 const decoder = new TextDecoder(); // default == 'utf-8'
-const decode = (input?: Uint8Array): string => decoder.decode(input);
+const decode = (input?: Uint8Array,): string => decoder.decode(input,);
 
 const isWinOS = Deno.build.os === 'windows';
 
@@ -36,14 +36,14 @@ export type ConsoleSizeOptions = {
  *
  * @param rid ~ resource ID
  */
-function denoConsoleSizeNT(rid: number) {
+function denoConsoleSizeNT(rid: number,) {
 	// no-throw `Deno.consoleSize(..)`
 	// `Deno.consoleSize()` is unstable API (as of v1.12+) => deno-lint-ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
-	const fn = (Deno as any).consoleSize as (rid: number) => ConsoleSize | undefined;
+	const fn = (Deno as any).consoleSize as (rid: number,) => ConsoleSize | undefined;
 	try {
 		// * `Deno.consoleSize()` throws if rid is non-TTY (including redirected streams)
-		return fn?.(rid);
+		return fn?.(rid,);
 	} catch {
 		return undefined;
 	}
@@ -53,10 +53,10 @@ function denoConsoleSizeNT(rid: number) {
  * * _`no-throw`_ function (returns `undefined` upon any error)
  * @returns an instance of `Deno.FsFile`
  */
-function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions) {
+function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions,) {
 	// no-throw `Deno.openSync(..)`
 	try {
-		return Deno.openSync(path, options);
+		return Deno.openSync(path, options,);
 	} catch {
 		return undefined;
 	}
@@ -95,17 +95,17 @@ export function consoleSizeSync(
 	options_: Partial<ConsoleSizeOptions> = {},
 ): ConsoleSize | undefined {
 	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
+		fallbackRIDs: [Deno.stderr.rid,],
 		consoleFileFallback: true,
 		useCache: true,
 		...options_,
 	};
 	if (options.useCache) {
-		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
+		const memo = consoleSizeCache.get(JSON.stringify({ rid, options, },),);
 		if (memo != undefined) return memo;
 	}
-	const size = consoleSizeViaDenoAPI(rid, options);
-	consoleSizeCache.set(JSON.stringify({ rid, options }), size);
+	const size = consoleSizeViaDenoAPI(rid, options,);
+	consoleSizeCache.set(JSON.stringify({ rid, options, },), size,);
 	return size;
 }
 
@@ -123,25 +123,25 @@ export function consoleSizeViaDenoAPI(
 	rid: number = Deno.stdout.rid,
 	options_: Partial<Omit<ConsoleSizeOptions, 'useCache'>> = {},
 ): ConsoleSize | undefined {
-	const options = { fallbackRIDs: [Deno.stderr.rid], consoleFileFallback: true, ...options_ };
+	const options = { fallbackRIDs: [Deno.stderr.rid,], consoleFileFallback: true, ...options_, };
 	if (denoConsoleSizeNT == undefined) return undefined;
 
-	let size = denoConsoleSizeNT(rid);
+	let size = denoConsoleSizeNT(rid,);
 
 	let fallbackRID;
 	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
 		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
-		size = denoConsoleSizeNT(fallbackRID);
+		size = denoConsoleSizeNT(fallbackRID,);
 	}
 
 	if ((size == undefined) && options.consoleFileFallback) {
 		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
-		const file = denoOpenSyncNT(fallbackFileName);
+		const file = denoOpenSyncNT(fallbackFileName,);
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
-		size = file && denoConsoleSizeNT(file.rid);
-		file && Deno.close(file.rid);
+		size = file && denoConsoleSizeNT(file.rid,);
+		file && Deno.close(file.rid,);
 	}
 
 	return size;
@@ -168,27 +168,27 @@ export function consoleSizeAsync(
 	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
 	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
+		fallbackRIDs: [Deno.stderr.rid,],
 		consoleFileFallback: true,
 		useCache: true,
 		...options_,
 	};
 	if (options.useCache) {
-		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
-		if (memo != undefined) return Promise.resolve(memo);
+		const memo = consoleSizeCache.get(JSON.stringify({ rid, options, },),);
+		if (memo != undefined) return Promise.resolve(memo,);
 	}
 	// attempt fast API first, with fallback to slower shell scripts
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
 	// ~ 0.5 ms for WinOS or POSIX (for open, un-redirected STDOUT or STDERR, using the fast [Deno] API)
 	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
 	const promise = Promise
-		.resolve(consoleSizeViaDenoAPI(rid, options))
-		.then((size) => {
-			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
+		.resolve(consoleSizeViaDenoAPI(rid, options,),)
+		.then((size,) => {
+			consoleSizeCache.set(JSON.stringify({ rid, options, },), size,);
 			return size;
-		})
-		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
-		.catch((_) =>
+		},)
+		.then((size,) => (size != undefined) ? size : Promise.reject(undefined,))
+		.catch((_,) =>
 			// shell script fallbacks
 			// ~ 25 ms for WinOS ; ~ 75 ms for POSIX
 			// * Promise constructors are synchronously eager, but `.then(...)/.catch(...)` is guaranteed to execute on the async stack
@@ -197,24 +197,24 @@ export function consoleSizeAsync(
 			// ref: https://stackoverflow.com/questions/21260602/how-to-reject-a-promise-from-inside-then-function
 			Promise
 				.any([
-					consoleSizeViaMode().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
+					consoleSizeViaMode().then((size,) =>
+						(size != undefined) ? size : Promise.reject(undefined,)
 					),
-					consoleSizeViaPowerShell().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
+					consoleSizeViaPowerShell().then((size,) =>
+						(size != undefined) ? size : Promise.reject(undefined,)
 					),
-					consoleSizeViaSTTY().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
+					consoleSizeViaSTTY().then((size,) =>
+						(size != undefined) ? size : Promise.reject(undefined,)
 					),
-					consoleSizeViaTPUT().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
+					consoleSizeViaTPUT().then((size,) =>
+						(size != undefined) ? size : Promise.reject(undefined,)
 					),
-				])
-				.then((size) => {
-					consoleSizeCache.set(JSON.stringify({ rid, options }), size);
+				],)
+				.then((size,) => {
+					consoleSizeCache.set(JSON.stringify({ rid, options, },), size,);
 					return size;
-				})
-				.catch((_) => undefined)
+				},)
+				.catch((_,) => undefined)
 		);
 
 	return promise;
@@ -229,18 +229,18 @@ export function consoleSizeAsync(
  */
 export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ~ 25 ms (WinOS-only)
-	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
+	if (!isWinOS) return Promise.resolve(undefined,); // no `mode con ...` on non-WinOS platforms
 	const output = (() => {
 		try {
 			const process = Deno.run({
-				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
+				cmd: ['cmd', '/d/c', 'mode', 'con', '/status',],
 				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			},);
+			return (process.output()).then((out,) => decode(out,)).finally(() => process.close());
 		} catch (_) {
-			return Promise.resolve(undefined);
+			return Promise.resolve(undefined,);
 		}
 	})();
 
@@ -257,16 +257,16 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	//     Code page:      65001
 	// ```
 	const promise = output
-		.then((text) =>
+		.then((text,) =>
 			text
-				?.split(/\r?\n/)
-				.filter((s) => s.length > 0)
-				.slice(2, 4)
-				.map((s) => s.match(/(\d+)\s*$/)?.[1])
-				.filter((s) => s && (s.length > 0)) ?? []
+				?.split(/\r?\n/,)
+				.filter((s,) => s.length > 0)
+				.slice(2, 4,)
+				.map((s,) => s.match(/(\d+)\s*$/,)?.[1])
+				.filter((s,) => s && (s.length > 0)) ?? []
 		)
-		.then((values) =>
-			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined
+		.then((values,) =>
+			values.length > 0 ? { columns: Number(values[1],), rows: Number(values[0],), } : undefined
 		);
 	return promise;
 }
@@ -295,20 +295,19 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			},);
+			return (process.output()).then((out,) => decode(out,)).finally(() => process.close());
 		} catch (_) {
-			return Promise.resolve(undefined);
+			return Promise.resolve(undefined,);
 		}
 	})();
 
-	const promise = output.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? []).then((
-		values,
-	) =>
-		values.length > 0
-			? { columns: Number(values.shift()), rows: Number(values.shift()) }
-			: undefined
-	);
+	const promise = output.then((text,) => text?.split(/\s+/,).filter((s,) => s.length > 0) ?? [])
+		.then((values,) =>
+			values.length > 0
+				? { columns: Number(values.shift(),), rows: Number(values.shift(),), }
+				: undefined
+		);
 	return promise;
 }
 
@@ -322,26 +321,26 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
 	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
-	if (isWinOS) return Promise.resolve(undefined);
+	if (isWinOS) return Promise.resolve(undefined,);
 	const output = (() => {
 		try {
 			const process = Deno.run({
-				cmd: ['stty', 'size', 'sane'],
+				cmd: ['stty', 'size', 'sane',],
 				stdin: 'inherit',
 				stderr: 'null',
 				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			},);
+			return (process.output()).then((out,) => decode(out,)).finally(() => process.close());
 		} catch (_) {
-			return Promise.resolve(undefined);
+			return Promise.resolve(undefined,);
 		}
 	})();
 
 	const promise = output
-		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0).reverse() ?? [])
-		.then((values) =>
+		.then((text,) => text?.split(/\s+/,).filter((s,) => s.length > 0).reverse() ?? [])
+		.then((values,) =>
 			values.length > 0
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
+				? { columns: Number(values.shift(),), rows: Number(values.shift(),), }
 				: undefined
 		);
 	return promise;
@@ -359,36 +358,36 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	const colsOutput = (() => {
 		try {
 			const process = Deno.run({
-				cmd: ['tput', 'cols'],
+				cmd: ['tput', 'cols',],
 				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			},);
+			return (process.output()).then((out,) => decode(out,)).finally(() => process.close());
 		} catch (_) {
-			return Promise.resolve(undefined);
+			return Promise.resolve(undefined,);
 		}
 	})();
 	const linesOutput = (() => {
 		try {
 			const process = Deno.run({
-				cmd: ['tput', 'lines'],
+				cmd: ['tput', 'lines',],
 				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			},);
+			return (process.output()).then((out,) => decode(out,)).finally(() => process.close());
 		} catch (_) {
-			return Promise.resolve(undefined);
+			return Promise.resolve(undefined,);
 		}
 	})();
 
 	const promise = Promise
-		.all([colsOutput, linesOutput])
-		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
-		.then(([cols, lines]) =>
+		.all([colsOutput, linesOutput,],)
+		.then(([colsText, linesText,],) => [colsText ?? '', linesText ?? '',])
+		.then(([cols, lines,],) =>
 			(cols.length > 0 && lines.length > 0)
-				? { columns: Number(cols), rows: Number(lines) }
+				? { columns: Number(cols,), rows: Number(lines,), }
 				: undefined
 		);
 	return promise;

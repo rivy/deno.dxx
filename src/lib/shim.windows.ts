@@ -58,15 +58,15 @@ const cmdShimPrepNoPipe = `@:pipeDisabled
 @if EXIST "%SHIM_EXEC%" @goto :prep
 @if DEFINED SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%SHIM_EXEC%"`;
 
-export function cmdShimTemplate(enablePipe: boolean) {
-	return cmdShimBase.replace('@:...prep...', enablePipe ? cmdShimPrepPipe : cmdShimPrepNoPipe);
+export function cmdShimTemplate(enablePipe: boolean,) {
+	return cmdShimBase.replace('@:...prep...', enablePipe ? cmdShimPrepPipe : cmdShimPrepNoPipe,);
 }
 
-export function shimInfo(contentsOriginal: string) {
+export function shimInfo(contentsOriginal: string,) {
 	// heuristic match for enhanced shim
 	// spell-checker:ignore () ined
-	const isEnhanced = contentsOriginal.match(/goto\s+[\W_]*undef(?:ined)?[\W_]*\s+2\s*>\s*NUL/i) ||
-		contentsOriginal.match(/shim\s*;\s*by\s*`?dxi`?/i);
+	const isEnhanced = contentsOriginal.match(/goto\s+[\W_]*undef(?:ined)?[\W_]*\s+2\s*>\s*NUL/i,) ||
+		contentsOriginal.match(/shim\s*;\s*by\s*`?dxi`?/i,);
 
 	const reMatchArray = contentsOriginal.match(
 		// match `deno run` options, run-target (as a URL-like quoted string), and run-target arguments from shim text
@@ -75,26 +75,26 @@ export function shimInfo(contentsOriginal: string) {
 		// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%SHIM_ARGS%%`
 		/^(.*?)@?\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?\x22([a-z][a-z0-9+.-]+:[^\x22]+)\x22\s+(%[*]|%%(?:DENO_)?SHIM_ARGS%%)\s*$/m,
 	) || [];
-	const [_match, _denoCommandPrefix, denoRunOptionsRaw, denoRunTarget, _denoRunTargetArgs] =
+	const [_match, _denoCommandPrefix, denoRunOptionsRaw, denoRunTarget, _denoRunTargetArgs,] =
 		reMatchArray;
 
 	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 
 	let denoRunOptions = denoRunOptionsRaw || '';
 
-	denoRunOptions = denoRunOptions.replace(/(?<=^|\s+)[\x22\x27]?--[\x22\x27]?(?=\s+|$)/gm, '') // remove any "--" (quoted or not); avoids collision with "--" added by template
+	denoRunOptions = denoRunOptions.replace(/(?<=^|\s+)[\x22\x27]?--[\x22\x27]?(?=\s+|$)/gm, '',) // remove any "--" (quoted or not); avoids collision with "--" added by template
 		.toString();
 
 	// change purposeful use of unstable flags to `--allow-all`
 	// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
 	// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
 	denoRunOptions = denoRunOptions
-		.replace(/(?<=^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno <= v1.12
-		.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno >= v1.13
+		.replace(/(?<=^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"',) // deno <= v1.12
+		.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"',) // deno >= v1.13
 		.toString();
 
 	// summarize flags/options for `--allow-all` or (unrestricted) `--allow-run`
-	if (denoRunOptions.match(/(?<=^|\s)[\x22\x27]?--allow-(all|run)(?:[\x22\x27]|\s|$)/m)) {
+	if (denoRunOptions.match(/(?<=^|\s)[\x22\x27]?--allow-(all|run)(?:[\x22\x27]|\s|$)/m,)) {
 		denoRunOptions = [
 			'"--allow-all"',
 			denoRunOptions.replace(
@@ -102,14 +102,14 @@ export function shimInfo(contentsOriginal: string) {
 				'',
 			),
 		]
-			.filter(Boolean)
-			.join(' ');
+			.filter(Boolean,)
+			.join(' ',);
 	}
 
 	denoRunOptions = denoRunOptions
-		.replace(/^\s+/m, '') // remove leading whitespace
-		.replace(/\s+$/m, '') // remove trailing whitespace
+		.replace(/^\s+/m, '',) // remove leading whitespace
+		.replace(/\s+$/m, '',) // remove trailing whitespace
 		.toString();
 
-	return { isEnhanced, denoRunOptions, denoRunTarget };
+	return { isEnhanced, denoRunOptions, denoRunTarget, };
 }

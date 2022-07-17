@@ -24,7 +24,7 @@ import scanImport = require('./scan.d.ts');
  * @return Returns a matcher function.
  * @api public
  */
-declare function picomatch<T extends true | false = false>(
+declare function picomatch<T extends true | false = false,>(
 	glob: picomatch.Glob,
 	options?: picomatch.PicomatchOptions,
 	returnState?: T,
@@ -34,7 +34,7 @@ declare namespace picomatch {
 	type Glob = string | string[];
 
 	interface Matcher {
-		(test: string): boolean;
+		(test: string,): boolean;
 	}
 
 	interface MatcherWithState extends Matcher {
@@ -87,7 +87,7 @@ declare namespace picomatch {
 		 * The function receives the range values as two arguments, and it must return a string to be used in the generated regex.
 		 * It's recommended that returned strings be wrapped in parentheses.
 		 */
-		expandRange?: ((a: string, b: string) => string) | undefined;
+		expandRange?: ((a: string, b: string,) => string) | undefined;
 		/**
 		 * Throws an error if no matches are found. Based on the bash option of the same name.
 		 */
@@ -103,7 +103,7 @@ declare namespace picomatch {
 		/**
 		 * Custom function for formatting the returned string. This is useful for removing leading slashes, converting Windows paths to Posix paths, etc.
 		 */
-		format?: ((str: string) => string) | undefined;
+		format?: ((str: string,) => string) | undefined;
 		/**
 		 * One or more glob patterns for excluding strings that should not be matched from the result.
 		 */
@@ -169,15 +169,15 @@ declare namespace picomatch {
 		/**
 		 * Function to be called on ignored items.
 		 */
-		onIgnore?: ((result: Result) => void) | undefined;
+		onIgnore?: ((result: Result,) => void) | undefined;
 		/**
 		 * Function to be called on matched items.
 		 */
-		onMatch?: ((result: Result) => void) | undefined;
+		onMatch?: ((result: Result,) => void) | undefined;
 		/**
 		 * Function to be called on all items, regardless of whether or not they are matched or ignored.
 		 */
-		onResult?: ((result: Result) => void) | undefined;
+		onResult?: ((result: Result,) => void) | undefined;
 		/**
 		 * Support POSIX character classes ("posix brackets").
 		 */
@@ -219,9 +219,9 @@ declare namespace picomatch {
 		test?: {},
 	): { isMatch: boolean; match?: boolean | RegExpExecArray | null | undefined; output: string };
 
-	function matchBase(input: string, glob: RegExp | string, options?: {}, posix?: any): boolean;
+	function matchBase(input: string, glob: RegExp | string, options?: {}, posix?: any,): boolean;
 
-	function isMatch(str: string | string[], patterns: Glob, options?: {}): boolean;
+	function isMatch(str: string | string[], patterns: Glob, options?: {},): boolean;
 
 	function parse(
 		pattern: string[],
@@ -254,7 +254,7 @@ declare namespace picomatch {
 
 	type ToRegexOptions = Pick<PicomatchOptions, 'flags' | 'nocase' | 'debug'>;
 
-	function toRegex(source: string | RegExp, options?: ToRegexOptions): RegExp;
+	function toRegex(source: string | RegExp, options?: ToRegexOptions,): RegExp;
 
 	const constants: typeof constantsImport;
 }

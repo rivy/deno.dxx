@@ -19,5 +19,5 @@ interface State {
 	output: string;
 }
 
-declare function parse(input: string, options: { maxLength: number }): State;
+declare function parse(input: string, options: { maxLength: number },): State;
 export = parse;

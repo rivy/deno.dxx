@@ -129,7 +129,7 @@ declare const constants: {
 		chars: { STAR: string },
 	): Record<string, { type: string; open: string; close: string }>;
 
-	globChars<T extends boolean>(
+	globChars<T extends boolean,>(
 		win32: T,
 	): T extends true ? typeof WINDOWS_CHARS : typeof POSIX_CHARS;
 };

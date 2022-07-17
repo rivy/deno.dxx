@@ -13,10 +13,10 @@ export * as $colors from 'https://deno.land/std@0.112.0/fmt/colors.ts';
 // export * as TTY from 'https://deno.land/x/tty@0.1.4/mod.ts';
 // export { default as Yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
-import { Queue } from 'https://deno.land/x/queue@1.2.0/mod.ts';
+import { Queue, } from 'https://deno.land/x/queue@1.2.0/mod.ts';
 export class PQueue extends Queue {
-	add: typeof this.push = (fn, ...args) => this.push(fn, ...args);
-	onIdle = () => this.push(() => {});
+	add: typeof this.push = (fn, ...args) => this.push(fn, ...args,);
+	onIdle = () => this.push(() => {},);
 	pause: typeof this.stop = () => this.stop();
 }
 // export PQueue from 'https://deno.land/x/p_queue@1.0.1/mod.ts'; // larger module (with Event support)
@@ -27,16 +27,16 @@ export class PQueue extends Queue {
 // spell-checker:ignore (people) * balupton
 
 // import deepMerge from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
-export { default as deepMerge } from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
+export { default as deepMerge, } from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
 
 export * as $symbols from '../xWait/log_symbols.ts';
 
-export { format } from './format.ts';
+export { format, } from './format.ts';
 
 export * as $levels from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
-export { default as rfcGetLogLevel } from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
-export { default as getCurrentLine } from 'https://esm.sh/get-current-line@6.6.0';
+export { default as rfcGetLogLevel, } from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
+export { default as getCurrentLine, } from 'https://esm.sh/get-current-line@6.6.0';
 
-export type { LevelInfo, LevelsMap as LevelMap } from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
-export type { DeepReadonly } from 'https://cdn.esm.sh/ts-essentials@9.0.0';
-export type { Location, Offset } from 'https://esm.sh/get-current-line@6.6.0';
+export type { LevelInfo, LevelsMap as LevelMap, } from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
+export type { DeepReadonly, } from 'https://cdn.esm.sh/ts-essentials@9.0.0';
+export type { Location, Offset, } from 'https://esm.sh/get-current-line@6.6.0';

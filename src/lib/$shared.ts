@@ -5,7 +5,7 @@
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
-import { $fs, $path } from './$deps.ts';
+import { $fs, $path, } from './$deps.ts';
 
 //===
 
@@ -13,18 +13,18 @@ export const projectName: string | undefined = 'dxx';
 export const VERSION = '0.0.13';
 
 // note: `projectURL` has some inherent instability for compiled scripts; this can be mitigated by using a CDN source for the compilation (eg, JSdelivr.net, Statically.io, GitHack.com)
-export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
+export const projectURL = new URL('../..', import.meta.url,); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath =
-	((url: URL) => (url.protocol === 'file:') ? $path.fromFileUrl(url) : url.pathname)(projectURL);
+	((url: URL,) => (url.protocol === 'file:') ? $path.fromFileUrl(url,) : url.pathname)(projectURL,);
 export const projectLocations = {
-	benchmarks: $path.join(projectPath, 'bench'),
-	editorconfig: $path.join(projectPath, '.editorconfig'),
-	examples: $path.join(projectPath, 'eg'),
-	readme: $path.join(projectPath, 'README.md'),
-	source: $path.join(projectPath, 'src'),
-	tests: $path.join(projectPath, 'tests'),
-	vendor: $path.join(projectPath, 'vendor'),
-	version: $path.join(projectPath, 'VERSION'),
+	benchmarks: $path.join(projectPath, 'bench',),
+	editorconfig: $path.join(projectPath, '.editorconfig',),
+	examples: $path.join(projectPath, 'eg',),
+	readme: $path.join(projectPath, 'README.md',),
+	source: $path.join(projectPath, 'src',),
+	tests: $path.join(projectPath, 'tests',),
+	vendor: $path.join(projectPath, 'vendor',),
+	version: $path.join(projectPath, 'VERSION',),
 };
 
 // // ToDO: investigate best practice for portability of PATH_SEP_PATTERN // note: WinOS => /[\\/]+/ ; *nix => /\/+/
@@ -40,8 +40,8 @@ export const isWinOS = Deno.build.os === 'windows';
 // export { decode, encode } from 'https://deno.land/std@0.85.0/encoding/utf8.ts'; // 'utf8.ts' was removed via commit 5bc18f5d86
 export const decoder = new TextDecoder(); // default == 'utf=8'
 export const encoder = new TextEncoder(); // *always* 'utf-8'
-export const decode = (input?: Uint8Array): string => decoder.decode(input);
-export const encode = (input?: string): Uint8Array => encoder.encode(input);
+export const decode = (input?: Uint8Array,): string => decoder.decode(input,);
+export const encode = (input?: string,): Uint8Array => encoder.encode(input,);
 
 //===
 
@@ -56,13 +56,13 @@ const SQ = `'`;
 const deDQStringReS = `${DQ}([^${DQ}]*)(?:${DQ}|$)`; // sub-match/extractor for contents of double-quoted string (unbalanced at end-of-line is allowed)
 const deSQStringReS = `${SQ}([^${SQ}]*)(?:${SQ}|$)`; // sub-match/extractor for contents of single-quoted string (unbalanced at end-of-line is allowed)
 
-const deQuoteRx = new RegExp(`([^${DQ}${SQ}]+)|${deDQStringReS}|${deSQStringReS}`, 'gmsu');
+const deQuoteRx = new RegExp(`([^${DQ}${SQ}]+)|${deDQStringReS}|${deSQStringReS}`, 'gmsu',);
 
 // `deQuote()`
 /** Remove quotes from text string (`s`). */
-export function deQuote(s?: string) {
+export function deQuote(s?: string,) {
 	if (!s) return s;
-	return s.replace(deQuoteRx, '$1$2$3');
+	return s.replace(deQuoteRx, '$1$2$3',);
 }
 
 //===
@@ -72,9 +72,9 @@ export function deQuote(s?: string) {
  * - will *not panic*
  * - *may prompt* user for 'env' permission
  */
-export function env(varName: string) {
+export function env(varName: string,) {
 	try {
-		return Deno.env.get(varName);
+		return Deno.env.get(varName,);
 	} catch (_) {
 		return undefined;
 	}
@@ -86,12 +86,12 @@ export function env(varName: string) {
  * - will *not prompt* for permission if `guard` is `true`
 @param [`options.guard`] verify environment access permission prior to access attempt (avoids Deno prompts/panics)
 */
-export async function envAsync(varName: string, options?: { guard: boolean }) {
+export async function envAsync(varName: string, options?: { guard: boolean },) {
 	const allowEnv = !options?.guard ||
-		((await (Deno.permissions?.query({ name: 'env', variable: varName }))).state ?? 'granted') !==
+		((await (Deno.permissions?.query({ name: 'env', variable: varName, },))).state ?? 'granted') !==
 			'granted';
 	try {
-		return allowEnv ? Deno.env.get(varName) : undefined;
+		return allowEnv ? Deno.env.get(varName,) : undefined;
 	} catch (_) {
 		return undefined;
 	}
@@ -101,36 +101,36 @@ export async function envAsync(varName: string, options?: { guard: boolean }) {
 
 // `isFileURL()`
 /** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), naming a local file resource. */
-export function isFileURL(url: URL) {
+export function isFileURL(url: URL,) {
 	return (url.protocol === 'file:');
 }
 
 // `isValidURL()`
 /** Determine if the supplied text string (`s`) is a valid URL. */
-export function isValidURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
-	return !!validURL(s, base);
+export function isValidURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP,),) {
+	return !!validURL(s, base,);
 }
 
 // `validURL()`
 /** Convert the supplied text string (`s`) into a valid URL (or `undefined` if `s` [relative to `base`] isn't a valid URL). */
-export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
-	return intoURL(s, base);
+export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP,),) {
+	return intoURL(s, base,);
 }
 
 //===
 
 // `intoPath()`
 /** Extract a path string from a path string (as an identity function) or URL. */
-export function intoPath(path?: string | URL) {
+export function intoPath(path?: string | URL,) {
 	if (!(path instanceof URL)) return path;
-	return (path.protocol === 'file:') ? $path.fromFileUrl(path) : path.pathname;
+	return (path.protocol === 'file:') ? $path.fromFileUrl(path,) : path.pathname;
 }
 
 // ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
 export type IntoUrlOptions = {
 	driveLetterSchemes?: boolean; // interpret single letter URL schemes as drive letters for Windows-style paths
 };
-const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: true };
+const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: true, };
 
 // `intoURL()`
 /** Convert a `path` string into an URL, relative to a `base` reference URL.
@@ -138,60 +138,63 @@ const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: tr
 @param [base] • baseline URL reference point ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param [options] ~ defaults to `{driveLetterSchemes: true}`
 */
-export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
-export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
+export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions,): URL | undefined;
+export function intoURL(path: string, options: IntoUrlOptions,): URL | undefined;
 export function intoURL(path?: string, ...args: unknown[]) {
 	if (path == undefined) return undefined;
 	const base = (args?.length > 0 && (args[0] instanceof URL))
 		? args.shift() as URL
 		: allowRead
-		? ($path.toFileUrl(Deno.cwd() + $path.SEP))
+		? ($path.toFileUrl(Deno.cwd() + $path.SEP,))
 		: '';
 	const options = {
 		...IntoUrlOptionsDefault,
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
 	};
-	let scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+	let scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/,) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 	if (options.driveLetterSchemes && scheme?.length == 1) {
 		scheme = 'file';
 		path = scheme + '://' + path;
 	}
 	scheme = scheme || 'file';
 	// normalize slashes ~ back-slashes to forward & replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
-	path = path.replaceAll('\\', '/').replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu, '/');
+	path = path.replaceAll('\\', '/',).replaceAll(
+		/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu,
+		'/',
+	);
 	// ref: [File path formats on Windows Systems](https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/AOS2n>
 	// note: '\\?\...' is equivalent to '\\.\...' for windows paths; '.' is a valid host/hostname, but '?' *is not*
 	// # replacing leading DOS device prefix ('//?/') with '//./?/' (reversed upon later extraction with `pathFromURL()`)
-	path = path.replace(/^\/\/\?\//, '//./?/');
+	path = path.replace(/^\/\/\?\//, '//./?/',);
 	if (scheme === 'file') {
 		// '%'-encode '?' and '#' characters to avoid URI interpretation as query and/or fragment strings
-		path = path.replaceAll(/[%?#]/gmsu, (c) => '%' + c.charCodeAt(0).toString(16));
+		path = path.replaceAll(/[%?#]/gmsu, (c,) => '%' + c.charCodeAt(0,).toString(16,),);
 	}
 	// console.warn({ path, base, options });
 	try {
-		return new URL(path, base);
+		return new URL(path, base,);
 	} catch (_error) {
 		return undefined;
 	}
 }
 
-export function pathFromURL(url: URL) {
+export function pathFromURL(url: URL,) {
 	let path = url.href;
 	if (url.protocol === 'file:') {
 		// regenerate path from any '%'-encoded characters
 		path = path.replaceAll(
 			/%([a-fA-F0-9][a-fA-F0-9])/gmsu,
-			(_, v) => String.fromCharCode(parseInt(v, 16)),
+			(_, v,) => String.fromCharCode(parseInt(v, 16,),),
 		);
 	}
 	// regenerate correct paths for 'file:' protocol
-	path = path.replace(/^file:\/\/[.]\/?\//, '\/\/?\/').replace(/^file:\/\/\//, '');
+	path = path.replace(/^file:\/\/[.]\/?\//, '\/\/?\/',).replace(/^file:\/\/\//, '',);
 	return path;
 }
 
 //===
 
-const allowRead = ((await Deno.permissions?.query({ name: 'read' })).state === 'granted');
+const allowRead = ((await Deno.permissions?.query({ name: 'read', },)).state === 'granted');
 
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
@@ -202,31 +205,31 @@ const allowRead = ((await Deno.permissions?.query({ name: 'read' })).state === '
 */
 export function traversal(
 	goal: string | URL,
-	base: string | URL = allowRead ? $path.toFileUrl(Deno.cwd() + $path.SEP) : '',
+	base: string | URL = allowRead ? $path.toFileUrl(Deno.cwd() + $path.SEP,) : '',
 ) {
-	const url = (goal instanceof URL) ? goal : intoURL(goal);
-	const baseURL = (base instanceof URL) ? base : intoURL(base);
+	const url = (goal instanceof URL) ? goal : intoURL(goal,);
+	const baseURL = (base instanceof URL) ? base : intoURL(base,);
 	const commonOrigin = url && baseURL &&
-		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0) &&
-		(url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0);
+		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent', },) == 0) &&
+		(url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent', },) == 0);
 	// console.warn({ goal, url, base, baseURL, commonOrigin });
 	if (url && baseURL && commonOrigin) {
-		const basePath = pathFromURL(baseURL);
-		const goalPath = pathFromURL(url);
+		const basePath = pathFromURL(baseURL,);
+		const goalPath = pathFromURL(url,);
 		const commonPathPrefix = longestCommonPrefix(
 			// ToDO: add option to turn on/off file comparison case-sensitivity
-			mightUseFileSystemCase() ? basePath : toCommonCase(basePath),
-			mightUseFileSystemCase() ? goalPath : toCommonCase(goalPath),
+			mightUseFileSystemCase() ? basePath : toCommonCase(basePath,),
+			mightUseFileSystemCase() ? goalPath : toCommonCase(goalPath,),
 		)
-			.replace(/[^\/]*$/, '');
+			.replace(/[^\/]*$/, '',);
 		// console.warn({ basePath, goalPath, commonPathPrefix });
 		// console.warn({
 		// 	basePathSlice: basePath.slice(commonPathPrefix.length),
 		// 	goalPathSlice: goalPath.slice(commonPathPrefix.length),
 		// });
 		return $path.relative(
-			basePath.slice(commonPathPrefix.length),
-			goalPath.slice(commonPathPrefix.length),
+			basePath.slice(commonPathPrefix.length,),
+			goalPath.slice(commonPathPrefix.length,),
 		);
 	} else {
 		return url ? url.href : undefined;
@@ -235,11 +238,11 @@ export function traversal(
 
 //===
 
-export function isEmpty(x: unknown) {
+export function isEmpty(x: unknown,) {
 	if (x == null) return true;
 	if (typeof x === 'function') return true;
 	if (typeof x === 'object') {
-		if (x.constructor === Object && Object.keys(x).length === 0) {
+		if (x.constructor === Object && Object.keys(x,).length === 0) {
 			return true;
 		}
 	}
@@ -249,21 +252,21 @@ export function isEmpty(x: unknown) {
 
 //===
 
-const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off'];
+const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off',];
 // const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'never', 'no', 'none', 'off'];
 
 export type Truthy = false | string;
 // `isFalsey()`
-export function isFalsey(s: string): boolean {
-	return toTruthy(s) == false;
+export function isFalsey(s: string,): boolean {
+	return toTruthy(s,) == false;
 }
 // `isTruthy()`
-export function isTruthy(s?: string): boolean {
-	return toTruthy(s) != false;
+export function isTruthy(s?: string,): boolean {
+	return toTruthy(s,) != false;
 }
 // `toTruthy()`
-export function toTruthy(s?: string): Truthy {
-	if (!s || falseyValues.includes(s)) {
+export function toTruthy(s?: string,): Truthy {
+	if (!s || falseyValues.includes(s,)) {
 		return false;
 	}
 	return s;
@@ -276,9 +279,9 @@ export function toTruthy(s?: string): Truthy {
 // ref: <https://coolaj86.com/articles/how-to-count-unicode-characters-in-javascript> @@ <https://archive.is/5nzNP>
 // ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length#unicode> @@ <https://archive.is/DdIu6>
 // ToDO: benchmark `getCharacterLength()` vs `s.length()`
-export function getCharacterLength(s: string) {
+export function getCharacterLength(s: string,) {
 	// The string iterator that is used here iterates over characters, not mere UTF-16 code units
-	return [...s].length;
+	return [...s,].length;
 }
 
 export function longestCommonPrefix(...arr: string[]) {
@@ -295,33 +298,33 @@ export function longestCommonPrefix(...arr: string[]) {
 	return prefix;
 }
 
-export function toCommonCase(s: string) {
+export function toCommonCase(s: string,) {
 	return s.toLocaleLowerCase();
 }
 
 //===
 
-export function stableSort<T = unknown>(arr: T[], compare: (a: T, b: T) => number) {
+export function stableSort<T = unknown,>(arr: T[], compare: (a: T, b: T,) => number,) {
 	return arr
-		.map((item, index) => ({ item, index }))
-		.sort((a, b) => compare(a.item, b.item) || a.index - b.index)
-		.map(({ item }) => item);
+		.map((item, index,) => ({ item, index, }))
+		.sort((a, b,) => compare(a.item, b.item,) || a.index - b.index)
+		.map(({ item, },) => item);
 }
 
 //===
 
-function existsSync(path: string) {
+function existsSync(path: string,) {
 	try {
-		return $fs.existsSync(path);
+		return $fs.existsSync(path,);
 	} catch {
 		return false;
 	}
 }
 
-export function firstPathContaining(goal: string, paths: string[]) {
+export function firstPathContaining(goal: string, paths: string[],) {
 	for (const path of paths) {
-		const p = $path.join(path, goal);
-		if (existsSync(p)) return path;
+		const p = $path.join(path, goal,);
+		if (existsSync(p,)) return path;
 	}
 }
 
@@ -344,37 +347,37 @@ export function firstPathContaining(goal: string, paths: string[]) {
 // 	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
 // }
 
-export function pathEquivalent(a?: string, b?: string) {
+export function pathEquivalent(a?: string, b?: string,) {
 	// console.warn({ a, b });
 	// console.warn({ aURL: intoURL(a), bURL: intoURL(b) });
-	return (a === b) || (intoURL(a)?.href === intoURL(b)?.href);
+	return (a === b) || (intoURL(a,)?.href === intoURL(b,)?.href);
 }
 //===
 
 // ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat>
 export function formatDuration(
 	durationInMS: number,
-	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
+	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5, },
 ): string {
-	const [unit, n] = (durationInMS > 1000) ? ['s', durationInMS / 1000] : ['ms', durationInMS];
-	return (new Intl.NumberFormat(undefined, options).format(n)) + ' ' + unit;
+	const [unit, n,] = (durationInMS > 1000) ? ['s', durationInMS / 1000,] : ['ms', durationInMS,];
+	return (new Intl.NumberFormat(undefined, options,).format(n,)) + ' ' + unit;
 }
 export function formatN(
 	n: number,
-	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
+	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5, },
 ): string {
-	return (new Intl.NumberFormat(undefined, options).format(n));
+	return (new Intl.NumberFormat(undefined, options,).format(n,));
 }
 
-export function durationText(tag: string): string | undefined {
+export function durationText(tag: string,): string | undefined {
 	try {
 		const performanceEntries = (() => {
-			let entries = performance.getEntriesByName(tag, 'mark');
+			let entries = performance.getEntriesByName(tag, 'mark',);
 			if (entries.length > 1) return entries;
-			entries = entries.concat(performance.getEntriesByName(tag + ':begin'));
-			entries = entries.concat(performance.getEntriesByName(tag + ':start'));
-			entries = entries.concat(performance.getEntriesByName(tag + ':end'));
-			entries = entries.concat(performance.getEntriesByName(tag + ':stop'));
+			entries = entries.concat(performance.getEntriesByName(tag + ':begin',),);
+			entries = entries.concat(performance.getEntriesByName(tag + ':start',),);
+			entries = entries.concat(performance.getEntriesByName(tag + ':end',),);
+			entries = entries.concat(performance.getEntriesByName(tag + ':stop',),);
 			if (entries.length > 1) return entries;
 			return undefined;
 		})();
@@ -382,7 +385,7 @@ export function durationText(tag: string): string | undefined {
 		const now = performance.now();
 		const duration = (performanceEntries.pop()?.startTime ?? now) -
 			(performanceEntries.shift()?.startTime ?? now);
-		return `${tag} done (duration: ${formatDuration(duration, { maximumFractionDigits: 3 })})`;
+		return `${tag} done (duration: ${formatDuration(duration, { maximumFractionDigits: 3, },)})`;
 	} catch (_) {
 		return undefined;
 	}
@@ -407,7 +410,7 @@ export function isWSL() {
 	// * add `sudo echo 'Default:%sudo env_keep+="WT_*"' > /etc/sudoers.d/WT-env_keep` for MS Windows Terminal variables
 	// * (as an aside...) add `sudo echo 'Default:%sudo env_keep+="LANG LC_*"' > /etc/sudoers.d/SSH-env_keep` for SSH
 	return (!isWinOS) &&
-		(Boolean(Deno.env.get('IS_WSL')) || Boolean(Deno.env.get('WSL_DISTRO_NAME')));
+		(Boolean(Deno.env.get('IS_WSL',),) || Boolean(Deno.env.get('WSL_DISTRO_NAME',),));
 }
 
 // `canDisplayUnicode()`
@@ -417,7 +420,7 @@ export function canDisplayUnicode() {
 		// POSIX-like
 		// ref: <https://stackoverflow.com/questions/3104410/identify-cygwin-linux-windows-using-environment-variables> , <https://stackoverflow.com/questions/714100/os-detecting-makefile>
 		// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain>
-		const isOldTerminal = ['cygwin', 'linux'].includes(Deno.env.get('TERM') ?? '');
+		const isOldTerminal = ['cygwin', 'linux',].includes(Deno.env.get('TERM',) ?? '',);
 		const isWSL_ = isWSL();
 		return !isOldTerminal && // fail for old terminals
 		(( // * not isWSL
@@ -425,25 +428,28 @@ export function canDisplayUnicode() {
 			Boolean(
 				Deno
 					.env
-					.get('LC_ALL')
-					?.match(/[.]utf-?8$/i) || Deno.env.get('LANG')?.match(/[.]utf-?8$/i),
+					.get('LC_ALL',)
+					?.match(/[.]utf-?8$/i,) || Deno
+					.env
+					.get('LANG',)
+					?.match(/[.]utf-?8$/i,),
 			) /* LC_ALL or LANG handles UTF-8? */
 		) || ( // * isWSL
-			isWSL_ && Boolean(Deno.env.get('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
+			isWSL_ && Boolean(Deno.env.get('WT_SESSION',),) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
 		));
 	}
 
 	// WinOS
 	// note: 'alacritty' will, by default, set TERM to 'xterm-256color'
-	return (['alacritty', 'xterm-256color'].includes(Deno.env.get('TERM') ?? '')) || // [alacritty](https://github.com/alacritty/alacritty)
-		Boolean(Deno.env.get('ConEmuPID')) || // [ConEmu](https://conemu.github.io) and [cmder](https://cmder.net)
-		Boolean(Deno.env.get('WT_SESSION')); // MS Windows Terminal
+	return (['alacritty', 'xterm-256color',].includes(Deno.env.get('TERM',) ?? '',)) || // [alacritty](https://github.com/alacritty/alacritty)
+		Boolean(Deno.env.get('ConEmuPID',),) || // [ConEmu](https://conemu.github.io) and [cmder](https://cmder.net)
+		Boolean(Deno.env.get('WT_SESSION',),); // MS Windows Terminal
 }
 
 export function mightUseColor() {
 	// respects `NO_COLOR` env var override; use 'truthy' values?
 	// ref: <https://no-color.org> @@ <https://archive.is/Z5N1d>
-	return !(Deno.env.get('NO_COLOR'));
+	return !(Deno.env.get('NO_COLOR',));
 }
 
 export function mightUseFileSystemCase() {
@@ -453,13 +459,13 @@ export function mightUseFileSystemCase() {
 	// ref: <https://stackoverflow.com/questions/7199039/file-paths-in-windows-environment-not-case-sensitive> @@ <https://archive.is/i0xzb>
 	// ref: <https://nodejs.org/en/docs/guides/working-with-different-filesystems> @@ <https://archive.is/qSRjE>
 	// ref: <https://en.wikipedia.org/wiki/Filename> @@ <https://archive.is/cqe6g>
-	return !isWinOS /* assumed to be POSIX-like */ || !(Deno.env.get('USE_FS_CASE'));
+	return !isWinOS /* assumed to be POSIX-like */ || !(Deno.env.get('USE_FS_CASE',));
 }
 
 export function mightUseUnicode() {
 	// respects `NO_UNICODE` and `USE_UNICODE` env var overrides (in that order of priority); use 'truthy' values?
-	if (Deno.env.get('NO_UNICODE')) return false;
-	if (Deno.env.get('USE_UNICODE')) return true;
+	if (Deno.env.get('NO_UNICODE',)) return false;
+	if (Deno.env.get('USE_UNICODE',)) return true;
 	return canDisplayUnicode();
 }
 
@@ -470,24 +476,24 @@ export function mightUseUnicode() {
 // VERSION handler
 
 // `fetch()` implementation (requires read [for local runs] or network permissions)
-import { fetch } from './xFetch.ts'; // 'file://'-compatible `fetch()`
+import { fetch, } from './xFetch.ts'; // 'file://'-compatible `fetch()`
 
 // import { intoURL, projectLocations, projectURL } from '../../tests/$shared.ts';
 // import { logger } from '../../tests/$shared.ts';
 
 const newline = /\r?\n|\n/;
-const versionURL = intoURL(projectLocations.version, projectURL);
+const versionURL = intoURL(projectLocations.version, projectURL,);
 
 // logger.trace({ projectURL, projectLocations, versionURL });
 
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
 const projectVersionTextViaFetch =
 	await (versionURL &&
-			((await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted')
-		? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
-			text?.split(newline).filter((s) => s)[0]
+			((await Deno.permissions.query({ name: 'read', path: versionURL, },)).state === 'granted')
+		? (fetch(versionURL,).then((resp,) => resp.ok ? resp.text() : undefined).then((text,) =>
+			text?.split(newline,).filter((s,) => s)[0]
 		))
-		: Promise.resolve(undefined));
+		: Promise.resolve(undefined,));
 
 // `import ...` implementation (note: requires project-level synchronization tooling)
 const projectVersionTextViaImport = VERSION;
@@ -496,7 +502,7 @@ function v() {
 	return projectVersionTextViaImport;
 }
 
-export const $version = { versionURL, projectVersionTextViaFetch, projectVersionTextViaImport, v };
+export const $version = { versionURL, projectVersionTextViaFetch, projectVersionTextViaImport, v, };
 
 //=== * logger
 

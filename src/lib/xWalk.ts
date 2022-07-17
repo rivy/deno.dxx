@@ -6,23 +6,23 @@
 // Documentation and interface for walk were adapted from Go
 // https://golang.org/pkg/path/filepath/#Walk
 // Copyright 2009 The Go Authors. All rights reserved. BSD license.
-import { $path, assert } from './$deps.ts';
-const { basename, join, normalize } = $path;
+import { $path, assert, } from './$deps.ts';
+const { basename, join, normalize, } = $path;
 
 /** Create WalkEntry for the `path` synchronously */
-export function _createWalkEntrySync(path: string): WalkEntry {
-	path = normalize(path);
-	const name = basename(path);
+export function _createWalkEntrySync(path: string,): WalkEntry {
+	path = normalize(path,);
+	const name = basename(path,);
 	let error;
 	let info;
 	try {
-		info = Deno.statSync(path);
+		info = Deno.statSync(path,);
 	} catch (e) {
 		error = e;
 		info = undefined;
 	}
 	return {
-		errors: error ? [error] : [],
+		errors: error ? [error,] : [],
 		path,
 		name,
 		isFile: info ? info.isFile : false,
@@ -32,19 +32,19 @@ export function _createWalkEntrySync(path: string): WalkEntry {
 }
 
 /** Create WalkEntry for the `path` asynchronously */
-export async function _createWalkEntry(path: string): Promise<WalkEntry> {
-	path = normalize(path);
-	const name = basename(path);
+export async function _createWalkEntry(path: string,): Promise<WalkEntry> {
+	path = normalize(path,);
+	const name = basename(path,);
 	let info;
 	let error;
 	try {
-		info = await Deno.stat(path);
+		info = await Deno.stat(path,);
 	} catch (e) {
 		error = e;
 		info = undefined;
 	}
 	return {
-		errors: error ? [error] : [],
+		errors: error ? [error,] : [],
 		path,
 		name,
 		isFile: info ? info.isFile : false,
@@ -63,14 +63,14 @@ export interface WalkOptions {
 	skip?: RegExp[];
 }
 
-function include(path: string, exts?: string[], match?: RegExp[], skip?: RegExp[]): boolean {
-	if (exts && !exts.some((ext): boolean => path.endsWith(ext))) {
+function include(path: string, exts?: string[], match?: RegExp[], skip?: RegExp[],): boolean {
+	if (exts && !exts.some((ext,): boolean => path.endsWith(ext,))) {
 		return false;
 	}
-	if (match && !match.some((pattern): boolean => !!path.match(pattern))) {
+	if (match && !match.some((pattern,): boolean => !!path.match(pattern,))) {
 		return false;
 	}
-	if (skip && skip.some((pattern): boolean => !!path.match(pattern))) {
+	if (skip && skip.some((pattern,): boolean => !!path.match(pattern,))) {
 		return false;
 	}
 	return true;
@@ -117,29 +117,29 @@ export async function* walk(
 	if (maxDepth < 0) {
 		return;
 	}
-	if (includeDirs && include(root, exts, match, skip)) {
-		yield await _createWalkEntry(root);
+	if (includeDirs && include(root, exts, match, skip,)) {
+		yield await _createWalkEntry(root,);
 	}
-	if (maxDepth < 1 || !include(root, undefined, undefined, skip)) {
+	if (maxDepth < 1 || !include(root, undefined, undefined, skip,)) {
 		return;
 	}
 	try {
 		// console.warn('xWalk.walk()', { root, options: { match, maxDepth } });
-		for await (const entry of Deno.readDir(root)) {
-			assert(entry.name != null);
-			let path = join(root, entry.name);
+		for await (const entry of Deno.readDir(root,)) {
+			assert(entry.name != null,);
+			let path = join(root, entry.name,);
 
 			if (entry.isSymlink) {
 				if (followSymlinks) {
-					path = await Deno.realPath(path);
+					path = await Deno.realPath(path,);
 				} else {
 					continue;
 				}
 			}
 
 			if (entry.isFile) {
-				if (includeFiles && include(path, exts, match, skip)) {
-					yield { errors, path, ...entry };
+				if (includeFiles && include(path, exts, match, skip,)) {
+					yield { errors, path, ...entry, };
 				}
 			} else {
 				yield* walk(path, {
@@ -150,12 +150,12 @@ export async function* walk(
 					exts,
 					match,
 					skip,
-				});
+				},);
 			}
 		}
 	} catch (_error) {
 		/* swallow any Deno.readDir() errors */
-		errors.push(_error);
+		errors.push(_error,);
 	}
 }
 
@@ -176,28 +176,28 @@ export function* walkSync(
 	if (maxDepth < 0) {
 		return;
 	}
-	if (includeDirs && include(root, exts, match, skip)) {
-		yield _createWalkEntrySync(root);
+	if (includeDirs && include(root, exts, match, skip,)) {
+		yield _createWalkEntrySync(root,);
 	}
-	if (maxDepth < 1 || !include(root, undefined, undefined, skip)) {
+	if (maxDepth < 1 || !include(root, undefined, undefined, skip,)) {
 		return;
 	}
 	try {
-		for (const entry of Deno.readDirSync(root)) {
-			assert(entry.name != null);
-			let path = join(root, entry.name);
+		for (const entry of Deno.readDirSync(root,)) {
+			assert(entry.name != null,);
+			let path = join(root, entry.name,);
 
 			if (entry.isSymlink) {
 				if (followSymlinks) {
-					path = Deno.realPathSync(path);
+					path = Deno.realPathSync(path,);
 				} else {
 					continue;
 				}
 			}
 
 			if (entry.isFile) {
-				if (includeFiles && include(path, exts, match, skip)) {
-					yield { errors, path, ...entry };
+				if (includeFiles && include(path, exts, match, skip,)) {
+					yield { errors, path, ...entry, };
 				}
 			} else {
 				yield* walkSync(path, {
@@ -208,11 +208,11 @@ export function* walkSync(
 					exts,
 					match,
 					skip,
-				});
+				},);
 			}
 		}
 	} catch (_error) {
 		/* swallow any Deno.readDirSync() errors */
-		errors.push(_error);
+		errors.push(_error,);
 	}
 }

@@ -52,7 +52,7 @@ interface /* export class */ DenoUnsafePointer {
 	/**
 	 * Return the direct memory pointer to the typed array in memory
 	 */
-	/* static */ of(typedArray: TypedArray): DenoUnsafePointer;
+	/* static */ of(typedArray: TypedArray,): DenoUnsafePointer;
 
 	/**
 	 * Returns the value of the pointer which is useful in certain scenarios.
@@ -75,44 +75,44 @@ interface /* export class */ DenoUnsafePointerView {
 	pointer: DenoUnsafePointer;
 
 	/** Gets an unsigned 8-bit integer at the specified byte offset from the pointer. */
-	getUint8(offset?: number): number;
+	getUint8(offset?: number,): number;
 	/** Gets a signed 8-bit integer at the specified byte offset from the pointer. */
-	getInt8(offset?: number): number;
+	getInt8(offset?: number,): number;
 	/** Gets an unsigned 16-bit integer at the specified byte offset from the pointer. */
-	getUint16(offset?: number): number;
+	getUint16(offset?: number,): number;
 	/** Gets a signed 16-bit integer at the specified byte offset from the pointer. */
-	getInt16(offset?: number): number;
+	getInt16(offset?: number,): number;
 	/** Gets an unsigned 32-bit integer at the specified byte offset from the pointer. */
-	getUint32(offset?: number): number;
+	getUint32(offset?: number,): number;
 	/** Gets a signed 32-bit integer at the specified byte offset from the pointer. */
-	getInt32(offset?: number): number;
+	getInt32(offset?: number,): number;
 	/** Gets an unsigned 64-bit integer at the specified byte offset from the pointer. */
-	getBigUint64(offset?: number): bigint;
+	getBigUint64(offset?: number,): bigint;
 	/** Gets a signed 64-bit integer at the specified byte offset from the pointer. */
-	getBigInt64(offset?: number): bigint;
+	getBigInt64(offset?: number,): bigint;
 	/** Gets a signed 32-bit float at the specified byte offset from the pointer. */
-	getFloat32(offset?: number): number;
+	getFloat32(offset?: number,): number;
 	/** Gets a signed 64-bit float at the specified byte offset from the pointer. */
-	getFloat64(offset?: number): number;
+	getFloat64(offset?: number,): number;
 	/** Gets a C string (null terminated string) at the specified byte offset from the pointer. */
-	getCString(offset?: number): string;
+	getCString(offset?: number,): string;
 	/** Gets an ArrayBuffer of length `byteLength` at the specified byte offset from the pointer. */
-	getArrayBuffer(byteLength: number, offset?: number): ArrayBuffer;
+	getArrayBuffer(byteLength: number, offset?: number,): ArrayBuffer;
 	/** Copies the memory of the pointer into a typed array. Length is determined from the typed array's `byteLength`. Also takes optional offset from the pointer. */
-	copyInto(destination: TypedArray, offset?: number): void;
+	copyInto(destination: TypedArray, offset?: number,): void;
 }
 interface DenoUnsafePointerViewCtor {
-	new (pointer: DenoUnsafePointer): DenoUnsafePointerView;
+	new (pointer: DenoUnsafePointer,): DenoUnsafePointerView;
 }
-const denoUnsafePointerViewCtor = (pointer: DenoUnsafePointer) => {
+const denoUnsafePointerViewCtor = (pointer: DenoUnsafePointer,) => {
 	// deno-lint-ignore no-explicit-any
 	const ctor = (Deno as any).UnsafePointerView;
 	if (ctor == null) return undefined;
-	return new ctor(pointer) as DenoUnsafePointerView | undefined;
+	return new ctor(pointer,) as DenoUnsafePointerView | undefined;
 };
 
 /** A dynamic library resource */
-interface DenoDynamicLibrary<S extends Record<string, DenoForeignFunction>> {
+interface DenoDynamicLibrary<S extends Record<string, DenoForeignFunction>,> {
 	/** All of the registered symbols along with functions for calling them */
 	symbols: { [K in keyof S]: (...args: unknown[]) => unknown };
 
@@ -128,7 +128,7 @@ interface DenoDynamicLibrary<S extends Record<string, DenoForeignFunction>> {
 // 	symbols: S,
 // ): DynamicLibrary<S>;
 
-type DenoDlOpenFn = <S extends Record<string, DenoForeignFunction>>(
+type DenoDlOpenFn = <S extends Record<string, DenoForeignFunction>,>(
 	filename: string | URL,
 	symbols: S,
 ) => DenoDynamicLibrary<S>;
@@ -138,16 +138,16 @@ type DenoDlOpenFn = <S extends Record<string, DenoForeignFunction>>(
 const denoDlOpen = (Deno as any).dlopen as DenoDlOpenFn | undefined;
 
 const fns: Record<string, DenoForeignFunction> = {
-	'GetCommandLineA': { parameters: [], result: 'pointer' },
-	'GetCommandLineW': { parameters: [], result: 'pointer' },
+	'GetCommandLineA': { parameters: [], result: 'pointer', },
+	'GetCommandLineW': { parameters: [], result: 'pointer', },
 };
-const dll = denoDlOpen?.('kernel32.dll', fns);
+const dll = denoDlOpen?.('kernel32.dll', fns,);
 
-function wcharArrayToString(arr?: Uint16Array) {
+function wcharArrayToString(arr?: Uint16Array,) {
 	if (arr == null) return undefined;
 	let s = '';
 	for (const value of arr.values()) {
-		s = s + String.fromCharCode(value);
+		s = s + String.fromCharCode(value,);
 	}
 	return s;
 }
@@ -156,29 +156,29 @@ function wcharArrayToString(arr?: Uint16Array) {
 
 export function GetCommandLineA() {
 	const ptr = dll?.symbols.GetCommandLineA() as DenoUnsafePointer;
-	const ptrView = ptr && denoUnsafePointerViewCtor(ptr);
+	const ptrView = ptr && denoUnsafePointerViewCtor(ptr,);
 	return ptrView?.getCString();
 }
 
 function GetCommandLineWCharArray() {
 	const ptr = dll?.symbols.GetCommandLineW() as DenoUnsafePointer;
-	const ptrView = ptr && denoUnsafePointerViewCtor?.(ptr);
+	const ptrView = ptr && denoUnsafePointerViewCtor?.(ptr,);
 	if (ptrView == null) return undefined;
 	const Uint16Size = 2;
 	let offset = 0;
-	let value = ptrView.getUint16(offset);
+	let value = ptrView.getUint16(offset,);
 	while (value != null && value !== 0) {
 		// console.warn({ idx, value, c: String.fromCharCode(value) });
 		offset = offset + Uint16Size;
-		value = ptrView.getUint16(offset);
+		value = ptrView.getUint16(offset,);
 	}
-	const s = new Uint16Array(offset / Uint16Size);
-	ptrView.copyInto(s);
+	const s = new Uint16Array(offset / Uint16Size,);
+	ptrView.copyInto(s,);
 	return s;
 }
 
 export function GetCommandLineW() {
-	return wcharArrayToString(GetCommandLineWCharArray());
+	return wcharArrayToString(GetCommandLineWCharArray(),);
 }
 
 export function GetCommandLine() {

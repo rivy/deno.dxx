@@ -12,16 +12,16 @@ import constants = require('./constants.d.ts');
 
 interface PicomatchOptions {
 	ignore?: string;
-	onResult?: (result: Result) => void;
-	onIgnore?: (result: Result) => void;
-	onMatch?: (result: Result) => void;
+	onResult?: (result: Result,) => void;
+	onIgnore?: (result: Result,) => void;
+	onMatch?: (result: Result,) => void;
 	dot?: boolean;
 	windows?: boolean;
 	contains?: boolean;
-	format?: (input: string) => string;
+	format?: (input: string,) => string;
 }
 
-type Matcher = (test: string) => boolean;
+type Matcher = (test: string,) => boolean;
 
 interface Result {
 	glob: string;
@@ -54,7 +54,7 @@ interface Picomatch {
 	 * @return Returns a matcher function.
 	 * @api public
 	 */
-	(glob: string | string[], options?: PicomatchOptions, returnState?: boolean): Matcher;
+	(glob: string | string[], options?: PicomatchOptions, returnState?: boolean,): Matcher;
 
 	test(
 		input: string,
@@ -63,13 +63,13 @@ interface Picomatch {
 		test?: {},
 	): { isMatch: boolean; match: boolean; output: any };
 
-	matchBase(input: string, glob: RegExp | string, options: {}, posix?: any): boolean;
+	matchBase(input: string, glob: RegExp | string, options: {}, posix?: any,): boolean;
 
-	isMatch(str: string | string[], patterns: string | string[], options?: {}): boolean;
+	isMatch(str: string | string[], patterns: string | string[], options?: {},): boolean;
 
-	parse(pattern: string, options: {}): {};
+	parse(pattern: string, options: {},): {};
 
-	scan(input: string, options: {}): {};
+	scan(input: string, options: {},): {};
 
 	compileRe(
 		state: ReturnType<typeof parse>,

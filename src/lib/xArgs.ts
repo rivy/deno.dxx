@@ -40,13 +40,13 @@
 // ref: <https://stackoverflow.com/questions/61821038/how-to-use-npm-module-in-deno>
 // ref: <https://jspm.org/docs/cdn>
 
-import { $fs, $osPaths, $path, assert } from './$deps.ts';
+import { $fs, $osPaths, $path, assert, } from './$deps.ts';
 
-import { walk, walkSync } from './xWalk.ts';
+import { walk, walkSync, } from './xWalk.ts';
 
 import * as Braces from './xBraces.ts';
 
-export { expand as braceExpand } from './xBraces.ts';
+export { expand as braceExpand, } from './xBraces.ts';
 
 // esm.sh
 // import Braces from 'https://cdn.esm.sh/braces@3.0.2';
@@ -93,9 +93,9 @@ const Picomatch = PicomatchM as typeof PicomatchT;
 const isWinOS = Deno.build.os === 'windows';
 
 export const envNullglob = () => {
-	const e = Deno.env.get('nullglob') || '';
+	const e = Deno.env.get('nullglob',) || '';
 	// console.warn('envNullglob()', { e });
-	if (e.match(/^(0|f|false|no|off)?$/)) {
+	if (e.match(/^(0|f|false|no|off)?$/,)) {
 		// console.warn(`${e} matched falsey`);
 		return false;
 	}
@@ -147,9 +147,9 @@ const SQStringReS: RegexString = `${SQ}[^${SQ}]*(?:${SQ}|$)` as RegexString;
 /** ANSIC-style string (eg, `$'...'`) */
 const ANSICStringReS: RegexString = '[$]' + SQStringReS as RegexString;
 
-const globChars = ['?', '*', '[', ']'];
+const globChars = ['?', '*', '[', ']',];
 /** Regex pattern matching any glob character */
-const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as RegexString;
+const globCharsReS: RegexString = globChars.map((c,) => '\\' + c).join('|',) as RegexString;
 
 // const pathSepRe = /[\\/]/;
 // const sep = $path.sep;
@@ -171,20 +171,20 @@ const cNonQReS = `(?:(?!${QReS}).)`;
 /** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
 const cNonQWSReS = `(?:(?!${QReS}|\\s).)`;
 
-export function splitByBareWSo(s: string): Array<string> {
+export function splitByBareWSo(s: string,): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
 	// * supports both single and double quotes
 	// * no character escape sequences are recognized
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
 	const arr: Array<string> = [];
-	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
+	s = s.replace(/^\s+/msu, '',); // trim leading whitespace
 	// console.warn('xArgs.splitByBareWSo()', { s });
-	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+)*)(.*$)`, 'msu');
+	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+)*)(.*$)`, 'msu',);
 	while (s) {
-		const m = s.match(tokenRe);
+		const m = s.match(tokenRe,);
 		if (m) {
-			arr.push(m[1]);
-			s = m[2] ? m[2].replace(/^\s+/msu, '') : ''; // trim leading whitespace
+			arr.push(m[1],);
+			s = m[2] ? m[2].replace(/^\s+/msu, '',) : ''; // trim leading whitespace
 		} else {
 			s = '';
 		}
@@ -197,10 +197,10 @@ export function splitByBareWSo(s: string): Array<string> {
 const WordRxs = {
 	/** RegExp matching a bare (non-quoted) portion of a word.
 	- `(tokenFragment)(bareWS)?(restOfString)` */
-	bareWS: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+))(\\s+)?(.*$)`, 'msu'),
+	bareWS: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+))(\\s+)?(.*$)`, 'msu',),
 	/** RegExp matching a (single or double) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
-	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'),
+	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu',),
 	/** RegExp matching a (single or double *or __ANSI-C__*) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
 	quote: new RegExp(
@@ -211,21 +211,21 @@ const WordRxs = {
 
 export function shiftCLTextWord(
 	s: string,
-	options: { autoQuote: boolean } = { autoQuote: true },
-): [string, string] {
+	options: { autoQuote: boolean } = { autoQuote: true, },
+): [string, string,] {
 	// parse string into a token + restOfString separated by unquoted-whitespace
 	// * supports both single and double quotes
 	// * no character escape sequences are recognized
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
-	const { autoQuote } = options;
+	const { autoQuote, } = options;
 	const initialS = s;
 	// console.warn('xArgs.shiftCLTextWord()', { s, options, initialS });
-	s = s.replace(/^\s+/msu, ''); // trim leading whitespace // ToDO: remove? allow leading WS in first token?
+	s = s.replace(/^\s+/msu, '',); // trim leading whitespace // ToDO: remove? allow leading WS in first token?
 	const wordRx = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let foundFullToken = false;
 	let token = '';
 	while (s && !foundFullToken) {
-		const m = s.match(wordRx);
+		const m = s.match(wordRx,);
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -241,7 +241,7 @@ export function shiftCLTextWord(
 				}
 			}
 			token += matchStr;
-			s = m[3] ? m[3].replace(/^\s+/msu, '') : ''; // trim leading whitespace
+			s = m[3] ? m[3].replace(/^\s+/msu, '',) : ''; // trim leading whitespace
 			if (m[2] || !s) {
 				foundFullToken = true;
 			}
@@ -252,13 +252,13 @@ export function shiftCLTextWord(
 			s = '';
 		}
 	}
-	assert(!initialS || (s !== initialS), 'non-progression of `shiftCLTextWord()`'); // assert progress has been made o/w panic
-	return [token, s];
+	assert(!initialS || (s !== initialS), 'non-progression of `shiftCLTextWord()`',); // assert progress has been made o/w panic
+	return [token, s,];
 }
 
 export function wordSplitCLTextByShift(
 	s: string,
-	options: { autoQuote: boolean } = { autoQuote: true },
+	options: { autoQuote: boolean } = { autoQuote: true, },
 ): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
 	// * supports both single and double quotes
@@ -266,11 +266,11 @@ export function wordSplitCLTextByShift(
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
 	// * note: by bench-test, this (`wordSplitCLTextByShift()`) is approx 10% slower than `wordSplitCLText()` (~3.3µs vs ~2.9µs)
 	const arr: Array<string> = [];
-	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
+	s = s.replace(/^\s+/msu, '',); // trim leading whitespace
 	while (s) {
-		const [token, restOfString] = shiftCLTextWord(s, options);
-		arr.push(token);
-		assert(s !== restOfString, 'non-progression of `wordSplitCLTextByShift()`'); // assert progress has been made o/w panic
+		const [token, restOfString,] = shiftCLTextWord(s, options,);
+		arr.push(token,);
+		assert(s !== restOfString, 'non-progression of `wordSplitCLTextByShift()`',); // assert progress has been made o/w panic
 		s = restOfString;
 	}
 	return arr;
@@ -278,20 +278,20 @@ export function wordSplitCLTextByShift(
 
 export function wordSplitCLText(
 	s: string,
-	options: { autoQuote: boolean } = { autoQuote: true },
+	options: { autoQuote: boolean } = { autoQuote: true, },
 ): Array<string> {
 	// parse string into tokens (aka words) separated by unquoted-whitespace
 	// * supports both single and double quotes
 	// * no character escape sequences are recognized
 	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
-	const { autoQuote } = options;
+	const { autoQuote, } = options;
 	const arr: Array<string> = [];
-	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
+	s = s.replace(/^\s+/msu, '',); // trim leading whitespace
 	// console.warn('xArgs.wordSplitCLText()', { s });
 	const wordRe = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let text = '';
 	while (s) {
-		const m = s.match(wordRe);
+		const m = s.match(wordRe,);
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -307,14 +307,14 @@ export function wordSplitCLText(
 				}
 			}
 			text += matchStr;
-			s = m[3] ? m[3].replace(/^\s+/msu, '') : ''; // trim leading whitespace
+			s = m[3] ? m[3].replace(/^\s+/msu, '',) : ''; // trim leading whitespace
 			if (m[2] || !s) {
-				arr.push(text);
+				arr.push(text,);
 				text = '';
 			}
 		} else {
 			// possible?
-			arr.push(text);
+			arr.push(text,);
 			text = s = '';
 		}
 	}
@@ -350,46 +350,46 @@ ANSICDecodeTable['v'] = '\v';
 // control characters
 {
 	let i;
-	const baseCharCode = '@'.charCodeAt(0);
+	const baseCharCode = '@'.charCodeAt(0,);
 	for (i = 0; i <= 0x1f; i++) {
-		const iToChar = String.fromCharCode(baseCharCode + i);
+		const iToChar = String.fromCharCode(baseCharCode + i,);
 		ANSICDecodeTable['c' + iToChar.toLowerCase()] = ANSICDecodeTable['c' + iToChar.toUpperCase()] =
-			String.fromCharCode(i);
+			String.fromCharCode(i,);
 	}
 	ANSICDecodeTable['c?'] = '\x7f';
 }
 
 // console.warn('xArgs', { ANSICDecodeTable });
 
-function decodeANSIC(s: string) {
+function decodeANSIC(s: string,) {
 	// * return value is always a valid UTF-8 string (lossy with 'Replacement Character's, as needed)
 	// console.warn('xArgs.decodeANSIC()', { s });
 	// note: sequential hex/octal codes are collected as one and then decoded as a UTF-8 string (lossy method using 'Replacement Character')
 	s = s.replace(
 		// spell-checker:disable-next
 		/\\([abeEfnrtv]|c.|u[0-9a-fA-F]{1,4}|U[0-9a-fA-F]{1,8}|(?:(?:[0-7]{1,3}|x[0-9a-fA-F]{2})(?:\\([0-7]{1,3}|x[0-9a-fA-F]{2}))*))/gmsu,
-		(escapeString) => {
-			const escapeCode = escapeString.slice(1);
+		(escapeString,) => {
+			const escapeCode = escapeString.slice(1,);
 			const escapeCodeType = escapeCode[0];
 			let decoded = '';
 			if ((escapeCodeType === 'u') || (escapeCodeType === 'U')) {
-				const decodedCode = parseInt(escapeCode.slice(1), 16);
+				const decodedCode = parseInt(escapeCode.slice(1,), 16,);
 				try {
-					decoded = String.fromCodePoint(decodedCode);
+					decoded = String.fromCodePoint(decodedCode,);
 				} catch (_) {
-					decoded = String.fromCharCode(decodedCode);
+					decoded = String.fromCharCode(decodedCode,);
 				}
-			} else if ((escapeCodeType === 'x') || (escapeCodeType.match(/[0-9]/))) {
+			} else if ((escapeCodeType === 'x') || (escapeCodeType.match(/[0-9]/,))) {
 				// hex (`\x..`) or octal (`\nnn`) sequences may result in a non-UTF string
 				// * all sequential escapes are collected as one into a Uint8Array and the converted to UTF-8 via a no-error lossy conversion
 				const splitSep = '\\';
-				const codesText = escapeString.split(splitSep).slice(1);
-				const codesRaw = codesText.map((codeText) => {
+				const codesText = escapeString.split(splitSep,).slice(1,);
+				const codesRaw = codesText.map((codeText,) => {
 					const parseBase = (codeText[0] === 'x') ? 16 : 8;
-					return parseInt(codeText[0] === 'x' ? codeText.slice(1) : codeText, parseBase);
-				});
-				const codes = new Uint8Array(codesRaw);
-				decoded = new TextDecoder().decode(codes);
+					return parseInt(codeText[0] === 'x' ? codeText.slice(1,) : codeText, parseBase,);
+				},);
+				const codes = new Uint8Array(codesRaw,);
+				decoded = new TextDecoder().decode(codes,);
 				// console.warn('xArgs.decodeANSIC', { escapeString, codesText, codesRaw, codes, decoded });
 			} else {
 				decoded = ANSICDecodeTable[escapeCode.toLowerCase()];
@@ -408,18 +408,20 @@ function decodeANSIC(s: string) {
 	return s;
 }
 
-export function reQuote(s: string) {
+export function reQuote(s: string,) {
 	// re-quote string to protect from later re-expansion
-	const specialChars = ['*', '?', '{', '}', '[', ']', `'`, `"`, '$', '<', '>', '|', '&'];
-	const hasSpecialChar = specialChars.find((c) => s.includes(c));
-	const hasWhiteSpace = s.match(/\s/msu);
+	const specialChars = ['*', '?', '{', '}', '[', ']', `'`, `"`, '$', '<', '>', '|', '&',];
+	const hasSpecialChar = specialChars.find((c,) => s.includes(c,));
+	const hasWhiteSpace = s.match(/\s/msu,);
 	if (hasSpecialChar || hasWhiteSpace) {
-		s = isWinOS ? (`"` + s.replaceAll(`"`, `""""`) + `"`) : (`'` + s.replaceAll(`'`, `"'"`) + `'`);
+		s = isWinOS
+			? (`"` + s.replaceAll(`"`, `""""`,) + `"`)
+			: (`'` + s.replaceAll(`'`, `"'"`,) + `'`);
 	}
 	return s;
 }
 
-export function shellDeQuote(s: string) {
+export function shellDeQuote(s: string,) {
 	// de-code/quote quoted string
 	// * supports both single and double quotes
 	// * supports decoding ANSI-C quotes (ie, $'...')
@@ -429,7 +431,7 @@ export function shellDeQuote(s: string) {
 	const tokenRe = WordRxs.quote; // == (ANSIC/DQ/SQ/non-Q-tokenFragment)(tailOfString)
 	let text = '';
 	while (s) {
-		const m = s.match(tokenRe);
+		const m = s.match(tokenRe,);
 		if (m) {
 			// console.warn('xArgs.shellDeQuote()', { m });
 			let matchStr = m[1];
@@ -437,13 +439,13 @@ export function shellDeQuote(s: string) {
 				if (matchStr[0] === DQ || matchStr[0] === SQ) {
 					// "..." or '...'
 					const qChar = matchStr[0];
-					const spl = matchStr.split(qChar);
+					const spl = matchStr.split(qChar,);
 					matchStr = spl[1];
 				} else if ((matchStr.length > 1) && matchStr[0] === '$' && matchStr[1] === SQ) {
 					// $'...'
-					const spl = matchStr.split(SQ);
+					const spl = matchStr.split(SQ,);
 					// console.warn('xArgs.shellDeQuote()', { s, matchStr, spl });
-					matchStr = decodeANSIC(spl[1]);
+					matchStr = decodeANSIC(spl[1],);
 				}
 			}
 			text += matchStr;
@@ -456,56 +458,56 @@ export function shellDeQuote(s: string) {
 	return text;
 }
 
-export function tildeExpand(s: string): string {
+export function tildeExpand(s: string,): string {
 	// tilde expand a string
 	// * any leading whitespace is removed
 	// ToDO?: handle `~USERNAME` for other users
-	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
+	s = s.replace(/^\s+/msu, '',); // trim leading whitespace
 	// console.warn('xArgs.tildeExpand()', { s });
 	// const sepReS = portablePathSepReS;
-	const username = Deno.env.get('USER') || Deno.env.get('USERNAME') || '';
-	const usernameReS = username.replace(/(.)/gmsu, '\\$1');
+	const username = Deno.env.get('USER',) || Deno.env.get('USERNAME',) || '';
+	const usernameReS = username.replace(/(.)/gmsu, '\\$1',);
 	const caseSensitive = !isWinOS;
 	const re = new RegExp(
 		`^\s*(~(?:${usernameReS})?)(${pathSepReS}|$)(.*)`,
 		caseSensitive ? '' : 'i',
 	);
-	const m = s.match(re);
+	const m = s.match(re,);
 	if (m) {
 		s = $osPaths.home() + (m[2] ? m[2] : '') + (m[3] ? m[3] : '');
 	}
 	return s;
 }
 
-export function subShellExpand(_s: string): Array<string> {
+export function subShellExpand(_s: string,): Array<string> {
 	throw '`subShellExpand()`: unimplemented';
 }
 
-function escapeRegExp(s: string) {
-	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+function escapeRegExp(s: string,) {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&',); // $& means the whole matched string
 }
 
 export type GlobExpandOptions = { nullglob: boolean };
 export async function* globExpandIter(
 	glob: GlobString,
-	options: GlobExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob(), },
 ): AsyncIterableIterator<string> {
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
-	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
-	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
-	const parsed = parseGlob(globWithoutTrailingSep);
+	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$',),);
+	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$',), '',);
+	const parsed = parseGlob(globWithoutTrailingSep,);
 
 	// console.warn('xArgs.globExpandIter()', { parsed });
 
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
-		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix,),); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
-		if (await $fs.exists(resolvedPrefix)) {
-			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
-			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
+		if (await $fs.exists(resolvedPrefix,)) {
+			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu,);
+			const initialGlobstar = parsed.globScan.glob.startsWith('**/',);
 			// console.warn({ prefix: parsed.prefix, resolvedPrefix, initialGlobstar });
 			// FixME: make sure that Sync version *uses the same algorithm*
 			// FixME: [2021-10-07; rivy] revise this *working* code to increase logical clarity
@@ -526,13 +528,13 @@ export async function* globExpandIter(
 						? ''
 						: $path.SEP),
 				))
-					.replace(/\\\\|\//g, '[\\\\/]');
+					.replace(/\\\\|\//g, '[\\\\/]',);
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
 			.globScanTokens as unknown as any)
-				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-					acc + (value.isGlob ? value.depth : 0), 0);
+				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean },) =>
+					acc + (value.isGlob ? value.depth : 0), 0,);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude+; evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
@@ -548,7 +550,7 @@ export async function* globExpandIter(
 			// 	re,
 			// });
 			// note: `walk/walkSync` match re is compared to the full path during the walk
-			const walkIt = walk(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
+			const walkIt = walk(resolvedPrefix, { match: [re,], maxDepth: maxDepth ? maxDepth : 1, },);
 			for await (const e of walkIt) {
 				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
@@ -576,13 +578,13 @@ export async function* globExpandIter(
 
 export function* globExpandIterSync(
 	glob: GlobString,
-	options: GlobExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob(), },
 ) {
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
-	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
-	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
-	const parsed = parseGlob(globWithoutTrailingSep);
+	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$',),);
+	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$',), '',);
+	const parsed = parseGlob(globWithoutTrailingSep,);
 
 	// console.warn('xArgs.globExpandIterSync()', {
 	// 	glob,
@@ -594,24 +596,24 @@ export function* globExpandIterSync(
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
-		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix,),); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
-		if ($fs.existsSync(resolvedPrefix)) {
-			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
-			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
+		if ($fs.existsSync(resolvedPrefix,)) {
+			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu,);
+			const initialGlobstar = parsed.globScan.glob.startsWith('**/',);
 			const globEscapedPrefix =
 				(escapeRegExp(
 					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
 						? ''
 						: $path.SEP),
 				))
-					.replace(/\\\\|\//g, '[\\\\/]');
+					.replace(/\\\\|\//g, '[\\\\/]',);
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
 			.globScanTokens as unknown as any)
-				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-					acc + (value.isGlob ? value.depth : 0), 0);
+				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean },) =>
+					acc + (value.isGlob ? value.depth : 0), 0,);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude (10-20x); evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
@@ -620,7 +622,10 @@ export function* globExpandIterSync(
 					: 'imsu',
 			);
 			// note: `walk/walkSync` match re is compared to the full path during the walk
-			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
+			const walkIt = walkSync(resolvedPrefix, {
+				match: [re,],
+				maxDepth: maxDepth ? maxDepth : 1,
+			},);
 			for (const e of walkIt) {
 				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
@@ -647,44 +652,44 @@ export function* globExpandIterSync(
 
 export async function globExpandAsync(
 	glob: GlobString,
-	options: GlobExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob(), },
 ) {
 	// filename (glob) expansion
 	const arr: string[] = [];
-	for await (const e of globExpandIter(glob, options)) {
-		arr.push(e);
+	for await (const e of globExpandIter(glob, options,)) {
+		arr.push(e,);
 	}
 	return arr;
 }
 export function globExpandSync(
 	glob: GlobString,
-	options: GlobExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob(), },
 ) {
 	// filename (glob) expansion
 	const arr: string[] = [];
-	for (const e of globExpandIterSync(glob, options)) {
-		arr.push(e);
+	for (const e of globExpandIterSync(glob, options,)) {
+		arr.push(e,);
 	}
 	return arr;
 }
 export function globExpand(
 	glob: GlobString,
-	options: GlobExpandOptions = { nullglob: envNullglob() },
+	options: GlobExpandOptions = { nullglob: envNullglob(), },
 ) {
 	// filename (glob) expansion
-	return globExpandAsync(glob, options);
+	return globExpandAsync(glob, options,);
 }
 
 // ToDO: [2022-01-25; rivy] move to '$shared'
-function pathToOS(p: string) {
-	return isWinOS ? pathToWinOS(p) : pathToPOSIX(p);
+function pathToOS(p: string,) {
+	return isWinOS ? pathToWinOS(p,) : pathToPOSIX(p,);
 }
-function pathToPOSIX(p: string) {
+function pathToPOSIX(p: string,) {
 	// ToDO: convert to use of $path.SEP_PATTERN
-	return p.replace(/\\/g, '/');
+	return p.replace(/\\/g, '/',);
 }
-function pathToWinOS(p: string) {
-	return p.replace(/\//g, '\\');
+function pathToWinOS(p: string,) {
+	return p.replace(/\//g, '\\',);
 }
 
 // ToDO: handle long paths, "\\?\...", and UNC paths
@@ -693,7 +698,7 @@ function pathToWinOS(p: string) {
 // parseGlob()
 /** parse glob into a non-glob prefix and glob stem portion
  */
-export function parseGlob(s: string) {
+export function parseGlob(s: string,) {
 	// options.os => undefined (aka portable), 'windows', 'posix'/'linux'
 	const options: { os?: string } = {};
 	let prefix = '';
@@ -705,7 +710,7 @@ export function parseGlob(s: string) {
 
 	// for 'windows' or portable, strip any leading `\\?\` as a prefix
 	if (!options.os || options.os === 'windows') {
-		const m = s.match(/^(\\\\\?\\)(.*)/);
+		const m = s.match(/^(\\\\\?\\)(.*)/,);
 		if (m) {
 			prefix = m[1] ? m[1] : '';
 			s = m[2] ? m[2] : '';
@@ -717,7 +722,7 @@ export function parseGlob(s: string) {
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
-		const m = s.match(re);
+		const m = s.match(re,);
 		// console.warn('xArgs.parseGlob()', { s, m });
 		if (m) {
 			prefix += m[1] ? m[1] : '';
@@ -730,8 +735,8 @@ export function parseGlob(s: string) {
 		// console.warn('xArgs.parseGlob()', { prefix, glob });
 	}
 
-	const pJoin = $path.join(pathToOS(prefix), glob);
-	const pJoinToPosix = pathToPOSIX(pJoin);
+	const pJoin = $path.join(pathToOS(prefix,), glob,);
+	const pJoinToPosix = pathToPOSIX(pJoin,);
 	// console.warn('xArgs.parseGlob()',
 	//  {
 	// 	prefix,
@@ -741,7 +746,7 @@ export function parseGlob(s: string) {
 	// 	pJoinParsed: $path.parse(pJoin),
 	// 	pJoinToPosixParsed: $path.parse(pJoinToPosix),
 	// });
-	const globAsReS = glob && globToReS(glob);
+	const globAsReS = glob && globToReS(glob,);
 	// console.warn('xArgs.parseGlob()', { globAsReS });
 	// const globScan: any = Picomatch.scan($path.join(prefix, glob), {
 	// console.warn('xArgs.parseGlob()', { prefix, glob, pathJoin: $path.posix.join(prefix, glob) });
@@ -756,7 +761,7 @@ export function parseGlob(s: string) {
 		nocase: !caseSensitive,
 		tokens: true,
 		parts: true,
-	});
+	},);
 	const globScanTokens = globScan.tokens;
 	const globScanSlashes = globScan.slashes;
 	const globScanParts = globScan.parts;
@@ -786,22 +791,22 @@ export function parseGlob(s: string) {
 	};
 }
 
-export function globToReS(s: string) {
+export function globToReS(s: string,) {
 	const caseSensitive = !isWinOS;
-	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, '');
+	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, '',);
 	let text = '';
 	while (s) {
-		const m = s.match(tokenRe);
+		const m = s.match(tokenRe,);
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				const firstChar = matchStr[0];
 				if (firstChar === DQ || firstChar === SQ) {
 					// "..." or '...' => de-quote and `[.]` escape any special characters
-					const spl = matchStr.split(firstChar);
+					const spl = matchStr.split(firstChar,);
 					matchStr = spl[1];
 					// * `[.]` escape glob characters
-					matchStr = matchStr.replace(/([?*\[\]])/gmsu, '[$1]');
+					matchStr = matchStr.replace(/([?*\[\]])/gmsu, '[$1]',);
 				}
 			}
 			text += matchStr;
@@ -809,7 +814,7 @@ export function globToReS(s: string) {
 		}
 	}
 	// convert PATTERN to POSIX-path-style by replacing all backslashes with slashes (backslash is *not* used as an escape)
-	text = text.replace(/\\/g, '/');
+	text = text.replace(/\\/g, '/',);
 
 	// console.warn('xArgs.globToReS()', { text });
 
@@ -820,7 +825,7 @@ export function globToReS(s: string) {
 		literalBrackets: false,
 		posix: true,
 		nocase: !caseSensitive,
-	});
+	},);
 	// console.warn('xArgs.globToReS()', { parsed });
 	// deno-lint-ignore no-explicit-any
 	return ((parsed as unknown) as any).output as string;
@@ -848,14 +853,14 @@ const expansion: string[] = await shellExpandAsync('{.,}*'); // or `shellExpand(
 */
 export async function shellExpandAsync(
 	args: string | string[],
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ) {
-	const arr = Array.isArray(args) ? args : [args];
+	const arr = Array.isArray(args,) ? args : [args,];
 	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpand()', { options, arr });
 	for (const e of arr) {
-		for (const x of [e].flatMap(Braces.expand).map(tildeExpand)) {
-			arrOut.push(...await globExpandAsync(x as GlobString, options));
+		for (const x of [e,].flatMap(Braces.expand,).map(tildeExpand,)) {
+			arrOut.push(...await globExpandAsync(x as GlobString, options,),);
 		}
 	}
 
@@ -882,12 +887,12 @@ const expansion: string[] = shellExpandSync('{.,}*'); // or `shellExpandSync(['{
 */
 export function shellExpandSync(
 	args: string | string[],
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ) {
-	const arr = Array.isArray(args) ? args : [args];
+	const arr = Array.isArray(args,) ? args : [args,];
 	// console.warn('xArgs.shellExpandSync()', { options, arr });
-	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) =>
-		globExpandSync(e as GlobString, options)
+	return arr.flatMap(Braces.expand,).map(tildeExpand,).flatMap((e,) =>
+		globExpandSync(e as GlobString, options,)
 	);
 }
 
@@ -911,9 +916,9 @@ const expansion: string[] = await shellExpandAsync('{.,}*'); // or `shellExpand(
 */
 export function shellExpand(
 	args: string | string[],
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ) {
-	return shellExpandAsync(args, options);
+	return shellExpandAsync(args, options,);
 }
 
 //$ `args()` (aka `argsAsync()`)
@@ -937,9 +942,9 @@ const expansion: string[] = await args(argsText);
 */
 export function args(
 	argsText: string | string[],
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ) {
-	return argsAsync(argsText, options);
+	return argsAsync(argsText, options,);
 }
 
 //$ `argsAsync()`
@@ -964,14 +969,14 @@ const expansion: string[] = await argsAsync(argsText);
 */
 export async function argsAsync(
 	argsText: string | string[],
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ) {
-	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
-	const idx = arr.findIndex((v) => v === endExpansionToken);
-	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
-	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
+	const arr = Array.isArray(argsText,) ? argsText : wordSplitCLText(argsText,);
+	const idx = arr.findIndex((v,) => v === endExpansionToken);
+	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1),)) : [];
+	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1,) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
-	return (await shellExpand(expand, options)).map(shellDeQuote).concat(raw);
+	return (await shellExpand(expand, options,)).map(shellDeQuote,).concat(raw,);
 }
 
 //$ `argsSync()`
@@ -997,14 +1002,14 @@ const expansion: string[] = args(argsText);
 */
 export function argsSync(
 	argsText: string | string[],
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ) {
-	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
-	const idx = arr.findIndex((v) => v === endExpansionToken);
-	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
-	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
+	const arr = Array.isArray(argsText,) ? argsText : wordSplitCLText(argsText,);
+	const idx = arr.findIndex((v,) => v === endExpansionToken);
+	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1),)) : [];
+	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1,) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
-	return shellExpandSync(expand, options).map(shellDeQuote).concat(raw);
+	return shellExpandSync(expand, options,).map(shellDeQuote,).concat(raw,);
 }
 
 export type ArgIncrementAsync = {
@@ -1054,20 +1059,20 @@ if (options.targetExecutable) {
 */
 export async function* argsItAsync(
 	argsText: string,
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ): AsyncIterableIterator<ArgIncrementAsync> {
 	let continueExpansions = true;
 	while (argsText) {
 		let argText = '';
-		[argText, argsText] = shiftCLTextWord(argsText);
+		[argText, argsText,] = shiftCLTextWord(argsText,);
 		if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
-				globExpandIter(e as GlobString, options)
+			? [argText,].flatMap(Braces.expand,).map(tildeExpand,).map((e,) =>
+				globExpandIter(e as GlobString, options,)
 			)
 			: [(async function* () {
 				yield argText;
-			})()];
+			})(),];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
 			const argExpansion = argExpansions[idx];
 			let current = await argExpansion.next();
@@ -1075,15 +1080,15 @@ export async function* argsItAsync(
 				const next = await argExpansion.next();
 				// const tail = [argExpansion]
 				yield {
-					arg: shellDeQuote(current.value),
+					arg: shellDeQuote(current.value,),
 					tailOfArgExpansion: [
 						...(!next.done
 							? [(async function* () {
 								yield next.value;
 								for await (const e of argExpansion) yield e;
-							})()]
+							})(),]
 							: []),
-						...argExpansions.slice(idx + 1),
+						...argExpansions.slice(idx + 1,),
 					],
 					tailOfArgsText: argsText,
 				};
@@ -1129,24 +1134,24 @@ if (options.targetExecutable) {
 */
 export function* argsItSync(
 	argsText: string,
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ): IterableIterator<ArgIncrementSync> {
 	const continueExpansions = false;
 	while (argsText) {
 		let argText = '';
-		[argText, argsText] = shiftCLTextWord(argsText);
+		[argText, argsText,] = shiftCLTextWord(argsText,);
 		// if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
-				globExpandSync(e as GlobString, options)
+			? [argText,].flatMap(Braces.expand,).map(tildeExpand,).map((e,) =>
+				globExpandSync(e as GlobString, options,)
 			)
-			: [[argText]];
+			: [[argText,],];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
 			const argExpansion = argExpansions[idx];
 			for (let jdx = 0; jdx < argExpansion.length; jdx++) {
 				yield {
-					arg: shellDeQuote(argExpansion[jdx]),
-					tailOfArgExpansion: [argExpansion.slice(jdx + 1), ...argExpansions.slice(idx + 1)],
+					arg: shellDeQuote(argExpansion[jdx],),
+					tailOfArgExpansion: [argExpansion.slice(jdx + 1,), ...argExpansions.slice(idx + 1,),],
 					tailOfArgsText: argsText,
 				};
 			}
@@ -1190,9 +1195,9 @@ if (options.targetExecutable) {
 */
 export async function* argsIt(
 	argsText: string,
-	options: ArgsOptions = { nullglob: envNullglob() },
+	options: ArgsOptions = { nullglob: envNullglob(), },
 ): AsyncIterableIterator<ArgIncrementAsync> {
-	for await (const e of argsItAsync(argsText, options)) {
+	for await (const e of argsItAsync(argsText, options,)) {
 		yield e;
 	}
 }

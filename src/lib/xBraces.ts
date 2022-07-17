@@ -39,7 +39,7 @@ const QReS = `[${DQ}${SQ}]`; // double or single quote character class
 
 const cNonQReS = `(?:(?!${QReS}).)`; // non-(double or single)-quote character
 
-const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'); // == (tokenFragment)(restOfString)
+const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu',); // == (tokenFragment)(restOfString)
 
 // `expand`
 /** Brace expand a string argument.
@@ -59,14 +59,14 @@ const text = '{a,b} text string {1..10..2}';
 const expansion = expand('{a,b} text string');
 ```
 */
-export function expand(s: string) {
+export function expand(s: string,) {
 	// brace expand a string
 	const arr = [];
-	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
+	s = s.replace(/^\s+/msu, '',); // trim leading whitespace
 	// console.warn('xBraces.braceExpand()', { s });
 	let text = '';
 	while (s) {
-		const m = s.match(tokenRe);
+		const m = s.match(tokenRe,);
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -74,22 +74,22 @@ export function expand(s: string) {
 				if (matchStr[0] === DQ || matchStr[0] === SQ) {
 					// "..." or '...' => escape contents
 					const qChar = matchStr[0];
-					const spl = matchStr.split(qChar);
+					const spl = matchStr.split(qChar,);
 					matchStr = spl[1];
 					// escape contents
 					// * 1st, escape the braces escape character
-					matchStr = matchStr.replace(bracesEscChar, `${bracesEscChar}${bracesEscChar}`);
+					matchStr = matchStr.replace(bracesEscChar, `${bracesEscChar}${bracesEscChar}`,);
 					// * escape string contents
-					matchStr = matchStr.replace(/(.)/gmsu, `${bracesEscChar}$1`);
+					matchStr = matchStr.replace(/(.)/gmsu, `${bracesEscChar}$1`,);
 					// add surrounding escaped quotes
 					matchStr = `${bracesEscChar}${qChar}` + matchStr + `${bracesEscChar}${qChar}`;
 				} else {
 					// unquoted text => escape special characters
 					// * 1st, escape the braces escape character
-					matchStr = matchStr.replace(bracesEscChar, `${bracesEscChar}${bracesEscChar}`);
+					matchStr = matchStr.replace(bracesEscChar, `${bracesEscChar}${bracesEscChar}`,);
 					// * escape any 'special' (braces escape or glob) characters
 					matchStr = matchStr.replace(
-						new RegExp(`([\\${bracesEscChar}?*\\[\\]])`, 'gmsu'),
+						new RegExp(`([\\${bracesEscChar}?*\\[\\]])`, 'gmsu',),
 						`${bracesEscChar}$1`,
 					);
 				}
@@ -97,15 +97,15 @@ export function expand(s: string) {
 			text += matchStr;
 			s = m[2];
 			if (!s) {
-				arr.push(text);
+				arr.push(text,);
 				text = '';
 			}
 		} else {
-			arr.push(text);
+			arr.push(text,);
 			text = s = '';
 		}
 	}
 	// console.warn('xBraces.braceExpand()', { arr });
 	// return arr.flatMap((v) => Braces.expand(v));
-	return arr.flatMap((v) => Braces.expand(v)).map((v) => v.replace(/\\(\\)/gmsu, '$1'));
+	return arr.flatMap((v,) => Braces.expand(v,)).map((v,) => v.replace(/\\(\\)/gmsu, '$1',));
 }

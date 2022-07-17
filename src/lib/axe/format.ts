@@ -1,6 +1,6 @@
 //====
 
-import { DEFAULT_INSPECT_OPTIONS, inspect } from './$shared.ts';
+import { DEFAULT_INSPECT_OPTIONS, inspect, } from './$shared.ts';
 
 //====
 
@@ -14,50 +14,50 @@ function toSpecFormat(
 	value: unknown,
 	inspectOptions_: Deno.InspectOptions = {},
 ): string {
-	const inspectOptions = { ...DEFAULT_INSPECT_OPTIONS, ...inspectOptions_ };
+	const inspectOptions = { ...DEFAULT_INSPECT_OPTIONS, ...inspectOptions_, };
 	if (specifier === '%s') {
 		// string
 		if (typeof value === 'string' || value instanceof String) {
 			return value as string;
-		} else return inspect(value, inspectOptions);
+		} else return inspect(value, inspectOptions,);
 	}
 	if (specifier === '%d') {
 		// number
 		if (typeof value === 'bigint') {
 			return value + 'n';
 		}
-		return inspect(Number(value), inspectOptions);
+		return inspect(Number(value,), inspectOptions,);
 	}
 	if (specifier === '%i') {
 		// integer
 		if (typeof value === 'bigint') {
 			return value + 'n';
 		}
-		return inspect(parseInt(value as string), inspectOptions);
+		return inspect(parseInt(value as string,), inspectOptions,);
 	}
 	if (specifier === '%f') {
 		// float
-		return inspect(parseFloat(value as string), inspectOptions);
+		return inspect(parseFloat(value as string,), inspectOptions,);
 	}
 	if (specifier === '%j') {
 		// JSON
 		try {
-			return inspect(JSON.stringify(value), inspectOptions);
+			return inspect(JSON.stringify(value,), inspectOptions,);
 		} catch (e) {
 			// nodeJS => 'cyclic object value' , deno => 'Converting circular structure to JSON ...'
 			// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
-			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) {
+			if (e instanceof TypeError && e.message.match(/cyclic|circular/,)) {
 				return '[Circular]';
 			} else throw e;
 		}
 	}
 	if (specifier === '%o') {
 		// DOM element
-		return inspect(value, { ...inspectOptions, showHidden: true, showProxy: true });
+		return inspect(value, { ...inspectOptions, showHidden: true, showProxy: true, },);
 	}
 	if (specifier === '%O') {
 		// JavaScript object
-		return inspect(value, inspectOptions);
+		return inspect(value, inspectOptions,);
 	}
 	if (specifier === '%c') {
 		// apply CSS
@@ -70,12 +70,12 @@ function toSpecFormat(
 // ref: <https://nodejs.org/docs/latest-v16.x/api/util.html#util_util_format_format_args>
 // modified from <https://deno.land/std@0.105.0/node/util.ts#L247-L266>
 export function format(...args: unknown[]) {
-	return formatWithOptions({}, ...args);
+	return formatWithOptions({}, ...args,);
 }
 
 export function formatWithOptions(inspectOptions_: Deno.InspectOptions, ...args: unknown[]) {
-	const inspectOptions = { ...DEFAULT_INSPECT_OPTIONS, ...inspectOptions_ };
-	const replacement: [number, string][] = [];
+	const inspectOptions = { ...DEFAULT_INSPECT_OPTIONS, ...inspectOptions_, };
+	const replacement: [number, string,][] = [];
 	const formatSpecifierRx = /%(s|d|i|f|j|o|O|c|%)/g;
 	const hasFormatTemplate = args.length > 0 &&
 		(typeof args[0] === 'string' || args[0] instanceof String);
@@ -83,11 +83,11 @@ export function formatWithOptions(inspectOptions_: Deno.InspectOptions, ...args:
 	let i = hasFormatTemplate ? 1 : 0;
 	let arr: RegExpExecArray | null = null;
 	let done = false;
-	while ((arr = formatSpecifierRx.exec(formatTemplate)) !== null && !done) {
+	while ((arr = formatSpecifierRx.exec(formatTemplate,)) !== null && !done) {
 		if (arr[0] === '%%') {
-			replacement.push([arr['index'], '%']);
+			replacement.push([arr['index'], '%',],);
 		} else if (i < args.length) {
-			replacement.push([arr['index'], toSpecFormat(arr[0], args[i])]);
+			replacement.push([arr['index'], toSpecFormat(arr[0], args[i],),],);
 			i++;
 		} else done = true;
 	}
@@ -96,16 +96,16 @@ export function formatWithOptions(inspectOptions_: Deno.InspectOptions, ...args:
 	let last = 0;
 	for (let i = 0; i < replacement.length; i++) {
 		const item = replacement[i];
-		result += formatTemplate.slice(last, item[0]);
+		result += formatTemplate.slice(last, item[0],);
 		result += item[1];
 		last = item[0] + 2;
 	}
-	result += formatTemplate.slice(last);
+	result += formatTemplate.slice(last,);
 	for (let i = lastArgUsed; i < args.length; i++) {
 		if (i > 0) result += ' ';
 		if (typeof args[i] === 'string') {
 			result += args[i];
-		} else result += inspect(args[i], inspectOptions);
+		} else result += inspect(args[i], inspectOptions,);
 	}
 	return result;
 }
