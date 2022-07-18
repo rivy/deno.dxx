@@ -362,7 +362,7 @@ const updates = await collect(map(async function (file) {
 	const contentsOriginal = decoder.decode(await Deno.readFile(name));
 	const targetBinPath = ($eol
 		.LF(contentsOriginal)
-		.match(/^[^\n]*?\x22%_prog%\x22\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
+		.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
 	const targetBinName = targetBinPath
 		? $path.parse(targetBinPath).name
 		: undefined;
