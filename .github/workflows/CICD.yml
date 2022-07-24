@@ -56,8 +56,10 @@ jobs:
       - name: Install `dprint`
         shell: bash
         run: |
-          curl -fsSL https://dprint.dev/install.sh | sh -s 0.15.0 > /dev/null 2>&1
+          dprint_version=0.30.3
+          curl -fsSL https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
           echo '/home/runner/.dprint/bin' >> $GITHUB_PATH
+          # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
       - name: '[Style tests]'
         shell: bash
         run: |
