@@ -55,7 +55,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 			}
 		} else helpItems.push(line);
 	}
-	console.warn({ helpLines, helpItems, help });
+	// console.warn({ helpLines, helpItems, help });
 	let state: undefined | 'arguments' | 'examples' | 'options' | 'other' = undefined;
 	// performance.mark(`restyleYargsHelp():linesOfHelpLines:start`);
 	const lineRegExp = {
@@ -165,12 +165,12 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 					Cell.from('').colSpan(1),
 					Cell.from(desc).colSpan(4),
 				]);
-				let x = sectionTable.getMinColWidth();
-				if (!Array.isArray(x)) x = new Array<number>(helpColumnN).fill(x);
-				x[0] = Math.max(x[0], $colors.stripColor(item).length);
-				x[5] = Math.max(x[5], $colors.stripColor(desc).length);
-				// console.warn({ x });
-				sectionTable.minColWidth(x, true);
+				// let x = sectionTable.getMinColWidth();
+				// if (!Array.isArray(x)) x = new Array<number>(helpColumnN).fill(x);
+				// x[0] = Math.max(x[0], $colors.stripColor(item).length);
+				// x[5] = Math.max(x[5], $colors.stripColor(desc).length);
+				// // console.warn({ x });
+				// sectionTable.minColWidth(x, true);
 			}
 			continue;
 		}
