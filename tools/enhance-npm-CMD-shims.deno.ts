@@ -21,7 +21,7 @@ import { collect, first, map } from './lib/funk.ts';
 
 //===
 
-import { $yargs } from '../src/lib/$deps.eg+reqPerm.ts';
+import { $yargs } from '../src/lib/$deps.cli.ts';
 
 //===
 
@@ -367,9 +367,7 @@ const updates = await collect(map(async function (file) {
 	const targetBinPath = ($eol
 		.LF(contentsOriginal)
 		.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
-	const targetBinName = targetBinPath
-		? $path.parse(targetBinPath).name
-		: undefined;
+	const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
 	const contentsUpdated = $eol.CRLF(_.template(cmdShimTemplate)({ targetBinName, targetBinPath }));
 	return { name, isUpdatable: !!targetBinPath, targetBinPath, contentsOriginal, contentsUpdated };
 }, files));

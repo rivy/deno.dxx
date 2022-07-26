@@ -24,7 +24,7 @@ import { collect, filter, map } from './lib/funk.ts';
 
 //===
 
-import { $yargs } from '../src/lib/$deps.eg+reqPerm.ts';
+import { $yargs } from '../src/lib/$deps.cli.ts';
 
 //===
 

@@ -10,7 +10,6 @@ import {
 	writerFromStreamWriter,
 } from 'https://deno.land/std@0.146.0/streams/conversion.ts';
 
-import { $yargs, YargsArguments } from '../src/lib/$deps.ts';
 import { $version, durationText, env, isEmpty, stableSort } from '../src/lib/$shared.ts';
 
 import { $consoleSize, $me } from '../src/lib/$locals.ts';
@@ -22,6 +21,8 @@ import {
 	traversal,
 	validURL,
 } from '../src/lib/$shared.ts';
+
+import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
 
 import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 import { fetch } from '../src/lib/xFetch.ts';
