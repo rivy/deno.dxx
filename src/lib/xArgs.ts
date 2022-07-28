@@ -53,7 +53,7 @@ export { expand as braceExpand } from './xBraces.ts';
 // import Micromatch from 'https://esm.sh/micromatch@4.0.2';
 // import Picomatch from 'https://esm.sh/picomatch@2.3.0?no-check';
 import PicomatchM from 'https://esm.sh/picomatch@2.3.1?no-check'; // '?no-check' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
-import PicomatchT from '../@types/picomatch@2.2.1/index.d.ts'; // use locally vendored types
+import PicomatchT from '../../vendor/@types/picomatch@2.2.1/index.d.ts'; // use locally vendored types
 const Picomatch = PicomatchM as typeof PicomatchT;
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://esm.sh/braces@3.0.2?dev';
