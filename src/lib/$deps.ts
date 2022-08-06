@@ -16,10 +16,10 @@ export const $fs = { exists, existsSync, expandGlob, expandGlobSync };
 
 export * as $lodash from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 export * as $cliffyTable from 'https://deno.land/x/cliffy@v0.20.1/table/mod.ts';
-export { default as $osPaths } from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
+export { default as $osPaths } from 'https://deno.land/x/os_paths@v7.0.0/src/mod.deno.ts';
 export * as $semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 export * as $tty from 'https://deno.land/x/tty@0.1.4/mod.ts';
-export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v7.0.0/src/mod.deno.ts';
+export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v8.1.1/src/mod.deno.ts';
 
 // export { default as $yargs } from 'https://deno.land/x/yargs@v17.3.0-deno/deno.ts';
 
