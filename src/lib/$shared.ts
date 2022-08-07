@@ -9,7 +9,7 @@ import { $fs, $path } from './$deps.ts';
 //===
 
 export const projectName: string | undefined = 'dxx';
-export const VERSION = '0.0.13';
+export const VERSION = '0.0.14';
 
 // note: `projectURL` has some inherent instability for compiled scripts; this can be mitigated by using a CDN source for the compilation (eg, JSdelivr.net, Statically.io, GitHack.com)
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))

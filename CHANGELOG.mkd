@@ -13,9 +13,26 @@
 
 ---
 
+## [v0.0.14](https://github.com/rivy/deno.dxx/compare/v0.0.13...v0.0.14) <small>(2022-08-06)</small>
+
+<details open><summary><small><em>[v0.0.14; details]</em></small></summary>
+
+#### Dependency Updates
+
+* update *(axe)*: fix 'esm.sh' transpiled imports &ac; [`d387e6a`](https://github.com/rivy/deno.dxx/commit/d387e6a63f083a10137bf160bd5db8948ab4b8c4)
+* update *(deps)*: fix 'esm.sh' imports &ac; [`bedec77`](https://github.com/rivy/deno.dxx/commit/bedec7771ebf80c378197c79f11acd8da5f4554e)
+
+#### Test Improvements
+
+* tests ~ fix 'esm.sh' transpiled imports &ac; [`9e2787b`](https://github.com/rivy/deno.dxx/commit/9e2787b703dfc7de64b6a3113a22ea1eade287ed)
+
+</details>
+
+---
+
 ## [v0.0.13](https://github.com/rivy/deno.dxx/compare/v0.0.12...v0.0.13) <small>(2022-06-12)</small>
 
-<details open><summary><small><em>[v0.0.13; details]</em></small></summary>
+<details><summary><small><em>[v0.0.13; details]</em></small></summary>
 
 #### Fixes
 
