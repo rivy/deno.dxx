@@ -1,12 +1,12 @@
 name: CICD
 
-# spell-checker:ignore (acronyms) CICD MSVC musl
+# spell-checker:ignore (acronyms) CICD MSVC OSID musl
 # spell-checker:ignore (env/flags) Awarnings BASHOPTS Ccodegen Coverflow Cpanic RUSTDOCFLAGS RUSTFLAGS Zpanic
 # spell-checker:ignore (jargon) deps dequote SHAs softprops subshell toolchain
-# spell-checker:ignore (names) CodeCOV Cygwin Deno DenoLand GitHack JSdelivr MacOS MinGW
+# spell-checker:ignore (names) CodeCov Cygwin Deno DenoLand GitHack JSdelivr MacOS MinGW
 # spell-checker:ignore (people) Dawid Dziurla * dawidd6 , Roy Ivy III * rivy
 # spell-checker:ignore (shell/tools) choco clippy dmake dpkg esac fakeroot gmake grcov halium lcov libssl mapfile mkdir popd printf pushd rustc rustfmt rustup shopt xargs
-# spell-checker:ignore (misc) aarch alnum armhf bindir busytest coreutils gnueabihf issuecomment maint nullglob onexitbegin onexitend pell runtest tempfile testsuite uutils
+# spell-checker:ignore (misc) aarch alnum armhf bindir busytest coreutils getcwd gmsu gnueabihf issuecomment maint nullglob onexitbegin onexitend pell runtest tempfile testsuite uutils
 
 env:
   PROJECT_NAME: dxx
@@ -195,7 +195,27 @@ jobs:
         shell: bash
         run: |
           ## `deno test`
-          deno test --allow-all
+          # * note: `deno test` with coverage data generation
+          deno test --allow-all --coverage=.coverage
+          # * generate LCOV coverage data file
+          deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
+          cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
+      - name: 'Push coverage to CodeCov'
+        shell: bash
+        run: |
+          ## Push coverage to CodeCov
+          mkdir -p .coverage/bin
+          CODECOV_OSID="linux"
+          case '${{ matrix.job.os }}' in
+            macos-*) CODECOV_OSID='macos' ;;
+            windows-*) CODECOV_OSID='windows' ;;
+          esac;
+          curl -L "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" -o .coverage/bin/codecov
+          chmod +x .coverage/bin/codecov
+          ls -Al
+          ls -Al .coverage/bin/
+          # deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}\\/SF:/gmsu;' > .coverage/@coverage.lcov
+          .coverage/bin/codecov --verbose --file .coverage/@coverage.lcov
       - name: '`deno compile`'
         if: steps.vars.outputs.ARTIFACTS
         shell: bash
