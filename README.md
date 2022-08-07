@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore () markdownlint (names) Deno Gitter (utils) dprint -->
+<!-- spell-checker:ignore () markdownlint (people) Roy Ivy III * rivy (names) Deno Gitter (utils) dprint perl (vars) lcov getcwd gmrsu gmsu -->
 
 <!-- (template) data-template-match='(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)' data-template-replace='$1${VERSION_TAG}' -->
 
@@ -121,6 +121,14 @@ bmp --commit
 ## Testing
 
 `deno test`
+
+## Coverage Reports
+
+```shell
+deno test -A --coverage=.coverage
+deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage | perl -pe "use Cwd; $cwd = (getcwd() =~ s/[\\\/]/[\\\\\\\/]/gmrsu); s/^SF:${cwd}\\/SF:/gmsu;" > .coverage/@coverage.lcov
+genhtml -o .coverage\html .coverage\@coverage.lcov
+```
 
 ## Benchmarking
 
