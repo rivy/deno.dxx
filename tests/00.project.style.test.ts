@@ -132,9 +132,14 @@ if (await haveDPrint()) {
 			stdout: 'piped',
 			stderr: 'piped',
 		});
-		const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
-			p.close()
-		);
+		const [status, out, err] = await Promise
+			.all([p.status(), p.output(), p.stderrOutput()])
+			.finally(() => p.close());
+		if (!status.success) {
+			console.warn('`dprint check` status', status);
+			console.warn(decode(out).replace(/\r?\n$/ms, ''));
+			console.warn(decode(err).replace(/\r?\n$/ms, ''));
+		}
 		assert(status.success, '`dprint check` fails');
 	});
 }
