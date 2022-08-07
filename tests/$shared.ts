@@ -10,7 +10,7 @@ export * from '../src/lib/$shared.ts';
 
 import { $colors, $path } from './$deps.ts';
 
-import { decode, intoPath, projectPath, traversal } from '../src/lib/$shared.ts';
+import { decode, intoPath, isWinOS, projectPath, traversal } from '../src/lib/$shared.ts';
 
 //====
 
@@ -222,12 +222,21 @@ export const warn = createWarnFn();
 export const haveCSpell = () => {
 	try {
 		const process = Deno.run({
-			cmd: ['cmd', '/x/d/c', 'cspell', '--version'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', '--version'],
 			stdin: 'null',
 			stderr: 'null',
-			stdout: 'null',
+			stdout: 'piped',
 		});
-		return (process.status()).then((status) => status.success).finally(() => process.close());
+		// const [status, output] = await Promise.all([process.status(), process.output()]);
+		// const versionMatched = output;
+		return Promise
+			.all([process.status(), process.output()])
+			.then(([status, out]) => {
+				console.warn({ status, out: decode(out) });
+				// `cspell --version` returns status == 1 and version followed by usage
+				return !status && ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[1] != null);
+			})
+			.finally(() => process.close());
 	} catch (_) {
 		return Promise.resolve(false);
 	}
