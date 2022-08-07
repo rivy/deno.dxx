@@ -41,7 +41,7 @@ await panicIfMissingPermits(['env', 'read', 'run']);
 
 const args = $args.argsSync;
 
-import * as EditorConfig from 'https://cdn.esm.sh/editorconfig@0.15.3?target=deno';
+import * as EditorConfig from 'https://esm.sh/editorconfig@0.15.3?deno-std=0.134.0';
 
 const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
 
