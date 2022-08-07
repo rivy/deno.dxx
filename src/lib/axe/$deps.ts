@@ -26,19 +26,19 @@ export class PQueue extends Queue {
 // spell-checker:ignore (names) DeepMerge
 // spell-checker:ignore (people) * balupton
 
-// import deepMerge from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
-export { default as deepMerge } from 'https://cdn.esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
+// import deepMerge from 'https://esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
+export { default as deepMerge } from 'https://esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
 
 export { format } from 'https://deno.land/std@0.143.0/node/util.ts';
 export * as $symbols from '../xWait/log_symbols.ts';
 
-export * as $levels from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
-export { default as rfcGetLogLevel } from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
 export { default as getCurrentLine } from 'https://esm.sh/get-current-line@6.6.0';
+export { default as rfcGetLogLevel } from 'https://esm.sh/rfc-log-levels@3.17.0';
+export * as $levels from 'https://esm.sh/rfc-log-levels@3.17.0';
 
-export type { LevelInfo, LevelsMap as LevelMap } from 'https://cdn.esm.sh/rfc-log-levels@3.17.0';
-export type { DeepReadonly } from 'https://cdn.esm.sh/ts-essentials@9.0.0';
 export type { Location, Offset } from 'https://esm.sh/get-current-line@6.6.0';
+export type { LevelInfo, LevelsMap as LevelMap } from 'https://esm.sh/rfc-log-levels@3.17.0';
+export type { DeepReadonly } from 'https://esm.sh/ts-essentials@9.0.0';
 
 //=== * shared
 
