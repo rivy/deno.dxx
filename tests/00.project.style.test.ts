@@ -52,7 +52,14 @@ const _gitFiles = xSplit((await _gitLsFiles()) || '', /r?\n|\r/);
 const _ec = EditorConfig.parseString(Deno.readTextFileSync(projectLocations.editorconfig));
 // console.warn({ ec });
 
-const excludeDirsRxs = ['[._@#$]?build', 'fixtures', '[.]git', '[.]gpg', 'vendor'];
+const excludeDirsRxs = [
+	'[._@#$]?build',
+	'[._@#$]?coverage',
+	'fixtures',
+	'[.]git',
+	'[.]gpg',
+	'vendor',
+];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
 const _crlfFilesRxs = '[.](bat|cmd)';
 const _tabbedFilesRxs = '[.](bat|cmd)';
