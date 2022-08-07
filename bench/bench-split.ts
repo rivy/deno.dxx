@@ -2,8 +2,8 @@
 // spell-checker:ignore (names) Deno
 
 import { assertEquals } from '../tests/$deps.ts';
-import { /* deepEqual,*/ logger as log } from '../tests/$shared.ts';
-import { formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
+import { $logger, /* deepEqual,*/ logger as log } from '../tests/$shared.ts';
+import { env, formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
 
 import {
 	bench,
@@ -22,10 +22,7 @@ import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
 
 //===
 
-const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
-	Deno.env.get('LOGLEVEL') ??
-	(Deno.env.get('DEBUG') ? 'DEBUG' : undefined) ??
-	undefined;
+const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
 
 const mayBeLogLevelName = logLevelFromEnv &&

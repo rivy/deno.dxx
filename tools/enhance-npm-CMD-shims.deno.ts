@@ -10,6 +10,8 @@
 // spell-checker:ignore (libraries) rambda
 // spell-checker:ignore (names/people) Frederico Kereki ; Roy Ivy III * rivy
 
+// import { permitsAsync } from '../src/lib/$shared.TLA.ts';
+import { abortIfMissingPermits, env } from '../src/lib/$shared.ts';
 import { $colors, $fs, $lodash as _, $path, $xdgAppPaths } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
 
@@ -22,6 +24,11 @@ import { collect, first, map } from './lib/funk.ts';
 //===
 
 import { $yargs } from '../src/lib/$deps.cli.ts';
+
+//===
+
+await abortIfMissingPermits(['env', 'read', 'write']);
+await abortIfMissingPermits(['run']); // * for consoleSize; // ToDO: rewrite consoleSize to run (and gracefully degrade) with no permissions
 
 //===
 
@@ -38,24 +45,8 @@ const runAsName = $me.runAs;
 
 // logger.mergeMetadata({ authority: $me.name });
 
-const haveDenoEnvPermission = Deno.permissions.query({ name: 'env' });
-if (!haveDenoEnvPermission) {
-	log.warn(
-		`diminished capacity; full function requires environment permissions (try \`${$me.runAs} --allow-env ...\` )`,
-	);
-}
-
-async function env(varName: string) {
-	try {
-		return Deno.env.get(varName);
-	} catch (_) {
-		await log.debug(`Unable to retrieve '${varName}' from environment.`);
-		return undefined;
-	}
-}
-
 const logLevelFromEnv = $logger.logLevelFromEnv() ??
-	((await env('DEBUG')) ? 'debug' : undefined) ??
+	(env('DEBUG') ? 'debug' : undefined) ??
 	undefined;
 await log.debug(
 	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
@@ -282,8 +273,8 @@ endLocal & (goto) 2>NUL || title %COMSPEC% & "%_prog%" "<%=targetBinPath%>" %*
 const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 const pathListSeparator = isWinOS ? /;/ : /:/;
-// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
-// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
+// const paths = env('PATH')?.split(pathListSeparator) || [];
+// const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 
 // influenced by code from <https://github.com/npm/node-which/blob/master/which.js> (ISC License)
 // handle PATHEXT for Cygwin or MSYS?
@@ -296,10 +287,10 @@ async function* findExecutable(
 ): AsyncIterableIterator<string> {
 	const paths = options.paths
 		? options.paths
-		: (isWinOS ? ['.'] : []).concat(Deno.env.get('PATH')?.split(pathListSeparator) || []);
+		: (isWinOS ? ['.'] : []).concat(env('PATH')?.split(pathListSeparator) || []);
 	const extensions = options.extensions
 		? options.extensions
-		: (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [''];
+		: (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [''];
 	for (const path of paths) {
 		for (const extension of extensions) {
 			const p = $path.join(path, name) + extension;
@@ -332,10 +323,10 @@ async function* findExecutable(
 // ): IterableIterator<string> {
 // 	const paths = options.paths
 // 		? options.paths
-// 		: (isWinOS ? ['.'] : []).concat(Deno.env.get('PATH')?.split(pathListSeparator) || []);
+// 		: (isWinOS ? ['.'] : []).concat(env('PATH')?.split(pathListSeparator) || []);
 // 	const extensions = options.extensions
 // 		? options.extensions
-// 		: (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [''];
+// 		: (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [''];
 // 	for (const path_ of paths) {
 // 		for (const extension of extensions) {
 // 			const p = path.join(path_, name) + extension;

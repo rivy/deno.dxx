@@ -14,6 +14,8 @@ import { $colors, $tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
 
 import spinners from './spinners.ts';
+import type { SpinnerAnimation } from './spinners.ts';
+export type { SpinnerAnimation } from './spinners.ts';
 
 import { symbols as Symbols } from './log_symbols.ts';
 export { symbols, symbolStrings } from './log_symbols.ts';
@@ -30,11 +32,6 @@ const colorMap: { [key: string]: ColorFunction } = {
 	white: $colors.white,
 	gray: $colors.gray,
 };
-
-export interface SpinnerAnimation {
-	interval: number;
-	frames: string[];
-}
 
 export interface SpinnerOptions {
 	text: string;

@@ -41,6 +41,7 @@
 // ref: <https://jspm.org/docs/cdn>
 
 import { $fs, $osPaths, $path, assert } from './$deps.ts';
+import { env } from './$shared.ts';
 
 import { walk, walkSync } from './xWalk.ts';
 
@@ -49,16 +50,17 @@ import * as Braces from './xBraces.ts';
 export { expand as braceExpand } from './xBraces.ts';
 
 // esm.sh
-// import Braces from 'https://esm.sh/braces@3.0.2';
-// import Micromatch from 'https://esm.sh/micromatch@4.0.2';
-// import Picomatch from 'https://esm.sh/picomatch@2.3.0?no-check';
-import PicomatchM from 'https://esm.sh/picomatch@2.3.1?no-check'; // '?no-check' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
+// * use deno/std@0.134.0 to avoid permission prompts (deno/std@0.135.0+ causes permission prompts; see <https://github.com/denoland/deno_std/issues/2097>)
+// import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0';
+// import Micromatch from 'https://esm.sh/micromatch@4.0.2?deno-std=0.134.0';
+// import Picomatch from 'https://esm.sh/picomatch@2.3.0?deno-std=0.134.0&no-check';
+import PicomatchM from 'https://esm.sh/picomatch@2.3.1?deno-std=0.134.0&no-check'; // '?no-check' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
 import PicomatchT from '../../vendor/@types/picomatch@2.2.1/index.d.ts'; // use locally vendored types
 const Picomatch = PicomatchM as typeof PicomatchT;
 // esm.sh (un-minimized, readable source)
-// import Braces from 'https://esm.sh/braces@3.0.2?dev';
-// import Micromatch from 'https://esm.sh/micromatch@4.0.2?dev';
-// import Picomatch from 'https://esm.sh/picomatch@2.2.2?dev';
+// import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0&dev';
+// import Micromatch from 'https://esm.sh/micromatch@4.0.2?deno-std=0.134.0&dev';
+// import Picomatch from 'https://esm.sh/picomatch@2.2.2?deno-std=0.134.0&dev';
 
 // // jspm.io
 // import BracesM from 'https://ga.jspm.io/npm:braces@3.0.2/index.js';
@@ -93,7 +95,7 @@ const Picomatch = PicomatchM as typeof PicomatchT;
 const isWinOS = Deno.build.os === 'windows';
 
 export const envNullglob = () => {
-	const e = Deno.env.get('nullglob') || '';
+	const e = env('nullglob') || '';
 	// console.warn('envNullglob()', { e });
 	if (e.match(/^(0|f|false|no|off)?$/)) {
 		// console.warn(`${e} matched falsey`);
@@ -463,11 +465,11 @@ export function tildeExpand(s: string): string {
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
 	// console.warn('xArgs.tildeExpand()', { s });
 	// const sepReS = portablePathSepReS;
-	const username = Deno.env.get('USER') || Deno.env.get('USERNAME') || '';
-	const usernameReS = username.replace(/(.)/gmsu, '\\$1');
+	const username = env('USER') || env('USERNAME');
+	const usernameReS = username?.replace(/(.)/gmsu, '\\$1');
 	const caseSensitive = !isWinOS;
 	const re = new RegExp(
-		`^\s*(~(?:${usernameReS})?)(${pathSepReS}|$)(.*)`,
+		`^\s*(~(?:${usernameReS ?? ''})?)(${pathSepReS}|$)(.*)`,
 		caseSensitive ? '' : 'i',
 	);
 	const m = s.match(re);

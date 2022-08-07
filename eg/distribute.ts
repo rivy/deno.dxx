@@ -24,8 +24,8 @@ performance.mark('setup:log:start');
 // const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 // const pathListSeparator = isWinOS ? /;/ : /:/;
-// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
-// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
+// const paths = env('PATH')?.split(pathListSeparator) || [];
+// const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 // const pathCaseSensitive = !isWinOS;
 
 log.debug(`logging to *STDERR*`);

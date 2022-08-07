@@ -1,8 +1,9 @@
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (utils) dprint git
 
+// import { $colors } from './$deps.ts';
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
-import { haveCSpell, haveCSpellVersion, versionCompare } from './$shared.ts';
+import { haveCSpell, haveCSpellVersion, panicIfMissingPermits, versionCompare } from './$shared.ts';
 import {
 	decode,
 	haveDPrint,
@@ -12,6 +13,31 @@ import {
 	projectPath,
 	test,
 } from './$shared.ts';
+
+//===
+
+// const permissionsRequired = ['--allow-env', '--allow-read', '--allow-run'];
+// const permissionsGranted = await Promise.all(permissionsRequired.map(async (cliPermission) => {
+// 	return ((await Deno.permissions.query(
+// 		{ name: cliPermission.replace(/^--allow-/, '') } as Deno.PermissionDescriptor,
+// 	))
+// 		.state) === 'granted';
+// }));
+// const allPermissionsGranted = permissionsGranted.find((v) => !v) ?? true;
+// // console.warn({ permissionsRequired, permissionsGranted, allPermissionsGranted });
+// if (!allPermissionsGranted) {
+// 	const errText = `Missing required permissions; re-run with all required permissions (${
+// 		Deno.inspect(permissionsRequired, { colors: true })
+// 	})`;
+// 	// console.warn($colors.red('ERR!'), errText);
+// 	const err = new Error(errText);
+// 	err.stack = undefined;
+// 	throw err;
+// }
+
+await panicIfMissingPermits(['env', 'read', 'run']);
+
+//===
 
 const args = $args.argsSync;
 

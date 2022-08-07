@@ -5,7 +5,8 @@
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
-import { $fs, $path } from './$deps.ts';
+import { $colors, $fs, $path } from './$deps.ts';
+import { permitsAsync } from './$shared.TLA.ts';
 
 //===
 
@@ -33,6 +34,8 @@ export const projectLocations = {
 
 //===
 
+export const atImportPermissions = await permitsAsync();
+
 /** Host platform is a Windows OS. */
 export const isWinOS = Deno.build.os === 'windows';
 
@@ -42,6 +45,63 @@ export const decoder = new TextDecoder(); // default == 'utf=8'
 export const encoder = new TextEncoder(); // *always* 'utf-8'
 export const decode = (input?: Uint8Array): string => decoder.decode(input);
 export const encode = (input?: string): Uint8Array => encoder.encode(input);
+
+//====
+
+export async function havePermit(name: Deno.PermissionName) {
+	const names = [name];
+	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
+		e,
+	) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	return allGranted;
+}
+
+export async function haveAllPermits(names: Deno.PermissionName[]) {
+	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
+		e,
+	) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	return allGranted;
+}
+
+export async function haveMissingPermits(names: Deno.PermissionName[] = []) {
+	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
+		e,
+	) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	return !allGranted;
+}
+
+function composeMissingPermitsMessage(names: Deno.PermissionName[] = []) {
+	const flagNames = (names.length > 0) ? names : ['all'];
+	const msg =
+		`Missing required permissions; re-run with all required permissions (${(flagNames
+			.map((name) => $colors.green('`--allow-' + name + '`'))
+			.join(', '))})`;
+	return msg;
+}
+
+export async function abortIfMissingPermits(
+	names: Deno.PermissionName[] = [],
+	options: { exit_code: number; writer: (...args: unknown[]) => void } = {
+		exit_code: 1,
+		writer: (args) => console.warn($colors.red('ERR! ' + $colors.bold('*')), args),
+	},
+) {
+	if (await haveMissingPermits(names)) {
+		options.writer(composeMissingPermitsMessage(names));
+		Deno.exit(options.exit_code);
+	}
+}
+
+export async function panicIfMissingPermits(names: Deno.PermissionName[] = []) {
+	if (await haveMissingPermits(names)) {
+		const err = new Error(composeMissingPermitsMessage(names));
+		err.stack = undefined;
+		throw (err);
+	}
+}
 
 //===
 
@@ -70,28 +130,33 @@ export function deQuote(s?: string) {
 // `env()`
 /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
  * - will *not panic*
- * - *may prompt* user for 'env' permission
+ * - will *not prompt* for permission if `options.guard` is `true`
+@param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
  */
-export function env(varName: string) {
+export function env(varName: string, options?: { guard: boolean }) {
+	const guard = (options != null) ? options.guard : true;
+	const useDenoGet = !guard || (atImportPermissions.env.state === 'granted');
 	try {
-		return Deno.env.get(varName);
+		return useDenoGet ? Deno.env.get(varName) : undefined;
 	} catch (_) {
 		return undefined;
 	}
 }
 
 // `envAsync()`
-/** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
+/** Return the current value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
  * - will *not panic*
- * - will *not prompt* for permission if `guard` is `true`
-@param [`options.guard`] verify environment access permission prior to access attempt (avoids Deno prompts/panics)
+ * - will *not prompt* for permission if `options.guard` is `true`
+@param `options``.guard` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 */
 export async function envAsync(varName: string, options?: { guard: boolean }) {
-	const allowEnv = !options?.guard ||
-		((await (Deno.permissions?.query({ name: 'env', variable: varName }))).state ?? 'granted') !==
+	const guard = (options != null) ? options.guard : true;
+	const useDenoGet = !guard ||
+		((await (Deno.permissions?.query({ name: 'env', variable: varName }))).state ?? 'granted') ===
 			'granted';
+	// console.warn({ varName, options, guard, useDenoGet });
 	try {
-		return allowEnv ? Deno.env.get(varName) : undefined;
+		return useDenoGet ? Deno.env.get(varName) : undefined;
 	} catch (_) {
 		return undefined;
 	}
@@ -406,8 +471,7 @@ export function isWSL() {
 	// * add `sudo echo 'Default:%sudo env_keep+="IS_WSL WSLENV WSL_*"' > /etc/sudoers.d/WSL-env_keep` for WSL
 	// * add `sudo echo 'Default:%sudo env_keep+="WT_*"' > /etc/sudoers.d/WT-env_keep` for MS Windows Terminal variables
 	// * (as an aside...) add `sudo echo 'Default:%sudo env_keep+="LANG LC_*"' > /etc/sudoers.d/SSH-env_keep` for SSH
-	return (!isWinOS) &&
-		(Boolean(Deno.env.get('IS_WSL')) || Boolean(Deno.env.get('WSL_DISTRO_NAME')));
+	return (!isWinOS) && (Boolean(env('IS_WSL')) || Boolean(env('WSL_DISTRO_NAME')));
 }
 
 // `canDisplayUnicode()`
@@ -417,33 +481,30 @@ export function canDisplayUnicode() {
 		// POSIX-like
 		// ref: <https://stackoverflow.com/questions/3104410/identify-cygwin-linux-windows-using-environment-variables> , <https://stackoverflow.com/questions/714100/os-detecting-makefile>
 		// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain>
-		const isOldTerminal = ['cygwin', 'linux'].includes(Deno.env.get('TERM') ?? '');
+		const isOldTerminal = ['cygwin', 'linux'].includes(env('TERM') ?? '');
 		const isWSL_ = isWSL();
 		return !isOldTerminal && // fail for old terminals
 		(( // * not isWSL
 			!isWSL_ &&
 			Boolean(
-				Deno
-					.env
-					.get('LC_ALL')
-					?.match(/[.]utf-?8$/i) || Deno.env.get('LANG')?.match(/[.]utf-?8$/i),
+				env('LC_ALL')?.match(/[.]utf-?8$/i) || env('LANG')?.match(/[.]utf-?8$/i),
 			) /* LC_ALL or LANG handles UTF-8? */
 		) || ( // * isWSL
-			isWSL_ && Boolean(Deno.env.get('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
+			isWSL_ && Boolean(env('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
 		));
 	}
 
 	// WinOS
 	// note: 'alacritty' will, by default, set TERM to 'xterm-256color'
-	return (['alacritty', 'xterm-256color'].includes(Deno.env.get('TERM') ?? '')) || // [alacritty](https://github.com/alacritty/alacritty)
-		Boolean(Deno.env.get('ConEmuPID')) || // [ConEmu](https://conemu.github.io) and [cmder](https://cmder.net)
-		Boolean(Deno.env.get('WT_SESSION')); // MS Windows Terminal
+	return (['alacritty', 'xterm-256color'].includes(env('TERM') ?? '')) || // [alacritty](https://github.com/alacritty/alacritty)
+		Boolean(env('ConEmuPID')) || // [ConEmu](https://conemu.github.io) and [cmder](https://cmder.net)
+		Boolean(env('WT_SESSION')); // MS Windows Terminal
 }
 
 export function mightUseColor() {
 	// respects `NO_COLOR` env var override; use 'truthy' values?
 	// ref: <https://no-color.org> @@ <https://archive.is/Z5N1d>
-	return !(Deno.env.get('NO_COLOR'));
+	return !(env('NO_COLOR'));
 }
 
 export function mightUseFileSystemCase() {
@@ -453,13 +514,13 @@ export function mightUseFileSystemCase() {
 	// ref: <https://stackoverflow.com/questions/7199039/file-paths-in-windows-environment-not-case-sensitive> @@ <https://archive.is/i0xzb>
 	// ref: <https://nodejs.org/en/docs/guides/working-with-different-filesystems> @@ <https://archive.is/qSRjE>
 	// ref: <https://en.wikipedia.org/wiki/Filename> @@ <https://archive.is/cqe6g>
-	return !isWinOS /* assumed to be POSIX-like */ || !(Deno.env.get('USE_FS_CASE'));
+	return !isWinOS /* assumed to be POSIX-like */ || !(env('USE_FS_CASE'));
 }
 
 export function mightUseUnicode() {
 	// respects `NO_UNICODE` and `USE_UNICODE` env var overrides (in that order of priority); use 'truthy' values?
-	if (Deno.env.get('NO_UNICODE')) return false;
-	if (Deno.env.get('USE_UNICODE')) return true;
+	if (env('NO_UNICODE')) return false;
+	if (env('USE_UNICODE')) return true;
 	return canDisplayUnicode();
 }
 

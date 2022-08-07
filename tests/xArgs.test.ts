@@ -1,11 +1,17 @@
 // spell-checker:ignore (names) Deno ; (options) nullglob ; (people) Roy Ivy III * rivy
 
 import { $fs, $path, assert, assertEquals } from './$deps.ts';
-import { deepEqual, pathToOsStyle, projectPath, test } from './$shared.ts';
+import { deepEqual, panicIfMissingPermits, pathToOsStyle, projectPath, test } from './$shared.ts';
 
 import * as Parse from '../src/lib/xArgs.ts';
 
 // FixME: by default, all tests should test that both Async and Sync versions of a function pass the test (and, therefore, match each other)
+
+//===
+
+await panicIfMissingPermits(['read']);
+
+//===
 
 // ToDO: convert to testing fixtures to avoid failures when source example files change
 const fixturePath = 'tests/fixtures';

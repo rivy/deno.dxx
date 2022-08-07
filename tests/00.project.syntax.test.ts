@@ -4,8 +4,15 @@
 // ref: <https://github.com/denoland/deno/discussions/12113>
 // ToDO: re-evaluate as `deno check` comes to fruition
 
+// import { $colors } from './$deps.ts';
 import { $args, $path, assert } from './$deps.ts';
-import { decode, projectPath, test, traversal } from './$shared.ts';
+import { decode, panicIfMissingPermits, projectPath, test, traversal } from './$shared.ts';
+
+//===
+
+await panicIfMissingPermits(['read', 'run']);
+
+//===
 
 const expand = $args.shellExpandSync;
 

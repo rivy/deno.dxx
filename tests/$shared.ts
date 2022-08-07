@@ -4,19 +4,23 @@
 // spell-checker:ignore (people) Axel Rauschmayer , Roy Ivy III * rivy
 // spell-checker:ignore (utils) dprint git
 
+// export { env } from '../src/lib/$shared.ts';
 export * from '../src/lib/$shared.ts';
 
 //====
 
 import { $colors, $path } from './$deps.ts';
 
-import { decode, env, intoPath, isWinOS, projectPath, traversal } from '../src/lib/$shared.ts';
+import { env } from '../src/lib/$shared.TLA.ts';
+import { decode, intoPath, isWinOS, projectPath, traversal } from '../src/lib/$shared.ts';
+
+//====
+
+const inspect = Deno.inspect;
 
 //====
 
 // ToDO: [2021-09-16; rivy] * improved equivalency to NodeJS format/inspect string quoting requires changing the preference expressed [here](https://github.com/denoland/deno/blob/5d814a4c244d489b4ae51002a0cf1d3c2fe16058/ext/console/02_console.js#L648-L669)
-
-const inspect = Deno.inspect;
 
 // ref: <https://nodejs.org/api/util.html#util_util_format_format_args>
 function toSpecFormat(specifier: string, value: unknown): string {
@@ -116,7 +120,7 @@ function lineCount(filePath: string) {
 				Deno.readTextFileSync(traversal(filePath) ?? '').replace(/\r?\n$/ms, '').split(/\n/).length,
 			);
 		} catch (_) {
-			console.error('`lineCount()`: error happened');
+			// console.error('`lineCount()`: error happened');
 			// cache negative count as an error signal
 			testFilePathLineCounts.set(filePath, -1);
 		}
@@ -225,6 +229,30 @@ export const warn = createWarnFn();
 
 //===
 
+export const haveCommitLintVersion = () => {
+	try {
+		const process = Deno.run({
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'commitlint', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'piped',
+		});
+		return Promise
+			.all([process.status(), process.output()])
+			.then(([status, out]) => {
+				// console.debug({ status: status, out: decode(out) });
+				return (status.success && (decode(out)?.match(/(?:^|@)(\d+(?:[.]\d+)+)/) || [])[1]);
+			})
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
+	}
+};
+
+export const haveCommitLint = () => {
+	return haveCommitLintVersion().then((version) => version != null);
+};
+
 export const haveCSpellVersion = () => {
 	try {
 		const process = Deno.run({
@@ -238,7 +266,7 @@ export const haveCSpellVersion = () => {
 			.then(([_status, out]) => {
 				// console.debug({ status: _status, out: decode(out) });
 				// for some early versions, `cspell --version` returns status == 1 and version line followed by usage
-				// o/w for later v4 and >= v5, `cspell --version` returns status == 0 and version line only followed by usage
+				// o/w for later v4 and >= v5, `cspell --version` returns status == 0 and version line only
 				return ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[0]);
 			})
 			.finally(() => process.close());

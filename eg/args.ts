@@ -2,6 +2,7 @@
 
 import {
 	$version,
+	abortIfMissingPermits,
 	durationText,
 	env,
 	projectLocations,
@@ -19,7 +20,29 @@ import {
 
 //===
 
-import { $yargs, YargsArguments } from '../src/lib/$deps.eg+reqPerm.ts';
+import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
+
+//===
+
+// const grantedEnv = ((await permitsAsync()).env.state === 'granted');
+// const grantedRead = ((await permitsAsync()).read.state === 'granted');
+// const allPermits = grantedEnv && grantedRead;
+// if (!allPermits) {
+// 	if (!grantedEnv) {
+// 		console.warn(
+// 			`${$colors.red('ERR!')} environment permission is required (re-run with \`--allow-env\`)`,
+// 		);
+// 	}
+// 	if (!grantedRead) {
+// 		console.warn(
+// 			`${$colors.red('ERR!')} read permission is required (re-run with \`--allow-read\`)`,
+// 		);
+// 	}
+// 	Deno.exit(1);
+// }
+
+await abortIfMissingPermits(['env', 'read']);
+await abortIfMissingPermits(['run']); // * for consoleSize; // ToDO: rewrite consoleSize to run (and gracefully degrade) with no permissions
 
 //===
 
@@ -29,8 +52,8 @@ performance.mark('setup:log:start');
 // const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 // const pathListSeparator = isWinOS ? /;/ : /:/;
-// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
-// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
+// const paths = env('PATH')?.split(pathListSeparator) || [];
+// const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 // const pathCaseSensitive = !isWinOS;
 
 log.debug(`logging to *STDERR*`);

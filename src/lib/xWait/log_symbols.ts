@@ -1,13 +1,29 @@
 // spell-checker:ignore (names) Deno
 
 import { $colors } from '../$deps.ts';
+import { env, permitsAsync } from '../$shared.TLA.ts';
+// import { env } from '../$shared.ts';
 
-let supportsUnicode = true;
+// const atImportPermissions = await permitsAsync();
 
-if ((await Deno.permissions.query({ name: 'env' })).state === 'granted') {
-	supportsUnicode = supportsUnicode &&
-		(!!Deno.env.get('CI') || Deno.env.get('TERM') === 'xterm-256color');
-}
+// // `env()`
+// /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
+//  * - will *not panic*
+//  * - will *not prompt* for permission if `options.guard` is `true`
+// @param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+//  */
+// export function env(varName: string, options?: { guard: boolean }) {
+// 	const guard = (options != null) ? options.guard : true;
+// 	const useDenoGet = !guard || (atImportPermissions.env.state === 'granted');
+// 	try {
+// 		return useDenoGet ? Deno.env.get(varName) : undefined;
+// 	} catch (_) {
+// 		return undefined;
+// 	}
+// }
+
+const _havePermissions = await permitsAsync();
+const supportsUnicode = (!!env('CI') || env('TERM') === 'xterm-256color');
 
 export const symbolStrings: Record<string, Record<string, string>> = {
 	// ASCII (ie, ANSI high-bit reset) character fallback prefixes

@@ -1,9 +1,10 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
 import { $path } from '../src/lib/$deps.ts';
+
 import {
 	$version,
+	abortIfMissingPermits,
 	durationText,
 	env,
 	projectLocations,
@@ -21,14 +22,23 @@ import {
 
 //===
 
+import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
+
+//===
+
+await abortIfMissingPermits(['env', 'read']);
+await abortIfMissingPermits(['run']); // * for consoleSize; // ToDO: rewrite consoleSize to run (and gracefully degrade) with no permissions
+
+//===
+
 performance.mark('setup:start');
 performance.mark('setup:log:start');
 
 // const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 // const pathListSeparator = isWinOS ? /;/ : /:/;
-// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
-// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
+// const paths = env('PATH')?.split(pathListSeparator) || [];
+// const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 // const pathCaseSensitive = !isWinOS;
 
 log.debug(`logging to *STDERR*`);

@@ -13,6 +13,8 @@
 
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
+// import { permitsAsync } from '../src/lib/$shared.TLA.ts';
+import { abortIfMissingPermits, env } from '../src/lib/$shared.ts';
 import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $xWalk } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
 
@@ -25,6 +27,11 @@ import { collect, filter, map } from './lib/funk.ts';
 //===
 
 import { $yargs } from '../src/lib/$deps.cli.ts';
+
+//===
+
+await abortIfMissingPermits(['env', 'read', 'write']);
+await abortIfMissingPermits(['run']); // * for consoleSize; // ToDO: rewrite consoleSize to run (and gracefully degrade) with no permissions
 
 //===
 
@@ -41,24 +48,8 @@ const runAsName = $me.runAs;
 
 // logger.mergeMetadata({ authority: $me.name });
 
-const haveDenoEnvPermission = Deno.permissions.query({ name: 'env' });
-if (!haveDenoEnvPermission) {
-	log.warn(
-		`diminished capacity; full function requires environment permissions (try \`${$me.runAs} --allow-env ...\` )`,
-	);
-}
-
-async function env(varName: string) {
-	try {
-		return Deno.env.get(varName);
-	} catch (_) {
-		await log.debug(`Unable to retrieve '${varName}' from environment.`);
-		return undefined;
-	}
-}
-
 const logLevelFromEnv = $logger.logLevelFromEnv() ??
-	((await env('DEBUG')) ? 'debug' : undefined) ??
+	(env('DEBUG') ? 'debug' : undefined) ??
 	undefined;
 await log.debug(
 	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
@@ -267,8 +258,8 @@ const forceUpdate = args.force as boolean;
 const isWinOS = Deno.build.os === 'windows';
 // const pathSeparator = isWinOS ? /[\\/]/ : /\//;
 // const pathListSeparator = isWinOS ? /;/ : /:/;
-// const paths = Deno.env.get('PATH')?.split(pathListSeparator) || [];
-// const pathExtensions = (isWinOS && Deno.env.get('PATHEXT')?.split(pathListSeparator)) || [];
+// const paths = env('PATH')?.split(pathListSeparator) || [];
+// const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 const pathCaseSensitive = !isWinOS;
 
 function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undefined {
@@ -279,7 +270,7 @@ function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undef
 }
 
 const denoInstallRoot = joinFullyDefinedPaths(
-	Deno.env.get('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OSPaths.home(), '.deno'),
+	env('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OSPaths.home(), '.deno'),
 	'bin',
 );
 

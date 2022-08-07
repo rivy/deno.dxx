@@ -8,13 +8,14 @@ import {
 	readerFromStreamReader,
 	writableStreamFromWriter,
 	writerFromStreamWriter,
-} from 'https://deno.land/std@0.146.0/streams/conversion.ts';
+} from 'https://deno.land/std@0.134.0/streams/conversion.ts';
 
 import { $version, durationText, env, isEmpty, stableSort } from '../src/lib/$shared.ts';
 
 import { $consoleSize, $me } from '../src/lib/$locals.ts';
 import {
 	$logger,
+	abortIfMissingPermits,
 	intoPath,
 	intoURL,
 	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
@@ -26,6 +27,11 @@ import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
 
 import { restyleYargsHelp } from '../src/lib/restyleYargsHelp.ts';
 import { fetch } from '../src/lib/xFetch.ts';
+
+//===
+
+await abortIfMissingPermits(['env', 'net', 'read', 'write']);
+await abortIfMissingPermits(['run']); // * for consoleSize; // ToDO: rewrite consoleSize to run (and gracefully degrade) with no permissions
 
 //===
 

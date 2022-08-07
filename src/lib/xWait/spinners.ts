@@ -1,4 +1,8 @@
-import type { SpinnerAnimation } from './$mod.ts';
+// import type { SpinnerAnimation } from './$mod.ts';
+export interface SpinnerAnimation {
+	interval: number;
+	frames: string[];
+}
 
 export default <{ [key: string]: SpinnerAnimation }> {
 	dots: { interval: 80, frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] },

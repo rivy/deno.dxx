@@ -5,6 +5,7 @@
 // spell-checker:ignore (vars) ARGX
 
 import { $path } from './$deps.ts';
+import { permitsAsync } from './$shared.TLA.ts';
 import {
 	deQuote,
 	envAsync,
@@ -21,16 +22,14 @@ import * as $args from '../lib/xArgs.ts';
 
 //===
 
-const allowRead = ((await Deno.permissions?.query({ name: 'read' })).state === 'granted');
+const grantedRead = ((await permitsAsync()).read.state === 'granted');
 
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
 // const caseSensitiveFiles = mightUseFileSystemCase();
 const caseSensitiveFiles = !isWinOS;
 
 const execPathExtensions = isWinOS
-	? (await envAsync('PATHEXT', { guard: true }))?.split($path.delimiter).filter(Boolean).map(
-		toCommonCase,
-	) ?? []
+	? (await envAsync('PATHEXT'))?.split($path.delimiter).filter(Boolean).map(toCommonCase) ?? []
 	: undefined;
 
 // const pathsOfPATH = env('PATH')?.split($path.delimiter) ?? [];
@@ -58,7 +57,7 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 // *
 // `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
 const underEnhancedShell =
-	(((await envAsync('SHELL', { guard: true })) || '').match(enhancedShellRx) || []).length > 0;
+	(((await envAsync('SHELL')) || '').match(enhancedShellRx) || []).length > 0;
 
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
@@ -69,11 +68,11 @@ const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXE
 //===
 
 /** * process was invoked by direct execution */
-export const isDirectExecution = allowRead
+export const isDirectExecution = grantedRead
 	? !$path.basename(Deno.execPath()).match(runnerNameReS)
 	: undefined;
 /** * process was invoked as an eval script (eg, `deno eval ...`) */
-export const isEval = allowRead ? !!Deno.mainModule.match(isDenoEvalReS) : undefined;
+export const isEval = grantedRead ? !!Deno.mainModule.match(isDenoEvalReS) : undefined;
 
 //===
 
@@ -118,9 +117,11 @@ export const shim = await (async () => {
 		scriptName?: string;
 		scriptArgs?: string[];
 	} = {};
-	parts.TARGET = (await envAsync('SHIM_TARGET')) || (await envAsync('SHIM_URL')) ||
+	parts.TARGET = (await envAsync('SHIM_TARGET')) ||
+		(await envAsync('SHIM_URL')) ||
 		(await envAsync('DENO_SHIM_URL'));
-	parts.ARGV0 = (await envAsync('SHIM_ARGV0')) ?? (await envAsync('SHIM_ARG0')) ??
+	parts.ARGV0 = (await envAsync('SHIM_ARGV0')) ??
+		(await envAsync('SHIM_ARG0')) ??
 		(await envAsync('DENO_SHIM_ARG0'));
 	parts.ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('DENO_SHIM_ARGS'));
 	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
@@ -176,7 +177,7 @@ await Promise.all(envVarNames.map(async (name) => {
 //===
 
 export const isEnhancedShimTarget = shim.targetURL &&
-	pathEquivalent(shim.targetURL, allowRead ? Deno.mainModule : undefined);
+	pathEquivalent(shim.targetURL, grantedRead ? Deno.mainModule : undefined);
 
 //===
 
@@ -223,16 +224,16 @@ export const commandLineParts = (() => {
 
 /** * executable text string which initiated/invoked execution of the current process */
 export const argv0 = shim.runner ?? commandLineParts.runner ??
-	(allowRead ? Deno.execPath() : undefined);
+	(grantedRead ? Deno.execPath() : undefined);
 /** * runner specific command line options */
 export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
 
 /** * path string of main script file (best guess from all available sources) */
 export const pathURL = intoURL(deQuote(shim.scriptName))?.href ??
 	(isDirectExecution
-		? (allowRead ? Deno.execPath() : undefined)
+		? (grantedRead ? Deno.execPath() : undefined)
 		: (intoURL(deQuote(commandLineParts.scriptName))?.href ??
-			(allowRead ? Deno.mainModule : undefined)));
+			(grantedRead ? Deno.mainModule : undefined)));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
 const pathUrlBase = $path.parse(pathURL || '').base;

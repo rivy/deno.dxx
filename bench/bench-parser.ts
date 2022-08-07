@@ -1,8 +1,8 @@
 // spell-checker:ignore (abbrev/acronym) LOGLEVEL NOTSET PRNG
 // spell-checker:ignore (names) Deno
 
-import { logger as log } from '../tests/$shared.ts';
-import { formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
+import { $logger, logger as log } from '../tests/$shared.ts';
+import { env, formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
 
 import {
 	bench,
@@ -25,10 +25,7 @@ import * as Parser from '../src/lib/xArgs.ts';
 
 //===
 
-const logLevelFromEnv = Deno.env.get('LOG_LEVEL') ??
-	Deno.env.get('LOGLEVEL') ??
-	(Deno.env.get('DEBUG') ? 'DEBUG' : undefined) ??
-	undefined;
+const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
 
 const mayBeLogLevelName = logLevelFromEnv &&

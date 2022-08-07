@@ -5,12 +5,20 @@ const { existsSync } = $fs;
 import {
 	createWarnFn,
 	decode,
+	env,
 	haveGit,
+	panicIfMissingPermits,
 	projectLocations,
 	projectName,
 	test,
 	VERSION,
 } from './$shared.ts';
+
+//===
+
+await panicIfMissingPermits(['env', 'read']);
+
+//===
 
 const warn = createWarnFn(import.meta.url);
 
@@ -45,7 +53,7 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 // * check `GITHUB_REF` for a value such as 'refs/tags/<TAG_STRING>'
 // * ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
 {
-	const githubRef = Deno.env.get('GITHUB_REF') || '';
+	const githubRef = env('GITHUB_REF') || '';
 	const isVersionTaggedCommit = githubRef.match(/v?(?:\d+[.])*\d+$/);
 	if (isVersionTaggedCommit) {
 		// const text = await gitDescribeVersion;

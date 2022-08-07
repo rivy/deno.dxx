@@ -16,6 +16,36 @@ const COMPOSED_ID_SEP = '/'; // ToDO: implement composition/decomposition of IDs
 
 type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 
+//===
+
+export const atImportPermissions = {
+	env: (await (Deno.permissions?.query({ name: 'env' }))) ?? { state: 'granted', onchange: null },
+	// ffi: (await (Deno.permissions?.query({ name: 'ffi' }))).state ?? 'granted',
+	// hrtime: (await (Deno.permissions?.query({ name: 'hrtime' }))).state ?? 'granted',
+	// net: (await (Deno.permissions?.query({ name: 'net' }))).state ?? 'granted',
+	// read: (await (Deno.permissions?.query({ name: 'read' }))).state ?? 'granted',
+	// run: (await (Deno.permissions?.query({ name: 'run' }))).state ?? 'granted',
+	// write: (await (Deno.permissions?.query({ name: 'write' }))).state ?? 'granted',
+};
+
+// `env()`
+/** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
+ * - will *not panic*
+ * - will *not prompt* for permission if `options.guard` is `true`
+@param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+ */
+export function env(varName: string, options?: { guard: boolean }) {
+	const guard = (options != null) ? options.guard : true;
+	const useDenoGet = !guard || (atImportPermissions.env.state === 'granted');
+	try {
+		return useDenoGet ? Deno.env.get(varName) : undefined;
+	} catch (_) {
+		return undefined;
+	}
+}
+
+//===
+
 export interface Writer<T = unknown> {
 	write(chunk: T): Promise<unknown>;
 }
@@ -1080,7 +1110,7 @@ export function logLevelFromEnv(options?: { vars: string[] }): string | undefine
 	const levelText = (() => {
 		try {
 			for (const v of vars) {
-				const text = Deno.env.get(v);
+				const text = env(v);
 				if (text) return text;
 			}
 		} catch (_) {
