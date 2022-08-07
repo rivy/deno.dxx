@@ -2,9 +2,9 @@
 // spell-checker:ignore (utils) dprint git
 
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
+import { haveCSpell, haveCSpellVersion, versionCompare } from './$shared.ts';
 import {
 	decode,
-	haveCSpell,
 	haveDPrint,
 	haveGit,
 	isWinOS,
@@ -87,17 +87,28 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectPath, projectDirs });
 
-test('style ~ `cspell --config ./.vscode/cspell.json check **` succeeds', async () => {
-	const p = Deno.run({
-		cmd: ['cmd', '/x/d/c', 'cspell', '--config', './.vscode/cspell.json', 'check', '**'],
-		stdin: 'null',
-		stdout: 'piped',
-		stderr: 'piped',
-	});
-	const [status] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(() =>
-		p.close()
+const cSpellVersion = await haveCSpellVersion();
+const cSpellArgs = [
+	...((versionCompare(cSpellVersion, '5.0.0') >= 0) ? ['lint', '--no-progress'] : []),
+	'--config',
+	'./.vscode/cspell.json',
+	'**',
+];
+const cSpellCmd = ['cspell', ...cSpellArgs].join(' ');
+const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', ...cSpellArgs];
+// console.debug({ cSpellVersion, cSpellArgs, cmd });
+test(`style ~ \`${cSpellCmd}\` succeeds`, async () => {
+	const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
+		() => p.close()
 	);
-	assert(status.success, '`cspell check` fails');
+	// console.debug({ status, stdout: decode(out), stderr: decode(err) });
+	if (!status.success) {
+		console.warn('`cspell` status', status);
+		console.warn(decode(out).replace(/\r?\n$/ms, ''));
+		console.warn(decode(err).replace(/\r?\n$/ms, ''));
+	}
+	assert(status.success, '`cspell` check succeeds');
 }, { ignore: !(await haveCSpell()) });
 
 test('style ~ `deno lint` succeeds', async () => {

@@ -225,7 +225,7 @@ export const warn = createWarnFn();
 
 //===
 
-export const haveCSpell = () => {
+export const haveCSpellVersion = () => {
 	try {
 		const process = Deno.run({
 			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', '--version'],
@@ -233,19 +233,22 @@ export const haveCSpell = () => {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		// const [status, output] = await Promise.all([process.status(), process.output()]);
-		// const versionMatched = output;
 		return Promise
 			.all([process.status(), process.output()])
-			.then(([status, out]) => {
-				console.warn({ status, out: decode(out) });
-				// `cspell --version` returns status == 1 and version followed by usage
-				return !status && ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[1] != null);
+			.then(([_status, out]) => {
+				// console.debug({ status: _status, out: decode(out) });
+				// for some early versions, `cspell --version` returns status == 1 and version line followed by usage
+				// o/w for later v4 and >= v5, `cspell --version` returns status == 0 and version line only followed by usage
+				return ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[0]);
 			})
 			.finally(() => process.close());
 	} catch (_) {
-		return Promise.resolve(false);
+		return Promise.resolve(undefined);
 	}
+};
+
+export const haveCSpell = () => {
+	return haveCSpellVersion().then((version) => version != null);
 };
 
 export const haveDPrint = () => {
@@ -450,4 +453,12 @@ export function stdDevSample(arr: number[], mean_?: number): number | undefined 
 		arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / (arr.length - 1),
 	);
 	return stdDev;
+}
+
+//===
+
+export function versionCompare(a?: string, b?: string) {
+	a ??= '0.0.0';
+	b ??= '0.0.0';
+	return a.localeCompare(b, /* locales */ void 0, { numeric: true });
 }
