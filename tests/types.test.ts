@@ -3,10 +3,10 @@
 // import { assert } from 'https://deno.land/std@0.93.0/testing/asserts.ts';
 // import { writeAllSync } from 'https://deno.land/std@0.93.0/io/mod.ts';
 
-// import Schema, { array, number, string, unknown } from 'cdn.esm.sh/v45/computed-types@1.6.0';
-import { string, unknown } from 'https://cdn.esm.sh/v45/computed-types@1.6.0';
-// import type { SchemaValidatorFunction, SchemaReturnType } from 'cdn.esm.sh/v45/computed-types@1.6.0';
-// import type { ValidatorProxy as _ } from 'https://cdn.esm.sh/v45/computed-types@1.6.0/lib/Validator.d.ts';
+// import Schema, { array, number, string, unknown } from 'esm.sh/v45/computed-types@1.6.0';
+import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
+// import type { SchemaValidatorFunction, SchemaReturnType } from 'esm.sh/v45/computed-types@1.6.0';
+// import type { ValidatorProxy as _ } from 'https://esm.sh/v45/computed-types@1.6.0/lib/Validator.d.ts';
 
 // ToDO: evaluate [`zod`](https://github.com/colinhacks/zod) as a possible replacement for `computed-types`
 // ToDO: evaluate `chai` and `sinon`; egs, <https://deno.land/std@0.111.0/testing/chai_example.ts> and <https://deno.land/std@0.111.0/testing/sinon_example.ts>
