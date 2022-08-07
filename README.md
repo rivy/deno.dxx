@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore () markdownlint (people) Roy Ivy III * rivy (names) Deno Gitter (utils) dprint perl (vars) lcov getcwd gmrsu gmsu -->
+<!-- spell-checker:ignore () markdownlint (people) Roy Ivy III * rivy (names) Deno Gitter (utils) dprint genhtml perl (vars) lcov getcwd gmrsu gmsu -->
 
 <!-- (template) data-template-match='(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)' data-template-replace='$1${VERSION_TAG}' -->
 
