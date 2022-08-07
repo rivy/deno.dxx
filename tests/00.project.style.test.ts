@@ -156,8 +156,8 @@ test('style ~ non-binary project files do not contain leading utf-8 BOM', () => 
 		return (content.length > 0 && (equal(content.slice(0, 3), UTF8_BOM)));
 	});
 	if (flawedFiles.length > 0) {
-		console.log('The following files contain leading utf-8 BOM:');
-		console.log(flawedFiles);
+		console.warn('The following files contain leading utf-8 BOM:');
+		console.warn(flawedFiles);
 	}
 	assertEquals({ flawedFiles: 0 }, { flawedFiles: flawedFiles.length });
 });
