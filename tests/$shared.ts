@@ -180,10 +180,16 @@ export function createTestFn(testFilePath?: URL | string) {
 						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : []
 					);
 					if (logText.length > 0) {
-						logText.unshift($colors.dim(`## test log:begin>`));
-						logText.push($colors.dim(`## test log:end.`));
+						logText.unshift($colors.dim('# ---- test log:begin > ----'));
+						logText.push($colors.dim(`# ---- test log:end . ------`));
+						// logText.unshift($colors.dim('# ---- test log:begin > ----') + ` ${testName}`);
+						// logText.push($colors.dim(`# ---- test log:end . ------`) + ` ${testName}`);
 					}
-					throw (new Error([''].concat(logText).concat([e.toString()]).join('\n')));
+					const err = new Error([''].concat(logText).concat([e.toString()]).join('\n'));
+					// deno-lint-ignore no-explicit-any
+					(err as any).original = e;
+					err.stack = e.stack;
+					throw err;
 				}
 			},
 			...opts,
