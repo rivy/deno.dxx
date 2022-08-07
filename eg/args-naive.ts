@@ -1,6 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { $path, $yargs, YargsArguments } from '../src/lib/$deps.ts';
+import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
+import { $path } from '../src/lib/$deps.ts';
 import {
 	$version,
 	durationText,
