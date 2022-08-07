@@ -10,7 +10,7 @@ export * from '../src/lib/$shared.ts';
 
 import { $colors, $path } from './$deps.ts';
 
-import { decode, intoPath, isWinOS, projectPath, traversal } from '../src/lib/$shared.ts';
+import { decode, env, intoPath, isWinOS, projectPath, traversal } from '../src/lib/$shared.ts';
 
 //====
 
@@ -196,8 +196,8 @@ export const test = createTestFn();
 
 //===
 
-export const isCI = Deno.env.get('CI');
-export const isGHA = Deno.env.get('GITHUB_ACTIONS'); // ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
+export const isCI = env('CI');
+export const isGHA = env('GITHUB_ACTIONS'); // ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
 
 //===
 
