@@ -1,14 +1,16 @@
-# v2022-07-07 [rivy]
+# v2022-07-20 [rivy]
 
 # NOTE: Git GLOBSTAR syntax [see `git help gitignore`]
 # * ref: [.gitignore] http://git-scm.com/docs/gitignore @@ http://archive.is/Rk6rO
+# * ref: [Generate gitignore's](https://gitignore.io) ; eg, <https://gitignore.io/api/node>
 
-# ignore build artifacts
+# ignore intermediate/undistributed build artifacts
+build
 [._@#$]build
-dist
 target
 
 # ignore coverage data
+coverage
 [._@#$]coverage
 .nyc_output
 
