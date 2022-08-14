@@ -1,4 +1,4 @@
-import * as Log from 'https://deno.land/std@0.93.0/log/mod.ts';
+import * as Log from 'https://deno.land/std@0.134.0/log/mod.ts';
 
 import * as xArgs from '../src/lib/xArgs.ts';
 import * as Me from '../src/lib/xProcess.ts';

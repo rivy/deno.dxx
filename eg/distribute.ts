@@ -299,7 +299,7 @@ function ensurePath(path?: string | URL) {
 	return p;
 }
 
-import { /* copy, */ writableStreamFromWriter } from 'https://deno.land/std@0.145.0/streams/mod.ts';
+import { /* copy, */ writableStreamFromWriter } from 'https://deno.land/std@0.134.0/streams/mod.ts';
 
 async function remoteCopy(src: URL, dst: URL, _options?: { bufSize?: number }) {
 	const fileResponse = await fetch(src);
