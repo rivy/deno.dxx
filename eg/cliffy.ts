@@ -1,7 +1,7 @@
 // ref: <https://github.com/c4spar/deno-cliffy>
 
-import { Command } from 'https://deno.land/x/cliffy@v0.18.2/command/mod.ts';
-import { parseFlags } from 'https://deno.land/x/cliffy@v0.18.2/flags/mod.ts';
+import { Command } from 'https://deno.land/x/cliffy@v0.23.0/command/mod.ts'; // *pin*; cliffy@v0.23.0 == last version to use std@0.134.0 (or lower)
+import { parseFlags } from 'https://deno.land/x/cliffy@v0.23.0/flags/mod.ts'; // *pin*; cliffy@v0.23.0 == last version to use std@0.134.0 (or lower)
 
 import * as Me from '../src/lib/xProcess.ts';
 
