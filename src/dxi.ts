@@ -131,7 +131,7 @@ Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND`)
 		'halt-at-non-option': true,
 		'unknown-options-as-args': true,
 	})
-	.example(`\`${runAsName} "https://deno.land/std@0.117.0/examples/colors.ts"\``)
+	.example(`\`${runAsName} "https://deno.land/std@0.134.0/examples/colors.ts"\``)
 	.example(`\`${runAsName} --allow-net --allow-read "https://deno.land/std/http/file_server.ts"\``)
 	/* Options... */
 	.strictOptions(/* enable */ false);
