@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno
 
-export * as $colors from 'https://deno.land/std@0.112.0/fmt/colors.ts';
+export * as $colors from 'https://deno.land/std@0.134.0/fmt/colors.ts';
 
 // // * import needed stable portions of `std/fs`
 // import { exists, existsSync } from 'https://deno.land/std@0.106.0/fs/exists.ts';
