@@ -9,7 +9,7 @@ import {
 	bench,
 	BenchmarkTimer,
 	runBenchmarks,
-} from 'https://deno.land/std@0.93.0/testing/bench.ts';
+} from 'https://deno.land/std@0.134.0/testing/bench.ts';
 import {
 	prettyBenchmarkProgress,
 	prettyBenchmarkResult,
