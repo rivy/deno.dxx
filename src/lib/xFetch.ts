@@ -2,10 +2,10 @@
 
 // spell-checker:ignore (people) Luca Casonato * lucacasonato
 
-import { iter } from 'https://deno.land/std@0.97.0/io/util.ts';
+import { iter } from 'https://deno.land/std@0.134.0/io/util.ts';
 import { lookup } from 'https://deno.land/x/media_types@v2.8.4/mod.ts';
 
-import { readableStreamFromIterable } from 'https://deno.land/std@0.113.0/streams/conversion.ts';
+import { readableStreamFromIterable } from 'https://deno.land/std@0.134.0/streams/conversion.ts';
 
 const originalFetch = globalThis.fetch;
 
