@@ -112,30 +112,36 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectPath, projectDirs });
-
-const cSpellVersion = await haveCSpellVersion();
-const cSpellArgs = [
-	...((versionCompare(cSpellVersion, '5.0.0') >= 0) ? ['lint', '--no-progress'] : []),
-	'--config',
-	'./.vscode/cspell.json',
-	'**',
-];
-const cSpellCmd = ['cspell', ...cSpellArgs].join(' ');
-const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', ...cSpellArgs];
-// console.debug({ cSpellVersion, cSpellArgs, cmd });
-test(`style ~ \`${cSpellCmd}\` succeeds`, async () => {
-	const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
-	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
-	);
-	// console.debug({ status, stdout: decode(out), stderr: decode(err) });
-	if (!status.success) {
-		console.warn('`cspell` status', status);
-		console.warn(decode(out).replace(/\r?\n$/ms, ''));
-		console.warn(decode(err).replace(/\r?\n$/ms, ''));
+{
+	const cSpellVersion = await haveCSpellVersion();
+	const cSpellArgs = [
+		...((versionCompare(cSpellVersion, '5.0.0') >= 0) ? ['lint', '--no-progress'] : []),
+		'--config',
+		'./.vscode/cspell.json',
+		'**',
+	];
+	const cSpellCmd = ['cspell', ...cSpellArgs].join(' ');
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', ...cSpellArgs];
+	const description = `style ~ \`${cSpellCmd}\` succeeds`;
+	if (!await haveCSpell()) {
+		test.skip(description + '...skipped (`cspell` not found)', () => undefined);
+	} else {
+		// console.debug({ cSpellVersion, cSpellArgs, cmd });
+		test(description, async () => {
+			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const [status, out, err] = await Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.finally(() => p.close());
+			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
+			if (!status.success) {
+				console.warn('`cspell` status', status);
+				console.warn(decode(out).replace(/\r?\n$/ms, ''));
+				console.warn(decode(err).replace(/\r?\n$/ms, ''));
+			}
+			assert(status.success, '`cspell` check succeeds');
+		}, { ignore: !(await haveCSpell()) });
 	}
-	assert(status.success, '`cspell` check succeeds');
-}, { ignore: !(await haveCSpell()) });
+}
 
 test('style ~ `deno lint` succeeds', async () => {
 	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
@@ -150,24 +156,29 @@ test('style ~ `deno lint` succeeds', async () => {
 	assert(status.success, '`deno lint` fails');
 });
 
-if (await haveDPrint()) {
-	test('style ~ `dprint check` succeeds', async () => {
-		const p = Deno.run({
-			cmd: ['dprint', 'check'],
-			stdin: 'null',
-			stdout: 'piped',
-			stderr: 'piped',
+{
+	const description = 'style ~ `dprint check` succeeds';
+	if (!await haveDPrint()) {
+		test.skip(description + '...skipped (`dprint` not found)');
+	} else {
+		test(description, async () => {
+			const p = Deno.run({
+				cmd: ['dprint', 'check'],
+				stdin: 'null',
+				stdout: 'piped',
+				stderr: 'piped',
+			});
+			const [status, out, err] = await Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.finally(() => p.close());
+			if (!status.success) {
+				console.warn('`dprint check` status', status);
+				console.warn(decode(out).replace(/\r?\n$/ms, ''));
+				console.warn(decode(err).replace(/\r?\n$/ms, ''));
+			}
+			assert(status.success, '`dprint check` fails');
 		});
-		const [status, out, err] = await Promise
-			.all([p.status(), p.output(), p.stderrOutput()])
-			.finally(() => p.close());
-		if (!status.success) {
-			console.warn('`dprint check` status', status);
-			console.warn(decode(out).replace(/\r?\n$/ms, ''));
-			console.warn(decode(err).replace(/\r?\n$/ms, ''));
-		}
-		assert(status.success, '`dprint check` fails');
-	});
+	}
 }
 
 test(`style ~ non-binary project files exist (${projectNonBinaryFiles.length} found)`, () => {
