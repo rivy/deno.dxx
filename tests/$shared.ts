@@ -133,7 +133,7 @@ function lineCount(filePath: string) {
 function composeTestName(
 	tag: string,
 	description: string,
-	options: { align: boolean } = { align: false },
+	options: { align: boolean; ignore: boolean } = { align: false, ignore: false },
 ) {
 	const align = options.align;
 	const padding = (() => {
@@ -150,7 +150,7 @@ function composeTestName(
 			? ($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) +
 				' ')
 			: '');
-	return filePathText + $colors.bold(description);
+	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
 }
 
 export function createTestFn(testFilePath?: URL | string) {
@@ -163,7 +163,10 @@ export function createTestFn(testFilePath?: URL | string) {
 					/:\d+$/,
 					'',
 				) /* remove trailing character position */) ?? '';
-		const testName: TestName = composeTestName(tag, description, { align: !(pathOfTestFile) });
+		const testName: TestName = composeTestName(tag, description, {
+			align: !(pathOfTestFile),
+			ignore: !!opts.ignore,
+		});
 		Deno.test({
 			name: testName,
 			fn: async () => {
