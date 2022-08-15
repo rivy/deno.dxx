@@ -204,6 +204,11 @@ export function createTestFn(testFilePath?: URL | string) {
 			...opts,
 		});
 	}
+	test.skip = (
+		description: string,
+		fn: () => void | Promise<void> = () => undefined,
+		opts = {} as TestOptions,
+	) => test(description, fn, { ...opts, ignore: true });
 	return test;
 }
 
