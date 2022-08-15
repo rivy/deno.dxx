@@ -307,6 +307,32 @@ export const haveGit = () => {
 	}
 };
 
+export const haveMadgeVersion = () => {
+	try {
+		const process = Deno.run({
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'piped',
+		});
+		return Promise
+			.all([process.status(), process.output()])
+			.then(([_status, out]) => {
+				// console.debug({ status: _status, out: decode(out) });
+				// for some early versions, `cspell --version` returns status == 1 and version line followed by usage
+				// o/w for later v4 and >= v5, `cspell --version` returns status == 0 and version line only followed by usage
+				return ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[0]);
+			})
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
+	}
+};
+
+export const haveMadge = () => {
+	return haveMadgeVersion().then((version) => version != null);
+};
+
 export const isGitRepo = async (path = projectPath) => {
 	const haveGit_ = await haveGit();
 	if (haveGit_) {
