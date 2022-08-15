@@ -153,9 +153,11 @@ function composeTestName(
 	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
 }
 
+export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
+
 export function createTestFn(testFilePath?: URL | string) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
-	function test(description: string, fn: () => void | Promise<void>, opts = {}) {
+	function test(description: string, fn: () => void | Promise<void>, opts = {} as TestOptions) {
 		const tag =
 			(pathOfTestFile
 				? pathOfTestFile
