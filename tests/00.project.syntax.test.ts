@@ -24,7 +24,7 @@ await panicIfMissingPermits(['read', 'run']);
 
 const expand = $args.shellExpandSync;
 
-const projectTypeScriptFiles: Record<string, string[]> = {
+const projectCodeFilesByKind: Record<string, string[]> = {
 	// benchmarks: expand(
 	// 	['bench', 'benchmark', 'benchmarks'].map((s) => $path.join(projectPath, s, '*.ts')),
 	// 	{ nullglob: true },
@@ -43,8 +43,8 @@ const projectTypeScriptFiles: Record<string, string[]> = {
 		{ nullglob: true },
 	),
 };
-const projectFiles = Object.keys(projectTypeScriptFiles).flatMap((arr) =>
-	projectTypeScriptFiles[arr].flat()
+const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
+	projectCodeFilesByKind[arr].flat()
 );
 
 if (await haveMadge()) {
@@ -67,8 +67,8 @@ if (await haveMadge()) {
 	});
 }
 
-test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.length} found)`, async () => {
-	const files = (projectTypeScriptFiles.examples).flatMap((e) => traversal(e) || []);
+test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.length} found)`, async () => {
+	const files = (projectCodeFilesByKind.examples).flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
@@ -87,8 +87,8 @@ test(`syntax ~ examples compile correctly (${projectTypeScriptFiles.examples.len
 	assert(status.success);
 });
 
-test(`syntax ~ source files (plus imports) compile correctly (${projectTypeScriptFiles.source.length} found)`, async () => {
-	const files = (projectTypeScriptFiles.source).flatMap((e) => traversal(e) || []);
+test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFilesByKind.source.length} found)`, async () => {
+	const files = (projectCodeFilesByKind.source).flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
@@ -107,8 +107,8 @@ test(`syntax ~ source files (plus imports) compile correctly (${projectTypeScrip
 	assert(status.success);
 });
 
-test(`syntax ~ test and benchmark files (plus imports) compile correctly (${projectTypeScriptFiles.tests.length} found)`, async () => {
-	const files = (projectTypeScriptFiles.tests).flatMap((e) => traversal(e) || []);
+test(`syntax ~ test and benchmark files (plus imports) compile correctly (${projectCodeFilesByKind.tests.length} found)`, async () => {
+	const files = (projectCodeFilesByKind.tests).flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
@@ -127,8 +127,8 @@ test(`syntax ~ test and benchmark files (plus imports) compile correctly (${proj
 	assert(status.success);
 });
 
-test(`syntax ~ tools compile correctly (${projectTypeScriptFiles.tools.length} found)`, async () => {
-	const files = (projectTypeScriptFiles.tools).flatMap((e) => traversal(e) || []);
+test(`syntax ~ tools compile correctly (${projectCodeFilesByKind.tools.length} found)`, async () => {
+	const files = (projectCodeFilesByKind.tools).flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
