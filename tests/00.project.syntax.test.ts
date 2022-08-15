@@ -47,24 +47,29 @@ const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
 	projectCodeFilesByKind[arr].flat()
 );
 
-if (await haveMadge()) {
-	test(`syntax ~ no circular references found (within ${projectFiles.length}+ files)`, async () => {
-		const files = (projectFiles).flatMap((e) => traversal(e) || []);
-		const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--circular', '--no-spinner']
-			.concat(files);
-		console.log({ files });
-		const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
-		const [status, out, err] = await Promise
-			.all([p.status(), p.output(), p.stderrOutput()])
-			.finally(() => p.close());
-		// console.debug({ status, stdout: decode(out), stderr: decode(err) });
-		if (!status.success) {
-			console.warn('`madge` status', status);
-			console.warn(decode(out).replace(/\r?\n$/ms, ''));
-			console.warn(decode(err).replace(/\r?\n$/ms, ''));
-		}
-		assert(status.success, '`madge` circular reference check succeeds');
-	});
+{
+	const description = 'syntax ~ no circular dependency found';
+	if (!await haveMadge()) {
+		test.skip(description + '...skipped (`madge` not found)');
+	} else {
+		test(description + ` (within ${projectCodeFiles.length}+ files)`, async () => {
+			const files = (projectCodeFiles).flatMap((e) => traversal(e) || []);
+			const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--circular', '--no-spinner']
+				.concat(files);
+			console.log({ files });
+			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const [status, out, err] = await Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.finally(() => p.close());
+			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
+			if (!status.success) {
+				console.warn('`madge` status', status);
+				console.warn(decode(out).replace(/\r?\n$/ms, ''));
+				console.warn(decode(err).replace(/\r?\n$/ms, ''));
+			}
+			assert(status.success, '`madge` circular reference check succeeds');
+		});
+	}
 }
 
 test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.length} found)`, async () => {
