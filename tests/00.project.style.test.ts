@@ -114,17 +114,19 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 // console.warn({ projectPath, projectDirs });
 {
 	const cSpellVersion = await haveCSpellVersion();
-	const cSpellArgs = [
+	const command = 'cspell';
+	const haveCommand = await haveCSpell();
+	const exeArgs = [
 		...((versionCompare(cSpellVersion, '5.0.0') >= 0) ? ['lint', '--no-progress'] : []),
 		'--config',
 		'./.vscode/cspell.json',
 		'**',
 	];
-	const cSpellCmd = ['cspell', ...cSpellArgs].join(' ');
-	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', ...cSpellArgs];
-	const description = `style ~ \`${cSpellCmd}\` succeeds`;
-	if (!await haveCSpell()) {
-		test.skip(description + '...skipped (`cspell` not found)', () => undefined);
+	const exeCmd = [command, ...exeArgs].join(' ');
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
+	const description = `style ~ \`${exeCmd}\` succeeds`;
+	if (!haveCommand) {
+		test.skip(description + `...skipped (\`${command}\` not found)`);
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
@@ -134,12 +136,12 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 				.finally(() => p.close());
 			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
 			if (!status.success) {
-				console.warn('`cspell` status', status);
+				console.warn(`\`${command}\` status`, status);
 				console.warn(decode(out).replace(/\r?\n$/ms, ''));
 				console.warn(decode(err).replace(/\r?\n$/ms, ''));
 			}
-			assert(status.success, '`cspell` check succeeds');
-		}, { ignore: !(await haveCSpell()) });
+			assert(status.success, `\`${command}\` check succeeds`);
+		});
 	}
 }
 
