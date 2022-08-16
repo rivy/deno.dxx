@@ -120,7 +120,7 @@ bmp --commit
 
 ## Testing
 
-`deno test`
+`deno test -A`
 
 ## Coverage Reports
 
@@ -133,3 +133,11 @@ genhtml -o .coverage\html .coverage\@coverage.lcov
 ## Benchmarking
 
 `dxr bench/bench-parser.ts`
+
+## Publishing
+
+```shell
+deno test -A -- --release
+# * if no errors *, push tag to update `deno.land/x/...`
+git push origin v$(cat VERSION)
+```
