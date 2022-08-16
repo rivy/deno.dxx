@@ -3,7 +3,13 @@
 
 // import { $colors } from './$deps.ts';
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
-import { haveCSpell, haveCSpellVersion, panicIfMissingPermits, versionCompare } from './$shared.ts';
+import {
+	haveCommitLint,
+	haveCSpell,
+	haveCSpellVersion,
+	panicIfMissingPermits,
+	versionCompare,
+} from './$shared.ts';
 import {
 	decode,
 	haveDPrint,
@@ -112,6 +118,34 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectPath, projectDirs });
+
+{
+	const command = 'commitlint';
+	const haveCommand = await haveCommitLint();
+	const exeArgs = ['--config', '.commitlint.config.js', '--from', 'origin/last'];
+	const exeCmd = [command, ...exeArgs].join(' ');
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
+	const description = `style ~ \`${exeCmd}\` succeeds`;
+	if (!haveCommand) {
+		test.skip(description + `...skipped (\`${command}\` not found)`);
+	} else {
+		// console.debug({ cSpellVersion, cSpellArgs, cmd });
+		test(description, async () => {
+			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const [status, out, err] = await Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.finally(() => p.close());
+			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
+			if (!status.success) {
+				console.warn(`\`${command}\` status`, status);
+				console.warn(decode(out).replace(/\r?\n$/ms, ''));
+				console.warn(decode(err).replace(/\r?\n$/ms, ''));
+			}
+			assert(status.success, `\`${command}\` check succeeds`);
+		});
+	}
+}
+
 {
 	const cSpellVersion = await haveCSpellVersion();
 	const command = 'cspell';
