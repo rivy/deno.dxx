@@ -48,8 +48,8 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //====
 
-export async function havePermit(name: Deno.PermissionName) {
-	const names = [name];
+export async function havePermit(permitName: Deno.PermissionName) {
+	const names = [permitName];
 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
 		e,
 	) => e ?? { state: 'granted', onchange: null });
@@ -57,24 +57,23 @@ export async function havePermit(name: Deno.PermissionName) {
 	return allGranted;
 }
 
-export async function haveAllPermits(names: Deno.PermissionName[]) {
-	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
-		e,
-	) => e ?? { state: 'granted', onchange: null });
+export async function haveAllPermits(permitNames: Deno.PermissionName[]) {
+	const permits = (await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name }))))
+		.map((e) => e ?? { state: 'granted', onchange: null });
 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
 	return allGranted;
 }
 
-export async function haveMissingPermits(names: Deno.PermissionName[] = []) {
-	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
-		e,
-	) => e ?? { state: 'granted', onchange: null });
+export async function haveMissingPermits(permitNames: Deno.PermissionName[] = []) {
+	const permits = (await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name }))))
+		.map((e) => e ?? { state: 'granted', onchange: null });
 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
 	return !allGranted;
 }
 
-function composeMissingPermitsMessage(names: Deno.PermissionName[] = []) {
-	const flagNames = (names.length > 0) ? names : ['all'];
+function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
+	/** Sorted, non-duplicated, permission names (used for flag generation) */
+	const flagNames = (permitNames.length > 0) ? [...new Set(permitNames.sort())] : ['all'];
 	const msg =
 		`Missing required permissions; re-run with all required permissions (${(flagNames
 			.map((name) => $colors.green('`--allow-' + name + '`'))
@@ -83,21 +82,21 @@ function composeMissingPermitsMessage(names: Deno.PermissionName[] = []) {
 }
 
 export async function abortIfMissingPermits(
-	names: Deno.PermissionName[] = [],
+	permitNames: Deno.PermissionName[] = [],
 	options: { exit_code: number; writer: (...args: unknown[]) => void } = {
 		exit_code: 1,
 		writer: (args) => console.warn($colors.red('ERR! ' + $colors.bold('*')), args),
 	},
 ) {
-	if (await haveMissingPermits(names)) {
-		options.writer(composeMissingPermitsMessage(names));
+	if (await haveMissingPermits(permitNames)) {
+		options.writer(composeMissingPermitsMessage(permitNames));
 		Deno.exit(options.exit_code);
 	}
 }
 
-export async function panicIfMissingPermits(names: Deno.PermissionName[] = []) {
-	if (await haveMissingPermits(names)) {
-		const err = new Error(composeMissingPermitsMessage(names));
+export async function panicIfMissingPermits(permitNames: Deno.PermissionName[] = []) {
+	if (await haveMissingPermits(permitNames)) {
+		const err = new Error(composeMissingPermitsMessage(permitNames));
 		err.stack = undefined;
 		throw (err);
 	}
