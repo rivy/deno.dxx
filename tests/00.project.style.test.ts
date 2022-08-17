@@ -1,5 +1,6 @@
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (utils) dprint git
+// spell-checker:ignore (options) refname
 
 // import { $colors } from './$deps.ts';
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
@@ -122,12 +123,34 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 {
 	const command = 'commitlint';
 	const haveCommand = await haveCommitLint();
-	const exeArgs = ['--config', '.commitlint.config.js', '--from', 'origin/last'];
+	const commitLintFrom = await (async () => {
+		// find a commit-ish reference to use as base parent for "new" commits
+		// * using "new" commits avoids testing for errors in earlier commits which might be "immutable" (ie, after being published)
+		// * (in priority order) 'origin/last' (by project convention), a tag which contains HEAD~1 commit, or first repo commit hash
+		const p = Deno.run({
+			cmd: [
+				...(isWinOS ? ['cmd', '/x/d/c'] : ['sh', '-c']),
+				// POSIX requires quotes to avoid glob-expansion, *but* `Deno.run()` has a WinOS bug breaking any `cmd` element containing double-quotes
+				// * ref: <https://github.com/denoland/deno/issues/8852>
+				'git tag --list ' +
+				(isWinOS ? '[#v]*' : '"[#v]*"') +
+				' --contains origin/last --sort=v:refname' +
+				' && git describe --tags --abbrev=0 HEAD~1 && git rev-list --max-parents=0 HEAD --abbrev-commit --abbrev=16',
+			],
+			stderr: 'piped',
+			stdout: 'piped',
+		});
+		await p.status();
+		return (decode(await p.output()).split(/\r?\n/))[0] || undefined;
+	})();
+	const exeArgs = ['--config', '.commitlint.config.js', '--from', commitLintFrom];
 	const exeCmd = [command, ...exeArgs].join(' ');
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
 	const description = `style ~ \`${exeCmd}\` succeeds`;
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
+	} else if (!commitLintFrom) {
+		test.skip(description + `...skipped (unable to determine a \`--from\` commit)`);
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
