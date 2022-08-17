@@ -214,6 +214,8 @@ export const test = createTestFn();
 
 //===
 
+// [`commitlint`](https://commitlint.js.org); install: `npm -g install @commitlint/{cli,config-conventional}`
+
 export const haveCommitLintVersion = () => {
 	try {
 		const process = Deno.run({
@@ -237,6 +239,8 @@ export const haveCommitLintVersion = () => {
 export const haveCommitLint = () => {
 	return haveCommitLintVersion().then((version) => version != null);
 };
+
+// [`cspell`](http://cspell.org); install: `npm -g install cspell`
 
 export const haveCSpellVersion = () => {
 	try {
@@ -264,6 +268,8 @@ export const haveCSpell = () => {
 	return haveCSpellVersion().then((version) => version != null);
 };
 
+// [`dprint`](https://dprint.dev); install: `cargo +stable-x86_64 install -i dprint`
+
 export const haveDPrint = () => {
 	try {
 		const process = Deno.run({
@@ -278,6 +284,8 @@ export const haveDPrint = () => {
 	}
 };
 
+// [`git`](https://git-scm.com); install: (POSIX) `apt install git`, (WinOS) `scoop install git`
+
 export const haveGit = () => {
 	try {
 		const process = Deno.run({
@@ -291,6 +299,8 @@ export const haveGit = () => {
 		return Promise.resolve(false);
 	}
 };
+
+// [`madge`](https://github.com/pahen/madge); install: `npm -g install madge`
 
 export const haveMadgeVersion = () => {
 	try {
