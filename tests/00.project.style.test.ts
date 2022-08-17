@@ -21,6 +21,8 @@ import {
 	test,
 } from './$shared.ts';
 
+import { /* requires `env` permission */ setEnvFromArgs } from './$shared.permit.ts';
+
 //===
 
 // const permissionsRequired = ['--allow-env', '--allow-read', '--allow-run'];
@@ -42,7 +44,13 @@ import {
 // 	throw err;
 // }
 
-await panicIfMissingPermits(['env', 'read', 'run']);
+await panicIfMissingPermits([
+	/* `setEnvFromArgs()` requires `env` permit */ 'env',
+	'env',
+	'read',
+	'run',
+]);
+setEnvFromArgs(Deno.args);
 
 //===
 
