@@ -2,8 +2,8 @@
 
 import { $fs, assertEquals, equal } from './$deps.ts';
 const { existsSync } = $fs;
+
 import {
-	createWarnFn,
 	decode,
 	env,
 	haveGit,
@@ -14,9 +14,15 @@ import {
 	VERSION,
 } from './$shared.ts';
 
+import { /* requires 'env' */ createWarnFn } from './$shared.permit.ts';
+
 //===
 
-await panicIfMissingPermits(['env', 'read']);
+await panicIfMissingPermits([
+	/* 'env' required by `createWarnFn()` from './$shared.permits.ts' */ 'env',
+	'env',
+	'read',
+]);
 
 //===
 
