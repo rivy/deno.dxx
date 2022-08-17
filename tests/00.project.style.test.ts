@@ -157,7 +157,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	const exeArgs = ['--config', '.commitlint.config.js', '--from', commitLintFrom];
 	const exeCmd = [command, ...exeArgs].join(' ');
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
-	const description = `style ~ \`${exeCmd}\` succeeds`;
+	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
 	} else if (!commitLintFrom) {
@@ -192,7 +192,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	];
 	const exeCmd = [command, ...exeArgs].join(' ');
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
-	const description = `style ~ \`${exeCmd}\` succeeds`;
+	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
 	} else {
@@ -213,7 +213,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	}
 }
 
-test('style ~ `deno lint` succeeds', async () => {
+test('style ~ `deno lint`', async () => {
 	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
@@ -227,7 +227,7 @@ test('style ~ `deno lint` succeeds', async () => {
 });
 
 {
-	const description = 'style ~ `dprint check` succeeds';
+	const description = 'style ~ `dprint check`';
 	if (!await haveDPrint()) {
 		test.skip(description + '...skipped (`dprint` not found)');
 	} else {
