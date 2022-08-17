@@ -55,6 +55,7 @@ patsubst
 
 
 # * `npm`
+corepack
 preversion
 
 # * utilities

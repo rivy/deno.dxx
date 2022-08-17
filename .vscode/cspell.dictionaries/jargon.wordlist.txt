@@ -7,7 +7,7 @@ canonicalization
 canonicalize
 colorizable
 colorize
-consts
+committish
 cyclomatic
 dedup
 demangle
@@ -44,7 +44,6 @@ preload
 prepend
 prepended
 primality
-procs
 pseudoprime
 pseudoprimes
 readonly
