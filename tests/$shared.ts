@@ -222,7 +222,7 @@ export const test = createTestFn();
 
 //===
 
-// [`commitlint`](https://commitlint.js.org); install: `npm -g install @commitlint/{cli,config-conventional}`
+// [`commitlint`](https://commitlint.js.org); install (for NodeJS v12+): `npm -g install @commitlint/cli@16 @commitlint/config-conventional@16`
 
 export const haveCommitLintVersion = () => {
 	try {
@@ -250,7 +250,7 @@ export const haveCommitLint = () => {
 	return haveCommitLintVersion().then((version) => version != null);
 };
 
-// [`cspell`](http://cspell.org); install: `npm -g install cspell`
+// [`cspell`](http://cspell.org); install: (NodeJS v10+) `npm -g install cspell@4`; (NodeJS v12+) `npm -g install cspell@5`
 
 export const haveCSpellVersion = () => {
 	try {
@@ -310,7 +310,7 @@ export const haveGit = () => {
 	}
 };
 
-// [`madge`](https://github.com/pahen/madge); install: `npm -g install madge`
+// [`madge`](https://github.com/pahen/madge); install (for NodeJS v12+): `npm -g install madge@5`
 
 export const haveMadgeVersion = () => {
 	try {
