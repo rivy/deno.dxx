@@ -124,7 +124,7 @@ function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 	/** Sorted, non-duplicated, permission names (used for flag generation) */
 	const flagNames = (permitNames.length > 0) ? [...new Set(permitNames.sort())] : ['all'];
 	const msg =
-		`Missing required permissions; re-run with all required permissions (${(flagNames
+		`Missing required permissions; re-run with required permissions (${(flagNames
 			.map((name) => $colors.green('`--allow-' + name + '`'))
 			.join(', '))})`;
 	return msg;
@@ -132,14 +132,27 @@ function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 
 export async function abortIfMissingPermits(
 	permitNames: Deno.PermissionName[] = [],
-	options: { exit_code: number; writer: (...args: unknown[]) => void } = {
-		exit_code: 1,
-		writer: (args) => console.warn($colors.red('ERR! ' + $colors.bold('*')), args),
-	},
+	options?: { exitCode?: number; label?: string; writer?: (...args: unknown[]) => void },
 ) {
+	options = (options != null) ? options : {};
+	options.exitCode ??= 1;
+	// const callers = callersFromStackTrace();
+	// const top = callers[callers.length - 1];
+	// const url = top?.replace(/(:\d+:\d+)$/, ''); // remove trailing position info (LINE_N:CHAR_POSITION)
+	// const name = $path.parse(url ?? '').name;
+	if (options.writer == null) {
+		options.writer = (args) =>
+			console.warn(
+				$colors.bgRed($colors.bold(` ${options?.label ? (options.label + ':') : ''}ERR! `)),
+				$colors.red('*'),
+				args,
+			);
+	}
+	// console.warn({ options });
+	// console.warn({ callers, top, url, name });
 	if (await haveMissingPermits(permitNames)) {
 		options.writer(composeMissingPermitsMessage(permitNames));
-		Deno.exit(options.exit_code);
+		Deno.exit(options.exitCode);
 	}
 }
 
