@@ -46,6 +46,55 @@ export const encoder = new TextEncoder(); // *always* 'utf-8'
 export const decode = (input?: Uint8Array): string => decoder.decode(input);
 export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
+//=== * stack inspection functions
+
+function getFramesFromError(error: Error): Array<string> {
+	let stack: Error['stack'] | null, frames: string[];
+	// retrieve stack from `Error`
+	// ref: <https://github.com/winstonjs/winston/issues/401#issuecomment-61913086>
+	try {
+		stack = error.stack;
+	} catch (e) {
+		try {
+			const previous = e.__previous__ || e.__previous;
+			stack = previous && previous.stack;
+		} catch (_) {
+			stack = null;
+		}
+	}
+
+	// handle different stack formats
+	if (stack) {
+		if (Array.isArray(stack)) {
+			frames = Array(stack);
+		} else {
+			frames = stack.toString().split('\n');
+		}
+	} else {
+		frames = [];
+	}
+
+	return frames;
+}
+
+function stackTrace() {
+	// ref: <https://stackoverflow.com/questions/591857/how-can-i-get-a-javascript-stack-trace-when-i-throw-an-exception>
+	// ref: [`get-current-line`](https://github.com/bevry/get-current-line/blob/9364df5392c89e9540314787493dbe142e8ce99d/source/index.ts)
+	return getFramesFromError(new Error('stack trace'));
+}
+
+export function callersFromStackTrace() {
+	const callers = stackTrace()
+		.slice(1)
+		.map((s) => {
+			const match = s.match(/^.*\s[(]?(.*?)[)]?$/m);
+			if (!match) return undefined;
+			else return match[1];
+		})
+		.filter(Boolean);
+	return callers;
+}
+
 //====
 
 export async function havePermit(permitName: Deno.PermissionName) {
