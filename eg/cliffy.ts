@@ -12,7 +12,7 @@ console.log({ parseResult });
 
 await new Command()
 	// .stopEarly() // <-- enable stop early
-	.name(Me.name)
+	.name(Me.name ?? import.meta.url)
 	.option('-d, --debug-level <level:string>', 'Debug level.')
 	// .option('-~ --~', 'command line expansion stop signal', { hidden: true })
 	.option('-+ --+', 'command line expansion stop signal', { hidden: true })
