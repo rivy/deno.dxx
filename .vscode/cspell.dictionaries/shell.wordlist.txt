@@ -58,6 +58,9 @@ patsubst
 corepack
 preversion
 
+# * `prettier`
+prettierignore
+
 # * utilities
 chglog
 commitlint
@@ -67,6 +70,9 @@ gmake
 grcov
 grep
 markdownlint
+mkdir
 rollup
 sed
+stty
+typedoc
 xargs

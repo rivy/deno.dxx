@@ -4,6 +4,9 @@ CICD # continuous integration/deployment
 CPU
 CPUs
 DevOps
+EOF
+EOL
+EOLN
 FIFO
 FIFOs
 FOSS # free open source software
@@ -35,10 +38,12 @@ BusyBox
 Codacy
 Cygwin
 Deno
+Dprint
 EditorConfig
 FreeBSD
 Gmail
 Irix
+JSDelivr
 MS-DOS
 MSDOS
 MacOS
@@ -46,6 +51,8 @@ MinGW
 Minix
 NetBSD
 Novell
+npmJS
+NuShell
 OpenBSD
 POSIX
 PowerPC
