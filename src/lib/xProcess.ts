@@ -253,9 +253,11 @@ const removableExtension = removableExtensions.sort((a, b) => b.length - a.lengt
 );
 
 /** * name of main script file (from best guess path) */
-export const name = decodeURIComponent(
-	removableExtension ? pathUrlBase.slice(0, removableExtension.length * -1) : pathUrlBase,
-);
+export const name = (pathUrlBase.length > 0)
+	? decodeURIComponent(
+		removableExtension ? pathUrlBase.slice(0, removableExtension.length * -1) : pathUrlBase,
+	)
+	: undefined;
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs = shim.runner
@@ -266,14 +268,18 @@ export const runAs = shim.runner
 		.join(' '))
 	: isDirectExecution
 	? ([commandLineParts.scriptName].filter(Boolean).join(' '))
-	: [
+	: isEval
+	? [defaultRunner, 'eval', /* ToDO?: find reference to eval text */ '...'].join(' ')
+	: pathURL?.length
+	? [
 		defaultRunner,
 		...defaultRunnerArgs,
 		$args.reQuote(
 			decodeURIComponent(traversal(pathURL || '')?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
 		),
 	]
-		.join(' ');
+		.join(' ')
+	: undefined;
 
 //===
 
