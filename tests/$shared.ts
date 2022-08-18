@@ -162,17 +162,18 @@ export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
 
 export function createTestFn(testFilePath?: URL | string) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
-	function test(description: string, fn: () => void | Promise<void>, opts = {} as TestOptions) {
+	function test(description: string, fn: () => void | Promise<void>, options = {} as TestOptions) {
 		const tag =
 			(pathOfTestFile
 				? pathOfTestFile
 				: callersFromStackTrace().pop()?.replace(
 					/:\d+$/,
 					'',
-				) /* remove trailing character position */) ?? '';
+				) /* remove trailing character position data from stack frame data (`URL:LINE:CHAR_POS`) */) ??
+				'';
 		const testName: TestName = composeTestName(tag, description, {
 			align: !(pathOfTestFile),
-			ignore: !!opts.ignore,
+			ignore: !!options.ignore,
 		});
 		Deno.test({
 			name: testName,
@@ -206,14 +207,14 @@ export function createTestFn(testFilePath?: URL | string) {
 					throw err;
 				}
 			},
-			...opts,
+			...options,
 		});
 	}
 	test.skip = (
 		description: string,
 		fn: () => void | Promise<void> = () => undefined,
-		opts = {} as TestOptions,
-	) => test(description, fn, { ...opts, ignore: true });
+		options = {} as TestOptions,
+	) => test(description, fn, { ...options, ignore: true });
 	return test;
 }
 
