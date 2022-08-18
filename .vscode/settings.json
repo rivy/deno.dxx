@@ -13,7 +13,16 @@
 		".history": true,
 		".nyc_output": true
 	},
-	"todo-tree.filtering.excludeGlobs": ["build", "dist"],
+	"indentRainbow.ignoreLinePatterns": [
+		"/[\t]+[ ]/g" // TAB indentaion with space alignment
+		// "/[ \t]* [*]/g",
+		// "/[ \t]+[/]{2}/g"
+	],
+	"todo-tree.filtering.excludeGlobs": [
+		"build",
+		"dist",
+		"vendor"
+	],
 	// remove `"typescript.validate.enable": false` when 'denoland/vscode_deno' issue is resolved
 	// ref: <https://github.com/denoland/vscode_deno/issues/455>, <https://github.com/denoland/vscode_deno/issues/581>
 	"typescript.validate.enable": false
