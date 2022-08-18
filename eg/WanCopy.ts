@@ -79,11 +79,11 @@ const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	// * usage, description, and epilog (ie, notes/copyright)
 	.usage(`$0 ${appVersion}\n
 Copy SOURCE to TARGET(s).\n
-* SOURCE and TARGET may be local files or URLs.\n
+* SOURCE and TARGET(s) may be local files, network files, or URLs.\n
 Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	.updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.positional('OPTION', { describe: 'OPTION(s); see listed *Options*' })
-	.positional('SOURCE', { describe: `SOURCE file to distribute`, demand: true })
+	.positional('SOURCE', { describe: `SOURCE file to copy`, demand: true })
 	.positional('TARGET', { describe: `TARGET file(s)`, demand: true })
 	.epilog(`Notes:
   '-' may be used as SOURCE to represent STDIN.
