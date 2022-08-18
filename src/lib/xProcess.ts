@@ -115,6 +115,7 @@ export const shim = await (async () => {
 		runner?: string;
 		runnerArgs?: string[];
 		scriptName?: string;
+		scriptCode?: string;
 		scriptArgs?: string[];
 	} = {};
 	parts.TARGET = (await envAsync('SHIM_TARGET')) ||
@@ -130,6 +131,7 @@ export const shim = await (async () => {
 	parts.runner = undefined;
 	parts.runnerArgs = undefined;
 	parts.scriptName = undefined;
+	parts.scriptCode = undefined;
 	parts.scriptArgs = undefined;
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
 	if (
@@ -143,7 +145,7 @@ export const shim = await (async () => {
 	} else if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.execPath())) {
 		// shim is targeting runner
 		if (!parts.ARGS) parts.runner = parts.ARGV0;
-		// o/w assume execution in `deno` style as `<runner>` + `<options..> run <options..> script_name <script_options..>`
+		// o/w assume execution in `deno` style as `<runner>` + `<options..> eval/run <options..> script_name <script_options..>`
 		// * so, find *second* non-option in ARGS
 		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
 		let idx = 0;
@@ -154,7 +156,13 @@ export const shim = await (async () => {
 			if (nonOptionN > 1) {
 				parts.runner = parts.ARGV0;
 				parts.runnerArgs = words.slice(0, idx - 1);
-				parts.scriptName = words.slice(idx - 1, idx)[0];
+				if (isEval) {
+					parts.scriptName = '$deno$eval';
+					parts.scriptCode = words.slice(idx - 1, idx)[0];
+				} else {
+					parts.scriptName = words.slice(idx - 1, idx)[0];
+					parts.scriptCode = undefined;
+				}
 				parts.scriptArgs = words.slice(idx);
 				break;
 			}
@@ -193,15 +201,17 @@ export const commandLineParts = (() => {
 		runner?: string;
 		runnerArgs?: string[];
 		scriptName?: string;
+		scriptCode?: string;
 		scriptArgs?: string[];
 	} = {};
 	const words = commandLine ? $args.wordSplitCLText(commandLine) : undefined;
 	if (words == null) return parts;
 	if (isDirectExecution) {
 		parts.scriptName = words.slice(0, 1)[0];
+		parts.scriptCode = undefined;
 		parts.scriptArgs = words.slice(1);
 	} else {
-		// o/w assume execution in `deno` style as `<runner> <options..> run <options..> script_name <script_options..>`
+		// o/w assume execution in `deno` style as `<runner> <options..> eval/run <options..> script_name <script_options..>`
 		// * so, find *third* non-option
 		let idx = 0;
 		let nonOptionN = 0;
