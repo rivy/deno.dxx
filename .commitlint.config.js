@@ -1,8 +1,10 @@
 // CommitLint configuration
 // ref: <https://commitlint.js.org/#/reference-configuration>
-// v2022-08-16 [rivy]
+// v2022-08-20 [rivy]
 
 // spell-checker:ignore (names) commitLint (people) Roy Ivy III * rivy (words) maint
+
+/* @prettier */ // note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
 
 const isNPMTestDist = !!process.env['npm_config_test_dist'];
 const isTestDist = !!process.env['test_dist'];
@@ -54,23 +56,24 @@ module.exports = {
 			headerCorrespondence: ['type', 'scope', 'subject'],
 		},
 	},
-	plugins: [{
-		rules: {
-			'@local/DEBUG': (parsed, when, value) => {
-				return [true, console.log({ parsed, when, value })];
+	plugins: [
+		{
+			rules: {
+				'@local/DEBUG': (parsed, when, value) => {
+					return [true, console.log({ parsed, when, value })];
+				},
 			},
 		},
-	}],
+	],
 	// ref: [Commit messages starting with fixup! do not trigger any errors](https://github.com/conventional-changelog/commitlint/issues/3206)
 	// ref: [tests for default ignores](https://github.com/conventional-changelog/commitlint/blob/914782aad70d353b/%40commitlint/is-ignored/src/defaults.ts#L20-L26)
 	defaultIgnores: false,
 	ignores: [
-		(msg) => msg.match(/^\s*\d+([.]\d+)*/), /* version commit */
+		(msg) => msg.match(/^\s*\d+([.]\d+)*/) /* version commit */,
 		relaxedReview
 			? (msg) => msg.match(/^\s*(fixup|squash)!/) /* fixup! or squash! commit */
 			: undefined,
-	]
-		.filter((v) => v != null),
+	].filter((v) => v != null),
 	rules: {
 		// '@local/DEBUG': [1, 'always'],
 		'body-max-line-length': [0],
