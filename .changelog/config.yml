@@ -1,4 +1,9 @@
-# spell-checker: ignore bugfix maint middot
+# `git-changelog` configuration
+# ref: <https://github.com/rivy-go/git-changelog#configuration>
+# v2022-08-20
+
+# spell-checker: ignore bugfix maint
+
 info:
   title: dxx
   repository_url: https://github.com/rivy/deno.dxx
@@ -57,8 +62,11 @@ options:
       update: Dependency Updates
       # version: Version Changes
   header:
-    pattern: "^(\\w+)(?:\\s*\\/(\\S+))\\s*[~:]?\\s(.*)$|^(\\w+)(?:\\s*\\(([^)]+)\\))?\\s*[~:]?\\s(.*)$"
+    pattern: "^(\\w+)([!])\\s*[~:]?\\s(.*)$|^(\\w+)\\s*\\/(\\S+)\\s*[~:]?\\s(.*)$|^(\\w+)(?:\\s*\\(([^)]+)\\))?\\s*[~:]?\\s(.*)$"
     pattern_maps:
+      - Type
+      - Scope
+      - Subject
       - Type
       - Scope
       - Subject
