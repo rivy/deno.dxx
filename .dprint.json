@@ -1,6 +1,6 @@
 {
 	// `dprint` configuration; ref: <https://dprint.dev/config>
-	// v2022.08.08 [rivy]
+	// v2022.08.20 [rivy]
 	//
 	// * "$schema": "https://dprint.dev/schemas/v0.json",
 	// * "projectType": "openSource",
@@ -12,10 +12,10 @@
 	"includes": ["**/*.{ts,tsx,js,jsx,cjs,cjx,mjs,mts,mtx,json,jsonc,md,mkd,rs,yaml,yml}"],
 	"excludes": [
 		// * build/coverage/dev artifacts
-		"build",
 		"{.,_,@,#,$}build",
-		"coverage",
 		"{.,_,@,#,$}coverage",
+		"build",
+		"coverage",
 		".nyc_output",
 		"CHANGELOG",
 		"CHANGELOG.*",
@@ -23,7 +23,7 @@
 		"target",
 		// * format-sensitive files
 		".changelog/*.tpl",
-		".changelog/*.tpl.*",
+		".changelog/*.tpl{.,#}*",
 		// * third-party (or otherwise managed) files
 		"**/node_modules",
 		"**/*-lock.json",
@@ -35,7 +35,14 @@
 	//
 	"json": { "preferSingleLine": true },
 	"markdown": { "textWrap": "always", "lineWidth": 99999 },
-	"prettier": { "printWidth": 100, "proseWrap": "preserve", "singleQuote": true, "tabWidth": 2 },
+	"prettier": {
+		"printWidth": 100,
+		"proseWrap": "preserve",
+		"singleQuote": true,
+		"tabWidth": 2,
+		"useTabs": true,
+		"associations": [".commitlint.config.js", ".eslintrc.js", ".prettierrc.js", ".remarkrc.js"]
+	},
 	"rustfmt": { "hard_tabs": false, "tab_spaces": 4 },
 	"typescript": {
 		// ref: <https://dprint.dev/plugins/typescript/config>
