@@ -157,7 +157,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 		'strip-dashed': true, // remove hyphenated option aliases from parse result object
 	})
 	/* Options... */
-	.strictOptions(/* enable */ true)
+	.strictOptions(/* enable */ true) // unknown options will raise an error
 	// .option('force', { alias: ['f'], describe: 'Copy over existing TARGET', type: 'boolean' })
 	.option('no-clobber', {
 		alias: ['n'],
