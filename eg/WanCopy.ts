@@ -164,7 +164,17 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 		describe: `Don't overwrite a TARGET that already exists`,
 		type: 'boolean',
 	})
-	.option('serialize', { describe: 'Serialize copies to TARGET(s)', type: 'boolean' })
+	.option('serialize', {
+		describe: 'Serialize copies to TARGET(s)',
+		type: 'boolean',
+		// type: 'count',
+		// * effect() == a possible addition to Yargs which would run upon each encounter with the associated option
+		// effect: function (current_argv) {
+		// 	console.debug('serialize/effect');
+		// 	appState.serialize = appState.serialize + 1;
+		// 	/* return serialize; */
+		},
+	)
 	/* Examples...*/
 	.example(
 		`${appRunAs} "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@0.0.13/README.md" file1.md file2.mkd`,
