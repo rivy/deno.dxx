@@ -71,8 +71,7 @@ performance.mark('setup:log:stop');
 
 performance.mark('setup:yargs:start');
 
-let appExitValue = 0;
-let appUsageError = false;
+const appState = { exitValue: 0, usageError: false, serialize: 0 };
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
@@ -102,7 +101,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
 		log.error(msg);
-		appUsageError = true;
+		appState.usageError = true;
 	})
 	// * (boilerplate) help and version setup
 	.help(false) // disable built-in 'help' (for later customization)
@@ -188,7 +187,7 @@ const argv = ((() => {
 	}
 })()) || {} as YargsArguments;
 
-log.trace({ '$me.args()': $me.args(), argv });
+log.trace({ '$me.args()': $me.args(), argv, appState });
 
 const defaultLogLevel = 'notice';
 const logLevelsFromOptions = [
@@ -281,9 +280,9 @@ if (argv.version) {
 // positional arguments
 // * SOURCE
 const SOURCE = await (async () => {
-	const source = !appUsageError ? (argv._?.shift()?.toString()) : '';
-	if (!appUsageError && source == null) {
-		appUsageError = true;
+	const source = !appState.usageError ? (argv._?.shift()?.toString()) : '';
+	if (!appState.usageError && source == null) {
+		appState.usageError = true;
 		await log.error(`SOURCE is a required argument`);
 	}
 	return source || '';
@@ -291,17 +290,17 @@ const SOURCE = await (async () => {
 
 // * TARGET..
 const TARGET = await (async () => {
-	const target = !appUsageError ? [...argv._] : [];
+	const target = !appState.usageError ? [...argv._] : [];
 	if (argv._?.length) argv._ = [];
-	if (!appUsageError && (target.length < 1)) {
-		appUsageError = true;
+	if (!appState.usageError && (target.length < 1)) {
+		appState.usageError = true;
 		await log.error(`TARGET is a required argument`);
 	}
 	return target.map((e) => e.toString());
 })();
 
 // argument/option parsing or usage error
-if (isEmpty(argv) || appUsageError) {
+if (isEmpty(argv) || appState.usageError) {
 	console.warn(`\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
@@ -344,7 +343,7 @@ if (!argv?.serialize) {
 		const target = (t === '-') ? Deno.stdout : intoURL(t);
 		if (!target) {
 			await log.error(`'${t}' is an invalid target`);
-			appExitValue = 1;
+			appState.exitValue = 1;
 		} else {
 			const protectTarget = argv.noClobber ?? false;
 			const preventTargetClose = (target === Deno.stdout);
@@ -359,7 +358,7 @@ if (!argv?.serialize) {
 				.then(() => log.info(`'${SOURCE}' copied to '${t}'`))
 				.catch((e) => {
 					log.error(`Failed to copy '${SOURCE}' to '${t}' (${e})`);
-					appExitValue = 1;
+					appState.exitValue = 1;
 				});
 		}
 	}));
@@ -379,7 +378,7 @@ if (!argv?.serialize) {
 		const target = (t === '-') ? Deno.stdout : intoURL(t);
 		if (!target) {
 			await log.error(`'${t}' is an invalid target`);
-			appExitValue = 1;
+			appState.exitValue = 1;
 		} else {
 			const protectTarget = argv.noClobber ?? false;
 			const preventTargetClose = (t === '-');
@@ -394,7 +393,7 @@ if (!argv?.serialize) {
 				.then(() => log.info(`'${SOURCE}' copied to '${t}'`))
 				.catch((e) => {
 					log.error(`Failed to copy '${SOURCE}' to '${t}' (${e})`);
-					appExitValue = 1;
+					appState.exitValue = 1;
 				});
 		}
 	}, Promise.resolve());
@@ -403,8 +402,8 @@ if (!argv?.serialize) {
 performance.mark('copy');
 await log.debug(durationText('copy'));
 
-await log.debug({ appExitValue });
-Deno.exit(appExitValue);
+await log.debug({ exitValue: appState.exitValue });
+Deno.exit(appState.exitValue);
 
 //===
 
