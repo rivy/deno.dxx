@@ -272,7 +272,7 @@ IF EXIST "%dp0%\\node.exe" (
     SET PATHEXT=%PATHEXT:;.JS;=;%
 )
 
-endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & "%_prog%" "<%=targetBinPath%>" %*
+endLocal & (goto) 2>NUL || title %COMSPEC% & "%_prog%" "<%=targetBinPath%>" %*
 `;
 
 const isWinOS = Deno.build.os === 'windows';

@@ -13,9 +13,9 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @:launch
 @rem:: SHIM_EXEC circumlocution is to avoid \`%*\` within the final parse group [o/w parentheses within args may cause parsing/execution misbehavior]
 @>>"%SHIM_EXEC%" echo @set SHIM_ARGS=%SHIM_ARGS%
-@>>"%SHIM_EXEC%" echo @goto _undef_ 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%SHIM_ARGS%%
+@>>"%SHIM_EXEC%" echo @(goto) 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%SHIM_ARGS%%
 @(
-@goto _undef_ 2>NUL
+@(goto) 2>NUL
 @for %%G in ("%COMSPEC%") do @title %%~nG
 @set "SHIM_EXEC=%SHIM_EXEC%"
 @set "SHIM_PIPE=%SHIM_PIPE%"
@@ -66,6 +66,7 @@ export function shimInfo(contentsOriginal: string) {
 	// heuristic match for enhanced shim
 	// spell-checker:ignore () ined
 	const isEnhanced = contentsOriginal.match(/goto\s+[\W_]*undef(?:ined)?[\W_]*\s+2\s*>\s*NUL/i) ||
+		contentsOriginal.match(/\(\s*goto\s*\)\s+2\s*>\s*NUL/i) ||
 		contentsOriginal.match(/shim\s*;\s*by\s*`?dxi`?/i);
 
 	const reMatchArray = contentsOriginal.match(
