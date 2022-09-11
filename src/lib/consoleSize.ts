@@ -9,6 +9,8 @@ const isWinOS = Deno.build.os === 'windows';
 
 const atImportAllowRead =
 	((await Deno.permissions?.query({ name: 'read' }))?.state ?? 'granted') === 'granted';
+const atImportAllowRun =
+	((await Deno.permissions?.query({ name: 'run' }))?.state ?? 'granted') === 'granted';
 
 type ConsoleSizeMemoKey = string;
 const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
@@ -252,6 +254,7 @@ export function consoleSizeAsync(
 export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ~ 25 ms (WinOS-only)
 	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 
 	const output = (() => {
 		try {
@@ -303,6 +306,7 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
 			const process = Deno.run({
@@ -346,6 +350,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
 	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
 	if (isWinOS) return Promise.resolve(undefined);
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
 			const process = Deno.run({
@@ -379,6 +384,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two system shell calls
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const colsOutput = (() => {
 		try {
 			const process = Deno.run({
