@@ -3,6 +3,7 @@
 import { $colors, $fs, $semver } from './lib/$deps.ts';
 import {
 	$version,
+	abortIfMissingPermits,
 	decode,
 	env,
 	mightUseColor,
@@ -23,6 +24,11 @@ import {
 //===
 
 import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
+
+//===
+
+await abortIfMissingPermits(['env', 'read', 'run']); // full functionality
+// await abortIfMissingPermits(['env', 'read']); // minimum to allow `--help`
 
 //===
 

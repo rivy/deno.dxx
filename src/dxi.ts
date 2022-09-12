@@ -10,6 +10,7 @@ import {
 } from './lib/$deps.ts';
 import {
 	$version,
+	abortIfMissingPermits,
 	decoder,
 	encoder,
 	env,
@@ -34,6 +35,11 @@ import * as $spin from './lib/xWait/$mod.ts';
 //===
 
 import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
+
+//===
+
+await abortIfMissingPermits(['env', 'read', 'run']); // full functionality
+// await abortIfMissingPermits(['env', 'read']); // minimum to allow `--help`
 
 //===
 
