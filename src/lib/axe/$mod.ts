@@ -449,7 +449,7 @@ export interface LoggerOptions<I = unknown, O = LoggerInT> extends TransformWrit
 	/** Use to override the default value of {@link Logger.lineLevel} */
 	lineLevel?: number;
 
-	/** @override Use to override the default {@link Logger.metadata} */
+	/** Use to override the default {@link Logger.metadata} */
 	metadata?: Readonly<Metadata>;
 }
 
