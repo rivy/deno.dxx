@@ -7,6 +7,7 @@
 import { $path } from './$deps.ts';
 import { permitsAsync } from './$shared.TLA.ts';
 import {
+	commandVOf,
 	deQuote,
 	envAsync,
 	intoURL,
@@ -22,7 +23,9 @@ import * as $args from '../lib/xArgs.ts';
 
 //===
 
-const grantedRead = ((await permitsAsync()).read.state === 'granted');
+const atImportPermissions = await permitsAsync();
+const permittedRead = atImportPermissions.read.state === 'granted';
+const permittedRun = atImportPermissions.run.state === 'granted';
 
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
 // const caseSensitiveFiles = mightUseFileSystemCase();
@@ -68,11 +71,11 @@ const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXE
 //===
 
 /** * process was invoked by direct execution */
-export const isDirectExecution = grantedRead
+export const isDirectExecution = permittedRead
 	? !$path.basename(Deno.execPath()).match(runnerNameReS)
 	: undefined;
 /** * process was invoked as an eval script (eg, `deno eval ...`) */
-export const isEval = grantedRead ? !!Deno.mainModule.match(isDenoEvalReS) : undefined;
+export const isEval = permittedRead ? !!Deno.mainModule.match(isDenoEvalReS) : undefined;
 
 //===
 
@@ -185,7 +188,7 @@ await Promise.all(envVarNames.map(async (name) => {
 //===
 
 export const isEnhancedShimTarget = shim.targetURL &&
-	pathEquivalent(shim.targetURL, grantedRead ? Deno.mainModule : undefined);
+	pathEquivalent(shim.targetURL, permittedRead ? Deno.mainModule : undefined);
 
 //===
 
@@ -232,18 +235,12 @@ export const commandLineParts = (() => {
 
 //===
 
-/** * executable text string which initiated/invoked execution of the current process */
-export const argv0 = shim.runner ?? commandLineParts.runner ??
-	(grantedRead ? Deno.execPath() : undefined);
-/** * runner specific command line options */
-export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
-
 /** * path string of main script file (best guess from all available sources) */
 export const pathURL = intoURL(deQuote(shim.scriptName))?.href ??
 	(isDirectExecution
-		? (grantedRead ? Deno.execPath() : undefined)
+		? (permittedRead ? Deno.execPath() : undefined)
 		: (intoURL(deQuote(commandLineParts.scriptName))?.href ??
-			(grantedRead ? Deno.mainModule : undefined)));
+			(permittedRead ? Deno.mainModule : undefined)));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
 const pathUrlBase = $path.parse(pathURL || '').base;
@@ -258,6 +255,28 @@ export const name = (pathUrlBase.length > 0)
 		removableExtension ? pathUrlBase.slice(0, removableExtension.length * -1) : pathUrlBase,
 	)
 	: undefined;
+
+// console.warn({
+// 	name,
+// 	commandVOf: ((name != null) && permittedRun) ? (await commandVOf(name)) : 'not-permitted',
+// 	runner: shim.runner,
+// });
+// simplify shim.runner when possible (heuristic for POSIX-like executables)
+if (!isWinOS && (name != null) && permittedRun && (shim.runner === (await commandVOf(name)))) {
+	// console.warn({ name, commandVOf: await commandVOf(name), shim });
+	shim.runner = name;
+}
+// console.warn({
+// 	name,
+// 	commandVOf: ((name != null) && permittedRun) ? (await commandVOf(name)) : 'not-permitted',
+// 	runner: shim.runner,
+// });
+
+/** * executable text string which initiated/invoked execution of the current process */
+export const argv0 = shim.runner ?? commandLineParts.runner ??
+	(permittedRead ? Deno.execPath() : undefined);
+/** * runner specific command line options */
+export const execArgv = [...(shim.runnerArgs ?? commandLineParts.runnerArgs ?? [])];
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs = shim.runner
