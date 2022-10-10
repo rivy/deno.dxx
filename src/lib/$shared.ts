@@ -587,6 +587,37 @@ export function mightUseUnicode() {
 
 //===
 
+export const commandVOf = (name: string) => {
+	try {
+		const process = Deno.run({
+			cmd: [
+				...(isWinOS
+					? ['cmd', '/x/d/c']
+					: (env('SHELL') != null)
+					? [env('SHELL') ?? 'bash', '-c']
+					: []),
+				`command -v ${name}`,
+			],
+			stdin: 'null',
+			stderr: 'piped',
+			stdout: 'piped',
+		});
+		// console.warn('commandVOf(): process created');
+		return Promise
+			.all([process.status(), process.output() /* , process.stderrOutput() */])
+			.then(([status, out /* , err */]) => {
+				// console.warn('commandVOf', { status: status, out: decode(out) /* , err: decode(err) */ });
+				return (status.success ? decode(out)?.replace(/(\r|\r\n|\n)+$/, '') : undefined);
+			})
+			.finally(() => process.close());
+	} catch (_) {
+		// console.warn('commandVOf(): catch()');
+		return Promise.resolve(undefined);
+	}
+};
+
+//===
+
 // note: defined here to avoid circular dependency
 
 // VERSION handler
