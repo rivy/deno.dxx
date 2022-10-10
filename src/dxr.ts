@@ -36,7 +36,7 @@ await abortIfMissingPermits(['env', 'read', 'run']); // full functionality
 
 log.debug(`logging to *STDERR*`);
 
-$me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
+// $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me, $version });
 log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
@@ -207,6 +207,7 @@ await log.resume();
 //===
 
 if (argv == undefined) {
+	// $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 	console.warn(`\nUse \`${runAsName} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
@@ -215,6 +216,7 @@ if (argv == undefined) {
 
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (argv.help) {
+	// $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 	const yargsHelp = await app.getHelp();
 	const help = await restyleYargsHelp(yargsHelp);
 	console.log(help);
