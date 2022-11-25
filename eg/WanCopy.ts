@@ -173,8 +173,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 		// 	console.debug('serialize/effect');
 		// 	appState.serialize = appState.serialize + 1;
 		// 	/* return serialize; */
-		},
-	)
+	})
 	/* Examples...*/
 	.example(
 		`${appRunAs} "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@0.0.13/README.md" file1.md file2.mkd`,
