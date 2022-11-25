@@ -1,17 +1,16 @@
 // `cspell` configuration/settings
-// ref: <https://cspell.org/configuration/https://cspell.org/configuration>
-// v2022.08.09 [rivy]
+// ref: <https://cspell.org/configuration>
+// v2022.11.25 [rivy]
 {
 	"version": "0.2", // configuration/settings file version
 	"language": "en", // language - current active spelling language
-	"dictionaries": ["#local", "acronyms+names", "jargon", "people", "shell", "workspace"],
+	"dictionaries": ["#local", "acronyms+names", "jargon", "people", "shell"],
 	"dictionaryDefinitions": [
-		{ "name": "#local", "path": "./cspell.dictionaries/#local-only.wordlist.txt" },
+		{ "name": "#local", "path": "./cspell.dictionaries/#local-project-only.wordlist.txt" },
 		{ "name": "acronyms+names", "path": "./cspell.dictionaries/acronyms+names.wordlist.txt" },
 		{ "name": "jargon", "path": "./cspell.dictionaries/jargon.wordlist.txt" },
 		{ "name": "people", "path": "./cspell.dictionaries/people.wordlist.txt" },
-		{ "name": "shell", "path": "./cspell.dictionaries/shell.wordlist.txt" },
-		{ "name": "workspace", "path": "./cspell.dictionaries/workspace.wordlist.txt" }
+		{ "name": "shell", "path": "./cspell.dictionaries/shell.wordlist.txt" }
 	],
 	// ignorePaths -  a list of globs to specify which files are to be ignored
 	"ignorePaths": ["{,.,_,#,@}build/**", "{,.,_,#,@}coverage/**", "{,.,_,#,@}target/**", "tests/**/fixtures/**", "vendor/**"],
