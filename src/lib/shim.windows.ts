@@ -3,7 +3,7 @@
 const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\`) %
 @rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
 @set "ERRORLEVEL="
-@set "DENO_SHIM_ERRORLEVEL="
+@set "SHIM_ERRORLEVEL="
 @setLocal EnableDelayedExpansion
 @set SHIM_ARGS=%*
 @set SHIM_ARGS=!SHIM_ARGS:%%=%%%%!
@@ -11,7 +11,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @set "SHIM_TARGET="
 @:...prep...
 @:launch
-@rem:: SHIM_EXEC circumlocution is to avoid \`%*\` within the final parse group [o/w parentheses within args may cause parsing/execution misbehavior]
+@rem:: use of SHIM_EXEC is a circumlocution to avoid \`%*\` within the later, parentheses-surrounded, final parse group [o/w parentheses within args may cause parsing/execution misbehavior]
 @>>"%SHIM_EXEC%" echo @set SHIM_ARGS=%SHIM_ARGS%
 @>>"%SHIM_EXEC%" echo @(goto) 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%SHIM_ARGS%%
 @(
@@ -19,19 +19,19 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @for %%G in ("%COMSPEC%") do @title %%~nG
 @set "SHIM_EXEC=%SHIM_EXEC%"
 @set "SHIM_PIPE=%SHIM_PIPE%"
-@set "SHIM_ARGV0=%~0"
+@set "SHIM_ARG0=%~0"
 @set "SHIM_TARGET=<%=denoRunTarget%>"
 @call "%SHIM_EXEC%"
-@call set DENO_SHIM_ERRORLEVEL=%%ERRORLEVEL%%
+@call set ERRORLEVEL=%%ERRORLEVEL%%
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
-@if EXIST "%SHIM_EXEC%" if NOT DEFINED DENO_SHIM_DEBUG del /q "%SHIM_EXEC%" 2>NUL
-@if EXIST "%SHIM_PIPE%" if NOT DEFINED DENO_SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
+@if EXIST "%SHIM_EXEC%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_EXEC%" 2>NUL
+@if EXIST "%SHIM_PIPE%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
 @set "SHIM_EXEC="
 @set "SHIM_PIPE="
-@set "SHIM_ARGV0="
+@set "SHIM_ARG0="
 @set "SHIM_ARGS="
 @set "SHIM_TARGET="
-@call %COMSPEC% /d/c "exit %%DENO_SHIM_ERRORLEVEL%%"
+@%COMSPEC% /d/c "exit %%ERRORLEVEL%%"
 )
 `;
 const cmdShimPrepPipe = `@:pipeEnabled
