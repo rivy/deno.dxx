@@ -35,11 +35,10 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 )
 `;
 const cmdShimPrepPipe = `@:pipeEnabled
-@:prep
 @set "RANDOM=" &:: remove any cloak from dynamic variable RANDOM
-@if NOT DEFINED TEMP @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
-@if NOT EXIST "%TEMP%" @goto :launch
+@if NOT EXIST "%TEMP%" @set "TEMP=."
+@:prep
 @set "DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
 @set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd"
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%DENO_SHIM_TID%.cmd"
@@ -48,11 +47,10 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @if DEFINED SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%SHIM_EXEC%"
 @if DEFINED SHIM_PIPE echo @rem \`<%=shimBinName%>\` shell pipe > "%SHIM_PIPE%"`;
 const cmdShimPrepNoPipe = `@:pipeDisabled
-@:prep
 @set "RANDOM=" &:: remove any cloak from dynamic variable RANDOM
-@if NOT DEFINED TEMP @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
-@if NOT EXIST "%TEMP%" @goto :launch
+@if NOT EXIST "%TEMP%" @set "TEMP=."
+@:prep
 @set "DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
 @set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd"
 @if EXIST "%SHIM_EXEC%" @goto :prep
