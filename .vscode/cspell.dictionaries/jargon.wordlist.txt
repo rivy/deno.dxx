@@ -36,6 +36,7 @@ mebi
 mebibytes
 mergeable
 multibyte
+nonblocking
 nonportable
 peekable
 performant
