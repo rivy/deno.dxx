@@ -7,5 +7,6 @@
 			"singleQuote": true,
 			"proseWrap": "never"
 		}
-	}
+	},
+	"lock": false
 }
