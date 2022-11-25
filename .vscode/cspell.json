@@ -4,7 +4,7 @@
 {
 	"version": "0.2", // configuration/settings file version
 	"language": "en", // language - current active spelling language
-	"dictionaries": ["#local", "acronyms+names", "jargon", "people", "shell"],
+	"dictionaries": ["typescript", "#local", "acronyms+names", "jargon", "people", "shell"],
 	"dictionaryDefinitions": [
 		{ "name": "#local", "path": "./cspell.dictionaries/#local-project-only.wordlist.txt" },
 		{ "name": "acronyms+names", "path": "./cspell.dictionaries/acronyms+names.wordlist.txt" },
