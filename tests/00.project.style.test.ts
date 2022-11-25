@@ -1,3 +1,4 @@
+// spell-checker:ignore (extensions) vcproj vcxproj
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (utils) dprint git
 // spell-checker:ignore (options) refname
@@ -105,7 +106,7 @@ const excludeDirsRxs = [
 	'vendor',
 ];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
-const _crlfFilesRxs = '[.](bat|cmd)';
+const crlfFilesRxs = '[.](bat|cmd|sln|vcproj|vcxproj)';
 const _tabbedFilesRxs = '[.](bat|cmd)';
 
 // ToDO: instead, use `git ls -r` for project files
@@ -283,6 +284,7 @@ test('style ~ non-binary project files (when non-empty) end with a newline', () 
 
 test('style ~ non-binary project files (when non-empty) use LF as newline by default', () => {
 	const flaws = projectNonBinaryFiles.flatMap((file) => {
+		if ($path.extname(file).match(new RegExp(crlfFilesRxs, isWinOS ? 'i' : ''))) return [];
 		const content = Deno.readTextFileSync(file);
 		const lines: string[] = (content.length > 0) ? content.split(/(?<=\r?\n)/) : []; // CRLF | LF | CR
 		// const content = Deno.readTextFileSync(file).split(/(?<=\r?\n|\r)/); // CRLF | LF | CR // ref: https://runkit.com/rivy/6146e4954b13950008d994ca
