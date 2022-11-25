@@ -1,4 +1,4 @@
-# v2022-08-20 [rivy]
+# v2022-11-25 [rivy]
 # spell-checker:ignore (people) Roy Ivy III * rivy (words) globstar
 
 # NOTE: Git GLOBSTAR syntax [see `git help gitignore`]
@@ -15,10 +15,12 @@ coverage
 [._@#$]coverage
 .nyc_output
 
-# ignore JS import/package-related files
+# ignore Deno and JS import/package-related files
+deno.lock
 node_modules
 package-lock.json
 yarn.lock
 # * allow packaging of lock files into '.deps-lock'
+!.deps-lock/deno.lock
 !.deps-lock/package-lock.json
 !.deps-lock/yarn.lock
