@@ -11,9 +11,9 @@
 // spell-checker:ignore (names/people) Frederico Kereki ; Roy Ivy III * rivy
 
 // import { permitsAsync } from '../src/lib/$shared.TLA.ts';
-import { abortIfMissingPermits, env } from '../src/lib/$shared.ts';
 import { $colors, $fs, $lodash as _, $path, $xdgAppPaths } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
+import { abortIfMissingPermits, env } from './lib/$shared.ts';
 
 import { $logger, logger } from './lib/$shared.ts';
 

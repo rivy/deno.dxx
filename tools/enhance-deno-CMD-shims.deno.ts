@@ -14,9 +14,9 @@
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
 // import { permitsAsync } from '../src/lib/$shared.TLA.ts';
-import { abortIfMissingPermits, env } from '../src/lib/$shared.ts';
 import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $xWalk } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
+import { abortIfMissingPermits, env } from './lib/$shared.ts';
 
 import { $logger, logger } from './lib/$shared.ts';
 
