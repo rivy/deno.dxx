@@ -1,5 +1,7 @@
 // spell-checker:ignore (jargon) bikeshed falsey glob globbing sep seps truthy vendored ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno JSPM SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
+// FixME: [2023-01-25; rivy] `$path.join` normalizes out repeated path separators to a single sep which *should not* be done if they are the prefix for a WinOS path
+
 // FixME: (repaired by needs tests)[2021-11-01; rivy] fix trailing slash issue and write tests; `e*` => 'eg' but `e*/` => 'e*/' (POSIX is 'eg/')
 
 // FixME: [2021-10-17; rivy] current code returns values with incorrect prefixes (eg, '**/...' has leading SEP, './**/...' is missing leading './')
@@ -41,7 +43,7 @@
 // ref: <https://jspm.org/docs/cdn>
 
 import { $fs, $osPaths, $path, assert } from './$deps.ts';
-import { env } from './$shared.ts';
+import { deQuote, env } from './$shared.ts';
 
 import { walk, walkSync } from './xWalk.ts';
 
@@ -143,8 +145,8 @@ const DQStringReS: RegexString = `${DQ}[^${DQ}]*(?:${DQ}|$)` as RegexString;
 const SQStringReS: RegexString = `${SQ}[^${SQ}]*(?:${SQ}|$)` as RegexString;
 // /** double-quoted string (quote balance is required) */
 // const DQStringStrictReS = '"[^"]*"';
-// /** single-quoted string (quote balance is required) */
-// const SQStringStrictReS = "'[^']*'";
+/** single-quoted string (quote balance is required) */
+const SQStringStrictReS = "'[^']*'";
 
 /** ANSIC-style string (eg, `$'...'`) */
 const ANSICStringReS: RegexString = '[$]' + SQStringReS as RegexString;
@@ -159,6 +161,8 @@ const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as Re
 /** Regex character set matching the path separator character set */
 const pathSepReS: RegexString = `[\\\\\\/]` as RegexString;
 
+/** Regex pattern for double quote character */
+const DQReS: RegexString = `[${DQ}]` as RegexString;
 /** Regex pattern for double or single quote character */
 const QReS: RegexString = `[${DQ}${SQ}]` as RegexString;
 // /** Regex pattern matching a character which is NON-glob.  */
@@ -168,10 +172,14 @@ const QReS: RegexString = `[${DQ}${SQ}]` as RegexString;
 /** Regex pattern matching a character which is NON-glob, NON-(single or double)-quote, and NON-separator.  */
 const nonGlobQSepReS: RegexString = `(?:(?!${globCharsReS}|${QReS}|${pathSepReS}).)` as RegexString;
 
-/** Regex pattern matching a non-(double or single)-quote character. */
-const cNonQReS = `(?:(?!${QReS}).)`;
-/** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
-const cNonQWSReS = `(?:(?!${QReS}|\\s).)`;
+/** Regex pattern matching a non-double-quote character. */
+const cNonDQReS = `(?:(?!${DQReS}).)`;
+/** Regex pattern matching a non-double-quote, non-whitespace character. */
+const cNonDQNonWSReS = `(?:(?!${DQReS}|\\s).)`;
+// /** Regex pattern matching a non-(double or single)-quote character. */
+// const cNonQReS = `(?:(?!${QReS}).)`;
+// /** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
+// const cNonQWSReS = `(?:(?!${QReS}|\\s).)`;
 
 export function splitByBareWSo(s: string): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
@@ -181,7 +189,12 @@ export function splitByBareWSo(s: string): Array<string> {
 	const arr: Array<string> = [];
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
 	// console.warn('xArgs.splitByBareWSo()', { s });
-	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+)*)(.*$)`, 'msu');
+	// note: double-quotes are illegal w/n WinOS filenames, so unbalanced DQ strings are ok
+	//   ... single-quotes are allowed as internal characters so match only strictly balanced SQ strings
+	const tokenRe = new RegExp(
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQNonWSReS}+)*)(.*$)`,
+		'msu',
+	);
 	while (s) {
 		const m = s.match(tokenRe);
 		if (m) {
@@ -199,14 +212,17 @@ export function splitByBareWSo(s: string): Array<string> {
 const WordRxs = {
 	/** RegExp matching a bare (non-quoted) portion of a word.
 	- `(tokenFragment)(bareWS)?(restOfString)` */
-	bareWS: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQWSReS}+))(\\s+)?(.*$)`, 'msu'),
+	bareWS: new RegExp(
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQNonWSReS}+))(\\s+)?(.*$)`,
+		'msu',
+	),
 	/** RegExp matching a (single or double) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
-	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'),
+	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQReS}+))(.*?$)`, 'msu'),
 	/** RegExp matching a (single or double *or __ANSI-C__*) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
 	quote: new RegExp(
-		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`,
+		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonDQReS}+))(.*?$)`,
 		'msu',
 	),
 };
@@ -289,7 +305,7 @@ export function wordSplitCLText(
 	const { autoQuote } = options;
 	const arr: Array<string> = [];
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
-	// console.warn('xArgs.wordSplitCLText()', { s });
+	// console.warn('xArgs.wordSplitCLText()', { s, options });
 	const wordRe = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let text = '';
 	while (s) {
@@ -320,6 +336,7 @@ export function wordSplitCLText(
 			text = s = '';
 		}
 	}
+	// console.warn('xArgs.wordSplitCLText()', { arr });
 	return arr;
 }
 
@@ -498,11 +515,19 @@ export async function* globExpandIter(
 	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
-	// console.warn('xArgs.globExpandIter()', { parsed });
+	// console.warn('xArgs.globExpandIter()', {
+	// 	glob,
+	// 	globHasTrailingSep,
+	// 	globWithoutTrailingSep,
+	// 	parsed,
+	// });
 
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
+		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.globScan.base)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		// const resolvedPrefix = pathToOS($path.win32.resolve(deQuote(parsed.prefix) ?? parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if (await $fs.exists(resolvedPrefix)) {
@@ -580,6 +605,7 @@ export function* globExpandIterSync(
 	glob: GlobString,
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
+	// console.warn('xArgs.globExpandIterSync(glob, options)', { glob, options });
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
 	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
@@ -596,6 +622,9 @@ export function* globExpandIterSync(
 	let found = false;
 	if (parsed.glob.length > 0) {
 		// * a resolved path will have no trailing SEP unless it is the root path (ref: <https://nodejs.org/api/path.html#path_path_resolve_paths>)
+		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.globScan.base)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		// const resolvedPrefix = pathToOS($path.win32.resolve(deQuote(parsed.prefix) ?? parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if ($fs.existsSync(resolvedPrefix)) {
@@ -621,6 +650,7 @@ export function* globExpandIterSync(
 					? 'msu'
 					: 'imsu',
 			);
+			// console.warn('xArgs.globExpandIter()', { resolvedPrefix, maxDepth });
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for (const e of walkIt) {
@@ -698,14 +728,21 @@ function pathToWinOS(p: string) {
 export function parseGlob(s: string) {
 	// options.os => undefined (aka portable), 'windows', 'posix'/'linux'
 	const options: { os?: string } = {};
+	// console.warn('parseGlob()', { s, options });
+
 	let prefix = '';
-	let glob = '';
+	let maybeGlob = '';
 
 	const caseSensitive = !isWinOS;
 
-	// console.warn('xArgs.parseNonGlobPathPrefix()', { globCharsReS, SEP: $path.SEP, SEP_PATTERN: $path.SEP_PATTERN });
+	// console.warn('xArgs.parseNonGlobPathPrefix()', {
+	// 	globCharsReS,
+	// 	SEP: $path.SEP,
+	// 	SEP_PATTERN: $path.SEP_PATTERN,
+	// });
 
 	// for 'windows' or portable, strip any leading `\\?\` as a prefix
+	// ToDO: deal more rigorously with UNC paths
 	if (!options.os || options.os === 'windows') {
 		const m = s.match(/^(\\\\\?\\)(.*)/);
 		if (m) {
@@ -714,8 +751,22 @@ export function parseGlob(s: string) {
 		}
 	}
 
+	// de-quote all quoted path separators
+	const re_quotes = new RegExp(`(${DQStringReS}|${SQStringStrictReS})`, 'gmsu');
+	s = s.replaceAll(re_quotes, (match) => {
+		// console.warn({ match });
+		if (match[0] === DQ) {
+			return match.replace(/([\\/])/g, '"$1"');
+		}
+		if (match[0] === SQ) {
+			return match.replace(/([\\/])/g, "'$1'");
+		}
+		return match;
+	});
+	// console.warn({ s });
+
 	const re = new RegExp(
-		`^((?:${DQStringReS}|${SQStringReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`,
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`,
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
@@ -723,25 +774,30 @@ export function parseGlob(s: string) {
 		// console.warn('xArgs.parseGlob()', { s, m });
 		if (m) {
 			prefix += m[1] ? m[1] : '';
-			glob = m[2];
+			maybeGlob = m[2];
 			s = m[1] && m[2] ? m[2] : '';
 		} else {
-			glob = s || '';
+			maybeGlob = s || '';
 			s = '';
 		}
-		// console.warn('xArgs.parseGlob()', { prefix, glob });
+		// console.warn('xArgs.parseGlob()', { prefix, maybeGlob });
 	}
+	prefix = deQuote(prefix) ?? prefix; // ToDO: revisit and test
+	const glob = maybeGlob;
 
-	const pJoin = $path.join(pathToOS(prefix), glob);
+	// console.warn('xArgs.parseGlob()', { prefix, glob });
+
+	// const pJoin = $path.join(pathToOS(prefix), glob);
+	// const pJoin = [pathToOS(prefix), glob].join($path.SEP); // FixME: avoiding `$path.join` to avoid incorrect normalization of prefix SEPs
+	const pJoin = [pathToOS(prefix), glob].join(''); // FixME: avoiding `$path.join` to avoid incorrect normalization of prefix SEPs
 	const pJoinToPosix = pathToPOSIX(pJoin);
-	// console.warn('xArgs.parseGlob()',
-	//  {
+	// console.warn('xArgs.parseGlob()', {
 	// 	prefix,
 	// 	glob,
 	// 	pJoin,
 	// 	pJoinToPosix,
-	// 	pJoinParsed: $path.parse(pJoin),
-	// 	pJoinToPosixParsed: $path.parse(pJoinToPosix),
+	// 	pJoinParsed: $path.parse(shellDeQuote(pJoin)), // FixME: $path.parse() will break at SEPs within quotes
+	// 	pJoinToPosixParsed: $path.parse(shellDeQuote(pJoinToPosix)), // FixME: $path.parse() will break at SEPs within quotes
 	// });
 	const globAsReS = glob && globToReS(glob);
 	// console.warn('xArgs.parseGlob()', { globAsReS });
@@ -749,16 +805,19 @@ export function parseGlob(s: string) {
 	// console.warn('xArgs.parseGlob()', { prefix, glob, pathJoin: $path.posix.join(prefix, glob) });
 	// * 'picomatch' has incomplete typing => ignore no-explicit-any
 	// deno-lint-ignore no-explicit-any
-	const globScan: any = Picomatch.scan(pJoinToPosix, {
-		windows: true,
-		dot: false,
-		nobrace: true,
-		noquantifiers: true,
-		posix: true,
-		nocase: !caseSensitive,
-		tokens: true,
-		parts: true,
-	});
+	const globScan: any = Picomatch.scan(
+		shellDeQuote(pJoinToPosix), // FixME: may be double de-quoting globs; problem?
+		{
+			windows: true,
+			dot: false,
+			nobrace: true,
+			noquantifiers: true,
+			posix: true,
+			nocase: !caseSensitive,
+			tokens: true,
+			parts: true,
+		},
+	);
 	const globScanTokens = globScan.tokens;
 	const globScanSlashes = globScan.slashes;
 	const globScanParts = globScan.parts;
@@ -790,7 +849,7 @@ export function parseGlob(s: string) {
 
 export function globToReS(s: string) {
 	const caseSensitive = !isWinOS;
-	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, '');
+	const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQReS}+))(.*?$)`, '');
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
