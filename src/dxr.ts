@@ -294,7 +294,7 @@ const runOptions: Deno.RunOptions = {
 	},
 };
 await log.trace({ runOptions });
-const process = Deno.run(runOptions);
+const process = Deno.run(runOptions); // FixME: catch any panics
 const status = await process.status();
 Deno.exit(status.success ? 0 : status.code);
 // }
