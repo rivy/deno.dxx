@@ -343,6 +343,12 @@ export const warnIfImpaired = (
 
 //===
 
+// FixME/ToDO: [2023-01-26; rivy] add limiter for max size of returned args (leaving rest un-expanded)
+// ... for use by SHIMs passing args via ENV (max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
+// ... limit to 8kiB as default for limit == true (heuristic)
+
+// ... instead output large SHIM_ARGS to a temporary file (%TEMP%/SHIM_ARGS.{sha1(TARGET_URL)})
+
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args

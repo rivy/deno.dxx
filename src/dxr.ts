@@ -262,13 +262,16 @@ await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 
 // !NOTE: maximum command line or environment variable length is likely less than 8192 characters; see ref: <https://superuser.com/questions/1070272/why-does-windows-have-a-limit-on-environment-variables-at-all/1070354#1070354>
 // FixME: fail gracefully (with warning?) if expanded command line is longer than a <max_length>
+const max_shim_args_size = 8 * 1024; // heuristic max environment use for SHIM_ARGS (use 8kiB; max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
+// FixME: fall back to unexpanded args for TARGET?
+// ... instead output large SHIM_ARGS to a temporary file (path in SHIM_ARGF=="%TEMP%/SHIM_ARGS.{sha256(TARGET_URL); 1st 16-digits}")
+// ... and SHIM_ARGS == undefined
 
 const shimOptions: string[] = [];
 if (delegatedArgs.length < 1) {
 	delegatedArgs.push('-A', '--quiet');
 } else shimOptions.push(...[usesEndOfOptions ? '--' : ''].filter(Boolean), ...delegatedArgs);
 const denoArgs = ['run', ...delegatedArgs].filter(Boolean);
-const max_shim_args_size = 1024 * 8; // heuristic max environment for
 const SHIM_ARGS = targetArgs.map($args.reQuote).join(' ');
 if (SHIM_ARGS.length > max_shim_args_size) {
 	await log.error(
