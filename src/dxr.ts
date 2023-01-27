@@ -268,6 +268,14 @@ if (delegatedArgs.length < 1) {
 	delegatedArgs.push('-A', '--quiet');
 } else shimOptions.push(...[usesEndOfOptions ? '--' : ''].filter(Boolean), ...delegatedArgs);
 const denoArgs = ['run', ...delegatedArgs].filter(Boolean);
+const max_shim_args_size = 1024 * 8; // heuristic max environment for
+const SHIM_ARGS = targetArgs.map($args.reQuote).join(' ');
+if (SHIM_ARGS.length > max_shim_args_size) {
+	await log.error(
+		'SHIM_ARGS environment var transporter is too long (install target with `dxi ...` and run directly for unlimited argument expansion space',
+	);
+	Deno.exit(1);
+}
 const runOptions: Deno.RunOptions = {
 	// note: `Deno.run` automatically quotes any `cmd` elements which contain spaces
 	cmd: ['deno', ...denoArgs, targetPath, ...targetArgs],
@@ -281,7 +289,7 @@ const runOptions: Deno.RunOptions = {
 				.map((e) => e && $args.reQuote(e))
 				.join(' ')
 		}`,
-		SHIM_ARGS: targetArgs.map($args.reQuote).join(' '),
+		SHIM_ARGS,
 		SHIM_TARGET: targetURL ?? '',
 	},
 };
