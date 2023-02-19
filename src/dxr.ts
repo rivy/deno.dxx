@@ -64,6 +64,48 @@ log.mergeMetadata({
 
 //===
 
+// refs
+// * <https://stackoverflow.com/questions/62332153/deno-callback-on-exit>
+// * <https://deno.land/manual/examples/os_signals> @@ <https://archive.is/Ak1jc>
+// * <https://denolib.gitbook.io/guide/advanced/process-lifecycle> @@ <https://archive.is/8jDN6>
+// * [Clean up on `Deno.exit(...)`](https://github.com/denoland/deno/issues/3603)
+// * [Deno ~ OS Signals](https://deno.land/manual/examples/os_signals)
+// * [Deno ~ Program Lifecycle](https://deno.land/manual/runtime/program_lifecycle)
+// * [MDN ~ Event](https://developer.mozilla.org/en-US/docs/Web/API/Event)
+
+import * as $semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
+const isWinOS = Deno.build.os === 'windows';
+
+try {
+	// ['load', 'unload'].forEach((eventType) =>
+	// 	addEventListener(eventType, (e: Event) => {
+	// 		console.log('Caught event...', { eventType: e.type });
+	// 	})
+	// );
+	const s: Deno.Signal[] = (isWinOS && ($semver
+			.satisfies(Deno.version.deno, '>=1.23.0'))
+		? ['SIGBREAK'] as Deno.Signal[]
+		: [])
+		.concat(['SIGINT']);
+	// console.log('Listen for %s signals', JSON.stringify(s));
+	s.forEach((signalType) =>
+		Deno.addSignalListener(signalType, () => {
+			// upon a SIGINT, parent/shell may display a '^C'
+			// * use an initial '\r' to reset line position, allowing overwrite of any initial '^C'
+			// console.log('\r' + 'Caught signal...', { signalType });
+
+			// handle/ignore signals (target process will handle all signals)
+		})
+	);
+	// setTimeout(() => console.log('Script is now finished (after timeout wait).'), 2000);
+	// throw "throw statement";
+	// Deno.exit(1)
+} catch (e) {
+	console.log('Caught exception...', { e });
+}
+
+//===
+
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.scriptName($me.name)
