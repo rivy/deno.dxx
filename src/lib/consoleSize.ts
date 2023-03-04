@@ -2,11 +2,90 @@
 // spell-checker:ignore (shell) stty tput
 // spell-checker:ignore (shell/CMD) CONOUT
 
+//===
+
+// import '../../vendor/deno-unstable.lib.d.ts'; // import Deno UNSTABLE types
+
+// import { assert as _assert } from 'https://deno.land/std@0.178.0/testing/asserts.ts';
+
+//=== utils
+// import { stringToCString, stringToCWString, ToUint32 } from './util.ts';
+
+export function stringToCString(s: string) {
+	const length = s.length;
+	const buffer = new ArrayBuffer(length + 1);
+	const u8 = new Uint8Array(buffer);
+	for (let i = 0; i <= length; i++) {
+		u8[i] = s.charCodeAt(i);
+	}
+	u8[length] = 0;
+	return u8;
+}
+
+export function stringToCWString(s: string) {
+	const length = s.length;
+	const buffer = new ArrayBuffer((length + 1) * 2);
+	const u16 = new Uint16Array(buffer);
+	for (let i = 0; i <= length; i++) {
+		u16[i] = s.charCodeAt(i);
+	}
+	u16[length] = 0;
+	return u16;
+}
+
+function modulo(a: number, b: number) {
+	return a - Math.floor(a / b) * b;
+}
+function ToInteger(x: number) {
+	// ToDO: research and add rounding options
+	x = Number(x);
+	return x < 0 ? Math.ceil(x) : Math.floor(x);
+}
+
+const pow2To32 = Math.pow(2, 32);
+
+export function ToUint32(x: number) {
+	return modulo(ToInteger(x), pow2To32);
+}
+
+export function sizeOfNativeType(type: Deno.NativeType) {
+	// spell-checker:ignore () isize
+	// ref: <https://github.com/DjDeveloperr/deno/blob/4c0a50ec1e123c39f3f51e66025d83fd8cb6a2c1/ext/ffi/00_ffi.js#L258>
+	switch (type) {
+		case 'bool':
+		case 'u8':
+		case 'i8':
+			return 1;
+		case 'u16':
+		case 'i16':
+			return 2;
+		case 'u32':
+		case 'i32':
+		case 'f32':
+			return 4;
+		case 'u64':
+		case 'i64':
+		case 'f64':
+		case 'pointer':
+		case 'buffer':
+		case 'function':
+		case 'usize':
+		case 'isize':
+			return 8;
+		default:
+			throw new TypeError(`Unsupported type: ${type}`);
+	}
+}
+
+//===
+
 const decoder = new TextDecoder(); // default == 'utf-8'
 const decode = (input?: Uint8Array): string => decoder.decode(input);
 
 const isWinOS = Deno.build.os === 'windows';
 
+const atImportAllowFFI =
+	((await Deno.permissions?.query({ name: 'ffi' }))?.state ?? 'granted') === 'granted';
 const atImportAllowRead =
 	((await Deno.permissions?.query({ name: 'read' }))?.state ?? 'granted') === 'granted';
 const atImportAllowRun =
@@ -59,6 +138,7 @@ export type ConsoleSizeOptions = {
  * ```
  *
  * @param rid ~ resource ID
+ * @tags no-throw
  */
 function denoConsoleSizeNT(rid: number) {
 	// no-throw `Deno.consoleSize(..)`
@@ -113,11 +193,13 @@ export const consoleSize = consoleSizeAsync; // default to fully functional `con
  * ```
  *
  * @param rid ~ resource ID
+ * @tags unstable
  */
 export function consoleSizeSync(
 	rid: number = Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): ConsoleSize | undefined {
+	// ~ 0.75ms for WinOS
 	const options = {
 		fallbackRIDs: [Deno.stderr.rid],
 		consoleFileFallback: true,
@@ -128,7 +210,7 @@ export function consoleSizeSync(
 		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
 		if (memo != undefined) return memo;
 	}
-	const size = consoleSizeViaDenoAPI(rid, options);
+	const size = consoleSizeViaDenoAPI(rid, options) ?? consoleSizeViaFFI();
 	consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 	return size;
 }
@@ -142,6 +224,7 @@ export function consoleSizeSync(
  * ```
  *
  * @param rid ~ resource ID
+ * @tags unstable
  */
 export function consoleSizeViaDenoAPI(
 	rid: number = Deno.stdout.rid,
@@ -166,6 +249,155 @@ export function consoleSizeViaDenoAPI(
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
 		size = file && denoConsoleSizeNT(file.rid);
 		file && Deno.close(file.rid);
+	}
+
+	return size;
+}
+
+// consoleSizeViaFFI()
+/** Get the size of the console as columns/rows, via the FFI.
+ * * _unstable_ ~ requires the Deno `--unstable` flag for successful resolution (b/c the used `unstable.UnsafePointer` is unstable API, as of Deno v1.19.0 [2023-01-01; rivy])
+ *
+ * ```ts
+ * const { columns, rows } = consoleSizeViaFFI();
+ * ```
+ * @tags allow-ffi
+ */
+export function consoleSizeViaFFI(): ConsoleSize | undefined {
+	// ~ 5ms when requiring DLL loading
+	if (!isWinOS) return undefined; // WinOS-only FFI implementation
+	if (!atImportAllowFFI) return undefined;
+	let size: ConsoleSize | undefined = undefined;
+
+	const unstable = (() => {
+		const u = {
+			dlopen: Deno.dlopen,
+			UnsafePointer: Deno.UnsafePointer,
+			UnsafePointerView: Deno.UnsafePointerView,
+		};
+		if ((Object.values(u) as (unknown | undefined)[]).every((e) => e != null)) return u;
+		return undefined;
+	})();
+	// console.warn({ unstable });
+
+	if (unstable != null) {
+		const dllKernel = (() => {
+			try {
+				return unstable.dlopen('kernel32.dll', {
+					'GetConsoleScreenBufferInfo':
+						/* https://learn.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo */ {
+							parameters: ['pointer', 'buffer'],
+							result: 'u32', // BOOL
+						},
+					'CreateFileW':
+						/* https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew */ {
+							parameters: ['pointer', 'u32', 'u32', 'pointer', 'u32', 'u32', 'pointer'],
+							result: 'pointer', /* file handle */
+						},
+					'OpenFile': /* https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfile */
+						{ parameters: ['pointer', 'pointer', 'u32'], result: 'pointer' },
+				});
+			} catch {
+				return undefined;
+			}
+		})();
+
+		// console.warn('start CreateFile');
+		// ref: <https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew> @@ <https://archive.is/LbyEf>
+		const CF_OPEN_EXISTING = 3;
+		// ref: <https://github.com/retep998/winapi-rs/blob/5b1829956ef645f3c2f8236ba18bb198ca4c2468/src/um/winnt.rs#L1682>
+		// ...
+		// pub const GENERIC_READ: DWORD = 0x80000000;
+		// pub const GENERIC_WRITE: DWORD = 0x40000000;
+		// ...
+		// pub const FILE_SHARE_WRITE: DWORD = 0x00000002;
+		//...
+		const FILE_SHARE_WRITE = 0x00000002;
+		const GENERIC_READ = 0x80000000;
+		const GENERIC_WRITE = 0x40000000;
+		// ref: [Correct use of `CreateFileW()`](https://stackoverflow.com/questions/49145316/why-no-text-colors-after-using-createfileconout-to-redirect-the-console)
+		const h = dllKernel?.symbols.CreateFileW(
+			unstable.UnsafePointer.of(stringToCWString('CONOUT$')),
+			ToUint32(GENERIC_WRITE | GENERIC_READ), /* dwDesiredAccess */
+			ToUint32(FILE_SHARE_WRITE), /* dwShareMode */
+			null,
+			CF_OPEN_EXISTING,
+			0,
+			null,
+		) as Deno.PointerValue;
+		// console.warn('done CreateFile');
+
+		// NOTE: using `OpenFile()` is functionally equivalent to using `CreateFile()` but increases fn execution time from ~ 1.5 ms to ~ 5.25 ms
+		// // ref: <https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfile>
+		// // ref: <https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-ofstruct>
+		// // spell-checker:ignore () OFS_MAXPATHNAME OFSTRUCT
+		// const OF_READWRITE = 0x00000002;
+		// const OFS_MAXPATHNAME = 128;
+		// const OFSTRUCT_SIZE = 1 /* BYTE */ * 2 + 2 /* WORD */ * 3 + OFS_MAXPATHNAME;
+		// const ofstruct_buffer = new Uint8Array(OFSTRUCT_SIZE).fill(0);
+		// // console.warn('start OpenFile');
+		// const h = dllKernel?.symbols.OpenFile(
+		// 	unstable.UnsafePointer.of(stringToCString('CONOUT$')),
+		// 	unstable.UnsafePointer.of(ofstruct_buffer),
+		// 	OF_READWRITE,
+		// ) as Deno.PointerValue;
+		// _assert(
+		// 	ofstruct_buffer[0] <= OFSTRUCT_SIZE,
+		// 	`consoleSizeViaFFI(): possible buffer overrun; FFI returned a buffer size (${
+		// 		ofstruct_buffer[0]
+		// 	}) larger than supplied buffer size (${OFSTRUCT_SIZE})`,
+		// );
+		// // buffer[buffer.length - 1] = 0; // force `szPathName[]` to end with NUL character
+		// // console.warn('done OpenFile', { buffer });
+
+		const FALSE = 0;
+		const INVALID_HANDLE = -1;
+
+		// CONSOLE_SCREEN_BUFFER_INFO == {
+		// 	dwSize: { X: WORD, Y: WORD },
+		// 	dwCursorPosition: { X: WORD, Y: WORD },
+		// 	wAttributes: WORD,
+		// 	srWindow: { Left: WORD, Top: WORD, Right: WORD, Bottom: WORD },
+		// 	dwMaximumWindowSize: { X: WORD, Y: WORD },
+		// }
+		const dwSize: Deno.NativeType[] = ['u16', 'u16'];
+		const dwCursorPosition: Deno.NativeType[] = ['u16', 'u16'];
+		const wAttributes: Deno.NativeType[] = ['u16'];
+		const srWindow: Deno.NativeType[] = ['u16', 'u16', 'u16', 'u16'];
+		const dwMaximumWindowSize: Deno.NativeType[] = ['u16', 'u16'];
+		const CONSOLE_SCREEN_BUFFER_INFO: Deno.NativeType[] = [
+			...dwSize,
+			...dwCursorPosition,
+			...wAttributes,
+			...srWindow,
+			...dwMaximumWindowSize,
+		];
+		const CONSOLE_SCREEN_BUFFER_INFO_size = CONSOLE_SCREEN_BUFFER_INFO.flat().reduce(
+			(sum, type) => sum += sizeOfNativeType(type),
+			0,
+		);
+		const info_buffer = new Uint8Array(CONSOLE_SCREEN_BUFFER_INFO_size).fill(0);
+		const handle = (unstable.UnsafePointer.value(h) != INVALID_HANDLE) ? h : null;
+		// console.warn({ h, handle });
+		const result = handle &&
+			(dllKernel?.symbols.GetConsoleScreenBufferInfo(handle, info_buffer) ?? FALSE) != FALSE;
+		const ptr = result ? unstable.UnsafePointer.of(info_buffer) : null;
+		const ptrView = ptr && new unstable.UnsafePointerView(ptr);
+		const info = ptrView &&
+			{
+				dwSize: { X: ptrView.getInt16(0), Y: ptrView.getInt16(2) },
+				dwCursorPosition: { X: ptrView.getInt16(4), Y: ptrView.getInt16(6) },
+				wAttributes: ptrView.getUint16(8),
+				srWindow: {
+					Left: ptrView.getInt16(10),
+					Top: ptrView.getInt16(12),
+					Right: ptrView.getInt16(14),
+					Bottom: ptrView.getInt16(16),
+				},
+				dwMaximumWindowSize: { X: ptrView.getInt16(18), Y: ptrView.getInt16(20) },
+			};
+		// console.warn('FFI', { buffer, info });
+		if (info != null) size = { columns: info.dwSize.X, rows: info.dwSize.Y };
 	}
 
 	return size;
@@ -206,7 +438,7 @@ export function consoleSizeAsync(
 	// ~ 0.5 ms for WinOS or POSIX (for open, un-redirected STDOUT or STDERR, using the fast [Deno] API)
 	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
 	const promise = Promise
-		.resolve(consoleSizeViaDenoAPI(rid, options))
+		.resolve(consoleSizeSync(rid, options))
 		.then((size) => {
 			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 			return size;
