@@ -261,10 +261,11 @@ export function consoleSizeViaDenoAPI(
  * ```ts
  * const { columns, rows } = consoleSizeViaFFI();
  * ```
- * @tags allow-ffi
+ *
+ * @tags allow-ffi, unstable, winos-only
  */
 export function consoleSizeViaFFI(): ConsoleSize | undefined {
-	// ~ 5ms when requiring DLL loading
+	// ~ 1.5 ms
 	if (!isWinOS) return undefined; // WinOS-only FFI implementation
 	if (!atImportAllowFFI) return undefined;
 	let size: ConsoleSize | undefined = undefined;
@@ -482,6 +483,8 @@ export function consoleSizeAsync(
  * ```ts
  * const { columns, rows } = await consoleSizeViaMode();
  * ```
+ *
+ * @tags winos-only
  */
 export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ~ 25 ms (WinOS-only)
@@ -535,6 +538,8 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
  * ```ts
  * const { columns, rows } = await consoleSizeViaPowerShell();
  * ```
+ *
+ * @tags winos-only
  */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
@@ -577,6 +582,8 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
  * ```ts
  * const { columns, rows } = await consoleSizeViaSTTY();
  * ```
+ *
+ * @tags non-winos-only
  */
 export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
@@ -613,6 +620,8 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  * ```ts
  * const { columns, rows } = await consoleSizeViaTPUT();
  * ```
+ *
+ * @tags winos-only
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two system shell calls
