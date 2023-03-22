@@ -1,3 +1,9 @@
+//== * SHARED project exports (requiring TLA)
+// TLA == a TLA (three-letter-abbreviation) for "top level await"
+// * modules with TLA will not be initialized in strict static load order ; load/init will occur after the end of the static modules loads
+// ... discussions related to TLA issues can be found at <https://github.com/denoland/deno/discussions/15356> , <https://github.com/denoland/deno_std/issues/2446> , <https://github.com/denoland/deno/issues/13730>
+// ... see <https://github.com/denoland/deno/issues/13730#issuecomment-1207325451> for notes about less rigorous module load/execution order
+
 const zip = <T extends string | number | symbol, U>(a: T[], b: U[]) => {
 	const c: Record<T, U> = {} as Record<T, U>;
 	a.map((e: T, idx: number) => c[e] = b[idx]);

@@ -1,3 +1,5 @@
+//== * DEPendencies
+
 //==== modules
 
 export * as $colors from 'https://deno.land/std@0.134.0/fmt/colors.ts';
@@ -23,7 +25,7 @@ export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v8.2.
 
 // export { default as $yargs } from 'https://deno.land/x/yargs@v17.3.0-deno/deno.ts';
 
-//=== features (functions, objects, and/or values)
+//==== features (functions, objects, and/or values)
 
 // assert functions (with assertion signatures) always require explicit type annotation
 // * ref: <https://github.com/microsoft/TypeScript/issues/36931> , <https://github.com/microsoft/TypeScript/issues/36067>
@@ -36,6 +38,6 @@ export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v8.2.
 //  export { assert, assertEquals, equal } from 'https://deno.land/std@0.134.0/testing/asserts.ts';
 export { assert, assertEquals, equal } from 'https://deno.land/std@0.134.0/testing/asserts.ts';
 
-//=== types
+//==== types
 
 // export type { Arguments as YargsArguments } from 'https://deno.land/x/yargs@v17.3.0-deno/deno-types.ts';

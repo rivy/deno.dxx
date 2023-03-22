@@ -1,4 +1,4 @@
-//=== * LOCAL function/module exports
+//== * LOCAL function/module exports
 
 // * note: local functions/modules are exported from '$locals' to help avoid circular dependencies
 
