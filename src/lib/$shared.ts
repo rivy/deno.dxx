@@ -125,10 +125,9 @@ export async function haveMissingPermits(permitNames: Deno.PermissionName[] = []
 function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 	/** Sorted, non-duplicated, permission names (used for flag generation) */
 	const flagNames = (permitNames.length > 0) ? [...new Set(permitNames.sort())] : ['all'];
-	const msg =
-		`Missing required permissions; re-run with required permissions (${(flagNames
-			.map((name) => $colors.green('`--allow-' + name + '`'))
-			.join(', '))})`;
+	const msg = `Missing required permissions; re-run with required permissions (${(flagNames
+		.map((name) => $colors.green('`--allow-' + name + '`'))
+		.join(', '))})`;
 	return msg;
 }
 
@@ -319,7 +318,7 @@ export function pathFromURL(url: URL) {
 
 //===
 
-const allowRead = ((await Deno.permissions?.query({ name: 'read' })).state === 'granted');
+const allowRead = (await Deno.permissions?.query({ name: 'read' })).state === 'granted';
 
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
@@ -548,14 +547,14 @@ export function canDisplayUnicode() {
 		const isOldTerminal = ['cygwin', 'linux'].includes(env('TERM') ?? '');
 		const isWSL_ = isWSL();
 		return !isOldTerminal && // fail for old terminals
-		(( // * not isWSL
-			!isWSL_ &&
-			Boolean(
-				env('LC_ALL')?.match(/[.]utf-?8$/i) || env('LANG')?.match(/[.]utf-?8$/i),
-			) /* LC_ALL or LANG handles UTF-8? */
-		) || ( // * isWSL
-			isWSL_ && Boolean(env('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
-		));
+			(( // * not isWSL
+				!isWSL_ &&
+				Boolean(
+					env('LC_ALL')?.match(/[.]utf-?8$/i) || env('LANG')?.match(/[.]utf-?8$/i),
+				) /* LC_ALL or LANG handles UTF-8? */
+			) || ( // * isWSL
+				isWSL_ && Boolean(env('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
+			));
 	}
 
 	// WinOS
@@ -637,16 +636,15 @@ const versionURL = intoURL(projectLocations.version, projectURL);
 // logger.trace({ projectURL, projectLocations, versionURL });
 
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
-const projectVersionTextViaFetch =
-	await (versionURL &&
-			((versionURL.protocol === 'file:')
-				? ((await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted')
-				: ((await Deno.permissions.query({ name: 'net', host: versionURL.host })).state ===
-					'granted'))
-		? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
-			text?.split(newline).filter((s) => s)[0]
-		))
-		: Promise.resolve(undefined));
+const projectVersionTextViaFetch = await (versionURL &&
+		((versionURL.protocol === 'file:')
+			? ((await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted')
+			: ((await Deno.permissions.query({ name: 'net', host: versionURL.host })).state ===
+				'granted'))
+	? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
+		text?.split(newline).filter((s) => s)[0]
+	))
+	: Promise.resolve(undefined));
 
 // `import ...` implementation (note: requires project-level synchronization tooling)
 const projectVersionTextViaImport = VERSION;

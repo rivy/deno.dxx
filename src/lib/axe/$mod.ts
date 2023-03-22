@@ -824,7 +824,7 @@ function FilterTransformFn(context_: unknown | null, entry: LogEntry): LogEntry 
 	const scopes = [...new Set([thisID || thisClass, thisClass])];
 	const props = metadata?.getAllProps(scopes) || {};
 
-	const mayProceed = (entry && context.predicate?.(entry, props));
+	const mayProceed = entry && context.predicate?.(entry, props);
 
 	// console.warn('FilterTransformFn()', {
 	// 	context,
@@ -866,7 +866,7 @@ export class Filter extends TransformWriter<LogEntry> {
 	predicate: (entry: LogEntry, props?: Record<string, unknown>) => boolean = (entry, props) => {
 		const level = ((v = props?.level) => (v != null) ? format('%s', v) : undefined)() ?? this.level;
 		const filterLevelN = this._getLevelNumber(level, entry.levels) ?? Infinity;
-		const mayProceed = (entry.levelNumber <= filterLevelN);
+		const mayProceed = entry.levelNumber <= filterLevelN;
 		// console.warn('Filter/predicate()', { entry, props, level, filterLevelN });
 		// console.warn('Filter/predicate()', {
 		// 	entryLevelN: entry.levelNumber,
@@ -1088,9 +1088,7 @@ export class Humane extends TransformWriter<LogEntry, string> {
 
 		const prefix = prefixFormatFn(
 			[
-				showSymbol
-					? `${symbol}`
-					: '',
+				showSymbol ? `${symbol}` : '',
 				showLabel ? (`${label}${authority ? ('/[' + authority + ']') : ''}:`) : '',
 			]
 				.filter(Boolean)

@@ -10,18 +10,17 @@ const zip = <T extends string | number | symbol, U>(a: T[], b: U[]) => {
 	return c;
 };
 
-export const permitsAsync =
-	(async (
-		names: Deno.PermissionName[] = ['env', 'ffi', 'hrtime', 'net', 'read', 'run', 'write'],
-	) => {
-		const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
-			names,
-			(await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((e) =>
-				e ?? { state: 'granted', onchange: null }
-			),
-		);
-		return permits;
-	});
+export const permitsAsync = async (
+	names: Deno.PermissionName[] = ['env', 'ffi', 'hrtime', 'net', 'read', 'run', 'write'],
+) => {
+	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
+		names,
+		(await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((e) =>
+			e ?? { state: 'granted', onchange: null }
+		),
+	);
+	return permits;
+};
 
 const atImportPermissions = await permitsAsync();
 
