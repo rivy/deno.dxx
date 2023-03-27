@@ -29,8 +29,8 @@ try {
 			// handle (ie, ignore) signals (target process will handle all signals)
 		})
 	);
-} catch (e) {
-	// console.log('Caught exception...', { e });
+} catch (_e) {
+	// console.log('Caught exception...', { _e });
 }
 
 //===
