@@ -301,6 +301,7 @@ const max_shim_args_size = 8 * 1024; // heuristic max environment use for SHIM_A
 // FixME: fall back to unexpanded args for TARGET?
 // ... instead output large SHIM_ARGS to a temporary file (path in SHIM_ARGF=="%TEMP%/SHIM_ARGS.{sha256(TARGET_URL); 1st 16-digits}")
 // ... and SHIM_ARGS == undefined
+// ... spell-checker:ignore () SHIM_ARGF
 
 const shimOptions: string[] = [];
 if (delegatedArgs.length < 1) {
