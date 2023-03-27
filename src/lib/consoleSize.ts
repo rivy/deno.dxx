@@ -1,8 +1,9 @@
+// spell-checker:ignore (Deno) rid rid's
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (shell) stty tput
 // spell-checker:ignore (shell/CMD) CONOUT
-// spell-checker:ignore (Typescript) ts-nocheck
-// spell-checker:ignore (WinAPI) CSTR CWSTR LPCSTR LPCWSTR MBCS
+// spell-checker:ignore (Typescript) ts-nocheck nocheck usize
+// spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS WCHAR
 
 //===
 
@@ -397,7 +398,7 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 		// NOTE: using `OpenFile()` is functionally equivalent to using `CreateFile()` but increases fn execution time from ~ 1.5 ms to ~ 5.25 ms
 		// // ref: <https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfile>
 		// // ref: <https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-ofstruct>
-		// // spell-checker:ignore () OFS_MAXPATHNAME OFSTRUCT
+		// // spell-checker:ignore () MAXPATHNAME OFS_MAXPATHNAME OFSTRUCT
 		// const OF_READWRITE = 0x00000002;
 		// const OFS_MAXPATHNAME = 128;
 		// const OFSTRUCT_SIZE = 1 /* BYTE */ * 2 + 2 /* WORD */ * 3 + OFS_MAXPATHNAME;
