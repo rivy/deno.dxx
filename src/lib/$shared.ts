@@ -8,7 +8,7 @@
 // spell-checker:ignore (yargs) positionals
 
 import { $colors, $fs, $path } from './$deps.ts';
-import { permitsAsync } from './$shared.TLA.ts';
+import { atImportPermissions } from './$shared.TLA.ts';
 
 //===
 
@@ -36,7 +36,7 @@ export const projectLocations = {
 
 //===
 
-export const atImportPermissions = await permitsAsync();
+// export const atImportPermissions = await permitsAsync();
 
 /** Host platform is a Windows OS. */
 export const isWinOS = Deno.build.os === 'windows';
@@ -318,7 +318,8 @@ export function pathFromURL(url: URL) {
 
 //===
 
-const allowRead = (await Deno.permissions?.query({ name: 'read' })).state === 'granted';
+// const allowRead = (await Deno.permissions?.query({ name: 'read' })).state === 'granted';
+const allowRead = atImportPermissions.read.state === 'granted';
 
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.

@@ -22,7 +22,7 @@ export const permitsAsync = async (
 	return permits;
 };
 
-const atImportPermissions = await permitsAsync();
+export const atImportPermissions = await permitsAsync();
 
 // `env()`
 /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
