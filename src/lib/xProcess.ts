@@ -323,7 +323,9 @@ export const impaired = isWinOS
 export const impairedWarningMessage = () => {
 	return impaired
 		? `degraded capacity (faulty ` + [
-			!haveSuppliedArgv0 ? '"$0"' : '',
+			!haveSuppliedArgv0
+				? '"$0"'
+				: '',
 			!haveEnhancedArgs ? 'argument' : '',
 		]
 			.filter(Boolean)
@@ -352,9 +354,8 @@ export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return await $args.argsAsync(
 		shim.scriptArgs ?? (isEnhancedShimTarget ? shim.ARGS : undefined) ?? commandLineParts
-			.scriptArgs ??
-			Deno
-				.args,
+			.scriptArgs ?? Deno
+			.args,
 	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
@@ -363,9 +364,8 @@ export const argsSync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return $args.argsSync(
 		shim.scriptArgs ?? (isEnhancedShimTarget ? shim.ARGS : undefined) ?? commandLineParts
-			.scriptArgs ??
-			Deno
-				.args,
+			.scriptArgs ?? Deno
+			.args,
 	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 

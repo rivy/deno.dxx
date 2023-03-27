@@ -355,7 +355,7 @@ if (!argv?.serialize) {
 			appState.exitValue = 1;
 		} else {
 			const protectTarget = argv.noClobber ?? false;
-			const preventTargetClose = (target === Deno.stdout);
+			const preventTargetClose = target === Deno.stdout;
 			await log.trace({
 				source: source instanceof Uint8Array ? `Uint8Array[${source.length}]` : source,
 				target,
@@ -390,7 +390,7 @@ if (!argv?.serialize) {
 			appState.exitValue = 1;
 		} else {
 			const protectTarget = argv.noClobber ?? false;
-			const preventTargetClose = (t === '-');
+			const preventTargetClose = t === '-';
 			await log.trace({
 				source: source instanceof Uint8Array ? `Uint8Array[${source.length}]` : source,
 				target,

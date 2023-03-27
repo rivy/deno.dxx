@@ -4,7 +4,8 @@
 
 // spell-checker:ignore (names) commitLint (people) Roy Ivy III * rivy (words) maint
 
-/* @prettier */ // note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
+/* @prettier */
+// note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
 
 const isNPMTestDist = !!process.env['npm_config_test_dist'];
 const isTestDist = !!process.env['test_dist'];

@@ -1088,7 +1088,9 @@ export class Humane extends TransformWriter<LogEntry, string> {
 
 		const prefix = prefixFormatFn(
 			[
-				showSymbol ? `${symbol}` : '',
+				showSymbol
+					? `${symbol}`
+					: '',
 				showLabel ? (`${label}${authority ? ('/[' + authority + ']') : ''}:`) : '',
 			]
 				.filter(Boolean)

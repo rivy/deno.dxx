@@ -138,14 +138,14 @@ performance.mark('setup:parseArgs:start');
 
 const bakedArgs = $me.args();
 
-const argv = ((() => {
+const argv = (() => {
 	try {
 		return app.parse(bakedArgs) as YargsArguments;
 	} catch (e) {
 		log.error(e.message);
 		return;
 	}
-})());
+})();
 
 log.trace({ bakedArgs, argv });
 

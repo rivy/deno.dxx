@@ -4,7 +4,8 @@
 
 // spell-checker:ignore (people) Roy Ivy III * rivy
 
-/* @prettier */ // note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
+/* @prettier */
+// note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
 
 module.exports = {
 	// $schema: 'http://json.schemastore.org/prettierrc',

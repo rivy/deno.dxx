@@ -98,14 +98,14 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 
 //===
 
-const argv = ((() => {
+const argv = (() => {
 	try {
 		return app.parse(Deno.args) as YargsArguments;
 	} catch (e) {
 		console.warn(e.message);
 		return;
 	}
-})());
+})();
 
 //===
 

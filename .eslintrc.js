@@ -4,7 +4,8 @@
 
 // spell-checker:ignore (names) rivy ; (options) iife
 
-/* @prettier */ // note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
+/* @prettier */
+// note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
 
 const useDeno = true;
 const usePrettier = !useDeno;

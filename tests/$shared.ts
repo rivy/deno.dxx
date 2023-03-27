@@ -150,11 +150,9 @@ function composeTestName(
 			? ([...maxLines.toString()].length - [...tagLine.toString()].length)
 			: 0;
 	})();
-	const filePathText =
-		(tag
-			? ($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) +
-				' ')
-			: '');
+	const filePathText = tag
+		? ($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) + ' ')
+		: '';
 	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
 }
 
