@@ -631,7 +631,7 @@ import { fetch } from './xFetch.ts'; // 'file://'-compatible `fetch()`
 // import { intoURL, projectLocations, projectURL } from '../../tests/$shared.ts';
 // import { logger } from '../../tests/$shared.ts';
 
-const newline = /\r?\n|\n/;
+const EOL = /\r?\n|\n/;
 const versionURL = intoURL(projectLocations.version, projectURL);
 
 // logger.trace({ projectURL, projectLocations, versionURL });
@@ -643,7 +643,7 @@ const projectVersionTextViaFetch = await (versionURL &&
 			: ((await Deno.permissions.query({ name: 'net', host: versionURL.host })).state ===
 				'granted'))
 	? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
-		text?.split(newline).filter((s) => s)[0]
+		text?.split(EOL).filter((s) => s)[0]
 	))
 	: Promise.resolve(undefined));
 
