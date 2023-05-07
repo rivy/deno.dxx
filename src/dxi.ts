@@ -4,7 +4,6 @@ import {
 	$lodash as _,
 	$path,
 	mergeReadableStreams,
-	readableStreamFromReader,
 	readAll,
 	readerFromStreamReader,
 } from './lib/$deps.ts';
@@ -331,7 +330,28 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // 	return buf.bytes();
 // }
 
-const denoArgs = ['install', ...delegatedArgs].filter(Boolean);
+// Track and remove `--quiet` and `-q` from delegatedArgs
+// * `deno install...` non-quiet output is needed to determine the final shim location
+// * a bug was introduced into deno v1.29.0+ which suppresses `deno install...` output when supplying `--quiet` to the installed script
+// * ref: <https://github.com/denoland/deno/issues/19037>
+let quietShim = false;
+const filteredDelegatedArgs = delegatedArgs.flatMap((arg) => {
+	if (arg === '--quiet' || arg === '-q') {
+		quietShim = true;
+		return [];
+	}
+	const matches = arg.match(/-([^-].*q)/);
+	if (matches) {
+		quietShim = true;
+		arg = arg.replace('q', '');
+	}
+	return [arg];
+});
+
+const denoArgs = ['install', ...filteredDelegatedArgs].filter(Boolean);
+
+await log.trace({ quietShim, denoArgs, delegatedArgs, filteredDelegatedArgs });
+
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoArgs, ...args],
 	stderr: 'piped',
@@ -341,8 +361,10 @@ const runOptions: Deno.RunOptions = {
 await log.debug({ runOptions });
 const process = Deno.run(runOptions);
 const mergedOutput = mergeReadableStreams(
-	readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),
-	readableStreamFromReader(process.stdout || { read: (_) => Promise.resolve(null) }),
+	// readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),
+	// readableStreamFromReader(process.stdout || { read: (_) => Promise.resolve(null) }),
+	process.stderr?.readable || new ReadableStream(),
+	process.stdout?.readable || new ReadableStream(),
 );
 const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
 const out =
@@ -354,6 +376,7 @@ const out =
 if (status.success) {
 	spinnerForInstall.succeed(spinnerInstallTextBase + ' done');
 } else spinnerForInstall.fail(spinnerInstallTextBase + ' failed');
+
 Deno.stdout.writeSync(encoder.encode(out));
 
 const shimBinPath = (() => {
@@ -362,7 +385,13 @@ const shimBinPath = (() => {
 	return '';
 })();
 
+await log.trace({ status, process, out });
 await log.debug({ shimBinPath });
+
+if (shimBinPath === '') {
+	await log.error('Could not find shim path');
+	Deno.exit(1);
+}
 
 import { eol } from './lib/eol.ts';
 import { cmdShimTemplate, shimInfo } from './lib/shim.windows.ts';
@@ -375,8 +404,17 @@ if (status.success && isWinOS) {
 	const shimBinName = $path.parse(shimBinPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget } = info;
+	const addQuietOption = quietShim && !denoRunOptions.match(/(^|\s|'|")--quiet("|'|\s|$)/);
+	await log.trace({ info, denoRunOptions, denoRunTarget, shimBinName, addQuietOption });
+	// const denoRunOptionsUpdated = denoRunOptions.
 	const contentsUpdated = eol.CRLF(
-		_.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
+		_.template(cmdShimTemplate(enablePipe))({
+			denoRunOptions: denoRunOptions
+				.concat(addQuietOption ? ' "--quiet"' : '')
+				.trim(),
+			denoRunTarget,
+			shimBinName,
+		}),
 	);
 	Deno.writeFileSync(shimBinPath, encoder.encode(contentsUpdated));
 	Deno.stdout.writeSync(
