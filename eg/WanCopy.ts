@@ -179,6 +179,13 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 		`${appRunAs} "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@0.0.13/README.md" file1.md file2.mkd`,
 		'Copy from a WAN URL to local files',
 	)
+	.example(`${appRunAs} "https://pokeapi.co/api/v2/pokemon/1" -`, 'Copy URL REST output to stdout')
+	.example(
+		// ref: <https://www.sftp.net/public-online-sftp-servers> @@ <https://archive.is/dHo7E>
+		// ref: <https://forum.rebex.net/1343/open-ftps-and-sftp-servers-for-testing-our-code-connectivity> @@ <https://archive.is/EsZ42>
+		`${appRunAs} "sftp://demo:password@test.rebex.net:22/readme.txt" -`,
+		'Copy URL (via SFTP) to stdout',
+	)
 	.example([]);
 
 performance.mark('setup:yargs:stop');
