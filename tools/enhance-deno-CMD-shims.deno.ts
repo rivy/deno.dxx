@@ -269,6 +269,8 @@ function joinFullyDefinedPaths(...paths: (string | undefined)[]): string | undef
 	return $path.join(...(paths as string[])); // noSonar // false positive ("assertion not necessary"); ref: <https://github.com/SonarSource/SonarJS/issues/1961>
 }
 
+// `deno install` default install location; ref: <https://deno.com/manual@v1.33.2/tools/script_installer> @@ <https://archive.is/ThrwA>
+// * note: may be overridden with `--root ...` option to `deno install`
 const denoInstallRoot = joinFullyDefinedPaths(
 	env('DENO_INSTALL_ROOT') ?? joinFullyDefinedPaths(OSPaths.home(), '.deno'),
 	'bin',
