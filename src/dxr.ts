@@ -20,7 +20,7 @@ const isWinOS = Deno.build.os === 'windows';
 try {
 	const s: Deno.Signal[] = (isWinOS && ($semver
 			.satisfies(Deno.version.deno, '>=1.23.0'))
-		? ['SIGBREAK'] as Deno.Signal[]
+		? ['SIGBREAK'] as unknown as Deno.Signal[]
 		: [])
 		.concat(['SIGINT']);
 	// console.log('Listen for %s signals', JSON.stringify(s));
