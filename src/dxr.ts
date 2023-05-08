@@ -299,8 +299,9 @@ await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 // FixME: fail gracefully (with warning?) if expanded command line is longer than a <max_length>
 const max_shim_args_size = 8 * 1024; // heuristic max environment use for SHIM_ARGS (use 8kiB; max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
 // FixME: fall back to unexpanded args for TARGET?
-// ... instead output large SHIM_ARGS to a temporary file (path in SHIM_ARGF=="%TEMP%/SHIM_ARGS.{sha256(TARGET_URL); 1st 16-digits}")
+// ... instead output large SHIM_ARGS to a temporary file (path in SHIM_ARGF==Deno.makeTempFile({prefix: 'SHIM_ARGS-', suffix: '.txt'})) and use SHIM_ARGF as a transport mechanism
 // ... and SHIM_ARGS == undefined
+// ... remove SHIM_ARGF file upon consumption (if possible, warn if not? or ignore?)
 // ... spell-checker:ignore () SHIM_ARGF
 
 const shimOptions: string[] = [];
