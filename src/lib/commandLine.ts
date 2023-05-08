@@ -55,6 +55,7 @@ const dll = isWinOS
 
 export function GetCommandLineA() {
 	if (!unstable) return undefined;
+	// @ts-ignore # Deno.PointerValue is unstable, available in Deno v1.50.0+
 	const ptr = dll?.symbols.GetCommandLineA() as Deno.PointerValue;
 	const ptrView = ptr && new unstable.UnsafePointerView(ptr);
 	return ptrView?.getCString();
@@ -62,6 +63,7 @@ export function GetCommandLineA() {
 
 function GetCommandLineW(): WString | undefined {
 	if (!unstable) return undefined;
+	// @ts-ignore # Deno.PointerValue is unstable, available in Deno v1.50.0+
 	const ptr = dll?.symbols.GetCommandLineW() as Deno.PointerValue;
 	const ptrView = ptr && new unstable.UnsafePointerView(ptr);
 	if (ptrView == null) return undefined;
