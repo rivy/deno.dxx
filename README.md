@@ -8,8 +8,8 @@
 
 Fixes...
 
-- ref: [🙏[feat/req] supply $0/%0 to shimmed scripts (cross-platform)](https://github.com/denoland/deno/issues/9874)
-- ref: [🙏[feat/req] suppress annoying "Terminate batch job (Y/N)?" for shimmed deno scripts (Windows)](https://github.com/denoland/deno/issues/9873)
+- ref: [🙏(feat/req) supply $0/%0 to shimmed scripts (cross-platform)](https://github.com/denoland/deno/issues/9874)
+- ref: [🙏(feat/req) suppress annoying "Terminate batch job (Y/N)?" for shimmed deno scripts (Windows)](https://github.com/denoland/deno/issues/9873)
 - ref: [🐛(or feat request?) CLI apps need original command line (Windows)](https://github.com/denoland/deno/issues/9871)
 - ref: [🐛`deno` v1.13 breaks shims using `--allow-plugin`](https://github.com/denoland/deno/issues/11819)
 
@@ -51,6 +51,12 @@ automatically runs `dprint fmt` if `dprint` is available and a config is found i
 - [WIP]
 
 ## Installation of Tools
+
+<!-- `deno run -A show-max-std-for-deno-v.ts 1.20.5` => "Deno-v1.20.5 => std@0.134.0" -->
+
+> Note: project is using std@0.134.0 which requires Deno v1.20.5 or greater.
+
+<!-- earlier MinSDV is likely possible; [2023-05-08; rivy] check for lower version possibilities and add CI tests -->
 
 ```shell
 # `dxi`
