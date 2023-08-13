@@ -11,7 +11,7 @@
 // spell-checker:ignore (names/people) Frederico Kereki ; Roy Ivy III * rivy
 
 // import { permitsAsync } from '../src/lib/$shared.TLA.ts';
-import { $colors, $fs, $lodash as _, $path, $xdgAppPaths } from './lib/$deps.ts';
+import { $colors, $fs, $lodash, $path, $xdgAppPaths } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
 import { abortIfMissingPermits, env } from './lib/$shared.ts';
 
@@ -359,7 +359,9 @@ const updates = await collect(map(async function (file) {
 		.LF(contentsOriginal)
 		.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
 	const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
-	const contentsUpdated = $eol.CRLF(_.template(cmdShimTemplate)({ targetBinName, targetBinPath }));
+	const contentsUpdated = $eol.CRLF(
+		$lodash.template(cmdShimTemplate)({ targetBinName, targetBinPath }),
+	);
 	return { name, isUpdatable: !!targetBinPath, targetBinPath, contentsOriginal, contentsUpdated };
 }, files));
 

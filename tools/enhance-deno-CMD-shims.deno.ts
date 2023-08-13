@@ -14,7 +14,7 @@
 import OSPaths from 'https://deno.land/x/os_paths@v6.9.0/src/mod.deno.ts';
 
 // import { permitsAsync } from '../src/lib/$shared.TLA.ts';
-import { $colors, $fs, $lodash as _, $path, $xdgAppPaths, $xWalk } from './lib/$deps.ts';
+import { $colors, $fs, $lodash, $path, $xdgAppPaths, $xWalk } from './lib/$deps.ts';
 import { $me, $version, decoder, encoder } from './lib/$shared.ts';
 import { abortIfMissingPermits, env } from './lib/$shared.ts';
 
@@ -342,7 +342,7 @@ const updates = await collect(map(async function (fileEntry) {
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget } = info;
 	const contentsUpdated = $eol.CRLF(
-		_.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
+		$lodash.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
 	);
 	return {
 		shimPath,

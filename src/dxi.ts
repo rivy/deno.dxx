@@ -1,7 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
 import {
-	$lodash as _,
+	$lodash,
 	$path,
 	mergeReadableStreams,
 	readAll,
@@ -408,7 +408,7 @@ if (status.success && isWinOS) {
 	await log.trace({ info, denoRunOptions, denoRunTarget, shimBinName, addQuietOption });
 	// const denoRunOptionsUpdated = denoRunOptions.
 	const contentsUpdated = eol.CRLF(
-		_.template(cmdShimTemplate(enablePipe))({
+		$lodash.template(cmdShimTemplate(enablePipe))({
 			denoRunOptions: denoRunOptions
 				.concat(addQuietOption ? ' "--quiet"' : '')
 				.trim(),
