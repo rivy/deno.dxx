@@ -269,7 +269,7 @@ const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: tr
 export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
 export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
 export function intoURL(path?: string, ...args: unknown[]) {
-	if (path == undefined) return undefined;
+	if (path == null) return undefined;
 	const base = (args?.length > 0 && (args[0] instanceof URL))
 		? args.shift() as URL
 		: allowRead
