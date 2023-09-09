@@ -26,8 +26,11 @@ import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
 
 //===
 
-await abortIfMissingPermits(['env', 'read']);
-await abortIfMissingPermits(['run']); // * for consoleSize; // ToDO: rewrite consoleSize to run (and gracefully degrade) with no permissions
+await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
+	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+	['read'], // required for shim targeting of argument expansion and 'yargs'
+	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+));
 
 //===
 
