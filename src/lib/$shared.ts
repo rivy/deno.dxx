@@ -273,8 +273,14 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	const base = (args?.length > 0 && (args[0] instanceof URL))
 		? args.shift() as URL
 		: allowRead
-		? ($path.toFileUrl(Deno.cwd() + $path.SEP))
-		: '';
+		? (() => {
+			try {
+				return $path.toFileUrl(Deno.cwd() + $path.SEP);
+			} catch {
+				return undefined;
+			}
+		})()
+		: undefined;
 	const options = {
 		...IntoUrlOptionsDefault,
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
