@@ -261,8 +261,8 @@ export type IntoUrlOptions = {
 const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: true };
 
 // `intoURL()`
-/** Convert a `path` string into an URL, relative to a `base` reference URL.
-@param [path]
+/** Convert a `path` string into a standard URL object, relative to a `base` reference URL.
+@param [path] • path/URL-string (may already be in URL file format [ie, 'file://...'])
 @param [base] • baseline URL reference point ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param [options] ~ defaults to `{driveLetterSchemes: true}`
 */

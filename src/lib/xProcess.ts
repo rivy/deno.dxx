@@ -97,7 +97,7 @@ export const isEval = permittedRead ? !!Deno.mainModule.match(isDenoEvalReS) : u
 /** * summary of information transmitted by 'shim'-executable initiating the main script, when available */
 export const shim = await (async () => {
 	const parts: {
-		/** * path/URL of script targeted by shim */
+		/** * path/URL-string of script targeted by shim */
 		TARGET?: string;
 		/** * original `argv[0]` which invoked this process (if/when available) */
 		ARGV0?: string;
@@ -111,9 +111,9 @@ export const shim = await (async () => {
 		// ... EXEC is really an implementation detail (for maximum command line content flexibility within a no-'Terminate batch job (Y/N)?' formulated batch file)
 		/** * executable path of secondary shim (when needed; generally defined only for Windows) */
 		EXEC?: string;
-		/** * URL of process script targeted by enhanced-shim process data
-		(used to gate shim-provided information to the correct process, avoiding interpretation of information passed through xProcess-naive intermediary processes)
-		*/
+		/** * URL of process script targeted by enhanced-shim process data (compact/string form)
+		 */
+		// * used to gate shim-provided information to the correct process, avoiding interpretation of information passed through xProcess-naive intermediary processes
 		targetURL?: string;
 		runner?: string;
 		runnerArgs?: string[];
