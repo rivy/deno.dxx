@@ -280,6 +280,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
 	};
 	let scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+	const pathIsFileUrl = ((scheme ?? '') === 'file');
 	if (options.driveLetterSchemes && scheme?.length == 1) {
 		scheme = 'file';
 		path = scheme + '://' + path;
@@ -294,7 +295,10 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	if (scheme === 'file') {
 		// "file" URLs will not have query or fragment strings
 		// '%'-encode '?' and '#' characters to avoid URI interpretation as query and/or fragment strings
-		path = path.replaceAll(/[%?#]/gmsu, (c) => '%' + c.charCodeAt(0).toString(16));
+		// * avoid double-encoding '%' characters for paths already in URL file format (ie, 'file://...')
+		if (!pathIsFileUrl) {
+			path = path.replaceAll(/[%?#]/gmsu, (c) => '%' + c.charCodeAt(0).toString(16));
+		}
 	}
 	// console.warn({ path, base, options });
 	try {
