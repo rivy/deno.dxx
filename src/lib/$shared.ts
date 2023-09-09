@@ -484,6 +484,12 @@ export function pathEquivalent(a?: string, b?: string) {
 	// console.warn({ aURL: intoURL(a), bURL: intoURL(b) });
 	return (a === b) || (intoURL(a)?.href === intoURL(b)?.href);
 }
+
+export function UrlEquivalent(a?: URL, b?: URL) {
+	// console.warn({ a, b });
+	return (a === b) || (a?.href === b?.href);
+}
+
 //===
 
 // ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat>
