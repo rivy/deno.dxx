@@ -116,6 +116,7 @@ export async function haveAllPermits(permitNames: Deno.PermissionName[]) {
 }
 
 export async function haveMissingPermits(permitNames: Deno.PermissionName[] = []) {
+	// ToDO: [2023-09-09; rivy] consider deduplication of `permitNames` contents
 	const permits = (await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name }))))
 		.map((e) => e ?? { state: 'granted', onchange: null });
 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
