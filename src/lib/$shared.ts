@@ -292,6 +292,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	// # replacing leading DOS device prefix ('//?/') with '//./?/' (reversed upon later extraction with `pathFromURL()`)
 	path = path.replace(/^\/\/\?\//, '//./?/');
 	if (scheme === 'file') {
+		// "file" URLs will not have query or fragment strings
 		// '%'-encode '?' and '#' characters to avoid URI interpretation as query and/or fragment strings
 		path = path.replaceAll(/[%?#]/gmsu, (c) => '%' + c.charCodeAt(0).toString(16));
 	}
