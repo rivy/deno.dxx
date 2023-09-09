@@ -261,10 +261,12 @@ export type IntoUrlOptions = {
 const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: true };
 
 // `intoURL()`
-/** Convert a `path` string into a standard URL object, relative to a `base` reference URL.
+/** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
+* * `no-throw` ~ function returns `undefined` upon any error
 @param [path] • path/URL-string (may already be in URL file format [ie, 'file://...'])
 @param [base] • baseline URL reference point ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param [options] ~ defaults to `{driveLetterSchemes: true}`
+@tags `no-throw`
 */
 export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
 export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
@@ -324,6 +326,12 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	}
 }
 
+// `pathFromURL()`
+/** Extract the "path" (absolute file path for 'file://' URLs, otherwise the href URL-string) from the `url`.
+* * `no-throw` ~ function returns `undefined` upon any error
+@param [url] • URL for extraction
+@tags `no-throw`
+*/
 export function pathFromURL(url: URL) {
 	let path = url.href;
 	if (url.protocol === 'file:') {
@@ -334,6 +342,9 @@ export function pathFromURL(url: URL) {
 
 //===
 
+/** 'read' permission state at time of module import
+- *avoids* permission prompts
+*/
 // const allowRead = (await Deno.permissions?.query({ name: 'read' })).state === 'granted';
 const allowRead = atImportPermissions.read.state === 'granted';
 
