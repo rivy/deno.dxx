@@ -657,14 +657,18 @@ const EOL = /\r?\n|\n/;
 const versionURL = intoURL(projectLocations.version, projectURL);
 
 // logger.trace({ projectURL, projectLocations, versionURL });
+// console.warn({ projectURL, projectLocations, versionURL });
 
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
 const projectVersionTextViaFetch =
 	await (versionURL &&
 			((versionURL.protocol === 'file:')
 				? ((await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted')
-				: ((await Deno.permissions.query({ name: 'net', host: versionURL.host })).state ===
-					'granted'))
+				: ((await Deno.permissions.query({
+					name: 'net',
+					host: (versionURL.host.length > 0) ? versionURL.host : undefined,
+				}))
+					.state === 'granted'))
 		? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
 			text?.split(EOL).filter((s) => s)[0]
 		))
