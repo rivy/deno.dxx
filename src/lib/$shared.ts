@@ -285,29 +285,39 @@ export function intoURL(path?: string, ...args: unknown[]) {
 		...IntoUrlOptionsDefault,
 		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
 	};
-	let scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
-	const pathIsFileUrl = ((scheme ?? '') === 'file');
-	if (options.driveLetterSchemes && scheme?.length == 1) {
-		scheme = 'file';
-		path = scheme + '://' + path;
-	}
-	scheme = scheme || 'file';
-	// normalize slashes ~ back-slashes to forward & replace all double-slashes with singles except for leading (for WinOS network paths) and those following schemes
-	path = path.replaceAll('\\', '/').replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)\/\/+/gmsu, '/');
-	// ref: [File path formats on Windows Systems](https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/AOS2n>
-	// note: '\\?\...' is equivalent to '\\.\...' for windows paths; '.' is a valid host/hostname, but '?' *is not*
-	// # replacing leading DOS device prefix ('//?/') with '//./?/' (reversed upon later extraction with `pathFromURL()`)
-	path = path.replace(/^\/\/\?\//, '//./?/');
-	if (scheme === 'file') {
-		// "file" URLs will not have query or fragment strings
-		// '%'-encode '?' and '#' characters to avoid URI interpretation as query and/or fragment strings
-		// * avoid double-encoding '%' characters for paths already in URL file format (ie, 'file://...')
-		if (!pathIsFileUrl) {
-			path = path.replaceAll(/[%?#]/gmsu, (c) => '%' + c.charCodeAt(0).toString(16));
-		}
-	}
-	// console.warn({ path, base, options });
+	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+	const pathIsURL = (scheme != null) && (scheme.length > (options.driveLetterSchemes ? 1 : 0));
+	const pathIsFileURL = (scheme === 'file');
+	// console.warn({ path, base, options, scheme, pathIsURL, pathIsFileURL });
 	try {
+		if (!pathIsURL) {
+			const pathname = (() => {
+				if ($path.isAbsolute(path)) return path;
+				// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
+				const leadingDrive = (path.match(/^[A-Za-z]:/))?.[0];
+				if (leadingDrive != null) {
+					const cwd = Deno.cwd();
+					Deno.chdir(leadingDrive);
+					const resolved = $path.resolve(path);
+					Deno.chdir(cwd);
+					return resolved;
+				}
+				if (base == null) return undefined;
+				return $path.resolve($path.join($path.fromFileUrl(base), path));
+			})();
+			if (pathname == null) return undefined;
+			const url = new URL('file:///');
+			url.pathname = pathname;
+			// console.warn({ pathIsURL, path, pathname, url });
+			return url;
+		}
+		if (pathIsFileURL) {
+			const pathname = $path.fromFileUrl(path);
+			const url = new URL('file:///');
+			url.pathname = pathname;
+			// console.warn({ pathIsFileURL, path, pathname, url });
+			return url;
+		}
 		return new URL(path, base);
 	} catch (_error) {
 		return undefined;
@@ -317,14 +327,8 @@ export function intoURL(path?: string, ...args: unknown[]) {
 export function pathFromURL(url: URL) {
 	let path = url.href;
 	if (url.protocol === 'file:') {
-		// regenerate path from any '%'-encoded characters
-		path = path.replaceAll(
-			/%([a-fA-F0-9][a-fA-F0-9])/gmsu,
-			(_, v) => String.fromCharCode(parseInt(v, 16)),
-		);
+		path = $path.fromFileUrl(url);
 	}
-	// regenerate correct paths for 'file:' protocol
-	path = path.replace(/^file:\/\/[.]\/?\//, '\/\/?\/').replace(/^file:\/\/\//, '');
 	return path;
 }
 
