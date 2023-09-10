@@ -364,6 +364,7 @@ const runOptions: Deno.RunOptions = {
 	stdout: 'piped',
 };
 await log.debug({ runOptions });
+// deno-lint-ignore no-deprecated-deno-api
 const process = Deno.run(runOptions);
 const mergedOutput = mergeReadableStreams(
 	// readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),

@@ -339,6 +339,7 @@ const runOptions: Deno.RunOptions = {
 	},
 };
 await log.trace({ runOptions });
+// deno-lint-ignore no-deprecated-deno-api
 const process = Deno.run(runOptions); // FixME: catch any panics
 const status = await process.status();
 Deno.exit(status.success ? 0 : status.code);
