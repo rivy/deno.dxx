@@ -84,6 +84,7 @@ async function fetch(input: string | Request | URL, init?: RequestInit): Promise
 		// ref: <https://nodejs.org/api/stream.html>
 		const p = (() => {
 			try {
+				// deno-lint-ignore no-deprecated-deno-api
 				return Deno.run({
 					// -# == display progress as a hashed bar and percentage complete (* could be used to track progress if/when needed)
 					// --fail == fail "silently" (no stdout output; error is displayed on stderr and error code is returned as process status)

@@ -627,6 +627,7 @@ export function mightUseUnicode() {
 
 export const commandVOf = (name: string) => {
 	try {
+		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
 			cmd: [
 				...(isWinOS

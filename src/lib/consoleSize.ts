@@ -279,6 +279,7 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 
 	const output = (() => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
 				stdin: 'null',
@@ -332,6 +333,7 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: [
 					'powershell',
@@ -378,6 +380,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: ['stty', 'size', 'sane'],
 				stdin: 'inherit',
@@ -414,6 +417,7 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const colsOutput = (() => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: ['tput', 'cols'],
 				stdin: 'null',
@@ -427,6 +431,7 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	})();
 	const linesOutput = (() => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: ['tput', 'lines'],
 				stdin: 'null',
