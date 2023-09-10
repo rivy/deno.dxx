@@ -7,8 +7,30 @@ const decode = (input?: Uint8Array): string => decoder.decode(input);
 
 const isWinOS = Deno.build.os === 'windows';
 
+const atImportAllowRead =
+	((await Deno.permissions?.query({ name: 'read' }))?.state ?? 'granted') === 'granted';
+
 type ConsoleSizeMemoKey = string;
 const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
+
+//===
+
+// export async function havePermit(name: Deno.PermissionName) {
+// 	const names = [name];
+// 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
+// 		e,
+// 	) => e ?? { state: 'granted', onchange: null });
+// 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+// 	return allGranted;
+// }
+
+// export async function haveAllPermits(names: Deno.PermissionName[]) {
+// 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
+// 		e,
+// 	) => e ?? { state: 'granted', onchange: null });
+// 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+// 	return allGranted;
+// }
 
 //===
 
@@ -134,7 +156,7 @@ export function consoleSizeViaDenoAPI(
 		size = denoConsoleSizeNT(fallbackRID);
 	}
 
-	if ((size == undefined) && options.consoleFileFallback) {
+	if ((size == undefined) && atImportAllowRead && options.consoleFileFallback) {
 		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
@@ -230,6 +252,7 @@ export function consoleSizeAsync(
 export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ~ 25 ms (WinOS-only)
 	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
+
 	const output = (() => {
 		try {
 			const process = Deno.run({
