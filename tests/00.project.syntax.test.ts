@@ -57,6 +57,7 @@ const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
 			const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--circular', '--no-spinner']
 				.concat(files);
 			console.log({ files });
+			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
@@ -75,6 +76,7 @@ const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
 test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.length} found)`, async () => {
 	const files = (projectCodeFilesByKind.examples).flatMap((e) => traversal(e) || []);
 	console.log({ files });
+	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
@@ -95,6 +97,7 @@ test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.len
 test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFilesByKind.source.length} found)`, async () => {
 	const files = (projectCodeFilesByKind.source).flatMap((e) => traversal(e) || []);
 	console.log({ files });
+	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
@@ -115,6 +118,7 @@ test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFiles
 test(`syntax ~ test and benchmark files (plus imports) compile correctly (${projectCodeFilesByKind.tests.length} found)`, async () => {
 	const files = (projectCodeFilesByKind.tests).flatMap((e) => traversal(e) || []);
 	console.log({ files });
+	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',
@@ -135,6 +139,7 @@ test(`syntax ~ test and benchmark files (plus imports) compile correctly (${proj
 test(`syntax ~ tools compile correctly (${projectCodeFilesByKind.tools.length} found)`, async () => {
 	const files = (projectCodeFilesByKind.tools).flatMap((e) => traversal(e) || []);
 	console.log({ files });
+	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
 		cmd: ['deno', 'test', '--no-run'].concat(files),
 		stdin: 'null',

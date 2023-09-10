@@ -78,6 +78,7 @@ function xSplit(s: string, sep: RegExp | string, options?: { trailing: boolean }
 const _gitLsFiles = (await haveGit())
 	? () => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({
 				cmd: ['git', 'ls-files', '--eol', '--full-name', projectPath],
 				stdout: 'piped',
@@ -148,6 +149,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		// POSIX requires quotes to avoid glob-expansion, *but* `Deno.run()` has a WinOS bug breaking any `cmd` element containing double-quotes
 		// * ref: <https://github.com/denoland/deno/issues/8852>
 		const gitVersionTagGlob = isWinOS ? '[#v]*' : '"[#v]*"';
+		// deno-lint-ignore no-deprecated-deno-api
 		const p = Deno.run({
 			cmd: [
 				...cliShellCommand,
@@ -176,6 +178,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
+			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
@@ -209,6 +212,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
+			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
@@ -225,6 +229,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 }
 
 test('style ~ `deno lint`', async () => {
+	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
@@ -243,6 +248,7 @@ test('style ~ `deno lint`', async () => {
 		test.skip(description + '...skipped (`dprint` not found)');
 	} else {
 		test(description, async () => {
+			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({
 				cmd: ['dprint', 'check'],
 				stdin: 'null',

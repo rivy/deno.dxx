@@ -33,6 +33,7 @@ const newlines = /\r?\n|\n/g;
 const gitDescribe = (await haveGit())
 	? () => {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({ cmd: ['git', 'describe', '--tags'], stdout: 'piped', stderr: 'piped' });
 			return Promise
 				.all([p.status(), p.output(), p.stderrOutput()])

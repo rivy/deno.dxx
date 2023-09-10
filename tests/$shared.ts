@@ -224,6 +224,7 @@ export const test = createTestFn();
 
 export const haveCommitLintVersion = () => {
 	try {
+		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
 			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'commitlint', '--version'],
 			stdin: 'null',
@@ -252,6 +253,7 @@ export const haveCommitLint = () => {
 
 export const haveCSpellVersion = () => {
 	try {
+		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
 			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', '--version'],
 			stdin: 'null',
@@ -280,6 +282,7 @@ export const haveCSpell = () => {
 
 export const haveDPrint = () => {
 	try {
+		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
 			cmd: ['dprint', '--version'],
 			stdin: 'null',
@@ -296,6 +299,7 @@ export const haveDPrint = () => {
 
 export const haveGit = () => {
 	try {
+		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
 			cmd: ['git', '--version'],
 			stdin: 'null',
@@ -312,6 +316,7 @@ export const haveGit = () => {
 
 export const haveMadgeVersion = () => {
 	try {
+		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
 			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--version'],
 			stdin: 'null',
@@ -338,6 +343,7 @@ export const isGitRepo = async (path = projectPath) => {
 	const haveGit_ = await haveGit();
 	if (haveGit_) {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: ['git', 'status', '--short'],
 				cwd: path,
@@ -356,6 +362,7 @@ export const gitProjectFilesWithEolDetail = async (path = projectPath, _options 
 	const haveGit_ = await haveGit();
 	if (haveGit_) {
 		try {
+			// deno-lint-ignore no-deprecated-deno-api
 			const process = Deno.run({
 				cmd: ['git', 'ls-files', '--eol', '--full-name'],
 				cwd: path,
