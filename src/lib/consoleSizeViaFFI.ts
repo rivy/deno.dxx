@@ -1,6 +1,7 @@
 // @ts-nocheck ~ suppress static error checking for missing `--unstable` or early Deno versions
 // * [2023-05-07; rivy] ~ for Deno v1.31.0+, @ts-nocheck may be disabled for error checking
 
+// spell-checker:ignore (deno) dlopen
 // spell-checker:ignore (shell/CMD) CONOUT
 // spell-checker:ignore (Typescript) ts-nocheck nocheck usize
 // spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS WCHAR

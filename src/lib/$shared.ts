@@ -1,5 +1,6 @@
 //== * SHARED exports
 
+// spell-checker:ignore (fns) chdir
 // spell-checker:ignore (env) WSL WSLENV
 // spell-checker:ignore (jargon) distro falsey truthy
 // spell-checker:ignore (js/ts) gmsu

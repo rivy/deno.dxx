@@ -1,4 +1,4 @@
-// spell-checker:ignore (names) Deno ; (vars) ARGF ARGX LOGLEVEL PATHEXT arr gmsu ; (yargs) nargs positionals
+// spell-checker:ignore (names) Deno ; (vars) ARGF ARGX LOGLEVEL SIGBREAK SIGINT PATHEXT arr gmsu ; (yargs) nargs positionals
 
 //===
 

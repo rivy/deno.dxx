@@ -1,4 +1,4 @@
-// spell-checker:ignore (names) Deno ; (options) nullglob ; (people) Roy Ivy III * rivy
+// spell-checker:ignore (fns) chdir ; (names) Deno ; (options) nullglob ; (people) Roy Ivy III * rivy
 
 import { $fs, $path, assert, assertEquals } from './$deps.ts';
 import { deepEqual, panicIfMissingPermits, pathToOsStyle, projectPath, test } from './$shared.ts';

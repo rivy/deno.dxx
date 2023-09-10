@@ -1,3 +1,4 @@
+// spell-checker:ignore (fns) extname
 // spell-checker:ignore (extensions) vcproj vcxproj
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (utils) dprint git

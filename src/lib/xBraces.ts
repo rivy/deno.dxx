@@ -1,4 +1,4 @@
-// spell-checker:ignore (js/ts) gmsu
+// spell-checker:ignore (jargon) bikeshed falsey glob globbing sep seps truthy vendored ; (js) gmsu imsu msu ; (libs) micromatch picomatch ; (names) Deno JSPM SkyPack ; (options) globstar nobrace noquantifiers nocase nullglob ; (people) Roy Ivy III * rivy ; (utils) xargs
 
 // ref: [bash shell expansion](https://tldp.org/LDP/Bash-Beginners-Guide/html/sect_03_04.html) @@ <https://archive.is/GFMJ1>
 // ref: [GNU ~ bash shell expansions](https://www.gnu.org/software/bash/manual/html_node/Shell-Expansions.html) @@ <https://archive.is/lHgK6>

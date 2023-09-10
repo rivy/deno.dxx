@@ -1,3 +1,4 @@
+// spell-checker:ignore (fns) isatty
 // spell-checker:ignore (Deno) rid rid's
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (shell) stty tput
