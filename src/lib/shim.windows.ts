@@ -4,9 +4,17 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
 @set "ERRORLEVEL="
 @set "SHIM_ERRORLEVEL="
-@setLocal EnableDelayedExpansion
+@setLocal
 @set SHIM_ARGS=%*
+@rem:: double '%' characters in SHIM_ARGS; needed for correct output of \`... echo @set SHIM_ARGS=%SHIM_ARGS%\`; used in SHIM_EXEC
+@rem:: * delayed expansion is required to double the '%' characters, *but* delayed expansion removes all '!' characters
+@rem:: * so, replace '!' with DEL (ASCII 0x7f), double '%' characters, then reverse the replacements
+@rem:: * NOTE: all DEL will be replaced with '!' (even if they were originally DEL characters), making DEL an unusable character for SHIM_ARGS
+@set SHIM_ARGS=%SHIM_ARGS:!=%
+@setLocal EnableDelayedExpansion
 @set SHIM_ARGS=!SHIM_ARGS:%%=%%%%!
+@endLocal & set SHIM_ARGS=%SHIM_ARGS:=!%
+@rem
 @set "SHIM_PIPE="
 @set "SHIM_TARGET="
 @:...prep...
