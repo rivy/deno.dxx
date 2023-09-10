@@ -2,6 +2,8 @@
 
 <!-- (template) data-template-match='(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)' data-template-replace='$1${VERSION_TAG}' -->
 
+<!-- markdownlint-disable no-inline-html -->
+
 # 🦕 Enhanced Deno commands
 
 ## `dxf`, `dxi`, `dxr`, and `dxx`
@@ -125,6 +127,12 @@ bmp --commit
 ```
 
 ## Testing
+
+> Optional testing tools
+>
+> - [`commitlint`](https://www.npmjs.com/package/@commitlint/cli) <br> `npm install --global @commitlint/cli @commitlint/ config-conventional`
+> - [`cspell`](https://www.npmjs.com/package/cspell) <br> `npm install --global cspell@5`
+> - [`madge`](https://www.npmjs.com/package/madge) <br> `npm install --global madge`
 
 `deno test -A`
 
