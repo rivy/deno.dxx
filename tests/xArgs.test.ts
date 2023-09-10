@@ -7,14 +7,27 @@ import * as Parse from '../src/lib/xArgs.ts';
 
 // FixME: by default, all tests should test that both Async and Sync versions of a function pass the test (and, therefore, match each other)
 
+// ToDO: add tests
+// * network tests
+// [2023-09-10; rivy] => [2023-09-10] fixed with modification of xArgs argument parsing of quoted arguments
+// - `\\HOSTNAME\path\*` works
+// - `"\\HOSTNAME\path"\*` works
+// - `"\\HOSTNAME\path\"*` FAILS
+// - `"\\HOSTNAME\path\"\*` works
+// - `"\\HOSTNAME\path"\""*` works
+// [2023-09-10; rivy] negative character sets FAIL => [2023-09-10; rivy] *solved* by better shim batch (avoiding loss of '!' in SHIM_ARGS)
+// - `PARENT_PATH\{.[!.],}PATH` FAILS
+// - `[!x]*` => `[x]*` (no expansion, with incorrect inner character set)))
+// - `.\{.[!.]}*` => `.\{.[.]}*` (no expansion, with incorrect inner character set)))
+
 //===
 
 await panicIfMissingPermits(['read']);
 
 //===
 
-// ToDO: convert to testing fixtures to avoid failures when source example files change
 const fixturePath = 'tests/fixtures';
+Deno.chdir($path.join(projectPath, fixturePath)); // * `chdir` causes a global/non-scoped change
 
 let shellExpandDuelWarnings = 0;
 async function shellExpandDuel(args: string | string[], options?: Parse.ArgsOptions) {
@@ -31,7 +44,6 @@ async function shellExpandDuel(args: string | string[], options?: Parse.ArgsOpti
 test('`shellExpand()` basics', () => {
 	return Promise
 		.resolve()
-		.then(() => Deno.chdir($path.join(projectPath, fixturePath)))
 		.then(async () => {
 			const exampleFiles = await Parse.shellExpand('./**/*.ext');
 			console.log({ exampleFiles });
