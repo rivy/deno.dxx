@@ -189,14 +189,14 @@ const nonOptionArgs = bakedArgs.slice(idxFirstNonOption + (usesEndOfOptions ? 1 
 
 log.trace({ optionArgs, nonOptionArgs });
 
-const argv = ((() => {
+const argv = (() => {
 	try {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
 		log.error(e.message);
 		return;
 	}
-})());
+})();
 if (argv && Array.isArray(argv._)) {
 	argv._.push(...nonOptionArgs);
 }
