@@ -134,7 +134,13 @@ bmp --commit
 > - [`cspell`](https://www.npmjs.com/package/cspell) <br> `npm install --global cspell@5`
 > - [`madge`](https://www.npmjs.com/package/madge) <br> `npm install --global madge`
 
-`deno test -A`
+Use `deno test -A`.
+
+> `deno test -A -- --test-xxx` or `deno test -A -- --xxx` will set the environment variable `TEST_XXX` to 'true' during testing.
+
+### distribution release testing
+
+Use `deno test -A -- --release` (or `--test-dist`, `-test-release`) to enable and perform full release testing prior to distribution of a release.
 
 ## Coverage Reports
 
