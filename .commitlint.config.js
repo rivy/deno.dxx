@@ -1,8 +1,8 @@
 // CommitLint configuration
 // ref: <https://commitlint.js.org/#/reference-configuration>
-// v2023-03-30 [rivy]
+// v2023-09-10 [rivy]
 
-// spell-checker:ignore (names) commitLint (people) Roy Ivy III * rivy (words) maint
+// spell-checker:ignore (jargon) maint (names) CommitLint DPrint (people) Roy Ivy III * rivy
 
 /* @prettier */
 // note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
@@ -85,6 +85,7 @@ module.exports = {
 		// ## maint [2020-01-07; rivy] ~ 'footer-leading-blank' disabled until <https://github.com/conventional-changelog/commitlint/issues/896> is fixed
 		// ## ... refs: <https://github.com/conventional-changelog/commitlint/issues/896#issuecomment-671865868> , <https://github.com/rook/rook/pull/6499#issuecomment-717267089>
 		'footer-leading-blank': [RULE_DISABLE],
+		'footer-max-line-length': [RULE_DISABLE],
 		'header-max-length': [RULE_WARNING, 'always', 90],
 		'scope-case': [RULE_ERROR, 'always', ['camel-case', 'lower-case', 'pascal-case', 'upper-case']],
 		'subject-case': [RULE_DISABLE],
