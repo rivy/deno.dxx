@@ -191,7 +191,7 @@ Usage:\n  ${runAsName} [OPTION..]`)
 	})
 	/* Options... */
 	.strictOptions(/* enable */ true)
-	// .option('force', { alias: ['f'], describe: 'Force update', type: 'boolean' })
+	.option('force', { alias: ['f'], describe: 'Force update', type: 'boolean' })
 	/* Examples...*/
 	// .example(`\`${runAsName} ARG\``, "Display 'shell-expanded ARG'")
 	.example([]);
