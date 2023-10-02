@@ -320,6 +320,14 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 		sectionTable.maxColWidth(maxColWidths, true).minColWidth(minColWidths, true);
 	}
 
+	// normalize trailing "whitespace" for various shells (cmd, cmd with `clink`, *nix shells); note: PowerShell unfortunately eats the last output line (need some isPowerShell() function)
+	// * const isPowerShell = isWinOS && Deno.env.get('...') === '...';
+	// Deno.ppid and `powershell -noProfile '$(Get-Process | Where-Object {$_.Id -eq 3384}).ProcessName'` may be useful
+	// help.push('\x1b[30m.\x1b[m'); // add a final line of "whitespace" using an "invisible" (black foreground) character
+	// const isWinOS = Deno.build.os === 'windows';
+	// if (isWinOS) {
+	// 	help.push('\x1b[2A');
+	// }
 	// performance.mark('restyleYargsHelp():stop');
 	// logger.trace(durationText('restyleYargsHelp()'));
 	return help.join('\n');
