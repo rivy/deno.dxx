@@ -314,6 +314,35 @@ export const haveCSpell = () => {
 	return haveCSpellVersion().then((version) => version != null);
 };
 
+// [`deno`](https://deno.land); install: [MacOS/Linux] `curl -fsSL https://deno.land/x/install/install.sh | sh` , [WinOS] `scoop install deno`
+
+export const haveDenoVersion = () => {
+	try {
+		// deno-lint-ignore no-deprecated-deno-api
+		const process = Deno.run({
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'deno', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'piped',
+		});
+		return Promise
+			.all([process.status(), process.output()])
+			.then(([status, out]) => {
+				// console.debug({ status: status, out: decode(out) });
+				return (status.success
+					? ((decode(out)?.match(/(?:^deno\s+)(\d+(?:[.]\d+)+)/) || [])[1])
+					: undefined);
+			})
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
+	}
+};
+
+export const haveDeno = () => {
+	return haveDenoVersion().then((version) => version != null);
+};
+
 // [`dprint`](https://dprint.dev); install: `cargo +stable-x86_64 install -i dprint`
 
 export const haveDPrint = () => {

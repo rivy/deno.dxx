@@ -1,7 +1,14 @@
 // spell-checker:ignore (fns) chdir ; (names) Deno ; (options) nullglob ; (people) Roy Ivy III * rivy
 
 import { $fs, $path, assert, assertEquals } from './$deps.ts';
-import { deepEqual, panicIfMissingPermits, pathToOsStyle, projectPath, test } from './$shared.ts';
+import {
+	deepEqual,
+	env,
+	panicIfMissingPermits,
+	pathToOsStyle,
+	projectPath,
+	test,
+} from './$shared.ts';
 
 import * as Parse from '../src/lib/xArgs.ts';
 
@@ -22,7 +29,7 @@ import * as Parse from '../src/lib/xArgs.ts';
 
 //===
 
-await panicIfMissingPermits(['read']);
+await panicIfMissingPermits(['env', 'read']);
 
 //===
 
@@ -104,6 +111,22 @@ test('compare `shellExpand()` to `shellExpandSync()`', async () => {
 	assertEquals(await Parse.shellExpand('eg\\*.ts'), Parse.shellExpandSync('eg\\*.ts'));
 	assertEquals(await Parse.shellExpand('eg\\*\\*.ts'), Parse.shellExpandSync('eg\\*\\*.ts'));
 	assertEquals(await Parse.shellExpand('eg\\**\\*.ts'), Parse.shellExpandSync('eg\\**\\*.ts'));
+});
+
+test(`simple expansions (eg, \`shellExpand('""')\`)`, async () => {
+	assertEquals(await Parse.shellExpand('~'), [env('HOME')]);
+	assertEquals(await Parse.shellExpand('""'), ['""']);
+	assertEquals(await Parse.shellExpand('"'), ['""']); // ?
+	assertEquals(await Parse.shellExpand("''"), ["''"]);
+	assertEquals(await Parse.shellExpand("'"), ["''"]); // ?
+	assertEquals(await Parse.shellExpand("'a b'"), ["'a b'"]);
+	assertEquals(
+		await Parse.shellExpand(
+			'^ [ ] { } ; : , . ? ! @ # $ % " ^ & | < > " ( ) "!x" %this% %%o/w-that%% "%%%the other"',
+		),
+		['^ [ ] { } ; : , . ? ! @ # $ % " ^ & | < > " ( ) "!x" %this% %%o/w-that%% "%%%the other"'],
+	);
+	assertEquals(await Parse.shellExpand('``'), ['``']); // fails
 });
 
 test(`brace expansion (eg, \`shellExpand('{a}*')\`)`, async () => {
