@@ -5,6 +5,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @set "ERRORLEVEL="
 @set "SHIM_ERRORLEVEL="
 @setLocal
+@set "DENO_NO_UPDATE_CHECK=1" &:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
 @set SHIM_ARGS=%*
 @rem:: double '%' characters in SHIM_ARGS; needed for correct output of \`... echo @set SHIM_ARGS=%SHIM_ARGS%\`; used in SHIM_EXEC
 @rem:: * delayed expansion is required to double the '%' characters
