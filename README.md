@@ -130,7 +130,7 @@ bmp --commit
 
 > Optional testing tools
 >
-> - [`commitlint`](https://www.npmjs.com/package/@commitlint/cli) <br> `npm install --global @commitlint/cli @commitlint/ config-conventional`
+> - [`commitlint`](https://www.npmjs.com/package/@commitlint/cli) <br> `npm install --global @commitlint/cli @commitlint/config-conventional`
 > - [`cspell`](https://www.npmjs.com/package/cspell) <br> `npm install --global cspell@5`
 > - [`madge`](https://www.npmjs.com/package/madge) <br> `npm install --global madge`
 
