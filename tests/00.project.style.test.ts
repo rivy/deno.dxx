@@ -138,6 +138,8 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 // console.warn({ projectPath, projectDirs });
 
 {
+	// ToDO: [2023-10-03; rivy] add `--cwd <projectPath>` to commitlint command (as needed, if CWD != projectPath)
+	// ToDO: [2023-10-03; rivy] check for correct configuration; present and working config file (including plugins; may use `commitlint --config .commitlint.config.js --print-config`)
 	const command = 'commitlint';
 	const haveCommand = await haveCommitLint();
 	const commitLintFrom = await (async () => {
