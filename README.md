@@ -102,8 +102,8 @@ Fully capable, completely self-contained, executable binaries can be built from 
 
 ### Tools
 
-- [`bmp`](https://github.com/rivy-go/git-changelog) (v1.1+) ... synchronizes version strings within the project
-  - install using `dxi --allow-read=. --allow-write=. --allow-run=git -qf https://deno.land/x/bmp@v0.0.6/cli.ts`
+- [`bmp`](https://deno.land/x/bmp@v0.0.7) (v0.0.7+) ... synchronizes version strings within the project
+  - install using `dxi --allow-read=. --allow-write=. --allow-run=git -f https://deno.land/x/bmp@v0.0.7/cli.ts`
 - [`git-changelog`](https://github.com/rivy-go/git-changelog) (v1.1+) ... enables changelog automation
   - install using `go get -u github.com/rivy-go/git-changelog/cmd/git-changelog`
 
@@ -130,6 +130,7 @@ bmp --commit
 
 > Optional testing tools
 >
+> - [`bmp`](https://deno.land/x/bmp@v0.0.7) <br> `dxi --allow-read=. --allow-write=. --allow-run=git -f https://deno.land/x/bmp@v0.0.7/cli.ts`
 > - [`commitlint`](https://www.npmjs.com/package/@commitlint/cli) <br> `npm install --global @commitlint/cli @commitlint/config-conventional`
 > - [`cspell`](https://www.npmjs.com/package/cspell) <br> `npm install --global cspell@5`
 > - [`madge`](https://www.npmjs.com/package/madge) <br> `npm install --global madge`
