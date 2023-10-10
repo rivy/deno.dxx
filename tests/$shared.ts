@@ -161,13 +161,20 @@ export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
 export function createTestFn(testFilePath?: URL | string) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
 	function test(description: string, fn: () => void | Promise<void>, options = {} as TestOptions) {
+		const callers = callersFromStackTrace();
+		// ToDO: [2023-10-10; rivy] to avoid quiet failures, add testing to confirm that `callersFromStackTrace()` contains the expected data
+		// Deno 1.33.0+ adds at least one extra caller level (ie, `ext:core/01_core.js:166:11`) to the stack trace; remove it/them
+		while ((callers.length > 0) && (callers[callers.length - 1]?.startsWith('ext:'))) {
+			const _ = callers.pop();
+		}
+
 		const tag =
 			(pathOfTestFile
 				? pathOfTestFile
-				: callersFromStackTrace().pop()?.replace(
+				: callers.pop()?.replace(
 					/:\d+$/,
 					'',
-				) /* remove trailing character position data from stack frame data (`URL:LINE:CHAR_POS`) */) ??
+				) /* remove trailing character position data from stack frame data (formatted as `URL:LINE:CHAR_POS`) */) ??
 				'';
 		const testName: TestName = composeTestName(tag, description, {
 			align: !(pathOfTestFile),
