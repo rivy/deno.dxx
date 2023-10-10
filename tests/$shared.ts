@@ -220,6 +220,35 @@ export const test = createTestFn();
 
 //===
 
+// [`bmp`](https://deno.land/x/bmp@v0.0.7); install (for Deno-v1.11+/std@0.98.0) <br> `dxi --allow-read=. --allow-write=. --allow-run=git -qf https://deno.land/x/bmp@v0.0.7/cli.ts`
+
+export const haveBmpVersion = () => {
+	try {
+		// deno-lint-ignore no-deprecated-deno-api
+		const process = Deno.run({
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'bmp', '--version'],
+			stdin: 'null',
+			stderr: 'null',
+			stdout: 'piped',
+		});
+		return Promise
+			.all([process.status(), process.output()])
+			.then(([status, out]) => {
+				// console.debug({ status: status, out: decode(out) });
+				return (status.success
+					? ((decode(out)?.match(/(?:^|@)(\d+(?:[.]\d+)+)/) || [])[1])
+					: undefined);
+			})
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
+	}
+};
+
+export const haveBmp = () => {
+	return haveBmpVersion().then((version) => version != null);
+};
+
 // [`commitlint`](https://commitlint.js.org); install (for NodeJS v12+): `npm -g install @commitlint/cli@16 @commitlint/config-conventional@16`
 
 export const haveCommitLintVersion = () => {

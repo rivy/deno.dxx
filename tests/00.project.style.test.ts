@@ -7,6 +7,7 @@
 // import { $colors } from './$deps.ts';
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
 import {
+	haveBmp,
 	haveCommitLint,
 	haveCSpell,
 	haveCSpellVersion,
@@ -136,6 +137,34 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 
 // console.warn({ projectFiles, projectDirs });
 // console.warn({ projectPath, projectDirs });
+
+{
+	// ToDO: [2023-10-10; rivy] deal with CWD != projectPath
+	const command = 'bmp';
+	const haveCommand = await haveBmp();
+	const exeArgs = ['--info'];
+	const exeCmd = [command, ...exeArgs].join(' ');
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
+	const description = `style ~ \`${exeCmd}\``;
+	if (!haveCommand) {
+		test.skip(description + `...skipped (\`${command}\` not found)`);
+	} else {
+		test(description, async () => {
+			// deno-lint-ignore no-deprecated-deno-api
+			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const [status, out, err] = await Promise
+				.all([p.status(), p.output(), p.stderrOutput()])
+				.finally(() => p.close());
+			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
+			if (!status.success) {
+				console.warn(`\`${command}\` status`, status);
+				console.warn(decode(out).replace(/\r?\n$/ms, ''));
+				console.warn(decode(err).replace(/\r?\n$/ms, ''));
+			}
+			assert(status.success, `\`${command}\` check succeeds`);
+		});
+	}
+}
 
 {
 	// ToDO: [2023-10-03; rivy] add `--cwd <projectPath>` to commitlint command (as needed, if CWD != projectPath)
