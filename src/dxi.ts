@@ -345,10 +345,14 @@ const filteredDelegatedArgs = delegatedArgs.flatMap((arg) => {
 		quietShim = true;
 		return [];
 	}
-	const matches = arg.match(/-([^-].*q)/);
+	const matches = arg.match(/^-[^-].*/);
 	if (matches) {
-		quietShim = true;
-		arg = arg.replace('q', '');
+		// `arg` matches a combined short option
+		const matches = arg.match(/q/);
+		if (matches) {
+			quietShim = true;
+			arg = arg.replace('q', '');
+		}
 	}
 	return [arg];
 });
