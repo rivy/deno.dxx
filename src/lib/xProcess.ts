@@ -174,7 +174,8 @@ export const shim = await (async () => {
 	return parts;
 })();
 
-// ToDO?: evaluate the proper course for shim info targeted at other processes
+// ToDO?: evaluate the proper course of action for shim info targeted at other processes
+//  ... * generally, a process expecting to be a target should likely clear the SHIM info for any sub-processes it creates
 // consume/reset SHIM environment variables to avoid interpretation by a subsequent process
 const envVarNames = shimEnvPrefix.flatMap((prefix) =>
 	shimEnvBaseNames.map((base) => prefix + base)

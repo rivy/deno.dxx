@@ -55,7 +55,7 @@ const dll = isWinOS
 
 export function GetCommandLineA() {
 	if (!unstable) return undefined;
-	// @ts-ignore # Deno.PointerValue is unstable, available in Deno v1.50.0+
+	// @ts-ignore # Deno.PointerValue is unstable, available in Deno v1.24.2+
 	const ptr = dll?.symbols.GetCommandLineA() as Deno.PointerValue;
 	const ptrView = ptr && new unstable.UnsafePointerView(ptr);
 	return ptrView?.getCString();
@@ -63,7 +63,7 @@ export function GetCommandLineA() {
 
 function GetCommandLineW(): WString | undefined {
 	if (!unstable) return undefined;
-	// @ts-ignore # Deno.PointerValue is unstable, available in Deno v1.50.0+
+	// @ts-ignore # Deno.PointerValue is unstable, available in Deno v1.24.2+
 	const ptr = dll?.symbols.GetCommandLineW() as Deno.PointerValue;
 	const ptrView = ptr && new unstable.UnsafePointerView(ptr);
 	if (ptrView == null) return undefined;
@@ -81,11 +81,15 @@ function GetCommandLineW(): WString | undefined {
 }
 
 export function GetCommandLine() {
-	if (!isWinOS) return undefined; // implemented only for WinOS-only
+	if (!isWinOS) return undefined; // implemented only for WinOS
 	return WStringToString(GetCommandLineW());
 }
 
-// console.debug('Deno', { args: Deno.args, main: Deno.mainModule, exec: Deno.execPath() });
-// console.debug('GetCommandLine() =>', GetCommandLine());
-// console.debug('GetCommandLineA() =>', GetCommandLineA());
-// console.debug('GetCommandLineW() =>', GetCommandLineW());
+// console.debug('Deno:', { args: Deno.args, main: Deno.mainModule, exec: Deno.execPath() });
+// console.debug(`GetCommandLine() => '${GetCommandLine()}'`);
+// console.debug(`GetCommandLineA() => '${GetCommandLineA()}'`);
+// console.debug(
+// 	`GetCommandLineW() =>`,
+// 	GetCommandLineW(),
+// 	`=> '${WStringToString(GetCommandLineW())}'`,
+// );
