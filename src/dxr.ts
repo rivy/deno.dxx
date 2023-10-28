@@ -328,7 +328,7 @@ const runOptions: Deno.RunOptions = {
 	stdin: 'inherit',
 	stdout: 'inherit',
 	env: {
-		SHIM_ARGV0: `${$me.runAs} ${
+		SHIM_ARG0: `${$me.runAs} ${
 			[...shimOptions, targetPath]
 				.filter(Boolean)
 				.map((e) => e && $args.reQuote(e))
