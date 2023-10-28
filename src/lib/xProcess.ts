@@ -66,7 +66,7 @@ const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
 const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_'];
-const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV0', 'PIPE', 'EXEC'];
+const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC'];
 
 //===
 
@@ -100,7 +100,7 @@ export const shim = await (async () => {
 		/** * path/URL-string of script targeted by shim */
 		TARGET?: string;
 		/** * original `argv[0]` which invoked this process (if/when available) */
-		ARGV0?: string;
+		ARG0?: string;
 		/** * original argument text string */
 		ARGS?: string;
 		// useful ~ for Windows modification of parent environment (needed for creation of equivalents for enhanced-`cd` (`enhan-cd`, `goto`, `scd`, ...) and `source` applications) // spell-checker:ignore enhan
@@ -124,10 +124,12 @@ export const shim = await (async () => {
 	parts.TARGET = (await envAsync('SHIM_TARGET')) ||
 		(await envAsync('SHIM_URL')) ||
 		(await envAsync('DENO_SHIM_URL'));
-	parts.ARGV0 = (await envAsync('SHIM_ARGV0')) ??
-		(await envAsync('SHIM_ARG0')) ??
+	parts.ARG0 = (await envAsync('SHIM_ARG0')) ??
+		(await envAsync('SHIM_ARGV0')) ??
 		(await envAsync('DENO_SHIM_ARG0'));
-	parts.ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('DENO_SHIM_ARGS'));
+	parts.ARGS = (await envAsync('SHIM_ARGS')) ??
+		(await envAsync('SHIM_ARGV')) ??
+		(await envAsync('DENO_SHIM_ARGS'));
 	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
 	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC'));
 	//
@@ -143,11 +145,11 @@ export const shim = await (async () => {
 	) {
 		// shim is targeting current process
 		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an enhanced shim
-		parts.runner = parts.ARGV0;
+		parts.runner = parts.ARG0;
 		parts.runnerArgs = [];
 	} else if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.execPath())) {
 		// shim is targeting runner
-		if (!parts.ARGS) parts.runner = parts.ARGV0;
+		if (!parts.ARGS) parts.runner = parts.ARG0;
 		// o/w assume execution in `deno` style as `<runner>` + `<options..> eval/run <options..> script_name <script_options..>`
 		// * so, find *second* non-option in ARGS
 		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
@@ -157,7 +159,7 @@ export const shim = await (async () => {
 			idx++;
 			if (!deQuote(word)?.startsWith('-')) nonOptionN++;
 			if (nonOptionN > 1) {
-				parts.runner = parts.ARGV0;
+				parts.runner = parts.ARG0;
 				parts.runnerArgs = words.slice(0, idx - 1);
 				if (isEval) {
 					parts.scriptName = '$deno$eval';
@@ -312,7 +314,7 @@ export const runAs = (isEnhancedShimTarget && shim.runner)
 
 /** * calculated or supplied `argv0` is available for interpretation/expansion */
 export const haveSuppliedArgv0 = Boolean(
-	(isEnhancedShimTarget && shim.ARGV0) || commandLineParts.runner || isDirectExecution,
+	(isEnhancedShimTarget && shim.ARG0) || commandLineParts.runner || isDirectExecution,
 );
 
 /** * shim supplies enhanced arguments */
