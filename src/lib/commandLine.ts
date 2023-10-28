@@ -67,16 +67,26 @@ function GetCommandLineW(): WString | undefined {
 	const ptr = dll?.symbols.GetCommandLineW() as Deno.PointerValue;
 	const ptrView = ptr && new unstable.UnsafePointerView(ptr);
 	if (ptrView == null) return undefined;
-	const Uint16Size = 2;
-	let offset = 0;
-	let value = ptrView.getUint16(offset);
+	const Uint16ByteSize = Uint16Array.BYTES_PER_ELEMENT;
+	let byteOffset = 0;
+	let value = ptrView.getUint16(byteOffset);
 	while (value != null && value !== 0) {
 		// console.debug({ idx, value, c: String.fromCharCode(value) });
-		offset = offset + Uint16Size;
-		value = ptrView.getUint16(offset);
+		byteOffset = byteOffset + Uint16ByteSize;
+		value = ptrView.getUint16(byteOffset);
 	}
-	const s = new Uint16Array(offset / Uint16Size);
-	ptrView.copyInto(s);
+	const s = new Uint16Array(byteOffset / Uint16ByteSize);
+	// ptrView.copyInto(s); // Deno 1.37.2 => TypeError: expected typed ArrayBufferView; see issue [#21005](GH:denoland/deno/issues/21005)
+	let idx = 0;
+	byteOffset = 0;
+	value = ptrView.getUint16(byteOffset);
+	while ((value != null && value !== 0)) {
+		s[idx++] = value;
+		byteOffset = byteOffset + Uint16ByteSize;
+		value = ptrView.getUint16(byteOffset);
+	}
+	// console.debug({ s, length: s.length, idx, byteOffset });
+	// console.debug(`decode_s: '${WStringToString(s)}'`);
 	return s;
 }
 
