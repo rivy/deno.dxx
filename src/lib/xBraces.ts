@@ -57,7 +57,7 @@ Uses the ['braces'](https://github.com/micromatch/braces) JS module.
 @example
 ```js
 const text = '{a,b} text string {1..10..2}';
-const expansion = expand('{a,b} text string');
+const expansion = expand(text);
 ```
 */
 export function expand(s: string) {
@@ -88,9 +88,9 @@ export function expand(s: string) {
 					// unquoted text => escape special characters
 					// * 1st, escape the braces escape character
 					matchStr = matchStr.replace(bracesEscChar, `${bracesEscChar}${bracesEscChar}`);
-					// * escape any 'special' (braces escape or glob) characters
+					// * escape any 'special' (braces escape, glob, or "`") characters
 					matchStr = matchStr.replace(
-						new RegExp(`([\\${bracesEscChar}?*\\[\\]])`, 'gmsu'),
+						new RegExp(`([\\${bracesEscChar}?*\\[\\]\`])`, 'gmsu'),
 						`${bracesEscChar}$1`,
 					);
 				}
