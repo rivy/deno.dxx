@@ -181,7 +181,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	})
 	/* Examples...*/
 	.example(
-		`${appRunAs} "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@v0.0.14/README.md" file1.md file2.mkd`,
+		`${appRunAs} "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@v0.0.15/README.md" file1.md file2.mkd`,
 		'Copy from a WAN URL to local files',
 	)
 	.example(`${appRunAs} "https://pokeapi.co/api/v2/pokemon/1" -`, 'Copy URL REST output to stdout')
