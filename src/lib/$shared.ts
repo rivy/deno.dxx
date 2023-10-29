@@ -19,7 +19,7 @@ export const VERSION = '0.0.14';
 // note: `projectURL` has some inherent instability for compiled scripts; this can be mitigated by using a CDN source for the compilation (eg, JSdelivr.net, Statically.io, GitHack.com)
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath =
-	((url: URL) => (url.protocol === 'file:') ? $path.fromFileUrl(url) : url.pathname)(projectURL);
+	((url: URL) => (url.protocol === 'file:') ? $path.fromFileUrl(url) : url.href)(projectURL);
 export const projectLocations = {
 	benchmarks: $path.join(projectPath, 'bench'),
 	editorconfig: $path.join(projectPath, '.editorconfig'),
