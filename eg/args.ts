@@ -63,7 +63,7 @@ log.debug(`logging to *STDERR*`);
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me, $version });
-log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
+log.trace('project', { url: projectURL, href: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
