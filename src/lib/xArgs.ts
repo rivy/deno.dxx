@@ -509,6 +509,10 @@ export async function* globExpandIter(
 	glob: GlobString,
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ): AsyncIterableIterator<string> {
+	if (glob == null || glob === '') {
+		yield '';
+		return;
+	}
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
 	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
@@ -606,6 +610,10 @@ export function* globExpandIterSync(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// console.warn('xArgs.globExpandIterSync(glob, options)', { glob, options });
+	if (glob == null || glob === '') {
+		yield '';
+		return;
+	}
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
 	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
