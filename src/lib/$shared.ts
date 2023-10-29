@@ -77,6 +77,7 @@ function getFramesFromError(error: Error): Array<string> {
 		frames = [];
 	}
 
+	// console.debug({ stack, frames });
 	return frames;
 }
 
