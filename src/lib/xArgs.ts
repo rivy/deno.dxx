@@ -429,6 +429,7 @@ function decodeANSIC(s: string) {
 
 export function reQuote(s: string) {
 	// re-quote string to protect from later re-expansion
+	if (s === '') return '""';
 	const specialChars = ['*', '?', '{', '}', '[', ']', `'`, `"`, '$', '<', '>', '|', '&'];
 	const hasSpecialChar = specialChars.find((c) => s.includes(c));
 	const hasWhiteSpace = s.match(/\s/msu);
