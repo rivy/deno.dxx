@@ -312,8 +312,8 @@ const max_shim_args_size = 8 * 1024; // heuristic max environment use for SHIM_A
 const shimOptions: string[] = [];
 if (delegatedArgs.length < 1) {
 	delegatedArgs.push('-A', '--quiet');
-} else shimOptions.push(...[usesEndOfOptions ? '--' : ''].filter(Boolean), ...delegatedArgs);
-const denoArgs = ['run', ...delegatedArgs].filter(Boolean);
+} else shimOptions.push(...[usesEndOfOptions ? '--' : ''], /* .filter(Boolean) */ ...delegatedArgs);
+const denoArgs = ['run', ...delegatedArgs] /* .filter(Boolean) */;
 const SHIM_ARGS = targetArgs.map($args.reQuote).join(' ');
 if (SHIM_ARGS.length > max_shim_args_size) {
 	await log.error(
@@ -330,7 +330,7 @@ const runOptions: Deno.RunOptions = {
 	env: {
 		SHIM_ARG0: `${$me.runAs} ${
 			[...shimOptions, targetPath]
-				.filter(Boolean)
+				// .filter(Boolean)
 				.map((e) => e && $args.reQuote(e))
 				.join(' ')
 		}`,
