@@ -137,18 +137,20 @@ bmp --commit
 
 Use `deno test -A`.
 
-> `deno test -A -- --test-xxx` or `deno test -A -- --xxx` will set the environment variable `TEST_XXX` to 'true' during testing.
+> For `deno test -A -- --test-xxx` or `deno test -A -- --xxx`, testing scripts may use `import { setEnvFromArgs } from './$shared.permit.ts'; setEnvFromArgs(Deno.args);` which will set the environment variable `TEST_XXX` to 'true' during testing.
 
 ### distribution release testing
 
-Use `deno test -A -- --release` (or `--test-dist`, `-test-release`) to enable and perform full release testing prior to distribution of a release.
+Use `deno test -A -- --release` (or `--test-dist`, `--test-release`) to enable and perform full release testing prior to distribution of a release.
 
 ## Coverage Reports
 
 ```shell
+rm .coverage
 deno test -A --coverage=.coverage
 deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage | perl -pe "use Cwd; $cwd = (getcwd() =~ s/[\\\/]/[\\\\\\\/]/gmrsu); s/^SF:${cwd}\\/SF:/gmsu;" > .coverage/@coverage.lcov
 genhtml -o .coverage\html .coverage\@coverage.lcov
+# for WinOS => start "" .coverage\html\index.html
 ```
 
 ## Benchmarking
