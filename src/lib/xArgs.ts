@@ -915,6 +915,10 @@ export async function shellExpandAsync(
 	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpand()', { options, arr });
 	for (const e of arr) {
+		if (e != null && e === '') {
+			arrOut.push(e);
+			continue;
+		}
 		for (const x of [e].flatMap(Braces.expand).map(tildeExpand)) {
 			arrOut.push(...await globExpandAsync(x as GlobString, options));
 		}
@@ -946,10 +950,18 @@ export function shellExpandSync(
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
 	const arr = Array.isArray(args) ? args : [args];
+	const arrOut: string[] = [];
 	// console.warn('xArgs.shellExpandSync()', { options, arr });
-	return arr.flatMap(Braces.expand).map(tildeExpand).flatMap((e) =>
-		globExpandSync(e as GlobString, options)
-	);
+	for (const e of arr) {
+		if (e != null && e === '') {
+			arrOut.push(e);
+			continue;
+		}
+		for (const x of [e].flatMap(Braces.expand).map(tildeExpand)) {
+			arrOut.push(...globExpandSync(x as GlobString, options));
+		}
+	}
+	return arrOut;
 }
 
 // `shellExpand()`
@@ -1113,6 +1125,7 @@ if (options.targetExecutable) {
 }
 ```
 */
+// ToDO: [2023-10-28; rivy] revise for empty args and eval use of `endExpansionToken`
 export async function* argsItAsync(
 	argsText: string,
 	options: ArgsOptions = { nullglob: envNullglob() },
@@ -1188,6 +1201,7 @@ if (options.targetExecutable) {
 }
 ```
 */
+// ToDO: [2023-10-28; rivy] revise for empty args and eval use of `endExpansionToken`
 export function* argsItSync(
 	argsText: string,
 	options: ArgsOptions = { nullglob: envNullglob() },
