@@ -158,7 +158,7 @@ function composeTestName(
 
 export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
 
-export function createTestFn(testFilePath?: URL | string) {
+export function createTestFn(testFilePath?: string | URL) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
 	function test(description: string, fn: () => void | Promise<void>, options = {} as TestOptions) {
 		const callers = callersFromStackTrace();

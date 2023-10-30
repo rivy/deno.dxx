@@ -11,7 +11,7 @@ import {
 	haveMadge,
 	isWinOS,
 	panicIfMissingPermits,
-	projectPath,
+	projectPath as maybeProjectPath,
 	test,
 	traversal,
 } from './$shared.ts';
@@ -19,6 +19,13 @@ import {
 //===
 
 await panicIfMissingPermits(['read', 'run']);
+
+//===
+
+if (maybeProjectPath == null) {
+	throw new Error('`projectPath` is not defined; unable to determine project files for testing');
+}
+const projectPath = maybeProjectPath;
 
 //===
 

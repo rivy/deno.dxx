@@ -6,7 +6,7 @@ import {
 	env,
 	panicIfMissingPermits,
 	pathToOsStyle,
-	projectPath,
+	projectPath as maybeProjectPath,
 	test,
 } from './$shared.ts';
 
@@ -30,6 +30,13 @@ import * as Parse from '../src/lib/xArgs.ts';
 //===
 
 await panicIfMissingPermits(['env', 'read']);
+
+//===
+
+if (maybeProjectPath == null) {
+	throw new Error('`projectPath` is not defined; unable to determine project files for testing');
+}
+const projectPath = maybeProjectPath;
 
 //===
 

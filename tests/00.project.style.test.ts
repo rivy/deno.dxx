@@ -20,7 +20,7 @@ import {
 	haveGit,
 	isWinOS,
 	projectLocations,
-	projectPath,
+	projectPath as maybeProjectPath,
 	test,
 } from './$shared.ts';
 
@@ -54,6 +54,13 @@ await panicIfMissingPermits([
 	'run',
 ]);
 setEnvFromArgs(Deno.args);
+
+//===
+
+if (maybeProjectPath == null) {
+	throw new Error('`projectPath` is not defined; unable to determine project files for testing');
+}
+const projectPath = maybeProjectPath;
 
 //===
 

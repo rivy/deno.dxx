@@ -1,7 +1,6 @@
 // spell-checker:ignore (names) Deno
 
-import { $fs, assertEquals, equal } from './$deps.ts';
-const { existsSync } = $fs;
+import { assertEquals, equal } from './$deps.ts';
 
 import {
 	decode,
@@ -79,10 +78,10 @@ test(`project version matches 'VERSION' file`, () => {
 	assertEquals(actual, expected);
 });
 
-if ((projectName && (projectName.length > 0)) && existsSync(projectLocations.readme)) {
+if ((projectName && (projectName.length > 0))) {
 	const readmeText = Deno.readTextFileSync(projectLocations.readme);
 	const URLrx = new RegExp(`https?://deno.land/x/${projectName}@v?((?:\\d+[.])*\\d+)(?=/)`, 'gim');
-	const readmeURLs = Array.from(readmeText.matchAll(URLrx));
+	const readmeURLs = readmeText ? Array.from(readmeText.matchAll(URLrx)) : [];
 
 	test(
 		`README ~ project version matches versioned URLs (${readmeURLs?.length || 'NONE'} found)`,
