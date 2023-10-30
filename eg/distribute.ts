@@ -6,8 +6,8 @@ import { $version, durationText, env } from '../src/lib/$shared.ts';
 import { $consoleSize, $me } from '../src/lib/$locals.ts';
 import {
 	$logger,
-	intoPath,
-	intoURL,
+	ensureAsPath,
+	ensureAsURL,
 	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
 	traversal,
 	validURL,
@@ -281,23 +281,10 @@ console.log(
 );
 
 TARGET.forEach((dest) => {
-	remoteCopy(ensureURL(SOURCE), ensureURL(dest));
+	remoteCopy(ensureAsURL(SOURCE), ensureAsURL(dest));
 });
 
 //===
-
-function ensureURL(path: string | URL) {
-	if (path instanceof URL) return path;
-	const url = intoURL(path);
-	if (url == null) throw 'ToDO-ERROR-type';
-	return url;
-}
-
-function ensurePath(path?: string | URL) {
-	const p = intoPath(path);
-	if (p == null || p === '') throw 'ToDO-ERROR-type';
-	return p;
-}
 
 import { /* copy, */ writableStreamFromWriter } from 'https://deno.land/std@0.134.0/streams/mod.ts';
 
@@ -305,7 +292,7 @@ async function remoteCopy(src: URL, dst: URL, _options?: { bufSize?: number }) {
 	const fileResponse = await fetch(src);
 
 	if (fileResponse.body) {
-		const file = await Deno.open(ensurePath(traversal(dst)), { write: true, create: true });
+		const file = await Deno.open(ensureAsPath(traversal(dst)), { write: true, create: true });
 		const writableStream = writableStreamFromWriter(file);
 		await fileResponse.body.pipeTo(writableStream);
 	}

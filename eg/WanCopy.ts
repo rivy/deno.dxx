@@ -16,7 +16,7 @@ import { $consoleSize, $me } from '../src/lib/$locals.ts';
 import {
 	$logger,
 	abortIfMissingPermits,
-	intoPath,
+	ensureAsPath,
 	intoURL,
 	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
 	traversal,
@@ -427,19 +427,6 @@ await log.debug({ exitValue: appState.exitValue });
 Deno.exit(appState.exitValue);
 
 //===
-
-function _ensureAsURL(path: string | URL) {
-	if (path instanceof URL) return path;
-	const url = intoURL(path);
-	if (url == null) throw new Deno.errors.InvalidData('Invalid URL');
-	return url;
-}
-
-function ensureAsPath(path?: string | URL) {
-	const p = intoPath(path);
-	if (p == null || p === '') throw new Deno.errors.InvalidData('Invalid path');
-	return p;
-}
 
 // `copy()`
 // * wsCopy()? (wan-stream-copy)
