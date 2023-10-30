@@ -18,17 +18,16 @@ export const VERSION = '0.0.14';
 
 // note: `projectURL` has some inherent instability for compiled scripts; this can be mitigated by using a CDN source for the compilation (eg, JSdelivr.net, Statically.io, GitHack.com)
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
-export const projectPath =
-	((url: URL) => (url.protocol === 'file:') ? $path.fromFileUrl(url) : url.href)(projectURL);
+export const projectPath = pathFromURL(projectURL);
 export const projectLocations = {
-	benchmarks: $path.join(projectPath, 'bench'),
-	editorconfig: $path.join(projectPath, '.editorconfig'),
-	examples: $path.join(projectPath, 'eg'),
-	readme: $path.join(projectPath, 'README.md'),
-	source: $path.join(projectPath, 'src'),
-	tests: $path.join(projectPath, 'tests'),
-	vendor: $path.join(projectPath, 'vendor'),
-	version: $path.join(projectPath, 'VERSION'),
+	benchmarks: (new URL('bench', projectURL)),
+	editorconfig: (new URL('.editorconfig', projectURL)),
+	examples: (new URL('eg', projectURL)),
+	readme: (new URL('README.md', projectURL)),
+	source: (new URL('src', projectURL)),
+	tests: (new URL('tests', projectURL)),
+	vendor: (new URL('vendor', projectURL)),
+	version: (new URL('VERSION', projectURL)),
 };
 
 // // ToDO: investigate best practice for portability of PATH_SEP_PATTERN // note: WinOS => /[\\/]+/ ; *nix => /\/+/
@@ -405,9 +404,9 @@ export function traversal(
 		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0) &&
 		(url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0);
 	// console.warn({ goal, url, base, baseURL, commonOrigin });
-	if (url && baseURL && commonOrigin) {
-		const basePath = pathFromURL(baseURL);
-		const goalPath = pathFromURL(url);
+	const basePath = pathFromURL(baseURL);
+	const goalPath = pathFromURL(url);
+	if (commonOrigin && basePath && goalPath) {
 		const commonPathPrefix = longestCommonPrefix(
 			// ToDO: add option to turn on/off file comparison case-sensitivity
 			mightUseFileSystemCase() ? basePath : toCommonCase(basePath),
@@ -423,9 +422,8 @@ export function traversal(
 			basePath.slice(commonPathPrefix.length),
 			goalPath.slice(commonPathPrefix.length),
 		);
-	} else {
-		return url ? url.href : undefined;
 	}
+	return url ? url.href : undefined;
 }
 
 //===
@@ -706,7 +704,7 @@ import { fetch } from './xFetch.ts'; // 'file://'-compatible `fetch()`
 // import { logger } from '../../tests/$shared.ts';
 
 const EOL = /\r?\n|\n/;
-const versionURL = intoURL(projectLocations.version, projectURL);
+const versionURL = projectLocations.version;
 
 // logger.trace({ projectURL, projectLocations, versionURL });
 // console.warn({ projectURL, projectLocations, versionURL });
