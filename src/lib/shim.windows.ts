@@ -28,7 +28,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @set "SHIM_ARG0=%~0"
 @set "SHIM_TARGET=<%=denoRunTarget%>"
 @call "%SHIM_EXEC%"
-@call set ERRORLEVEL=%%ERRORLEVEL%%
+@call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
 @if EXIST "%SHIM_EXEC%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_EXEC%" 2>NUL
 @if EXIST "%SHIM_PIPE%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
@@ -37,7 +37,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @set "SHIM_ARG0="
 @set "SHIM_ARGS="
 @set "SHIM_TARGET="
-@%COMSPEC% /d/c "exit %%ERRORLEVEL%%"
+@%COMSPEC% /d/c "exit %%SHIM_ERRORLEVEL%%" & @set "SHIM_ERRORLEVEL="
 )
 `;
 const cmdShimPrepPipe = `@:pipeEnabled
@@ -45,9 +45,9 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=."
 @:prep
-@set "DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
-@set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd"
-@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%DENO_SHIM_TID%.cmd"
+@set "SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%" &:: TID = Temp-ID
+@set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%SHIM_TID%.cmd"
+@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_EXEC%" @goto :prep
 @if EXIST "%SHIM_PIPE%" @goto :prep
 @if DEFINED SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%SHIM_EXEC%"
@@ -57,8 +57,8 @@ const cmdShimPrepNoPipe = `@:pipeDisabled
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=."
 @:prep
-@set "DENO_SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
-@set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%DENO_SHIM_TID%.cmd"
+@set "SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
+@set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_EXEC%" @goto :prep
 @if DEFINED SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%SHIM_EXEC%"`;
 
