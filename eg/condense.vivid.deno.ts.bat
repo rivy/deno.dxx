@@ -37,7 +37,7 @@
 @set "SHIM_ARGS="
 @set "SHIM_EXEC="
 @set "SHIM_TARGET="
-@call %COMSPEC% /d/c "exit %%SHIM_ERRORLEVEL%%"
+@call %COMSPEC% /d/c "exit %%SHIM_ERRORLEVEL%%" || set "SHIM_ERRORLEVEL="
 )
 @
 */ 0;
