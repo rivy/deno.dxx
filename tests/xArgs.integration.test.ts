@@ -18,7 +18,7 @@
 //                          Defaults to "mozilla".
 //     DENO_CERT            Load certificate authority from PEM encoded file
 //     DENO_DIR             Set the cache directory
-//     DENO_INSTALL_ROOT    Set deno install's output directory
+//     DENO_INSTALL_ROOT    Set the `deno install` output directory
 //                          (defaults to $HOME/.deno/bin)
 //     DENO_REPL_HISTORY    Set REPL history file path
 //                          History file is disabled when the value is empty
