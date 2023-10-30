@@ -28,8 +28,7 @@ export class PQueue extends Queue {
 // spell-checker:ignore (names) DeepMerge
 // spell-checker:ignore (people) * balupton
 
-// import deepMerge from 'https://esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
-export { default as deepMerge } from 'https://esm.sh/v54/deepmerge@4.2.2/es2021/deepmerge.js';
+export { default as deepMerge } from 'https://esm.sh/deepmerge@4.3.1';
 
 export * as $symbols from '../xWait/log_symbols.ts';
 
