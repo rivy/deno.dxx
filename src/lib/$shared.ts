@@ -357,6 +357,31 @@ export function pathFromURL(url?: URL) {
 
 //===
 
+// `ensureAsPath()`
+/** Ensure "path" is a valid path/URL-string (by conversion if needed) or *panic*.
+@param [path] • path/URL-string (may already be in URL file format [ie, 'file://...']) or URL
+@tags `may-panic` • may throw `Deno.errors.InvalidData` if `path` is not valid
+*/
+export function ensureAsPath(path?: string | URL) {
+	const p = intoPath(path);
+	if (p == null || p === '') throw new Deno.errors.InvalidData('Invalid path');
+	return p;
+}
+
+// `ensureAsURL()`
+/** Ensure "path" is a valid URL (by conversion if needed) or *panic*.
+@param [path] • path/URL-string (may already be in URL file format [ie, 'file://...']) or URL
+@tags `may-panic` • may throw `Deno.errors.InvalidData` if `path` is not a valid URL
+*/
+export function ensureAsURL(path: string | URL) {
+	if (path instanceof URL) return path;
+	const url = intoURL(path);
+	if (url == null) throw new Deno.errors.InvalidData('Invalid URL');
+	return url;
+}
+
+//===
+
 /** 'read' permission state at time of module import
 - *avoids* permission prompts
 */
