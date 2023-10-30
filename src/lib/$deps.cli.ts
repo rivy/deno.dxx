@@ -4,8 +4,8 @@
 
 //==== modules
 
-export { default as $yargs } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@600b4c7bd9/deno.ts'; // v17.6.0-rivy-deno
+export { default as $yargs } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@2607dfd9a47f9402/deno.ts'; // v17.7.2-deno+
 
 //==== types
 
-export type { Arguments as YargsArguments } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@600b4c7bd9/deno-types.ts'; // v17.6.0-rivy-deno
+export type { Arguments as YargsArguments } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@2607dfd9a47f9402/deno-types.ts'; // v17.7.2-deno+
