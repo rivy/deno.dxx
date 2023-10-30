@@ -243,7 +243,10 @@ export function isValidURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $
 }
 
 // `validURL()`
-/** Convert the supplied text string (`s`) into a valid URL (or `undefined` if `s` [relative to `base`] isn't a valid URL). */
+/** Convert the supplied text string (`s`) into a valid URL (or `undefined` if `s` [relative to `base`] isn't a valid URL).
+* * `no-throw` ~ function returns `undefined` upon any error
+@tags `no-throw`
+*/
 export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
 	return intoURL(s, base);
 }
@@ -251,10 +254,14 @@ export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $pa
 //===
 
 // `intoPath()`
-/** Extract a path string from a path string (as an identity function) or URL. */
+/** Extract the "path" from a path string (as an identity function) or URL.
+* * `no-throw` ~ function returns `undefined` upon any error
+@param [path] • path/URL-string (may already be in URL format [ie, 'file://...']) or URL
+@tags `no-throw`
+*/
 export function intoPath(path?: string | URL) {
-	if (!(path instanceof URL)) return path;
-	return (path.protocol === 'file:') ? $path.fromFileUrl(path) : path.pathname;
+	if (path == null) return undefined;
+	return pathFromURL((path instanceof URL) ? path : intoURL(path));
 }
 
 // ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
@@ -332,13 +339,18 @@ export function intoURL(path?: string, ...args: unknown[]) {
 // `pathFromURL()`
 /** Extract the "path" (absolute file path for 'file://' URLs, otherwise the href URL-string) from the `url`.
 * * `no-throw` ~ function returns `undefined` upon any error
-@param [url] • URL for extraction
+@param [url] • URL for path extraction
 @tags `no-throw`
 */
-export function pathFromURL(url: URL) {
+export function pathFromURL(url?: URL) {
+	if (url == null) return undefined;
 	let path = url.href;
 	if (url.protocol === 'file:') {
-		path = $path.fromFileUrl(url);
+		try {
+			path = $path.fromFileUrl(url);
+		} catch (_error) {
+			return undefined;
+		}
 	}
 	return path;
 }
