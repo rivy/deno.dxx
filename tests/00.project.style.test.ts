@@ -151,11 +151,12 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	const haveCommand = await haveBmp();
 	const exeArgs = ['--info'];
 	const exeCmd = [command, ...exeArgs].join(' ');
-	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
 	} else {
+		// console.debug({ cmd });
 		test(description, async () => {
 			// deno-lint-ignore no-deprecated-deno-api
 			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
@@ -205,9 +206,15 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		await p.status();
 		return (decode(await p.output()).split(/\r?\n/))[0] || undefined;
 	})();
-	const exeArgs = ['--config', '.commitlint.config.js', '--strict', '--from', commitLintFrom];
+	const exeArgs = [
+		'--config',
+		'.commitlint.config.js',
+		'--strict',
+		'--from',
+		commitLintFrom || 'HEAD',
+	];
 	const exeCmd = [command, ...exeArgs].join(' ');
-	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
@@ -243,7 +250,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		'**',
 	];
 	const exeCmd = [command, ...exeArgs].join(' ');
-	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), exeCmd];
+	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
