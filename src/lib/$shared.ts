@@ -719,9 +719,10 @@ const projectVersionTextViaFetch =
 					host: (versionURL.host.length > 0) ? versionURL.host : undefined,
 				}))
 					.state === 'granted'))
-		? (fetch(versionURL).then((resp) => resp.ok ? resp.text() : undefined).then((text) =>
-			text?.split(EOL).filter((s) => s)[0]
-		))
+		? (fetch(versionURL)
+			.then((resp) => resp.ok ? resp.text() : undefined)
+			.then((text) => text?.split(EOL).filter((s) => s)[0])
+			.catch((_) => undefined))
 		: Promise.resolve(undefined));
 
 // `import ...` implementation (note: requires project-level synchronization tooling)
