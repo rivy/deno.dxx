@@ -728,11 +728,32 @@ const projectVersionTextViaFetch =
 // `import ...` implementation (note: requires project-level synchronization tooling)
 const projectVersionTextViaImport = VERSION;
 
+const projectVersionTagFromURL = ((url) => {
+	// version from `versionURL`
+	// # CDNs (see "cdn/kb-CDN.mkd")
+	// - Deno.Land • <https://deno.land/x/dxx@[TAG/VERSION]/src/dxi.ts> ## note: @TAG/VERSION is optional
+	// - jsdelivr • <https://cdn.jsdelivr.net/gh/OWNER/REPO@[TAG|COMMITISH]/src/dxi.ts> ## note: avoid branch as the CDN caches it at least semi-permanently
+	// - BitBucket (raw) • <https://bitbucket.org/OWNER/REPO/raw/[BRANCH|TAG|COMMITISH]/src/dxi.ts>
+	// - GitHub (raw) • <https://github.com/OWNER/REPO/raw/[BRANCH|TAG|COMMITISH]/src/dxi.ts> , <https://raw.githubusercontent.com/OWNER/REPO/[BRANCH|TAG|COMMITISH]/src/dxi.ts>
+	// - GitLab (raw) • <https://gitlab.com/OWNER/REPO/-/raw/[BRANCH|TAG|COMMITISH]/src/dxi.ts>
+	// - GitHack • <https://rawcdn.githack.com/OWNER/REPO/[BRANCH|TAG|COMMITISH]/eg/args.ts> , <https://bbcdn.githack.com/OWNER/REPO/raw/[BRANCH|TAG|COMMITISH]/LICENSE> , <https://glcdn.githack.com/OWNER/REPO/-/raw/[BRANCH|TAG|COMMITISH]/LICENSE>
+	// - (*broken*) statically • <https://cdn.statically.io/bb/:user/:repo/:tag/:file> , <https://cdn.statically.io/gh/:user/:repo/:tag/:file> , <https://cdn.statically.io/gl/:user/:repo/:tag/:file>
+	//   * broken; "Couldn't complete your request." with "https://cdn.statically.io/gh/rivy/deno.dxx/v0.0.15/src/dxi.ts"
+	if (url?.protocol === 'file:') return undefined;
+	return url?.pathname?.match(/.*[@/](.*?)[/]VERSION$/)?.[1];
+})(versionURL);
+
 function v() {
 	return projectVersionTextViaImport;
 }
 
-export const $version = { versionURL, projectVersionTextViaFetch, projectVersionTextViaImport, v };
+export const $version = {
+	versionURL,
+	projectVersionTagFromURL,
+	projectVersionTextViaFetch,
+	projectVersionTextViaImport,
+	v,
+};
 
 //=== * logger
 
