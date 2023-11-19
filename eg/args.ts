@@ -120,13 +120,13 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	.version(false) // disable built-in 'version' handling (for later customization)
 	.option('help', {
 		describe:
-			'Write help text to STDOUT and exit (exit status => 1 if combined with other arguments/options)',
+			'Display help text and exit (exit status => 1 if combined with other arguments/options)',
 		type: 'boolean',
 	})
 	.alias('help', 'h')
 	.option('version', {
 		describe:
-			'Write version text to STDOUT and exit (exit status => 1 if combined with other arguments/options)',
+			'Display version text and exit (exit status => 1 if combined with other arguments/options)',
 		type: 'boolean',
 	})
 	.alias('version', 'V')
