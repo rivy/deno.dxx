@@ -150,8 +150,8 @@ jobs:
           PKG_BASENAME=${PROJECT_NAME}-${REF_TAG:-$REF_SHA}-${{ matrix.job.target }}
           PKG_NAME=${PKG_BASENAME}${PKG_suffix}
           outputs PKG_suffix PKG_BASENAME PKG_NAME
-          # deployable tag? (ie, leading "vM" or "M"; M == version number)
-          unset DEPLOY ; if [[ $REF_TAG =~ ^[vV]?[0-9].* ]]; then DEPLOY='true' ; fi
+          # deployable tag? (ie, leading "vM" or "M" optionally followed by extra version text (`[-.].*`); M == version number)
+          unset DEPLOY ; if [[ $REF_TAG =~ ^[vV]?[0-9]+([-.].*)?$ ]]; then DEPLOY='true' ; fi
           outputs DEPLOY
           # produces artifacts?
           unset ARTIFACTS
