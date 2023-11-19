@@ -131,9 +131,9 @@ bmp --commit
 > Optional testing tools
 >
 > - [`bmp`](https://deno.land/x/bmp@v0.0.7) <br> `dxi --allow-read=. --allow-write=. --allow-run=git -f https://deno.land/x/bmp@v0.0.7/cli.ts`
-> - [`commitlint`](https://www.npmjs.com/package/@commitlint/cli) <br> `npm install --global @commitlint/cli @commitlint/config-conventional`
+> - [`commitlint`](https://www.npmjs.com/package/@commitlint/cli) <br> `npm install --global @commitlint/cli@17 @commitlint/config-conventional@17`
 > - [`cspell`](https://www.npmjs.com/package/cspell) <br> `npm install --global cspell@5`
-> - [`madge`](https://www.npmjs.com/package/madge) <br> `npm install --global madge`
+> - [`madge`](https://www.npmjs.com/package/madge) <br> `npm install --global madge@6`
 
 Use `deno test -A`.
 
