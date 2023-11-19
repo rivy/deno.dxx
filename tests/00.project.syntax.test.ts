@@ -4,8 +4,7 @@
 // ref: <https://github.com/denoland/deno/discussions/12113>
 // ToDO: re-evaluate as `deno check` comes to fruition
 
-// import { $colors } from './$deps.ts';
-import { $args, $path, assert } from './$deps.ts';
+import { $args, $colors, $path, assert } from './$deps.ts';
 import {
 	decode,
 	haveMadge,
@@ -53,6 +52,28 @@ const projectCodeFilesByKind: Record<string, string[]> = {
 const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
 	projectCodeFilesByKind[arr].flat()
 );
+
+test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.length} found)`, async () => {
+	const files = (projectCodeFiles).flatMap((e) => traversal(e) || []);
+	console.log({ files });
+	// deno-lint-ignore no-deprecated-deno-api
+	const p = Deno.run({
+		cmd: ['deno', 'test', '--reload', '--no-run'].concat(files),
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+	});
+	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
+		() => p.close()
+	);
+	const haveWarnings = $colors.stripColor(decode(err)).match(/^warning/ims) != null;
+	if (!status.success || haveWarnings) {
+		console.warn({ status, haveWarnings });
+		console.warn(decode(out));
+		console.warn(decode(err));
+	}
+	assert(status.success && !haveWarnings);
+});
 
 {
 	const description = 'syntax ~ no circular dependency found';
