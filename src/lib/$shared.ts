@@ -743,8 +743,35 @@ const projectVersionTagFromURL = ((url) => {
 	return url?.pathname?.match(/.*[@/](.*?)[/]VERSION$/)?.[1];
 })(versionURL);
 
-function v() {
-	return projectVersionTextViaImport;
+export type vOptions = {
+	maxCommitHashDisplaySize?: number; // maximum length of commit hash to include in version string; < 1 == no limit
+};
+// set default maxCommitHashDisplaySize to 8 to avoid collisions
+// - even on *extremely* large projects, # of commits between versions should be significantly less than 10,000
+// ref: from "Hash Collision Probability by Input Size.xlsx"
+// * 1% collision probability between 600 commits using 6 hex digits
+// * 1% collision probability between 3,000 commits using 7 hex digits
+// * 1% collision probability between 10,000 commits using 8 hex digits
+// * 1% collision probability between 150,000 commits using 10 hex digits
+// * 1% collision probability between 2,500,000 commits using 12 hex digits
+const vOptionsDefault: Required<vOptions> = { maxCommitHashDisplaySize: 8 };
+function v(options?: vOptions) {
+	const options_ = options ?? vOptionsDefault;
+	// uses 'relaxed' semantic versioning (allows for variable length version numbers [M, M.m, M.m.r, M.m.r.n, etc])
+	// ref: [Semantic Versioning](https://semver.org) @@ <https://archive.is/Z02ta>
+	// simple 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*"
+	// extended 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*([-].*)?"
+	const vFromTag = projectVersionTagFromURL?.match(/^[vV]?\d+([.]\d+)*([-].*)?$/)?.[0];
+	if (vFromTag != null) return vFromTag;
+	const tagIsCommitHash = projectVersionTagFromURL?.match(/^[0-9a-fA-F]{5,}$/) != null; // heuristic: any string of only 5+ hex digits is assumed to be a commit hash
+	if (tagIsCommitHash) {
+		return `${projectVersionTextViaImport}+${
+			projectVersionTagFromURL.slice(0, options_.maxCommitHashDisplaySize)
+		}`;
+	}
+	return `${projectVersionTextViaImport}+${
+		projectVersionTagFromURL ? `(${projectVersionTagFromURL})` : ''
+	}`;
 }
 
 export const $version = {
