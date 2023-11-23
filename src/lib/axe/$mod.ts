@@ -265,7 +265,7 @@ export function deepClone<T>(source: T): T {
 	if ((source == undefined) || (typeof source === 'function') || (typeof source !== 'object')) {
 		return source;
 	}
-	return deepMerge.all([{}, source]);
+	return deepMerge.all([{}, source]) as T;
 }
 
 //===
