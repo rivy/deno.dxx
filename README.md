@@ -159,8 +159,52 @@ genhtml -o .coverage\html .coverage\@coverage.lcov
 
 ## Publishing
 
+<!-- spell-checker:ignore () realclean -->
+
+### Pre-publishing
+
 ```shell
+#=== * POSIX
+# update project VERSION strings (package.json,...)
+# * `bmp --[major|minor|patch]`; next VERSION in M.m.r (semver) format
+bmp --patch
+VERSION=$(cat VERSION)
+git-changelog --next-tag "v${VERSION}" > CHANGELOG.mkd
+# create/commit updates and distribution
+git add .bmp.yml CHANGELOG.mkd README.md VERSION .
+git commit -m "${VERSION}"
+git reset --hard && git clean -fdx && git submodule foreach "git reset --hard ; git clean -fdx" ## aka `git realclean`
+# tag VERSION commit
+git tag -f "v${VERSION}"
+# (optional) prerelease checkup
 deno test -A -- --release
-# * if no errors *, push tag to update `deno.land/x/...`
-git push origin v$(cat VERSION)
+```
+
+```shell
+@rem #=== * WinOS
+@rem # update project VERSION strings (package.json,...)
+@rem # * `bmp --[major|minor|patch]`; next VERSION in M.m.r (semver) format
+bmp --patch
+for /f %G in (VERSION) do @set "VERSION=%G"
+git-changelog --next-tag "v%VERSION%" > CHANGELOG.mkd
+@rem # create/commit updates and distribution
+git add .bmp.yml CHANGELOG.mkd README.md VERSION .
+git commit -m "%VERSION%"
+git reset --hard && git clean -fdx && git submodule foreach "git reset --hard ; git clean -fdx" &@rem ## aka `git realclean`
+@rem # tag VERSION commit
+git tag -f "v%VERSION%"
+@rem # (optional) prerelease checkup
+deno test -A -- --release
+```
+
+### Publish
+
+```shell
+deno test -A -- --release # expect exit code == 0
+# * optional (will be done in 'prePublishOnly' by `npm publish`)
+git reset --hard && git clean -fdx && git submodule foreach "git reset --hard ; git clean -fdx" ## aka `git realclean`
+git-changelog > CHANGELOG.mkd # expect exit code == 0
+git diff-index --quiet HEAD || echo "[lint] ERROR uncommitted changes" # expect no output and exit code == 0
+# * push to deno.land with tag push
+git push local --tags
 ```
