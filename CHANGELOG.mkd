@@ -16,9 +16,47 @@
 
 ---
 
+## [v0.0.16](https://github.com/rivy/deno.dxx/compare/v0.0.15...v0.0.16) <small>(2023-11-24)</small>
+
+<details open><summary><small><em>[v0.0.16; details]</em></small></summary>
+
+#### Changes
+
+* change *($shared)*: integrate version tag info into version calculations &ac; [`20653c1`](https://github.com/rivy/deno.dxx/commit/20653c1196c702958fd9604a8117e7a311aa0533)
+* change *($shared)*: parse script URL for possible version tag info &ac; [`b235807`](https://github.com/rivy/deno.dxx/commit/b235807abf9badc732fb5ad95421436a9fcb3064)
+
+#### Fixes
+
+* fix deno compile/lint error by specifying return type &ac; [`4898593`](https://github.com/rivy/deno.dxx/commit/489859397787ef5d79066fa1d0d91bc6269c76de)
+* fix ~ test for (and resolve) compile/reload warnings &ac; [`1bf98b1`](https://github.com/rivy/deno.dxx/commit/1bf98b1bc0dbcc11f739c5e18685010931af502b)
+* fix *($shared)*: add missing catch for `versionURL` fetch &ac; [`3009289`](https://github.com/rivy/deno.dxx/commit/3009289935c1f5ce9a287b08190b02e8799a7b4b)
+
+#### Documentation
+
+* docs ~ polish commentary &ac; [`97f7c81`](https://github.com/rivy/deno.dxx/commit/97f7c819de5ef630afb8d0f724f63e1ae1e6bbdb)
+* docs *(README)*: expand/revise Publishing instructions &ac; [`edd6dd9`](https://github.com/rivy/deno.dxx/commit/edd6dd9be5ddefd2b05ebd347ae2bd5b2b215bf6)
+* docs *(README)*: add versions for optional testing tool suggestions &ac; [`94cfdc3`](https://github.com/rivy/deno.dxx/commit/94cfdc3255d2ab140204a85034ca7bde7f6df064)
+* docs *(eg)*: revise `args` help text &ac; [`9795a68`](https://github.com/rivy/deno.dxx/commit/9795a68bf10416961548f1cc9747db5e86764df6)
+
+#### Maintenance
+
+* maint *(CICD)*: define version tag for DEPLOY more precisely &ac; [`eacc8d4`](https://github.com/rivy/deno.dxx/commit/eacc8d447b926456a165ce613494b37cdb775249)
+
+#### Refactoring
+
+* refactor *($shared)*: improve clarity of shared TLA module &ac; [`fb0c873`](https://github.com/rivy/deno.dxx/commit/fb0c87371871d98339bcd76ad20c405be6af25ee)
+
+#### Test Improvements
+
+* tests ~ add error stack parse testing &ac; [`92379cf`](https://github.com/rivy/deno.dxx/commit/92379cfa78417c7bca1f6105f4f7b32ab999bf03)
+
+</details>
+
+---
+
 ## [v0.0.15](https://github.com/rivy/deno.dxx/compare/v0.0.14...v0.0.15) <small>(2023-10-29)</small>
 
-<details open><summary><small><em>[v0.0.15; details]</em></small></summary>
+<details><summary><small><em>[v0.0.15; details]</em></small></summary>
 
 #### Features
 
