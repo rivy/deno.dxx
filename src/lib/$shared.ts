@@ -21,8 +21,10 @@ export const projectURL = new URL('../..', import.meta.url); // note: `new URL('
 export const projectPath = pathFromURL(projectURL);
 export const projectLocations = {
 	benchmarks: (new URL('bench', projectURL)),
+	changelog: (new URL('CHANGELOG.mkd', projectURL)),
 	editorconfig: (new URL('.editorconfig', projectURL)),
 	examples: (new URL('eg', projectURL)),
+	licenses: [new URL('LICENSE', projectURL)],
 	readme: (new URL('README.md', projectURL)),
 	source: (new URL('src', projectURL)),
 	tests: (new URL('tests', projectURL)),
