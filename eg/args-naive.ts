@@ -52,7 +52,14 @@ log.trace('project:', {
 	href: projectURL.href,
 	projectPath,
 	projectLocations: Object.fromEntries(
-		Object.entries(projectLocations).map(([k, v]) => [k, v?.href]),
+		Object.entries(projectLocations).map(([k, v]) => {
+			type Nested<T> = T | Nested<T>[];
+			function f(u: Nested<URL>): Nested<string> {
+				if (Array.isArray(u)) return u.map(f);
+				return u.href;
+			}
+			return [k, f(v)];
+		}),
 	),
 });
 log.trace('Deno:', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
