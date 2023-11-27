@@ -57,7 +57,7 @@ log.debug(
 );
 
 const appName = $me.name;
-const appCopyright = '* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)';
+const appCopyright = '* Copyright (c) 2021-2023 * Roy Ivy III (MIT license)';
 const appVersion = $version.v();
 const appRunAs = $me.runAs;
 
@@ -88,7 +88,10 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	.updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.positional('OPTION', { describe: 'OPTION(s); see listed *Options*' })
 	.positional('SOURCE', { describe: `SOURCE file to copy`, demand: true })
-	.positional('TARGET', { describe: `TARGET file(s)`, demand: true })
+	.positional('TARGET', {
+		describe: `TARGET file(s); optional (assumed to be STDOUT) when STDOUT is redirected`,
+		demand: true,
+	})
 	.epilog(`Notes:
   '-' may be used as SOURCE to represent STDIN.
   '-' may be used as any TARGET to represent STDOUT.
@@ -113,13 +116,13 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	.version(false) // disable built-in 'version' handling (for later customization)
 	.option('help', {
 		describe:
-			'Write help text to STDOUT and exit (exit status => 1 if combined with other arguments/options)',
+			'Display help text and exit (exit status => 1 if combined with other arguments/options)',
 		type: 'boolean',
 	})
 	.alias('help', 'h')
 	.option('version', {
 		describe:
-			'Write version text to STDOUT and exit (exit status => 1 if combined with other arguments/options)',
+			'Display version text and exit (exit status => 1 if combined with other arguments/options)',
 		type: 'boolean',
 	})
 	.alias('version', 'V')
@@ -184,12 +187,12 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 		`${appRunAs} "https://cdn.jsdelivr.net/gh/rivy/deno.dxx@v0.0.16/README.md" file1.md file2.mkd`,
 		'Copy from a WAN URL to local files',
 	)
-	.example(`${appRunAs} "https://pokeapi.co/api/v2/pokemon/1" -`, 'Copy URL REST output to stdout')
+	.example(`${appRunAs} "https://pokeapi.co/api/v2/pokemon/1" -`, 'Copy URL REST output to STDOUT')
 	.example(
 		// ref: <https://www.sftp.net/public-online-sftp-servers> @@ <https://archive.is/dHo7E>
 		// ref: <https://forum.rebex.net/1343/open-ftps-and-sftp-servers-for-testing-our-code-connectivity> @@ <https://archive.is/EsZ42>
 		`${appRunAs} "sftp://demo:password@test.rebex.net:22/readme.txt" -`,
-		'Copy URL (via SFTP) to stdout',
+		'Copy URL (via SFTP) to STDOUT',
 	)
 	.example([]);
 
@@ -314,8 +317,12 @@ const TARGET = await (async () => {
 	const target = !appState.usageError ? [...argv._] : [];
 	if (argv._?.length) argv._ = [];
 	if (!appState.usageError && (target.length < 1)) {
-		appState.usageError = true;
-		await log.error(`TARGET is a required argument`);
+		if (!Deno.isatty(Deno.stdout.rid)) {
+			target.push('-');
+		} else {
+			appState.usageError = true;
+			await log.error(`TARGET is a required argument`);
+		}
 	}
 	return target.map((e) => e.toString());
 })();
