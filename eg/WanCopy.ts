@@ -317,6 +317,8 @@ const TARGET = await (async () => {
 	const target = !appState.usageError ? [...argv._] : [];
 	if (argv._?.length) argv._ = [];
 	if (!appState.usageError && (target.length < 1)) {
+		// note: isTerminal() added to stderr, stdin, and stdout in Deno v1.40.0 ; added to Deno.FsFile in Deno v1.41.0
+		// deno-lint-ignore no-deprecated-deno-api
 		if (!Deno.isatty(Deno.stdout.rid)) {
 			target.push('-');
 		} else {
