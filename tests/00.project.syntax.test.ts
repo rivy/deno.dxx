@@ -54,7 +54,7 @@ const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
 );
 
 test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.length} found)`, async () => {
-	const files = (projectCodeFiles).flatMap((e) => traversal(e) || []);
+	const files = projectCodeFiles.flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
@@ -81,7 +81,7 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 		test.skip(description + '...skipped (`madge` not found)');
 	} else {
 		test(description + ` (within ${projectCodeFiles.length}+ files)`, async () => {
-			const files = (projectCodeFiles).flatMap((e) => traversal(e) || []);
+			const files = projectCodeFiles.flatMap((e) => traversal(e) || []);
 			const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--circular', '--no-spinner']
 				.concat(files);
 			console.log({ files });
@@ -102,7 +102,7 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 }
 
 test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.length} found)`, async () => {
-	const files = (projectCodeFilesByKind.examples).flatMap((e) => traversal(e) || []);
+	const files = projectCodeFilesByKind.examples.flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
@@ -123,7 +123,7 @@ test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.len
 });
 
 test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFilesByKind.source.length} found)`, async () => {
-	const files = (projectCodeFilesByKind.source).flatMap((e) => traversal(e) || []);
+	const files = projectCodeFilesByKind.source.flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
@@ -144,7 +144,7 @@ test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFiles
 });
 
 test(`syntax ~ test and benchmark files (plus imports) compile correctly (${projectCodeFilesByKind.tests.length} found)`, async () => {
-	const files = (projectCodeFilesByKind.tests).flatMap((e) => traversal(e) || []);
+	const files = projectCodeFilesByKind.tests.flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({
@@ -165,7 +165,7 @@ test(`syntax ~ test and benchmark files (plus imports) compile correctly (${proj
 });
 
 test(`syntax ~ tools compile correctly (${projectCodeFilesByKind.tools.length} found)`, async () => {
-	const files = (projectCodeFilesByKind.tools).flatMap((e) => traversal(e) || []);
+	const files = projectCodeFilesByKind.tools.flatMap((e) => traversal(e) || []);
 	console.log({ files });
 	// deno-lint-ignore no-deprecated-deno-api
 	const p = Deno.run({

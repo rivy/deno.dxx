@@ -178,7 +178,7 @@ export function createTestFn(testFilePath?: string | URL) {
 				) /* remove trailing character position data from stack frame data (formatted as `URL:LINE:CHAR_POS`) */) ??
 				'';
 		const testName: TestName = composeTestName(tag, description, {
-			align: !(pathOfTestFile),
+			align: !pathOfTestFile,
 			ignore: !!options.ignore,
 		});
 		Deno.test({
