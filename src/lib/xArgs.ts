@@ -372,8 +372,9 @@ ANSICDecodeTable['v'] = '\v';
 	const baseCharCode = '@'.charCodeAt(0);
 	for (i = 0; i <= 0x1f; i++) {
 		const iToChar = String.fromCharCode(baseCharCode + i);
-		ANSICDecodeTable['c' + iToChar.toLowerCase()] = ANSICDecodeTable['c' + iToChar.toUpperCase()] =
-			String.fromCharCode(i);
+		ANSICDecodeTable['c' + iToChar.toLowerCase()] =
+			ANSICDecodeTable['c' + iToChar.toUpperCase()] =
+				String.fromCharCode(i);
 	}
 	ANSICDecodeTable['c?'] = '\x7f';
 }
@@ -554,23 +555,22 @@ export async function* globExpandIter(
 			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
 			const globEscapedPrefix =
 				(escapeRegExp(
-					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
-						? ''
-						: $path.SEP),
+					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar) ? '' : $path.SEP),
 				))
 					.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
-			.globScanTokens as unknown as any)
-				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-					acc + (value.isGlob ? value.depth : 0), 0);
+				.globScanTokens as unknown as any)
+				.reduce(
+					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+						acc + (value.isGlob ? value.depth : 0),
+					0,
+				);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude+; evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
-				caseSensitive
-					? 'msu'
-					: 'imsu',
+				caseSensitive ? 'msu' : 'imsu',
 			);
 			// console.warn('xArgs.globExpandIter()', {
 			// 	resolvedPrefix,
@@ -585,9 +585,8 @@ export async function* globExpandIter(
 				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
 						new RegExp(
-							'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
-								? '[\\\\/]'
-								: ''),
+							'^' + globEscapedPrefix +
+								((!resolvedHasTrailingSep && initialGlobstar) ? '[\\\\/]' : ''),
 						),
 						'',
 					);
@@ -641,23 +640,22 @@ export function* globExpandIterSync(
 			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
 			const globEscapedPrefix =
 				(escapeRegExp(
-					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar)
-						? ''
-						: $path.SEP),
+					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar) ? '' : $path.SEP),
 				))
 					.replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
 			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
-			.globScanTokens as unknown as any)
-				.reduce((acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-					acc + (value.isGlob ? value.depth : 0), 0);
+				.globScanTokens as unknown as any)
+				.reduce(
+					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+						acc + (value.isGlob ? value.depth : 0),
+					0,
+				);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude (10-20x); evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
-				caseSensitive
-					? 'msu'
-					: 'imsu',
+				caseSensitive ? 'msu' : 'imsu',
 			);
 			// console.warn('xArgs.globExpandIter()', { resolvedPrefix, maxDepth });
 			// note: `walk/walkSync` match re is compared to the full path during the walk
@@ -666,9 +664,8 @@ export function* globExpandIterSync(
 				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
 						new RegExp(
-							'^' + globEscapedPrefix + ((!resolvedHasTrailingSep && initialGlobstar)
-								? '[\\\\/]'
-								: ''),
+							'^' + globEscapedPrefix +
+								((!resolvedHasTrailingSep && initialGlobstar) ? '[\\\\/]' : ''),
 						),
 						'',
 					);

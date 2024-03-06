@@ -726,14 +726,13 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		const configuredMetadata = context?.getMetadata();
 		const metadata = new Metadata(
 			deepMerge.all([configuredMetadata, {
-				[`${context?.id}`]: deepMerge
-					.all([configuredMetadata, {
-						levels: context
-							.#context
-							.levels,
-						levelInfo,
-						lineInfo,
-					}]),
+				[`${context?.id}`]: deepMerge.all([configuredMetadata, {
+					levels: context
+						.#context
+						.levels,
+					levelInfo,
+					lineInfo,
+				}]),
 			}, additionalMetadata.getData()]),
 			{ globalScope: `${context?.id}` },
 		);
@@ -1088,9 +1087,7 @@ export class Humane extends TransformWriter<LogEntry, string> {
 
 		const prefix = prefixFormatFn(
 			[
-				showSymbol
-					? `${symbol}`
-					: '',
+				showSymbol ? `${symbol}` : '',
 				showLabel ? (`${label}${authority ? ('/[' + authority + ']') : ''}:`) : '',
 			]
 				.filter(Boolean)

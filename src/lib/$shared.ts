@@ -166,7 +166,7 @@ export async function panicIfMissingPermits(permitNames: Deno.PermissionName[] =
 	if (await haveMissingPermits(permitNames)) {
 		const err = new Error(composeMissingPermitsMessage(permitNames));
 		err.stack = undefined;
-		throw (err);
+		throw err;
 	}
 }
 
@@ -300,7 +300,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	};
 	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 	const pathIsURL = (scheme != null) && (scheme.length > (options.driveLetterSchemes ? 1 : 0));
-	const pathIsFileURL = (scheme === 'file');
+	const pathIsFileURL = scheme === 'file';
 	// console.warn({ path, base, options, scheme, pathIsURL, pathIsFileURL });
 	try {
 		if (!pathIsURL) {
@@ -621,14 +621,14 @@ export function canDisplayUnicode() {
 		const isOldTerminal = ['cygwin', 'linux'].includes(env('TERM') ?? '');
 		const isWSL_ = isWSL();
 		return !isOldTerminal && // fail for old terminals
-		(( // * not isWSL
-			!isWSL_ &&
-			Boolean(
-				env('LC_ALL')?.match(/[.]utf-?8$/i) || env('LANG')?.match(/[.]utf-?8$/i),
-			) /* LC_ALL or LANG handles UTF-8? */
-		) || ( // * isWSL
-			isWSL_ && Boolean(env('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
-		));
+			(( // * not isWSL
+				!isWSL_ &&
+				Boolean(
+					env('LC_ALL')?.match(/[.]utf-?8$/i) || env('LANG')?.match(/[.]utf-?8$/i),
+				) /* LC_ALL or LANG handles UTF-8? */
+			) || ( // * isWSL
+				isWSL_ && Boolean(env('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
+			));
 	}
 
 	// WinOS

@@ -96,10 +96,10 @@ log.mergeMetadata({
 						_authority,
 						ansiSuffix,
 					) => {
-						const symbol = ((useUnicode && useColor) || !useColor)
-							? _symbol
-							: ` ${_symbol} `;
-						if (['note', 'info', 'debug', 'trace'].includes(_levelName.toLocaleLowerCase())) {
+						const symbol = ((useUnicode && useColor) || !useColor) ? _symbol : ` ${_symbol} `;
+						if (
+							['note', 'info', 'debug', 'trace'].includes(_levelName.toLocaleLowerCase())
+						) {
 							return `${ansiPrefix}${symbol}${ansiSeparator}${ansiSuffix}`;
 						}
 						return `${ansiPrefix}${symbol}${ansiSeparator}${_label}${ansiSuffix}`;
@@ -304,19 +304,16 @@ await log.trace({ denoVersion, dprintVersion });
 const runOptions: Partial<{ [key in 'deno' | 'dprint']: Deno.RunOptions }> = {};
 
 runOptions['deno'] = {
-	cmd: ['deno', 'fmt'].concat((denoFmtHasConfig && haveDenoConfig
-		? ['--config', denoConfigPath[0]]
-		: [])
-		.concat([...files])),
+	cmd: ['deno', 'fmt'].concat(
+		(denoFmtHasConfig && haveDenoConfig ? ['--config', denoConfigPath[0]] : []).concat([...files]),
+	),
 	stderr: 'inherit',
 	stdin: 'inherit',
 	stdout: 'inherit',
 };
 
 runOptions['dprint'] = {
-	cmd: ['dprint', 'fmt'].concat((haveDprintConfig
-		? ['--config', dprintConfigPath[0]]
-		: [])
+	cmd: ['dprint', 'fmt'].concat((haveDprintConfig ? ['--config', dprintConfigPath[0]] : [])
 		.concat([...files])),
 	stderr: 'inherit',
 	stdin: 'inherit',
