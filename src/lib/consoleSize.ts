@@ -184,6 +184,8 @@ export function consoleSizeViaDenoAPI(
 		const file = denoOpenSyncNT(fallbackFileName);
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
 		size = file && denoConsoleSizeNT(file.rid);
+		// note: Deno.FsFile added (with close()) in Deno v1.19.0
+		// deno-lint-ignore no-deprecated-deno-api
 		file && Deno.close(file.rid);
 	}
 
