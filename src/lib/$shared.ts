@@ -305,31 +305,31 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	try {
 		if (!pathIsURL) {
 			const pathname = (() => {
-				if ($path.isAbsolute(path)) return path;
-				// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
-				const leadingDrive = (path.match(/^[A-Za-z]:/))?.[0];
-				if (leadingDrive != null) {
-					const cwd = Deno.cwd();
-					Deno.chdir(leadingDrive);
-					const resolved = $path.resolve(path);
-					Deno.chdir(cwd);
-					return resolved;
+				const pathDrive = (path.match(/^[A-Za-z]:/))?.[0];
+				const pathHost = (path.match(/^[/\\][/\\]([^/\\]+)/))?.[1];
+				const pathIsAbsolute = $path.isAbsolute(path);
+				// console.warn({ path, pathDrive, pathHost, pathIsAbsolute });
+				if (pathIsAbsolute && (!isWinOS || (pathDrive != null) || (pathHost != null))) {
+					return path;
 				}
 				if (base == null) return undefined;
-				return $path.resolve($path.join($path.fromFileUrl(base), path));
+				const basePath = $path.fromFileUrl(base);
+				const baseDrive = (basePath.match(/^[A-Za-z]:/))?.[0];
+				// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
+				const finalDrive = isWinOS ? (pathDrive ?? baseDrive) : undefined;
+				const cwd = (finalDrive != null) ? Deno.cwd() : undefined;
+				if (finalDrive != null) Deno.chdir(finalDrive);
+				const resolved = pathIsAbsolute ? $path.resolve(path) : $path.resolve(basePath, path);
+				if (cwd != null) Deno.chdir(cwd);
+				return resolved;
 			})();
 			if (pathname == null) return undefined;
-			const url = new URL('file:///');
-			url.pathname = pathname;
+			const url = $path.toFileUrl(pathname);
 			// console.warn({ pathIsURL, path, pathname, url });
 			return url;
 		}
 		if (pathIsFileURL) {
-			const pathname = $path.fromFileUrl(path);
-			const url = new URL('file:///');
-			url.pathname = pathname;
-			// console.warn({ pathIsFileURL, path, pathname, url });
-			return url;
+			return new URL(path);
 		}
 		return new URL(path, base);
 	} catch (_error) {
