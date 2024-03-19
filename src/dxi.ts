@@ -1,6 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
 import {
+	$colors,
 	$lodash,
 	$path,
 	$semver,
@@ -14,8 +15,10 @@ import {
 	decoder,
 	encoder,
 	env,
+	formatDuration,
 	isWinOS,
 	mightUseUnicode,
+	performanceDuration,
 	projectLocations,
 	projectPath,
 	// mightUseColor,
@@ -50,7 +53,7 @@ await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
 
 log.debug(`logging to *STDERR*`);
 
-// $me.warnIfImpaired((msg) => log.warn(msg)); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution from installation via `deno install ...`
+// $me.warnIfImpaired((msg) => log.warn(msg)); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution when used from installation via `deno install ...`
 log.trace({ $me, $version });
 log.trace('project', { url: projectURL?.href, projectPath, projectLocations });
 log.trace('Deno', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
@@ -268,11 +271,15 @@ if (args.length < 1) {
 //=== ***
 
 // install (using `deno install`)
-const spinnerInstallTextBase = 'Installing (using `deno install ...`) ...';
+
+performance.mark('install.deno-install:start');
+
+const spinnerInstallTextBase = '';
 const spinnerForInstall = $spin
 	.wait({
+		color: 'blue',
 		text: spinnerInstallTextBase,
-		spinner: 'dotsHigh3Dual',
+		// spinner: 'line', // default == 'dots'
 		symbols: $spin.symbolStrings.emoji,
 	})
 	.start();
@@ -408,6 +415,22 @@ await log.trace({
 	filteredDelegatedDenoArgs,
 });
 
+// # spell-checker:ignore () preinstall GOBIN swaggo jinyaoMa Dload Xferd
+// # `pnpm` exemplar display output...
+// . preinstall$ pnpm preinstall:air && pnpm preinstall:wails && pnpm preinstall:swag && pnpm preinstall:upx
+// [4 lines collapsed]
+// │ > my-app@1.0.0 preinstall:swag C:\Users\Roy\AARK\Projects\wails\jinyaoMa.personal-service-collection
+// │ > cross-env GOBIN="%cd%\.tools" go install github.com/swaggo/swag/cmd/swag@latest
+// │ > my-app@1.0.0 preinstall:upx C:\Users\Roy\AARK\Projects\wails\jinyaoMa.personal-service-collection
+// │ > curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip > upx.zip && unzip -p upx.zip "*/upx.e…
+// │   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+// │                                  Dload  Upload   Total   Spent    Left  Speed
+// │   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+// │   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+// │   2  457k    2 11015    0     0  12127      0  0:00:38 --:--:--  0:00:38 12127
+// │ 100  457k  100  457k    0     0   475k      0 --:--:-- --:--:-- --:--:-- 8435k
+// └─ Done in 9s
+
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoArgs, '--', ...args],
 	stderr: 'piped',
@@ -415,26 +438,52 @@ const runOptions: Deno.RunOptions = {
 	stdout: 'piped',
 };
 await log.debug({ runOptions });
+
+const spinnerText = '$ ' + runOptions.cmd.join(' ');
+spinnerForInstall.clear();
+spinnerForInstall.text = spinnerText;
+spinnerForInstall.render();
+
 // deno-lint-ignore no-deprecated-deno-api
 const process = Deno.run(runOptions);
 const mergedOutput = mergeReadableStreams(
-	// readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),
-	// readableStreamFromReader(process.stdout || { read: (_) => Promise.resolve(null) }),
 	process.stderr?.readable || new ReadableStream(),
 	process.stdout?.readable || new ReadableStream(),
 );
-const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
-const out =
-	(await readAll(readerFromStreamReader(mergedOutput.getReader())).then((arr) =>
-		decoder.decode(arr)
-	))
-		?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
 
-if (status.success) {
-	spinnerForInstall.succeed(spinnerInstallTextBase + ' done');
-} else spinnerForInstall.fail(spinnerInstallTextBase + ' failed');
+const status = (await Promise.all([
+	delay(100),
+	(() => {
+		{
+			const status = process.status();
+			performance.mark('install.deno-install:end');
+			return status;
+		}
+	})(),
+]))[1]; // add simultaneous delay to avoid visible spinner flash
+const out = await readAll(readerFromStreamReader(mergedOutput.getReader())).then((arr) =>
+	decoder.decode(arr)
+);
 
-Deno.stdout.writeSync(encoder.encode(out));
+spinnerForInstall.stop();
+const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
+Deno.stdout.writeSync(encoder.encode(prefixChar + ' ' + spinnerText + '\n'));
+
+Deno.stdout.writeSync(encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
+
+const installDuration = performanceDuration('install.deno-install');
+Deno.stdout.writeSync(
+	encoder.encode(
+		'└─ ' + (status.success
+			? $colors.green('Done')
+			: $colors.red('Failed')) + (installDuration
+				? (' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 }))
+				: '') + '\n',
+	),
+);
+if (!status.success) await log.error('`deno install ...` failed');
+
+performance.mark('install.enhance-shim:start');
 
 const shimBinPath = (() => {
 	if (!status.success) return '';
@@ -482,9 +531,14 @@ if (status.success && isWinOS) {
 		}),
 	);
 	Deno.writeFileSync(shimBinPath, encoder.encode(contentsUpdated));
+	performance.mark('install.enhance-shim:stop');
+	const enhanceShimDuration = performanceDuration('install.enhance-shim');
 	Deno.stdout.writeSync(
 		encoder.encode(
-			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\`\n`,
+			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\` (in ${
+				enhanceShimDuration ? formatDuration(enhanceShimDuration) : 'unknown time'
+			})
+			\n`,
 		),
 	);
 }
