@@ -13,8 +13,11 @@ import {
 	decoder,
 	encoder,
 	env,
+	// durationText,
+	formatDuration,
 	isWinOS,
 	mightUseUnicode,
+	performanceDuration,
 	projectLocations,
 	projectPath,
 	// mightUseColor,
@@ -264,7 +267,10 @@ if (args.length < 1) {
 //=== ***
 
 // install (using `deno install`)
-const spinnerInstallTextBase = 'Installing (using `deno install ...`) ...';
+
+performance.mark('install.deno-install:start');
+
+const spinnerInstallTextBase = '';
 const spinnerForInstall = $spin
 	.wait({
 		text: spinnerInstallTextBase,
@@ -361,6 +367,21 @@ const denoArgs = ['install', ...filteredDelegatedArgs].filter(Boolean);
 
 await log.trace({ quietShim, denoArgs, delegatedArgs, filteredDelegatedArgs });
 
+// # spell-checker:ignore () preinstall GOBIN swaggo jinyaoMa Dload Xferd
+// . preinstall$ pnpm preinstall:air && pnpm preinstall:wails && pnpm preinstall:swag && pnpm preinstall:upx
+// [4 lines collapsed]
+// │ > my-app@1.0.0 preinstall:swag C:\Users\Roy\AARK\Projects\wails\jinyaoMa.personal-service-collection
+// │ > cross-env GOBIN="%cd%\.tools" go install github.com/swaggo/swag/cmd/swag@latest
+// │ > my-app@1.0.0 preinstall:upx C:\Users\Roy\AARK\Projects\wails\jinyaoMa.personal-service-collection
+// │ > curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip > upx.zip && unzip -p upx.zip "*/upx.e…
+// │   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+// │                                  Dload  Upload   Total   Spent    Left  Speed
+// │   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+// │   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+// │   2  457k    2 11015    0     0  12127      0  0:00:38 --:--:--  0:00:38 12127
+// │ 100  457k  100  457k    0     0   475k      0 --:--:-- --:--:-- --:--:-- 8435k
+// └─ Done in 9s
+
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoArgs, ...args],
 	stderr: 'piped',
@@ -368,6 +389,11 @@ const runOptions: Deno.RunOptions = {
 	stdout: 'piped',
 };
 await log.debug({ runOptions });
+
+spinnerForInstall.clear();
+Deno.stdout.writeSync(encoder.encode('. $ ' + runOptions.cmd.join(' ') + '\n'));
+spinnerForInstall.render();
+
 // deno-lint-ignore no-deprecated-deno-api
 const process = Deno.run(runOptions);
 const mergedOutput = mergeReadableStreams(
@@ -376,18 +402,44 @@ const mergedOutput = mergeReadableStreams(
 	process.stderr?.readable || new ReadableStream(),
 	process.stdout?.readable || new ReadableStream(),
 );
-const status = (await Promise.all([delay(1000), process.status()]))[1]; // add simultaneous delay to avoid visible spinner flash
-const out =
-	(await readAll(readerFromStreamReader(mergedOutput.getReader())).then((arr) =>
-		decoder.decode(arr)
-	))
-		?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
 
-if (status.success) {
-	spinnerForInstall.succeed(spinnerInstallTextBase + ' done');
-} else spinnerForInstall.fail(spinnerInstallTextBase + ' failed');
+const status = (await Promise.all([
+	delay(500),
+	(() => {
+		{
+			const status = process.status();
+			performance.mark('install.deno-install:end');
+			return status;
+		}
+	})(),
+]))[1]; // add simultaneous delay to avoid visible spinner flash
+const out = await readAll(readerFromStreamReader(mergedOutput.getReader())).then((arr) =>
+	decoder.decode(arr)
+);
+// ?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
+// ?.replace(/^/gmsu, '| ')
 
-Deno.stdout.writeSync(encoder.encode(out));
+spinnerForInstall.stop();
+
+// if (status.success) {
+// 	spinnerForInstall.stop();
+// } else spinnerForInstall.fail(spinnerInstallTextBase + ' failed');
+
+Deno.stdout.writeSync(encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
+// Deno.stdout.writeSync(encoder.encode('└─ ' + durationText('install.deno-install') + '\n'));
+
+const installDuration = performanceDuration('install.deno-install');
+Deno.stdout.writeSync(
+	encoder.encode(
+		'└─ ' + (status.success
+			? 'Done'
+			: 'Failed') + (installDuration
+				? (' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 }))
+				: '') + '\n',
+	),
+);
+
+performance.mark('install.enhance-shim:start');
 
 const shimBinPath = (() => {
 	const m = out.match(/^\s*(.*[.](?:bat|cmd))\s*$/mu);
@@ -427,9 +479,14 @@ if (status.success && isWinOS) {
 		}),
 	);
 	Deno.writeFileSync(shimBinPath, encoder.encode(contentsUpdated));
+	performance.mark('install.enhance-shim:stop');
+	const enhanceShimDuration = performanceDuration('install.enhance-shim');
 	Deno.stdout.writeSync(
 		encoder.encode(
-			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\`\n`,
+			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\` (in ${
+				enhanceShimDuration ? formatDuration(enhanceShimDuration) : 'unknown time'
+			})
+			\n`,
 		),
 	);
 }
