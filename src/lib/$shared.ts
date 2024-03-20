@@ -568,26 +568,34 @@ export function formatN(
 	return (new Intl.NumberFormat(undefined, options).format(n));
 }
 
-export function durationText(tag: string): string | undefined {
+export function performanceDuration(tag: string) {
+	const now = performance.now();
 	try {
 		const performanceEntries = (() => {
 			let entries = performance.getEntriesByName(tag, 'mark');
-			if (entries.length > 1) return entries;
+			if (entries.length > 0) return entries;
 			entries = entries.concat(performance.getEntriesByName(tag + ':begin'));
 			entries = entries.concat(performance.getEntriesByName(tag + ':start'));
 			entries = entries.concat(performance.getEntriesByName(tag + ':end'));
 			entries = entries.concat(performance.getEntriesByName(tag + ':stop'));
-			if (entries.length > 1) return entries;
+			if (entries.length > 0) return entries;
 			return undefined;
 		})();
-		if ((performanceEntries == undefined) || performanceEntries.length < 2) return undefined;
-		const now = performance.now();
+		// if ((performanceEntries == undefined) || performanceEntries.length < 2) return undefined;
+		if (performanceEntries == null) return undefined;
 		const duration = (performanceEntries.pop()?.startTime ?? now) -
 			(performanceEntries.shift()?.startTime ?? now);
-		return `${tag} done (duration: ${formatDuration(duration, { maximumFractionDigits: 3 })})`;
+		return duration;
 	} catch (_) {
 		return undefined;
 	}
+}
+
+export function durationText(tag: string): string | undefined {
+	const duration = performanceDuration(tag);
+	if (duration != null) {
+		return `${tag} done (duration: ${formatDuration(duration, { maximumFractionDigits: 3 })})`;
+	} else return undefined;
 }
 
 //===
