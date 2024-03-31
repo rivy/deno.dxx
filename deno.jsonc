@@ -8,4 +8,5 @@
 		"proseWrap": "never"
 	},
 	"lock": false
+	// , "importMap": "./vendor/import_map.json"
 }

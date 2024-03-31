@@ -1,0 +1,3 @@
+/* esm.sh - esbuild bundle(rfc-log-levels@3.17.0) denonext production */
+var u={emergency:0,alert:1,critical:2,error:3,warning:4,notice:5,info:6,debug:7,emerg:0,crit:2,err:3,warn:4,note:5};function l(e,r=u){return r[e]==null?null:r[e]}function o(e,r=u){for(let n in r)if(r.hasOwnProperty(n)&&r[n]===e)return n;return null}function i(e,r=u){if(typeof e=="string"){let n=l(e,r);if(n==null)return null;let t=o(n,r);return t==null?null:{levelNumber:n,levelName:t}}else if(typeof e=="number"){let n=o(e,r);return n==null?null:{levelNumber:e,levelName:n}}else return null}export{i as default,o as getLevelName,l as getLevelNumber,u as rfcLogLevels};
+//# sourceMappingURL=rfc-log-levels.mjs.map
