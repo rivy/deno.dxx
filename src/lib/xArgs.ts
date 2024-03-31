@@ -55,9 +55,8 @@ export { expand as braceExpand } from './xBraces.ts';
 // * use deno/std@0.134.0 to avoid permission prompts (deno/std@0.135.0+ causes permission prompts; see <https://github.com/denoland/deno_std/issues/2097>)
 // import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0';
 // import Micromatch from 'https://esm.sh/micromatch@4.0.2?deno-std=0.134.0';
-// import Picomatch from 'https://esm.sh/picomatch@2.3.0?deno-std=0.134.0&no-check';
-import PicomatchM from 'https://esm.sh/picomatch@2.3.1?deno-std=0.134.0&no-check'; // '?no-check' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
-import PicomatchT from '../../vendor/@types/picomatch@2.2.1/index.d.ts'; // use locally vendored types
+import type PicomatchT from 'https://esm.sh/@types/picomatch@2.2.1';
+import PicomatchM from 'https://esm.sh/picomatch@2.2.1?deno-std=0.134.0&no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
 const Picomatch = PicomatchM as typeof PicomatchT;
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0&dev';
