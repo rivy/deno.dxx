@@ -28,7 +28,10 @@ export class PQueue extends Queue {
 // spell-checker:ignore (names) DeepMerge
 // spell-checker:ignore (people) * balupton
 
-export { default as deepMerge } from 'https://esm.sh/deepmerge@4.3.1';
+import { default as DeepMergeM } from 'https://esm.sh/deepmerge@4.3.1&no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
+import type DeepMergeT from '../../../vendor/@types/deepmerge@4.3.1/index.d.ts'; // use locally vendored types
+const deepMerge = DeepMergeM as typeof DeepMergeT;
+export { deepMerge };
 
 export * as $symbols from '../xWait/log_symbols.ts';
 
