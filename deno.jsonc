@@ -1,4 +1,5 @@
 {
+	"exclude": ["node_modules", "vendor"],
 	"fmt": {
 		"useTabs": true,
 		"lineWidth": 100,
