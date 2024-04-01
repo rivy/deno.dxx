@@ -19,7 +19,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by \`dxi\
 @:launch
 @rem:: use of SHIM_EXEC is a circumlocution to avoid \`%*\` within the later, parentheses-surrounded, final parse group [o/w parentheses within args may cause parsing/execution misbehavior]
 @>>"%SHIM_EXEC%" echo @set SHIM_ARGS=%SHIM_ARGS%
-@>>"%SHIM_EXEC%" echo @(goto) 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" %%SHIM_ARGS%%
+@>>"%SHIM_EXEC%" echo @(goto) 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS%%
 @(
 @(goto) 2>NUL
 @for %%G in ("%COMSPEC%") do @title %%~nG
@@ -78,10 +78,16 @@ export function shimInfo(contentsOriginal: string) {
 		// * run-target is matched as the first double-quoted URL-like (like "<scheme>:...") argument
 		// eg, `deno install ...` => `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
 		// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%SHIM_ARGS%%`
-		/^(.*?)@?\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?\x22([a-z][a-z0-9+.-]+:[^\x22]+)\x22\s+(%[*]|%%(?:DENO_)?SHIM_ARGS%%)\s*$/m,
+		/^(.*?)@?\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?\x22([a-z][a-z0-9+.-]+:[^\x22]+)\x22\s+((.*?)\s*(?:%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
 	) || [];
-	const [_match, _denoCommandPrefix, denoRunOptionsRaw, denoRunTarget, _denoRunTargetArgs] =
-		reMatchArray;
+	const [
+		_match,
+		_denoCommandPrefix,
+		denoRunOptionsRaw,
+		denoRunTarget,
+		_denoRunTargetArgs,
+		denoRunTargetPrefixArgs,
+	] = reMatchArray;
 
 	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 
@@ -89,7 +95,7 @@ export function shimInfo(contentsOriginal: string) {
 
 	denoRunOptions = denoRunOptions.replace(/(?<=^|\s+)[\x22\x27]?--[\x22\x27]?(?=\s+|$)/gm, '') // remove any "--" (quoted or not); avoids collision with "--" added by template
 		.toString();
-
+	7;
 	// change purposeful use of unstable flags to `--allow-all`
 	// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
 	// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
@@ -116,5 +122,5 @@ export function shimInfo(contentsOriginal: string) {
 		.replace(/\s+$/m, '') // remove trailing whitespace
 		.toString();
 
-	return { isEnhanced, denoRunOptions, denoRunTarget };
+	return { isEnhanced, denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs };
 }
