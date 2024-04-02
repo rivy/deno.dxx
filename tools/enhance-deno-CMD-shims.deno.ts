@@ -346,12 +346,14 @@ const updates = await collect(map(async function (fileEntry) {
 	const shimBinName = $path.parse(shimPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs } = info;
+	const appNameVersion = '`' + appName + '` ' + version;
 	const contentsUpdated = $eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
 			denoRunOptions,
 			denoRunTarget,
 			denoRunTargetPrefixArgs,
 			shimBinName,
+			appNameVersion,
 		}),
 	);
 	return {
