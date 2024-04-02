@@ -115,9 +115,9 @@ const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
 Enhance Deno command/run shims\n
-* fixes process exit status code handoff to shell
-* improves handling of CTRL-C (suppressing "Terminate batch job (Y/N)?")
-* supports enhanced command line arguments for shim target\n
+* [WinOS] fixes process exit status code handoff to shell
+* [WinOS] improves handling of CTRL-C (suppressing "Terminate batch job (Y/N)?")
+* [POSIX/WinOS] supports enhanced command line arguments for shim target\n
 Usage:\n  ${runAsName} [OPTION..]`)
 	.updateStrings({ 'Positionals:': 'Arguments:' }) // note: (yargs bug) must precede `.positional(...)` definitions for correct help display
 	.positional('OPTION', { describe: 'OPTION(s) as listed here (below)' })
