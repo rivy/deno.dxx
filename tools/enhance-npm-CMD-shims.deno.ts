@@ -247,7 +247,8 @@ if (args.version) {
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/min/lodash.js';
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
-const cmdShimTemplate = `@rem:: \`<%=targetBinName%>\` (*enhanced* \`npm\` CMD shim)
+const cmdShimTemplate =
+	`@rem:: \`<%=targetBinName%>\` (*enhanced* \`npm\` CMD shim; by <%=appNameVersion%>)
 @setLocal
 @echo off
 goto :_START_
@@ -364,8 +365,9 @@ const updates = await collect(map(async function (file) {
 		.LF(contentsOriginal)
 		.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
 	const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
+	const appNameVersion = '`' + appName + '` ' + version;
 	const contentsUpdated = $eol.CRLF(
-		$lodash.template(cmdShimTemplate)({ targetBinName, targetBinPath }),
+		$lodash.template(cmdShimTemplate)({ targetBinName, targetBinPath, appNameVersion }),
 	);
 	return { name, isUpdatable: !!targetBinPath, targetBinPath, contentsOriginal, contentsUpdated };
 }, files));
