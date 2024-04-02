@@ -79,7 +79,7 @@ export function shimInfo(contentsOriginal: string) {
 		// * run-target is matched as the first double-quoted URL-like (like "<scheme>:...") argument
 		// eg, `deno install ...` => `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
 		// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%SHIM_ARGS%%`
-		/^(.*?)@?\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?\x22([a-z][a-z0-9+.-]+:[^\x22]+)\x22\s+((.*?)\s*(?:%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
+		/^(.*?)?\x22?deno(?:[.]exe)?\x22?\s+\x22?run\x22?\s+(.*\s+)?(?:[\x22]([a-z][a-z0-9+.-]+:[^\x22]+)[\x22]|[\x27]([a-z][a-z0-9+.-]+:[^\x27]+))\s+((.*?)\s*(?:\x22$@\x22|%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
 	) || [];
 	const [
 		_match,
