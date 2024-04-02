@@ -303,7 +303,12 @@ await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 
 // !NOTE: maximum command line or environment variable length is likely less than 8192 characters; see ref: <https://superuser.com/questions/1070272/why-does-windows-have-a-limit-on-environment-variables-at-all/1070354#1070354>
 // FixME: fail gracefully (with warning?) if expanded command line is longer than a <max_length>
-const max_shim_args_size = 8 * 1024; // heuristic max environment use for SHIM_ARGS (use 8kiB; max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
+// !NOTE: more recent info suggests that the maximum environment space is now 64MiB!
+// .. ref: [Total available space for environment vars](https://www.dostips.com/forum/viewtopic.php?t=6962) @@ <https://archive.is/G2MLG>
+// .. ref: [Why does SET performance degrade as environment sie grows?](https://www.dostips.com/forum/viewtopic.php?f=3&t=2597) @@ <https://archive.is/wip/TfZPE>
+// .. test this with a large environment variable (set and test size via Deno.env)
+// .. additionally, is there a limit on the size of the command line?
+const max_shim_args_size = 16 * 1024 * 1024; // heuristic max environment use for SHIM_ARGS (use 16MiB; max env space ~64MiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
 // FixME: fall back to unexpanded args for TARGET?
 // ... instead output large SHIM_ARGS to a temporary file (path in SHIM_ARGF==Deno.makeTempFile({prefix: 'SHIM_ARGS-', suffix: '.txt'})) and use SHIM_ARGF as a transport mechanism
 // ... and SHIM_ARGS == undefined
@@ -318,7 +323,7 @@ const denoArgs = ['run', ...delegatedArgs] /* .filter(Boolean) */;
 const SHIM_ARGS = targetArgs.map($args.reQuote).join(' ');
 if (SHIM_ARGS.length > max_shim_args_size) {
 	await log.error(
-		'SHIM_ARGS environment var transporter is too long (install target with `dxi ...` and run directly for unlimited argument expansion space',
+		'Command line expansion is too large (transport via SHIM_ARGS has limited space [max 8kiB]; install target with `dxi ...` and run directly for unlimited argument expansion space',
 	);
 	Deno.exit(1);
 }
