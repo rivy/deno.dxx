@@ -5,26 +5,41 @@
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive avoidance of any prior pinned value)
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
-@set SHIM_RUNNER=deno.exe "run" --allow-all --no-prompt --quiet --
-@if DEFINED SHIM_TARGET if "%SHIM_TARGET%"=="%~f0" goto :post_SHIM_args_setup
+@set "RANDOM=" &@:: reset RANDOM (defensive avoidance of any prior pinned value)
+@set "TIME=" &@:: reset TIME (defensive avoidance of any prior pinned value)
+@set SHIM_RUNNER=deno.exe "run" --allow-all --quiet --
+@if NOT DEFINED SHIM_TARGET @goto :skip_SHIM_TARGET_check
+@if "%SHIM_TARGET%"=="%~f0" goto :post_SHIM_args_setup
+@if "%SHIM_TARGET:/=\%"=="file:\\\%~f0" goto :post_SHIM_args_setup
+@:skip_SHIM_TARGET_check
 @set SHIM_ARGS=%*
-@set "SHIM_ARG0=%~0"
+@rem:: double '%' characters in SHIM_ARGS; needed for correct output of `... echo @set SHIM_ARGS=%SHIM_ARGS%`; used in SHIM_EXEC
+@rem:: * delayed expansion is required to double the '%' characters
+@setLocal EnableDelayedExpansion
+@if not defined SHIM_ARGS goto :skip_shim_args_escape
+@set SHIM_ARGS=!SHIM_ARGS:%%=%%%%!
+@:skip_shim_args_escape
+@endLocal & @set SHIM_ARGS=%SHIM_ARGS%
 @:post_SHIM_args_setup
 @set "SHIM_ORIGIN=%~f0"
-@set "SHIM_TARGET=%~f0.$deno$ext.ts"
+@:create_unique_tid
+@set "SHIM_TID=$shim_target_id-%TIME::=%-%RANDOM%$" &@:: unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
+@set "SHIM_TARGET=%SHIM_ORIGIN%.%SHIM_TID%.$deno$ext.ts"
+@if EXIST "%SHIM_TARGET%" @goto :create_unique_tid
 @copy /y "%SHIM_ORIGIN%" "%SHIM_TARGET%" >NUL
 @deno.exe fmt "%SHIM_TARGET%" >NUL 2>NUL &@:: HACK: (optional) quick conversion to LF EOLs to avoid error/panic source map bug (see https://github.com/denoland/deno/issues/16815)
-@set "SHIM_EXEC=%~f0.$shim$exec.cmd"
+@set "SHIM_EXEC=%SHIM_ORIGIN%.%SHIM_TID%.$shim$exec.cmd"
 @> "%SHIM_EXEC%" echo @rem # `%~0 %SHIM_ARGS%`
 @>>"%SHIM_EXEC%" echo @setLocal
-@>>"%SHIM_EXEC%" echo @set DENO_NO_PROMPT=1 ^&:: suppress default (0ugly UI/UX) prompting behavior in favor of panics for insufficient permissions
+@>>"%SHIM_EXEC%" echo @set DENO_NO_PROMPT=1 ^&:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions
 @>>"%SHIM_EXEC%" echo @set DENO_NO_UPDATE_CHECK=1 ^&:: suppress annoying/distracting/useless-for-non-dev Deno notifications
+@>>"%SHIM_EXEC%" echo @set DENO_NO_DEPRECATION_WARNINGS=1 &:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
 @>>"%SHIM_EXEC%" echo @(goto) 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @%SHIM_RUNNER% "%SHIM_TARGET%" %SHIM_ARGS%
 @(endLocal
 @(goto) 2>NUL
 @for %%G in ("%COMSPEC%") do @title %%~nG
-@set "SHIM_ARG0=%SHIM_ARG0%"
-@set "SHIM_ARGS=%SHIM_ARGS%"
+@set "SHIM_ARG0=%~0"
+@set SHIM_ARGS=%SHIM_ARGS%
 @set "SHIM_EXEC=%SHIM_EXEC%"
 @set "SHIM_TARGET=%SHIM_TARGET%"
 @call "%SHIM_EXEC%"
@@ -39,8 +54,7 @@
 @set "SHIM_TARGET="
 @call %COMSPEC% /d/c "exit %%SHIM_ERRORLEVEL%%" || set "SHIM_ERRORLEVEL="
 )
-@
-*/ 0;
+@*/ 0;
 
 // spell-checker:ignore () LogLevel
 // spell-checker:ignore () nightside
