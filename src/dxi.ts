@@ -470,8 +470,8 @@ const out = await readAll(readerFromStreamReader(mergedOutput.getReader())).then
 // ?.replace(/^/gmsu, '| ')
 
 spinnerForInstall.stop();
-const prefixColorFn = status.success ? $colors.green : $colors.red;
-Deno.stdout.writeSync(encoder.encode(prefixColorFn('.') + ' ' + spinnerText + '\n'));
+const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
+Deno.stdout.writeSync(encoder.encode(prefixChar + ' ' + spinnerText + '\n'));
 
 Deno.stdout.writeSync(encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
 
@@ -479,8 +479,8 @@ const installDuration = performanceDuration('install.deno-install');
 Deno.stdout.writeSync(
 	encoder.encode(
 		'└─ ' + (status.success
-			? 'Done'
-			: 'Failed') + (installDuration
+			? $colors.green('Done')
+			: $colors.red('Failed')) + (installDuration
 				? (' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 }))
 				: '') + '\n',
 	),
