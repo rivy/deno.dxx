@@ -89,6 +89,9 @@ const appCopyright = '* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)';
 const appVersion = $version.v();
 const appRunAs = $me.runAs;
 
+let appExitValue = 0;
+let appUsageError = false;
+
 log.mergeMetadata({ authority: appName });
 
 performance.mark('setup:log:stop');
@@ -118,9 +121,9 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
-		if (err) throw err;
+		appUsageError = true;
 		log.error(msg);
-		// appUsageError = true;
+		if (err) throw err;
 	})
 	// * (boilerplate) help and version setup
 	.help(false) // disable built-in 'help' (for later customization)
@@ -172,6 +175,8 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 		// 'unknown-options-as-args': true, // treat unknown options as arguments
 		// * (boilerplate) usual parser options
 		'camel-case-expansion': true, // enable camelCase aliases for hyphenated options (only within generated Yargs parse result object)
+		'parse-numbers': false, // treat all arguments as strings (do not parse numbers)
+		'parse-positional-numbers': false, // treat all arguments as strings (do not parse numbers)
 		'strip-aliased': true, // remove option aliases from parse result object
 		'strip-dashed': true, // remove hyphenated option aliases from parse result object
 	})
@@ -208,6 +213,7 @@ const argv = (() => {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
 		log.error(e.message);
+		appExitValue = 1;
 		return;
 	}
 })();
@@ -325,3 +331,8 @@ const output = (argv._.map(String))?.join(argv.lines ? '\n' : ' ');
 if (output.length > 0) {
 	console.log(output);
 }
+
+//===
+
+if (appUsageError && appExitValue === 0) appExitValue = 1;
+Deno.exit(appExitValue);
