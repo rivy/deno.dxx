@@ -12,6 +12,8 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @rem:: * delayed expansion is required to double the '%' characters
 @setLocal EnableDelayedExpansion
 @set SHIM_ARGS=!SHIM_ARGS:%%=%%%%!
+@set SHIM_ARGS=!SHIM_ARGS:(=^(!
+@set SHIM_ARGS=!SHIM_ARGS:)=^)!
 @endLocal & set SHIM_ARGS=%SHIM_ARGS%
 @rem
 @set "SHIM_PIPE="
@@ -28,7 +30,8 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @set "SHIM_PIPE=%SHIM_PIPE%"
 @set "SHIM_ARG0=%~0"
 @set "SHIM_TARGET=<%=denoRunTarget%>"
-@call "%SHIM_EXEC%"
+@rem @call "%SHIM_EXEC%"
+@deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
 @if EXIST "%SHIM_EXEC%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_EXEC%" 2>NUL

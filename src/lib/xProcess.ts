@@ -2,7 +2,7 @@
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (people) Roy Ivy III * rivy
 // spell-checker:ignore (shell/CMD) PATHEXT
-// spell-checker:ignore (vars) ARGX
+// spell-checker:ignore (vars) ARGP ARGX
 
 import { $path } from './$deps.ts';
 import { permitsAsync } from './$shared.TLA.ts';
@@ -66,7 +66,17 @@ const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
 const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_'];
-const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC'];
+const shimEnvBaseNames = [
+	'URL',
+	'TARGET',
+	'ARG0',
+	'ARGS_PREFIX',
+	'ARGS',
+	'ARGV',
+	'ARGV0',
+	'PIPE',
+	'EXEC',
+];
 
 //===
 
@@ -127,8 +137,12 @@ export const shim = await (async () => {
 	parts.ARG0 = (await envAsync('SHIM_ARG0')) ??
 		(await envAsync('SHIM_ARGV0')) ??
 		(await envAsync('DENO_SHIM_ARG0'));
-	parts.ARGS = (await envAsync('SHIM_ARGS')) ??
-		(await envAsync('SHIM_ARGV')) ??
+	// const ARGS_PREFIX = (await envAsync('SHIM_ARGS_PREFIX')) ??
+	// 	(await envAsync('DENO_SHIM_ARGS_PREFIX'));
+	// const ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('SHIM_ARGV')) ??
+	// 	(await envAsync('DENO_SHIM_ARGS'));
+	// parts.ARGS = [ARGS_PREFIX, ARGS].join(' ');
+	parts.ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('SHIM_ARGV')) ??
 		(await envAsync('DENO_SHIM_ARGS'));
 	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
 	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC'));
