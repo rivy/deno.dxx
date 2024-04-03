@@ -89,6 +89,9 @@ const appCopyright = '* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)';
 const appVersion = $version.v();
 const appRunAs = $me.runAs;
 
+let appExitValue = 0;
+let appUsageError = false;
+
 log.mergeMetadata({ authority: appName });
 
 performance.mark('setup:log:stop');
@@ -120,7 +123,7 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
 		log.error(msg);
-		// appUsageError = true;
+		appUsageError = true;
 	})
 	// * (boilerplate) help and version setup
 	.help(false) // disable built-in 'help' (for later customization)
@@ -208,6 +211,7 @@ const argv = (() => {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
 		log.error(e.message);
+		appExitValue = 100;
 		return;
 	}
 })();
@@ -325,3 +329,8 @@ const output = (argv._.map(String))?.join(argv.lines ? '\n' : ' ');
 if (output.length > 0) {
 	console.log(output);
 }
+
+//===
+
+if (appUsageError && appExitValue === 0) appExitValue = 1;
+Deno.exit(appExitValue);
