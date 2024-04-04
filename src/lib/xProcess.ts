@@ -111,10 +111,12 @@ export const shim = await (async () => {
 		TARGET?: string;
 		/** * original `argv[0]` which invoked this process (if/when available) */
 		ARG0?: string;
+		/** * preliminary argument(s) "curried" into shim as an argument prefix */
+		ARGS_PREFIX?: string;
 		/** * original argument text string */
 		ARGS?: string;
 		// useful ~ for Windows modification of parent environment (needed for creation of equivalents for enhanced-`cd` (`enhan-cd`, `goto`, `scd`, ...) and `source` applications) // spell-checker:ignore enhan
-		// ... PIPE is used to allow passage of ENV variable and CWD changes back up to the parent SHIM process (needed for utilities like `cdd`, `source`, etc.)
+		// ... PIPE is a BAT/CMD file used to allow passage of ENV variable and CWD changes back up to the parent process (needed for utilities like `cdd`, `source`, etc.)
 		/** * path of pipe file (an escape hatch which allows modification of parent environment (variables and CWD)) */
 		PIPE?: string;
 		// implementation detail // ToDO? remove as implementation detail?
@@ -137,11 +139,7 @@ export const shim = await (async () => {
 	parts.ARG0 = (await envAsync('SHIM_ARG0')) ??
 		(await envAsync('SHIM_ARGV0')) ??
 		(await envAsync('DENO_SHIM_ARG0'));
-	// const ARGS_PREFIX = (await envAsync('SHIM_ARGS_PREFIX')) ??
-	// 	(await envAsync('DENO_SHIM_ARGS_PREFIX'));
-	// const ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('SHIM_ARGV')) ??
-	// 	(await envAsync('DENO_SHIM_ARGS'));
-	// parts.ARGS = [ARGS_PREFIX, ARGS].join(' ');
+	parts.ARGS_PREFIX = await envAsync('SHIM_ARGS_PREFIX') ?? await envAsync('DENO_ARGS_PREFIX');
 	parts.ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('SHIM_ARGV')) ??
 		(await envAsync('DENO_SHIM_ARGS'));
 	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
@@ -165,7 +163,7 @@ export const shim = await (async () => {
 		// shim is targeting runner
 		if (!parts.ARGS) parts.runner = parts.ARG0;
 		// o/w assume execution in `deno` style as `<runner>` + `<options..> eval/run <options..> script_name <script_options..>`
-		// * so, find *second* non-option in ARGS
+		// * so, find and use *second* non-option in ARGS as script name
 		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
 		let idx = 0;
 		let nonOptionN = 0;
@@ -377,21 +375,35 @@ export const warnIfImpaired = (
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return await $args.argsAsync(
-		(isEnhancedShimTarget ? (shim.scriptArgs ?? shim.ARGS) : undefined) ?? commandLineParts
-			.scriptArgs ?? Deno
-			.args,
-	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+	return $args.argsAsync((() => {
+		if (isEnhancedShimTarget) {
+			if (shim.scriptArgs != null) {
+				return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
+					Boolean,
+				);
+			}
+			if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
+		}
+		if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
+		return Deno.args;
+	})()); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsSync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return $args.argsSync(
-		(isEnhancedShimTarget ? (shim.scriptArgs ?? shim.ARGS) : undefined) ?? commandLineParts
-			.scriptArgs ?? Deno
-			.args,
-	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+	return $args.argsSync((() => {
+		if (isEnhancedShimTarget) {
+			if (shim.scriptArgs != null) {
+				return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
+					Boolean,
+				);
+			}
+			if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
+		}
+		if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
+		return Deno.args;
+	})()); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
