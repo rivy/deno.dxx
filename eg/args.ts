@@ -121,9 +121,9 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
-		if (err) throw err;
-		log.error(msg);
 		appUsageError = true;
+		log.error(msg);
+		if (err) throw err;
 	})
 	// * (boilerplate) help and version setup
 	.help(false) // disable built-in 'help' (for later customization)
@@ -175,6 +175,8 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 		// 'unknown-options-as-args': true, // treat unknown options as arguments
 		// * (boilerplate) usual parser options
 		'camel-case-expansion': true, // enable camelCase aliases for hyphenated options (only within generated Yargs parse result object)
+		'parse-numbers': false, // treat all arguments as strings (do not parse numbers)
+		'parse-positional-numbers': false, // treat all arguments as strings (do not parse numbers)
 		'strip-aliased': true, // remove option aliases from parse result object
 		'strip-dashed': true, // remove hyphenated option aliases from parse result object
 	})
@@ -211,7 +213,7 @@ const argv = (() => {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
 		log.error(e.message);
-		appExitValue = 100;
+		appExitValue = 1;
 		return;
 	}
 })();
