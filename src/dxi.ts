@@ -87,13 +87,11 @@ const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
 Install command script as an executable (with enhanced WinOS command line capabilities [via an enhancing shim]).\n
-Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_ARGUMENT..]] COMMAND [COMMAND_ARGUMENT..]`)
+Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGUMENT..]`)
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({ 'Positionals:': 'Arguments:' })
 	.positional('OPTION', { describe: 'OPTION(s), as listed here (below)' })
-	.positional('INSTALL_ARGUMENT', {
-		describe: 'INSTALL_ARGUMENT(s) delegated to `deno install ...`',
-	})
+	.positional('INSTALL_OPTION', { describe: 'INSTALL_OPTION(s) delegated to `deno install ...`' })
 	.positional('COMMAND', { describe: 'Path/URL of COMMAND to install' })
 	.positional('COMMAND_ARGUMENT', { describe: 'COMMAND_ARGUMENT(s) for all executions of COMMAND' })
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
