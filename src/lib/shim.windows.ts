@@ -42,14 +42,16 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 const cmdShimPrepPipe = `@:pipeEnabled
 @set "RANDOM=" &@:: reset RANDOM (dynamic variable; defensive de-cloaking to avoid any prior pinned value)
 @set "TIME=" &@:: reset TIME (dynamic variable; defensive de-cloaking of any prior pinned value)
+@set "DATE=" &@:: reset DATE (dynamic variable; defensive de-cloaking of any prior pinned value)
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=."
 @:prep
-@set "SHIM_TID=$shim_tid-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
+@set "SHIM_TID=$shim_tid-%DATE%-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
-@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%SHIM_TID%.cmd"
+@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.$shim_pipe$.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
-@if DEFINED SHIM_PIPE echo @rem \`<%=shimBinName%>\` shell pipe > "%SHIM_PIPE%"`;
+@if DEFINED SHIM_PIPE @> "%SHIM_PIPE%" echo % \`<%=shimBinName%>\` shell pipe %
+@if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
 const cmdShimPrepNoPipe = `@:pipeDisabled`;
 
 export function cmdShimTemplate(enablePipe: boolean) {
