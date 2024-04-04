@@ -11,6 +11,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @rem
 @rem:: escape closing parentheses to prevent parsing issues in the final parse group
 @rem:: - ref: [SO ~ Escaping parentheses...](https://stackoverflow.com/questions/12976351/escaping-parentheses-within-parentheses-for-batch-file) @@ https://archive.is/biqAW
+@rem:: * leading '.' is to avoid empty SHIM_ARGS which won't be manipulated correctly by the expansion string substitutions
 @set SHIM_ARGS=.%*
 @set SHIM_ARGS=%SHIM_ARGS:)=^^^)%
 @rem
@@ -21,10 +22,11 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @(goto) 2>NUL
 @for %%G in ("%COMSPEC%") do @title %%~nG
 @set "SHIM_PIPE=%SHIM_PIPE%"
-@rem:: reverse parentheses escaping and add any prefix arguments
-@set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
-@call set SHIM_ARGS=<%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS:~1%%
 @set "SHIM_ARG0=%~0"
+@set SHIM_ARGS_PREFIX=<%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>
+@rem:: reverse parentheses escaping and remove added leading '.'
+@set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
+@call set SHIM_ARGS=%%SHIM_ARGS:~1%%
 @set "SHIM_TARGET=<%=denoRunTarget%>"
 @call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
@@ -43,7 +45,8 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=."
 @:prep
-@set "SHIM_TID=%TIME::=%-%RANDOM%" &:: TID = Temp-ID
+@set "SHIM_TID=$shim_tid-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
+@set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
 @if DEFINED SHIM_PIPE echo @rem \`<%=shimBinName%>\` shell pipe > "%SHIM_PIPE%"`;
