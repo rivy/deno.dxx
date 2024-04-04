@@ -8,8 +8,10 @@
 @set "RANDOM=" &@:: reset RANDOM (defensive avoidance of any prior pinned value)
 @set "TIME=" &@:: reset TIME (defensive avoidance of any prior pinned value)
 @set SHIM_RUNNER=deno.exe "run" --allow-all --quiet --
-@if DEFINED SHIM_TARGET if "%SHIM_TARGET%"=="%~f0" goto :post_SHIM_args_setup
-@if DEFINED SHIM_TARGET if "%SHIM_TARGET:\=/%"=="file:///%~f0" goto :post_SHIM_args_setup
+@if NOT DEFINED SHIM_TARGET @goto :skip_SHIM_TARGET_check
+@if "%SHIM_TARGET%"=="%~f0" goto :post_SHIM_args_setup
+@if "%SHIM_TARGET:\=/%"=="file:///%~f0" goto :post_SHIM_args_setup
+@:skip_SHIM_TARGET_check
 @set SHIM_ARGS=%*
 @rem:: double '%' characters in SHIM_ARGS; needed for correct output of `... echo @set SHIM_ARGS=%SHIM_ARGS%`; used in SHIM_EXEC
 @rem:: * delayed expansion is required to double the '%' characters
