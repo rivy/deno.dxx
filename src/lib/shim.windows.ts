@@ -47,9 +47,10 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @:prep
 @set "SHIM_TID=$shim_tid-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
-@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%SHIM_TID%.cmd"
+@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.$shim_pipe$.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
-@if DEFINED SHIM_PIPE echo @rem \`<%=shimBinName%>\` shell pipe > "%SHIM_PIPE%"`;
+@if DEFINED SHIM_PIPE @> "%SHIM_PIPE%" echo % \`<%=shimBinName%>\` shell pipe %
+@if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
 const cmdShimPrepNoPipe = `@:pipeDisabled`;
 
 export function cmdShimTemplate(enablePipe: boolean) {
