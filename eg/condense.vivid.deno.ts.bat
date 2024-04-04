@@ -29,7 +29,9 @@
 @if EXIST "%SHIM_TARGET%" @goto :confirm_unique_tid
 @copy /y "%SHIM_ORIGIN%" "%SHIM_TARGET%" >NUL
 @deno.exe fmt "%SHIM_TARGET%" >NUL 2>NUL &@:: HACK: (optional) quick conversion to LF EOLs to avoid error/panic source map bug (see https://github.com/denoland/deno/issues/16815)
+@if DEFINED SHIM_DEBUG echo SHIM_TARGET="%SHIM_TARGET%" 1>&2
 @set "SHIM_EXEC=%SHIM_ORIGIN%.%SHIM_TID%.$shim$exec.cmd"
+@if DEFINED SHIM_DEBUG echo SHIM_EXEC="%SHIM_EXEC%" 1>&2
 @> "%SHIM_EXEC%" echo @rem # `%~0 %SHIM_ARGS%`
 @>>"%SHIM_EXEC%" echo @setLocal
 @>>"%SHIM_EXEC%" echo @set DENO_NO_PROMPT=1 ^&:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions
@@ -45,8 +47,6 @@
 @set "SHIM_TARGET=%SHIM_TARGET%"
 @call "%SHIM_EXEC%"
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
-@if DEFINED SHIM_DEBUG echo SHIM_EXEC="%SHIM_EXEC%" 1>&2
-@if DEFINED SHIM_DEBUG echo SHIM_TARGET="%SHIM_TARGET%" 1>&2
 @if EXIST "%SHIM_EXEC%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_EXEC%" 2>NUL
 @if EXIST "%SHIM_TARGET%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_TARGET%" 2>NUL
 @set "SHIM_ARG0="
