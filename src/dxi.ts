@@ -6,8 +6,8 @@ import {
 	$path,
 	$semver,
 	mergeReadableStreams,
-	readAll,
-	readerFromStreamReader,
+	// readAll,
+	// readerFromStreamReader,
 } from './lib/$deps.ts';
 import {
 	$version,
@@ -450,9 +450,16 @@ const mergedOutput = mergeReadableStreams(
 	process.stderr?.readable || new ReadableStream(),
 	process.stdout?.readable || new ReadableStream(),
 );
+const outputReader = mergedOutput.getReader();
 
+// const out = await readAll(readerFromStreamReader(outputReader)).then((arr) =>
+// 	decoder.decode(arr)
+// );
+// ?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
+// ?.replace(/^/gmsu, '| ')
+
+let out = '';
 const status = (await Promise.all([
-	delay(100),
 	(() => {
 		{
 			const status = process.status();
@@ -460,12 +467,25 @@ const status = (await Promise.all([
 			return status;
 		}
 	})(),
-]))[1]; // add simultaneous delay to avoid visible spinner flash
-const out = await readAll(readerFromStreamReader(mergedOutput.getReader())).then((arr) =>
-	decoder.decode(arr)
-);
-// ?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
-// ?.replace(/^/gmsu, '| ')
+	(async () => {
+		let buffer = '';
+		while (true) {
+			const { value, done } = await outputReader.read();
+			if (done) break;
+			buffer += decoder.decode(value);
+			let newlineIndex;
+			while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+				const line = buffer.slice(0, newlineIndex);
+				out += line + '\n';
+				const s = line?.trimEnd().replace(/^/gmsu, '* ');
+				spinnerForInstall.text = spinnerText + '\n' + s + '\n';
+				spinnerForInstall.render();
+				buffer = buffer.slice(newlineIndex + 1);
+			}
+		}
+	})(),
+	delay(200),
+]))[0]; // await completion status with simultaneous output display (and `delay(100)` to avoid visible spinner flash)
 
 spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
