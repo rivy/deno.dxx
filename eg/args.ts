@@ -2,7 +2,7 @@
 
 import {
 	$version,
-	abortIfMissingPermits,
+	abortIfMissingPermitsSync,
 	durationText,
 	env,
 	projectLocations,
@@ -17,7 +17,6 @@ import {
 	$logger,
 	logger as log, //* note: `log` (aka `logger`) is initialized to the suspended state */
 } from '../src/lib/$shared.ts';
-
 //===
 
 import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
@@ -41,7 +40,7 @@ import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
 // 	Deno.exit(1);
 // }
 
-await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
+abortIfMissingPermitsSync(([] as Deno.PermissionName[]).concat(
 	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
 	['read'], // required for shim targeting of argument expansion and 'yargs'
 	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
