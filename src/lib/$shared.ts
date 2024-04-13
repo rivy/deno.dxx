@@ -102,6 +102,24 @@ export function callersFromStackTrace() {
 
 //====
 
+function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
+	const c: Record<T, U> = {} as Record<T, U>;
+	a.map((e: T, idx: number) => c[e] = b[idx]);
+	return c;
+}
+
+export function permitsSync(
+	names: Deno.PermissionName[] = ['env', 'ffi', 'hrtime', 'net', 'read', 'run', 'write'],
+) {
+	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
+		names,
+		names.map((name) => Deno.permissions?.querySync({ name })).map((e) =>
+			e ?? { state: 'granted', onchange: null }
+		),
+	);
+	return permits;
+}
+
 export async function havePermit(permitName: Deno.PermissionName) {
 	const names = [permitName];
 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
@@ -119,11 +137,65 @@ export async function haveAllPermits(permitNames: Deno.PermissionName[]) {
 }
 
 export async function haveMissingPermits(permitNames: Deno.PermissionName[] = []) {
+	return await haveUnGrantedPermits(permitNames);
+}
+
+export async function haveUnGrantedPermits(permitNames: Deno.PermissionName[] = []) {
 	// ToDO: [2023-09-09; rivy] consider deduplication of `permitNames` contents
 	const permits = (await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name }))))
 		.map((e) => e ?? { state: 'granted', onchange: null });
 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
 	return !allGranted;
+}
+
+export async function unGrantedPermits(permitNames: Deno.PermissionName[] = []) {
+	const permits = await Promise.all(permitNames.map(async (name) => {
+		return { name, permitStatus: await Deno.permissions?.query({ name }) };
+	}));
+	const missing = permits.filter((permit) => permit.permitStatus.state !== 'granted').map((
+		permit,
+	) => permit.name);
+	return missing;
+}
+
+export function havePermitSync(permitName: Deno.PermissionName) {
+	const names = [permitName];
+	const permits = names.map((name) => Deno.permissions?.querySync({ name })).map((e) =>
+		e ?? { state: 'granted', onchange: null }
+	);
+	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	return allGranted;
+}
+
+export function haveAllPermitsSync(permitNames: Deno.PermissionName[]) {
+	const permits = permitNames.map((name) => Deno.permissions?.querySync({ name })).map((e) =>
+		e ?? { state: 'granted', onchange: null }
+	);
+	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	return allGranted;
+}
+
+export function haveMissingPermitsSync(permitNames: Deno.PermissionName[] = []) {
+	return haveUnGrantedPermitsSync(permitNames);
+}
+
+export function haveUnGrantedPermitsSync(permitNames: Deno.PermissionName[] = []) {
+	// ToDO: [2023-09-09; rivy] consider deduplication of `permitNames` contents
+	const permits = permitNames.map((name) => Deno.permissions?.querySync({ name })).map((e) =>
+		e ?? { state: 'granted', onchange: null }
+	);
+	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	return !allGranted;
+}
+
+export function unGrantedPermitsSync(permitNames: Deno.PermissionName[] = []) {
+	const permits = permitNames.map((name) => {
+		return { name, permitStatus: Deno.permissions?.querySync({ name }) };
+	});
+	const missing = permits.filter((permit) => permit.permitStatus.state !== 'granted').map((
+		permit,
+	) => permit.name);
+	return missing;
 }
 
 function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
@@ -156,15 +228,53 @@ export async function abortIfMissingPermits(
 	}
 	// console.warn({ options });
 	// console.warn({ callers, top, url, name });
-	if (await haveMissingPermits(permitNames)) {
-		options.writer(composeMissingPermitsMessage(permitNames));
+	const missing = await unGrantedPermits(permitNames);
+	if (missing.length > 0) {
+		options.writer(composeMissingPermitsMessage(missing));
+		Deno.exit(options.exitCode);
+	}
+}
+
+export function abortIfMissingPermitsSync(
+	permitNames: Deno.PermissionName[] = [],
+	options?: { exitCode?: number; label?: string; writer?: (...args: unknown[]) => void },
+) {
+	options = (options != null) ? options : {};
+	options.exitCode ??= 1;
+	// const callers = callersFromStackTrace();
+	// const top = callers[callers.length - 1];
+	// const url = top?.replace(/(:\d+:\d+)$/, ''); // remove trailing position info (LINE_N:CHAR_POSITION)
+	// const name = $path.parse(url ?? '').name;
+	if (options.writer == null) {
+		options.writer = (args) =>
+			console.warn(
+				$colors.bgRed($colors.bold(` ${options?.label ? (options.label + ':') : ''}ERR! `)),
+				$colors.red('*'),
+				args,
+			);
+	}
+	// console.warn({ options });
+	// console.warn({ callers, top, url, name });
+	const missing = unGrantedPermitsSync(permitNames);
+	if (missing.length > 0) {
+		options.writer(composeMissingPermitsMessage(missing));
 		Deno.exit(options.exitCode);
 	}
 }
 
 export async function panicIfMissingPermits(permitNames: Deno.PermissionName[] = []) {
-	if (await haveMissingPermits(permitNames)) {
-		const err = new Error(composeMissingPermitsMessage(permitNames));
+	const missing = await unGrantedPermits(permitNames);
+	if (missing.length > 0) {
+		const err = new Error(composeMissingPermitsMessage(missing));
+		err.stack = undefined;
+		throw err;
+	}
+}
+
+export function panicIfMissingPermitsSync(permitNames: Deno.PermissionName[] = []) {
+	const missing = unGrantedPermitsSync(permitNames);
+	if (missing.length > 0) {
+		const err = new Error(composeMissingPermitsMessage(missing));
 		err.stack = undefined;
 		throw err;
 	}
@@ -388,6 +498,7 @@ export function ensureAsURL(path: string | URL) {
 */
 // const allowRead = (await Deno.permissions?.query({ name: 'read' })).state === 'granted';
 const allowRead = atImportPermissions.read.state === 'granted';
+const allowRun = atImportPermissions.run.state === 'granted';
 
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
@@ -672,6 +783,7 @@ export function mightUseUnicode() {
 //===
 
 export const commandVOf = (name: string) => {
+	if (!allowRun) return Promise.resolve(undefined);
 	try {
 		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({

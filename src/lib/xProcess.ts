@@ -5,7 +5,7 @@
 // spell-checker:ignore (vars) ARGP ARGX
 
 import { $path } from './$deps.ts';
-import { permitsAsync } from './$shared.TLA.ts';
+import { permitsSync } from './$shared.ts';
 import {
 	commandVOf,
 	deQuote,
@@ -23,9 +23,12 @@ import * as $args from '../lib/xArgs.ts';
 
 //===
 
-const atImportPermissions = await permitsAsync();
+const atImportPermissions = permitsSync();
 const permittedRead = atImportPermissions.read.state === 'granted';
 const permittedRun = atImportPermissions.run.state === 'granted';
+
+const denoExecPath = permittedRead ? Deno.execPath() : undefined;
+const denoMainModule = permittedRead ? Deno.mainModule : undefined;
 
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
 // const caseSensitiveFiles = mightUseFileSystemCase();
@@ -81,11 +84,11 @@ const shimEnvBaseNames = [
 //===
 
 /** * process was invoked by direct execution */
-export const isDirectExecution = permittedRead
-	? !$path.basename(Deno.execPath()).match(runnerNameReS)
+export const isDirectExecution = denoExecPath
+	? !$path.basename(denoExecPath).match(runnerNameReS)
 	: undefined;
 /** * process was invoked as an eval script (eg, `deno eval ...`) */
-export const isEval = permittedRead ? !!Deno.mainModule.match(isDenoEvalReS) : undefined;
+export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : undefined;
 
 //===
 
@@ -153,13 +156,13 @@ export const shim = await (async () => {
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
 	if (
 		/* aka `isEnhancedShimTarget` */
-		parts.targetURL && pathEquivalent(parts.targetURL, Deno.mainModule)
+		parts.targetURL && pathEquivalent(parts.targetURL, denoMainModule)
 	) {
 		// shim is targeting current process
 		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an enhanced shim
 		parts.runner = parts.ARG0;
 		parts.runnerArgs = [];
-	} else if (parts.targetURL && pathEquivalent(parts.targetURL, Deno.execPath())) {
+	} else if (parts.targetURL && pathEquivalent(parts.targetURL, denoExecPath)) {
 		// shim is targeting runner
 		if (!parts.ARGS) parts.runner = parts.ARG0;
 		// o/w assume execution in `deno` style as `<runner>` + `<options..> eval/run <options..> script_name <script_options..>`
@@ -203,11 +206,11 @@ await Promise.all(envVarNames.map(async (name) => {
 //===
 
 export const isEnhancedShimTarget =
-	shim.targetURL && permittedRead &&
-		(pathEquivalent(shim.targetURL, Deno.mainModule) || (pathEquivalent(
+	shim.targetURL &&
+		(pathEquivalent(shim.targetURL, denoMainModule) || (pathEquivalent(
 			shim.targetURL,
-			Deno.execPath(),
-		) && pathEquivalent(shim.scriptName, Deno.mainModule))) || false;
+			denoExecPath,
+		) && pathEquivalent(shim.scriptName, denoMainModule))) || false;
 
 //===
 
@@ -258,9 +261,8 @@ export const commandLineParts = (() => {
 export const pathURL =
 	(isEnhancedShimTarget ? intoURL(deQuote(shim.scriptName))?.href : undefined) ??
 		(isDirectExecution
-			? (permittedRead ? Deno.execPath() : undefined)
-			: (intoURL(deQuote(commandLineParts.scriptName))?.href ??
-				(permittedRead ? Deno.mainModule : undefined)));
+			? denoExecPath
+			: (intoURL(deQuote(commandLineParts.scriptName))?.href ?? denoMainModule));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
 const pathUrlBase = $path.parse(pathURL || '').base;
@@ -294,7 +296,7 @@ if (!isWinOS && (name != null) && permittedRun && (shim.runner === (await comman
 
 /** * executable text string which initiated/invoked execution of the current process */
 export const argv0 = (isEnhancedShimTarget ? shim.runner : undefined) ?? commandLineParts.runner ??
-	(permittedRead ? Deno.execPath() : undefined);
+	denoExecPath;
 /** * runner specific command line options */
 export const execArgv = [
 	...((isEnhancedShimTarget ? shim.runnerArgs : undefined) ?? commandLineParts.runnerArgs ?? []),
