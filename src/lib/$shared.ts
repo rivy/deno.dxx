@@ -129,10 +129,10 @@ export async function haveMissingPermits(permitNames: Deno.PermissionName[] = []
 function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 	/** Sorted, non-duplicated, permission names (used for flag generation) */
 	const flagNames = (permitNames.length > 0) ? [...new Set(permitNames.sort())] : ['all'];
-	const msg =
-		`Missing required permissions; re-run with required permissions (${(flagNames
-			.map((name) => $colors.green('`--allow-' + name + '`'))
-			.join(', '))})`;
+	const plural = flagNames.length > 1;
+	const msg = `Missing required permission${plural ? 's' : ''}; re-run with required permission${
+		plural ? 's' : ''
+	} (${(flagNames.map((name) => $colors.green('`--allow-' + name + '`')).join(', '))})`;
 	return msg;
 }
 
