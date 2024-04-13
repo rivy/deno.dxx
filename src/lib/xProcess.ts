@@ -373,7 +373,7 @@ export const warnIfImpaired = (
 // ... instead output large SHIM_ARGS to a temporary file (%TEMP%/SHIM_ARGS.{sha1(TARGET_URL)})
 
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
-export const argsAsync = async () => {
+export const argsAsync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return $args.argsAsync((() => {
 		if (isEnhancedShimTarget) {
