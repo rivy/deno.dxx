@@ -2,7 +2,8 @@
 // spell-checker:ignore (names) Deno
 
 import { $logger, logger as log } from '../tests/$shared.ts';
-import { env, formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
+import { env } from '../tests/$shared.ts';
+// import { env, formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
 
 import {
 	bench,
@@ -40,7 +41,7 @@ await log.debug('setup: started');
 
 performance.mark('setup:start');
 
-const runs = 2001;
+const runs = 5000;
 
 const usePresetPRNGSeed = false;
 const presetPRNGSeed = 'bpcc2cfyslscmgrylcy2'; // spell-checker:disable-line
@@ -79,19 +80,6 @@ for (let i = 0; i < size; i++) {
 
 log.debug({ arrEg: arr.slice(0, 10) });
 
-bench({
-	name: 'Single function parse',
-	runs,
-	func: (() => {
-		let passN = 0;
-		return (b: BenchmarkTimer) => {
-			const idx = passN++ % arr.length;
-			b.start();
-			Parser.wordSplitCLText(arr[idx]);
-			b.stop();
-		};
-	})(),
-});
 Deno.bench({
 	name: 'Single function parse',
 	baseline: true,
@@ -107,19 +95,6 @@ Deno.bench({
 	})(),
 });
 
-bench({
-	name: 'Shifting parse',
-	runs,
-	func: (() => {
-		let passN = 0;
-		return (b: BenchmarkTimer) => {
-			const idx = passN++ % arr.length;
-			b.start();
-			Parser.wordSplitCLTextByShift(arr[idx]);
-			b.stop();
-		};
-	})(),
-});
 Deno.bench({
 	name: 'Shifting parse',
 	// runs,
@@ -145,48 +120,46 @@ await log.debug(`setup done (duration: ${
 	})()
 })`);
 
-await log.debug('starting benchmarking');
+// await log.debug('starting benchmarking');
 
-performance.mark('bench:start');
+// performance.mark('bench:start');
 
-const benchMarkRunResult = await runBenchmarks(
-	{ silent: true, skip: /_long/ },
-	prettyBenchmarkProgress(),
-)
-	.then(prettyBenchmarkResult({ parts: { extraMetrics: true, graph: true, graphBars: 20 } }));
+// const benchMarkRunResult = await runBenchmarks(
+// 	{ silent: true, skip: /_long/ },
+// 	prettyBenchmarkProgress(),
+// )
+// 	.then(prettyBenchmarkResult({ parts: { extraMetrics: true, graph: true } }));
 
-//===
+// //===
 
-const table = new Table({
-	header: ['Name', 'Run count', 'Avg Time +/- StdDev(Sample)', 'Median', 'Ratio'],
-	chars: {},
-});
+// const table = new Table({
+// 	header: ['Name', 'Run count', 'Avg Time +/- StdDev(Sample)', 'Median', 'Ratio'],
+// });
 
-const results = benchMarkRunResult.results;
-const minDuration = Math.min(...results.map((r) => r.measuredRunsAvgMs));
-for (const result of results) {
-	table.push([
-		result.name,
-		result.runsCount,
-		formatDuration(result.measuredRunsAvgMs) + ' +/- ' +
-		formatDuration(stdDevSample(result.measuredRunsMs) ?? 0),
-		formatDuration(median(result.measuredRunsMs) ?? 0),
-		formatN(result.measuredRunsAvgMs === minDuration ? 1 : result.measuredRunsAvgMs / minDuration, {
-			minimumFractionDigits: 1,
-		}),
-	]);
-	// console.log({ result });
-}
+// const results = benchMarkRunResult.results;
+// const minDuration = Math.min(...results.map((r) => r.measuredRunsAvgMs));
+// for (const result of results) {
+// 	table.push([
+// 		result.name,
+// 		result.runsCount,
+// 		formatDuration(result.measuredRunsAvgMs) + ' +/- ' +
+// 		formatDuration(stdDevSample(result.measuredRunsMs) ?? 0),
+// 		formatDuration(median(result.measuredRunsMs) ?? 0),
+// 		formatN(result.measuredRunsAvgMs === minDuration ? 1 : result.measuredRunsAvgMs / minDuration, {
+// 			minimumFractionDigits: 1,
+// 		}),
+// 	]);
+// }
 
-console.log(table.toString());
+// console.log(table.toString());
 
 //===
 
-performance.mark('bench:stop');
-performance.measure('bench', 'bench:start', 'bench:stop');
-await log.debug(`benchmarking done (duration: ${
-	(() => {
-		const duration = performance.getEntriesByName('bench')[0].duration;
-		return formatDuration(duration, { maximumFractionDigits: 3 });
-	})()
-})`);
+// performance.mark('bench:stop');
+// performance.measure('bench', 'bench:start', 'bench:stop');
+// await log.debug(`benchmarking done (duration: ${
+// 	(() => {
+// 		const duration = performance.getEntriesByName('bench')[0].duration;
+// 		return formatDuration(duration, { maximumFractionDigits: 3 });
+// 	})()
+// })`);
