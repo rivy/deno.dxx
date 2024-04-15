@@ -84,7 +84,7 @@ log.debug(
 );
 
 const appName = $me.name;
-const appCopyright = '* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)';
+const appCopyright = '* Copyright (c) 2021-2024+ * Roy Ivy III (MIT license)';
 const appVersion = $version.v();
 const appRunAs = $me.runAs;
 
