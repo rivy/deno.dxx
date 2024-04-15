@@ -35,12 +35,18 @@ import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0';
 const DQ = `"`;
 const SQ = `'`;
 const DQStringReS = `${DQ}[^${DQ}]*(?:${DQ}|$)`; // double-quoted string (unbalanced at end-anchor is allowed)
-const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-anchor is allowed)
+// const SQStringReS = `${SQ}[^${SQ}]*(?:${SQ}|$)`; // single-quoted string (unbalanced at end-anchor is allowed)
+const SQStringStrictReS = "'[^']*'"; // single-quoted string (quote balance is required)
+// const DQReS = `[${DQ}]`; // double or single quote character class
 const QReS = `[${DQ}${SQ}]`; // double or single quote character class
 
+// const cNonDQReS = `(?:(?!${DQReS}).)`; // non-(double or single)-quote character
 const cNonQReS = `(?:(?!${QReS}).)`; // non-(double or single)-quote character
 
-const tokenRe = new RegExp(`^((?:${DQStringReS}|${SQStringReS}|${cNonQReS}+))(.*?$)`, 'msu'); // == (tokenFragment)(restOfString)
+const tokenRe = new RegExp(
+	`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonQReS}+|[${SQ}]))(.*?$)`,
+	'msu',
+); // == (tokenFragment)(restOfString)
 
 // `expand`
 /** Brace expand a string argument.
@@ -73,7 +79,10 @@ export function expand(s: string) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				const bracesEscChar = '\\'; // `braces` escape character == backslash
-				if (matchStr[0] === DQ || matchStr[0] === SQ) {
+				if (
+					matchStr[0] === DQ ||
+					(matchStr.length > 1 && matchStr[0] === SQ && matchStr[matchStr.length - 1] === SQ)
+				) {
 					// "..." or '...' => escape contents
 					const qChar = matchStr[0];
 					const spl = matchStr.split(qChar);
@@ -89,9 +98,9 @@ export function expand(s: string) {
 					// unquoted text => escape special characters
 					// * 1st, escape the braces escape character
 					matchStr = matchStr.replace(bracesEscChar, `${bracesEscChar}${bracesEscChar}`);
-					// * escape any 'special' (braces escape, glob, or "`") characters
+					// * escape any 'special' (braces escape, glob, "`", or "'") characters
 					matchStr = matchStr.replace(
-						new RegExp(`([\\${bracesEscChar}?*\\[\\]\`])`, 'gmsu'),
+						new RegExp(`([\\${bracesEscChar}?*\\[\\]\`'])`, 'gmsu'),
 						`${bracesEscChar}$1`,
 					);
 				}
