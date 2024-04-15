@@ -883,14 +883,14 @@ function v(options?: vOptions) {
 	// ref: [Semantic Versioning](https://semver.org) @@ <https://archive.is/Z02ta>
 	// simple 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*"
 	// extended 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*([-].*)?"
-	const vFromTag = projectVersionTagFromURL?.match(/^[vV]?\d+([.]\d+)*([-].*)?$/)?.[0];
-	if (vFromTag != null) return vFromTag;
-	const tagIsCommitHash = projectVersionTagFromURL?.match(/^[0-9a-fA-F]{5,}$/) != null; // heuristic: any string of only 5+ hex digits is assumed to be a commit hash
+	const tagIsCommitHash = projectVersionTagFromURL?.match(/^[0-9a-fA-F]{5,}$/) != null; // heuristic: any string of solely 5+ hex digits is assumed to be a commit hash
 	if (tagIsCommitHash) {
 		return `${projectVersionTextViaImport}+${
 			projectVersionTagFromURL.slice(0, options_.maxCommitHashDisplaySize)
 		}`;
 	}
+	const vFromTag = projectVersionTagFromURL?.match(/^[vV]?\d+([.]\d+)*([-].*)?$/)?.[0];
+	if (vFromTag != null) return vFromTag;
 	return `${projectVersionTextViaImport}+${
 		projectVersionTagFromURL ? `(${projectVersionTagFromURL})` : ''
 	}`;
