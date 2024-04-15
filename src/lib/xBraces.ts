@@ -64,10 +64,11 @@ export function expand(s: string) {
 	// brace expand a string
 	const arr = [];
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
-	// console.warn('xBraces.braceExpand()', { s });
+	// console.warn('xBraces.expand()', { s });
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
+		// console.warn('xBraces.expand()', { s, m });
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -106,7 +107,7 @@ export function expand(s: string) {
 			text = s = '';
 		}
 	}
-	// console.warn('xBraces.braceExpand()', { arr });
+	// console.warn('xBraces.expand()', { arr });
 	// return arr.flatMap((v) => Braces.expand(v));
 	return arr.flatMap((v) => Braces.expand(v)).map((v) => v.replace(/\\(\\)/gmsu, '$1'));
 }

@@ -196,6 +196,7 @@ export function splitByBareWSo(s: string): Array<string> {
 	);
 	while (s) {
 		const m = s.match(tokenRe);
+		// console.warn('xArgs.splitByBareWSo()', { s, m });
 		if (m) {
 			arr.push(m[1]);
 			s = m[2] ? m[2].replace(/^\s+/msu, '') : ''; // trim leading whitespace
@@ -243,6 +244,7 @@ export function shiftCLTextWord(
 	let token = '';
 	while (s && !foundFullToken) {
 		const m = s.match(wordRx);
+		// console.warn('xArgs.shiftCLTextWord()', { s, m });
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -450,8 +452,8 @@ export function shellDeQuote(s: string) {
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
+		// console.warn('xArgs.shellDeQuote()', { s, m });
 		if (m) {
-			// console.warn('xArgs.shellDeQuote()', { m });
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				if (matchStr[0] === DQ || matchStr[0] === SQ) {
@@ -698,6 +700,7 @@ export function globExpandSync(
 	options: GlobExpandOptions = { nullglob: envNullglob() },
 ) {
 	// filename (glob) expansion
+	// console.warn('xArgs.globExpandSync()', { glob, options });
 	const arr: string[] = [];
 	for (const e of globExpandIterSync(glob, options)) {
 		arr.push(e);
@@ -858,6 +861,7 @@ export function globToReS(s: string) {
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
+		// console.warn('xArgs.globToReS()', { s, m });
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
@@ -1044,6 +1048,7 @@ export async function argsAsync(
 	argsText: string | string[],
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
+	// console.warn('xArgs.argsAsync()', { argsText, options });
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
 	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
@@ -1077,11 +1082,12 @@ export function argsSync(
 	argsText: string | string[],
 	options: ArgsOptions = { nullglob: envNullglob() },
 ) {
+	// console.warn('xArgs.argsSync()', { argsText, options });
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
 	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
 	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
-	// console.warn('xArgs.args()', { arr, idx, expand, raw });
+	// console.warn('xArgs.argsSync()', { arr, idx, expand, raw });
 	return shellExpandSync(expand, options).map(shellDeQuote).concat(raw);
 }
 
