@@ -145,10 +145,10 @@ const SQStringReS: RegexString = `${SQ}[^${SQ}]*(?:${SQ}|$)` as RegexString;
 // /** double-quoted string (quote balance is required) */
 // const DQStringStrictReS = '"[^"]*"';
 /** single-quoted string (quote balance is required) */
-const SQStringStrictReS = "'[^']*'";
+const SQStringStrictReS = "'[^']*'" as RegexString;
 
 /** ANSIC-style string (eg, `$'...'`) */
-const ANSICStringReS: RegexString = '[$]' + SQStringReS as RegexString;
+const ANSICStringReS: RegexString = `[$]${SQStringReS}` as RegexString;
 
 const globChars = ['?', '*', '[', ']'];
 /** Regex pattern matching any glob character */
@@ -177,8 +177,8 @@ const cNonDQReS = `(?:(?!${DQReS}).)`;
 const cNonDQNonWSReS = `(?:(?!${DQReS}|\\s).)`;
 // /** Regex pattern matching a non-(double or single)-quote character. */
 // const cNonQReS = `(?:(?!${QReS}).)`;
-// /** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
-// const cNonQWSReS = `(?:(?!${QReS}|\\s).)`;
+/** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
+const cNonQNonWSReS = `(?:(?!${QReS}|\\s).)`;
 
 export function splitByBareWSo(s: string): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
@@ -191,7 +191,7 @@ export function splitByBareWSo(s: string): Array<string> {
 	// note: double-quotes are illegal w/n WinOS filenames, so unbalanced DQ strings are ok
 	//   ... single-quotes are allowed as internal characters so match only strictly balanced SQ strings
 	const tokenRe = new RegExp(
-		`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQNonWSReS}+)*)(.*$)`,
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonQNonWSReS}+)*)(.*?$)`,
 		'msu',
 	);
 	while (s) {
@@ -210,21 +210,18 @@ export function splitByBareWSo(s: string): Array<string> {
 
 /** Group of regular expressions matching specific parts of a "word" (or token). */
 const WordRxs = {
-	/** RegExp matching a bare (non-quoted) portion of a word.
+	/** RegExp matching any single token fragment up to bare (non-quoted) white space.
 	- `(tokenFragment)(bareWS)?(restOfString)` */
-	bareWS: new RegExp(
-		`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQNonWSReS}+))(\\s+)?(.*$)`,
+	nonBareWS: new RegExp(
+		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonDQNonWSReS}+))(\\s+)?(.*?$)`,
 		'msu',
 	),
 	/** RegExp matching a (single or double) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
-	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringStrictReS}|${cNonDQReS}+))(.*?$)`, 'msu'),
+	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringStrictReS}))(.*?$)`, 'msu'),
 	/** RegExp matching a (single or double *or __ANSI-C__*) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
-	quote: new RegExp(
-		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonDQReS}+))(.*?$)`,
-		'msu',
-	),
+	quote: new RegExp(`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}))(.*?$)`, 'msu'),
 };
 
 export function shiftCLTextWord(
@@ -239,7 +236,7 @@ export function shiftCLTextWord(
 	const initialS = s;
 	// console.warn('xArgs.shiftCLTextWord()', { s, options, initialS });
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace // ToDO: remove? allow leading WS in first token?
-	const wordRx = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
+	const wordRx = WordRxs.nonBareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let foundFullToken = false;
 	let token = '';
 	while (s && !foundFullToken) {
@@ -249,8 +246,9 @@ export function shiftCLTextWord(
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				const firstChar = matchStr[0];
-				if (firstChar === DQ || firstChar === SQ) {
-					// "..." or '...'
+				// if (firstChar === DQ || firstChar === SQ) {
+				if (firstChar === DQ) {
+					// "...
 					if (autoQuote && matchStr[matchStr.length - 1] !== firstChar) {
 						matchStr += firstChar;
 					}
@@ -307,16 +305,18 @@ export function wordSplitCLText(
 	const arr: Array<string> = [];
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
 	// console.warn('xArgs.wordSplitCLText()', { s, options });
-	const wordRe = WordRxs.bareWS; // == (tokenFragment)(bareWS)?(restOfString)
+	const wordRe = WordRxs.nonBareWS; // == (tokenFragment)(bareWS)?(restOfString)
 	let text = '';
 	while (s) {
 		const m = s.match(wordRe);
+		// console.warn('xArgs.wordSplitCLText()', { s, m });
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				const firstChar = matchStr[0];
-				if (firstChar === DQ || firstChar === SQ) {
-					// "..." or '...'
+				// if (firstChar === DQ || firstChar === SQ) {
+				if (firstChar === DQ) {
+					// "...
 					if (autoQuote && matchStr[matchStr.length - 1] !== firstChar) {
 						matchStr += firstChar;
 					}
@@ -866,7 +866,10 @@ export function globToReS(s: string) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
 				const firstChar = matchStr[0];
-				if (firstChar === DQ || firstChar === SQ) {
+				if (
+					firstChar === DQ ||
+					(matchStr.length > 1 && firstChar === SQ && matchStr[matchStr.length - 1] === SQ)
+				) {
 					// "..." or '...' => de-quote and `[.]` escape any special characters
 					const spl = matchStr.split(firstChar);
 					matchStr = spl[1];
