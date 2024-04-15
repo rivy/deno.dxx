@@ -64,8 +64,10 @@ log.debug(
 	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );
 
-const version = $version.v();
-const runAsName = $me.runAs;
+const appName = $me.name;
+const appCopyright = '* Copyright (c) 2021-2024+ * Roy Ivy III (MIT license)';
+const appVersion = $version.v();
+const appRunAs = $me.runAs;
 
 // const useColor = mightUseColor();
 const useUnicode = mightUseUnicode();
@@ -84,73 +86,91 @@ log.mergeMetadata({
 
 // ref: <https://devhints.io/yargs> , <https://github.com/yargs/yargs/tree/v17.0.1-deno/docs>
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
-	.scriptName($me.name)
-	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
-	.usage(`$0 ${version}\n
-Install command script as an executable (with enhanced WinOS command line capabilities [via an enhancing shim]).\n
-Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGUMENT..]`)
+	.usage(`$0 ${appVersion}\n
+Install COMMAND script as an executable (with enhanced WinOS command line capabilities [via an enhancing shim]).\n
+Usage:\n  ${appRunAs} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGUMENT..]`)
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({ 'Positionals:': 'Arguments:' })
 	.positional('OPTION', { describe: 'OPTION(s), as listed here (below)' })
 	.positional('INSTALL_OPTION', { describe: 'INSTALL_OPTION(s) delegated to `deno install ...`' })
 	.positional('COMMAND', { describe: 'Path/URL of COMMAND to install' })
 	.positional('COMMAND_ARGUMENT', { describe: 'COMMAND_ARGUMENT(s) for all executions of COMMAND' })
+	// * (boilerplate)
+	.scriptName(appName)
+	.epilog(`${appCopyright}`)
+	.wrap(/* columns */ undefined) // disable built-in Yargs display text wrapping (required for later custom formatting with `restyleYargsHelp()`)
+	// * (boilerplate) revised terminology for errors/help text
+	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
+	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
+	.updateStrings({
+		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+	})
+	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
 		throw new Error(msg);
 	})
-	.wrap(/* columns */ undefined)
-	// help and version setup
-	.help(false)
-	.version(false)
+	// * (boilerplate) help and version setup
+	.help(false) // disable built-in 'help' (for later customization)
+	.version(false) // disable built-in 'version' handling (for later customization)
 	.option('help', {
-		describe: 'Write help text to STDOUT and exit (with exit status = 1)',
+		describe:
+			'Display help text and exit (exit status => 1 if combined with other arguments/options)',
 		type: 'boolean',
 	})
 	.alias('help', 'h')
 	.option('version', {
-		describe: 'Write version number to STDOUT and exit (with exit status = 1)',
+		describe:
+			'Display version text and exit (exit status => 1 if combined with other arguments/options)',
 		type: 'boolean',
 	})
 	.alias('version', 'V')
-	// logging options
+	// * (boilerplate) logging options
 	.option('log-level', {
-		alias: ['\b\b\b\b LOG_LEVEL'], // *hack* use backspaces to fake an option argument description (ref: <https://github.com/yargs/yargs/issues/833>)
-		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
+		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
 		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
 		type: 'string',
+		choices: ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace'], // required for help display of choices
 	})
+	.choices('logLevel', ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace']) // fixme/hack: required for correct error handling of incorrect choices by Yargs
 	.option('silent', {
-		describe: `Silent mode; suppress non-error messages (sets 'error' level logging)`,
+		describe: `Silent mode; suppress non-error output (sets 'error' level logging)`,
 		type: 'boolean',
 	})
 	.option('quiet', {
-		describe: `Quiet mode; suppress informational messages (sets 'warn' level logging)`,
+		describe: `Quiet mode; suppress informational output (sets 'warn' level logging)`,
 		type: 'boolean',
 	})
-	.option('verbose', { describe: `Set 'info' level logging`, type: 'boolean' })
+	.option('verbose', {
+		describe: `Verbose mode; display verbose output (sets 'info' level logging)`,
+		type: 'boolean',
+	})
 	.option('debug', { describe: `Set 'debug' level logging`, type: 'boolean' })
 	.option('trace', { describe: `Set 'trace' (high-detail 'debug') level logging`, type: 'boolean' })
+	// * (boilerplate) configure Options, Logging, and Help/Info groups
 	.group([], 'Options:')
 	.group(['log-level', 'silent', 'quiet', 'verbose', 'debug', 'trace'], '*Logging:')
 	.group(['help', 'version'], '*Help/Info:')
-	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
-	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
-	})
-	// ref: <https://github.com/yargs/yargs-parser#configuration>
+	// * Yargs parser configuration
+	// ref: [Yargs Parser ~ Configuration](https://github.com/yargs/yargs-parser#configuration)
 	.parserConfiguration({
-		'camel-case-expansion': true,
-		'short-option-groups': true,
-		'strip-aliased': true,
-		'strip-dashed': true,
-		'halt-at-non-option': true,
-		'unknown-options-as-args': true,
+		// * per app configuration options
+		'boolean-negation': false, // disable automatic interpretation of `--no-...` as option negations (required when configuring options which are *only* `--no-...`)
+		'halt-at-non-option': true, // disable halting parse at first non-option/argument
+		'unknown-options-as-args': true, // treat unknown options as arguments
+		// * (boilerplate) usual parser options
+		'camel-case-expansion': true, // enable camelCase aliases for hyphenated options (only within generated Yargs parse result object)
+		'parse-numbers': false, // treat all arguments as strings (do not parse numbers)
+		'parse-positional-numbers': false, // treat all arguments as strings (do not parse numbers)
+		'strip-aliased': true, // remove option aliases from parse result object
+		'strip-dashed': true, // remove hyphenated option aliases from parse result object
 	})
-	.example(`\`${runAsName} "https://deno.land/std@0.134.0/examples/colors.ts"\``)
-	.example(`\`${runAsName} --allow-net --allow-read "https://deno.land/std/http/file_server.ts"\``)
 	/* Options... */
-	.strictOptions(/* enable */ false);
+	.strictOptions(/* enable */ false)
+	/* Examples...*/
+	.example(`\`${appRunAs} "https://deno.land/std@0.134.0/examples/colors.ts"\``)
+	.example(`\`${appRunAs} --allow-net --allow-read "https://deno.land/std/http/file_server.ts"\``)
+	.example([]);
 
 //===
 
@@ -224,7 +244,7 @@ await log.resume();
 //===
 
 if (argv == undefined) {
-	console.warn(`\nUse \`${runAsName} --help\` to show full usage and available options`);
+	console.warn(`\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
 
@@ -235,11 +255,15 @@ if (argv.help) {
 	const yargsHelp = await app.getHelp();
 	const help = await restyleYargsHelp(yargsHelp);
 	console.log(help);
-	Deno.exit(1);
+	const onlyHelp = (argv._.length === 0) &&
+		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
+	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv.version) {
-	console.log(version);
-	Deno.exit(1);
+	console.log(`${appName} ${appVersion}`);
+	const onlyVersion = (argv._.length === 0) &&
+		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
+	Deno.exit(onlyVersion ? 0 : 1);
 }
 
 //=== ***
@@ -263,7 +287,7 @@ if (args.length < 1) {
 	await log.error(`COMMAND argument is required`);
 	const yargsHelp = await app.getHelp();
 	const usage = (await restyleYargsHelp(yargsHelp) as string).match(/\n(.*?usage.*?\n)\n/ims)?.[1];
-	console.warn(`${usage}\nUse \`${runAsName} --help\` to show full usage and available options`);
+	console.warn(`${usage}\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
 
@@ -540,7 +564,7 @@ if (status.success && isWinOS) {
 	const addQuietOption = quietShim && !denoRunOptions.match(/(^|\s|'|")--quiet("|'|\s|$)/);
 	await log.trace({ info, denoRunOptions, denoRunTarget, shimBinName, addQuietOption });
 	// const denoRunOptionsUpdated = denoRunOptions.
-	const appNameVersion = '`' + $me.name + '` ' + version;
+	const appNameVersion = '`' + $me.name + '` ' + appVersion;
 	const contentsUpdated = eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
 			denoRunOptions: denoRunOptions
