@@ -5,20 +5,20 @@ import { $logger, logger as log } from '../tests/$shared.ts';
 import { env } from '../tests/$shared.ts';
 // import { env, formatDuration, formatN, median, stdDevSample } from '../tests/$shared.ts';
 
-import {
-	bench,
-	BenchmarkTimer,
-	runBenchmarks,
-} from 'https://deno.land/std@0.134.0/testing/bench.ts';
-import {
-	prettyBenchmarkProgress,
-	prettyBenchmarkResult,
-} from 'https://deno.land/x/pretty_benching@v0.3.3/mod.ts';
+// import {
+// 	bench,
+// 	BenchmarkTimer,
+// 	runBenchmarks,
+// } from 'https://deno.land/std@0.134.0/testing/bench.ts';
+// import {
+// 	prettyBenchmarkProgress,
+// 	prettyBenchmarkResult,
+// } from 'https://deno.land/x/pretty_benching@v0.3.3/mod.ts';
 
 import Random from 'https://deno.land/x/random@v1.1.2/Random.js';
 import { Seed } from 'https://deno.land/x/seed@1.0.0/index.ts';
 
-import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
+// import { Table } from 'https://deno.land/x/tbl@1.0.3/mod.ts';
 
 //===
 
@@ -41,7 +41,7 @@ await log.debug('setup: started');
 
 performance.mark('setup:start');
 
-const runs = 5000;
+// const runs = 5000;
 
 const usePresetPRNGSeed = false;
 const presetPRNGSeed = 'bpcc2cfyslscmgrylcy2'; // spell-checker:disable-line
