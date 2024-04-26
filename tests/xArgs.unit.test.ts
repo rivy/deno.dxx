@@ -123,9 +123,9 @@ test('compare `shellExpand()` to `shellExpandSync()`', async () => {
 test(`simple expansions (eg, \`shellExpand('""')\`)`, async () => {
 	assertEquals(await Parse.shellExpand('~'), [env('HOME')]);
 	assertEquals(await Parse.shellExpand('""'), ['""']);
-	assertEquals(await Parse.shellExpand('"'), ['""']); // ?
+	assertEquals(await Parse.shellExpand('"'), ['""']); // WinOS: double quotes are not legal filename characters and bare double-quotes are always delimiters and are quote balanced at EOL by WinOS; follow that practice
 	assertEquals(await Parse.shellExpand("''"), ["''"]);
-	assertEquals(await Parse.shellExpand("'"), ["''"]); // ?
+	assertEquals(await Parse.shellExpand("'"), ["'"]); // WinOS: single quotes are legal internal characters, so don't force interpretation of bare single-quotes as a delimiter by using EOL quote balancing
 	assertEquals(await Parse.shellExpand("'a b'"), ["'a b'"]);
 	assertEquals(
 		await Parse.shellExpand(
