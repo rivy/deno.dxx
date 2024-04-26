@@ -7,12 +7,13 @@
 import { $args, $colors, $path, assert } from './$deps.ts';
 import {
 	decode,
-	haveMadge,
+	haveMadgeVersion,
 	isWinOS,
 	panicIfMissingPermits,
 	projectPath as maybeProjectPath,
 	test,
 	traversal,
+	versionCompare,
 } from './$shared.ts';
 
 //===
@@ -77,8 +78,13 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 
 {
 	const description = 'syntax ~ no circular dependency found';
-	if (!await haveMadge()) {
+	const madgeVersion = await haveMadgeVersion();
+	if (madgeVersion == null) {
 		test.skip(description + '...skipped (`madge` not found)');
+	} else if (versionCompare(madgeVersion, '7.0') >= 0) {
+		// ## maint: [2024-04-25; rivy] disable test for madge v7+ until fixed for typescript projects
+		// ## ... ref: [Update typescript support for v7](https://github.com/pahen/madge/issues/410)
+		test.skip(description + '...skipped (`madge` version >= 7)');
 	} else {
 		test(description + ` (within ${projectCodeFiles.length}+ files)`, async () => {
 			const files = projectCodeFiles.flatMap((e) => traversal(e) || []);
