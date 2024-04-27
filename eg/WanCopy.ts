@@ -1,5 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
+import { Deprecated } from '../src/lib/$deprecated.ts';
+
 import {
 	copy as streamCopy,
 	readableStreamFromReader,
@@ -43,7 +45,7 @@ await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
 performance.mark('setup:start');
 performance.mark('setup:log:start');
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me });
@@ -87,9 +89,9 @@ Copy SOURCE to TARGET(s).\n
 Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	.updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.positional('OPTION', { describe: 'OPTION(s); see listed *Options*' })
-	.positional('SOURCE', { describe: `SOURCE file to copy`, demand: true })
+	.positional('SOURCE', { describe: 'SOURCE file to copy', demand: true })
 	.positional('TARGET', {
-		describe: `TARGET file(s); optional (assumed to be STDOUT) when STDOUT is redirected`,
+		describe: 'TARGET file(s); optional (assumed to be STDOUT) when STDOUT is redirected',
 		demand: true,
 	})
 	.epilog(`Notes:
@@ -103,7 +105,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -129,7 +131,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	// * (boilerplate) logging options
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: logLevelOptionChoices, // required for help display of choices
 	})
@@ -307,7 +309,7 @@ const SOURCE = await (async () => {
 	const source = !appState.usageError ? (argv._?.shift()?.toString()) : '';
 	if (!appState.usageError && source == null) {
 		appState.usageError = true;
-		await log.error(`SOURCE is a required argument`);
+		await log.error('SOURCE is a required argument');
 	}
 	return source || '';
 })();
@@ -318,12 +320,11 @@ const TARGET = await (async () => {
 	if (argv._?.length) argv._ = [];
 	if (!appState.usageError && (target.length < 1)) {
 		// note: isTerminal() added to stderr, stdin, and stdout in Deno v1.40.0 ; added to Deno.FsFile in Deno v1.41.0
-		// deno-lint-ignore no-deprecated-deno-api
-		if (!Deno.isatty(Deno.stdout.rid)) {
+		if (!Deprecated.Deno.isatty(Deprecated.Deno.stdout.rid)) {
 			target.push('-');
 		} else {
 			appState.usageError = true;
-			await log.error(`TARGET is a required argument`);
+			await log.error('TARGET is a required argument');
 		}
 	}
 	return target.map((e) => e.toString());
@@ -448,10 +449,10 @@ Deno.exit(appState.exitValue);
 // https://github.com/denoland/deno/issues/3756
 async function copy(
 	source: URL | Deno.Reader,
-	target: URL | Deno.Writer | (URL | Deno.Writer)[],
+	target_: URL | Deno.Writer | (URL | Deno.Writer)[],
 	options?: { bufSize?: number; preventTargetClose?: boolean | boolean[]; protectTarget?: boolean },
 ) {
-	target = Array.isArray(target) ? target : [target];
+	const target = Array.isArray(target_) ? target_ : [target_];
 	const preventTargetClose =
 		((options?.preventTargetClose != null) && Array.isArray(options?.preventTargetClose))
 			? options?.preventTargetClose
