@@ -35,6 +35,7 @@ try {
 
 //===
 
+import { Deprecated } from './lib/$deprecated.ts';
 import { $path } from './lib/$deps.ts';
 import {
 	$version,
@@ -344,8 +345,7 @@ const runOptions: Deno.RunOptions = {
 	},
 };
 await log.trace({ runOptions });
-// deno-lint-ignore no-deprecated-deno-api
-const process = Deno.run(runOptions); // FixME: catch any panics
+const process = Deprecated.Deno.run(runOptions); // FixME: catch any panics
 const status = await process.status();
 Deno.exit(status.success ? 0 : status.code);
 // }

@@ -2,9 +2,13 @@
 // spell-checker:ignore (Deno) rid rid's
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (shell) stty tput
-// spell-checker:ignore (shell/CMD) CONOUT
+// spell-checker:ignore (shell/CMD) CONIN CONOUT
 // spell-checker:ignore (Typescript) ts-nocheck nocheck usize
 // spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS WCHAR
+
+//===
+
+import { Deprecated } from './$deprecated.ts';
 
 //===
 
@@ -132,19 +136,19 @@ export const consoleSize = consoleSizeAsync; // default to fully functional `con
  * @tags unstable
  */
 export function consoleSizeSync(
-	rid: number = Deno.stdout.rid,
+	rid: number = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): ConsoleSize | undefined {
 	// ~ 0.75ms for WinOS
 	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
+		fallbackRIDs: [Deprecated.Deno.stderr.rid],
 		consoleFileFallback: true,
 		useCache: true,
 		...options_,
 	};
 	if (options.useCache) {
 		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
-		if (memo != undefined) return memo;
+		if (memo != null) return memo;
 	}
 	const size = consoleSizeViaDenoAPI(rid, options) ?? consoleSizeViaFFI();
 	consoleSizeCache.set(JSON.stringify({ rid, options }), size);
@@ -163,21 +167,25 @@ export function consoleSizeSync(
  * @tags unstable
  */
 export function consoleSizeViaDenoAPI(
-	rid: number = Deno.stdout.rid,
+	rid: number = Deprecated.Deno.stdout.rid,
 	options_: Partial<Omit<ConsoleSizeOptions, 'useCache'>> = {},
 ): ConsoleSize | undefined {
-	const options = { fallbackRIDs: [Deno.stderr.rid], consoleFileFallback: true, ...options_ };
-	if (denoConsoleSizeNT == undefined) return undefined;
+	const options = {
+		fallbackRIDs: [Deprecated.Deno.stderr.rid],
+		consoleFileFallback: true,
+		...options_,
+	};
+	if (denoConsoleSizeNT == null) return undefined;
 
 	let size = denoConsoleSizeNT(rid);
 
 	let fallbackRID;
-	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
+	while (size == null && (fallbackRID = options.fallbackRIDs.shift()) != null) {
 		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
 		size = denoConsoleSizeNT(fallbackRID);
 	}
 
-	if ((size == undefined) && atImportAllowRead && options.consoleFileFallback) {
+	if ((size == null) && atImportAllowRead && options.consoleFileFallback) {
 		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
@@ -185,8 +193,7 @@ export function consoleSizeViaDenoAPI(
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
 		size = file && denoConsoleSizeNT(file.rid);
 		// note: Deno.FsFile added (with close()) in Deno v1.19.0
-		// deno-lint-ignore no-deprecated-deno-api
-		file && Deno.close(file.rid);
+		file && Deprecated.Deno.close(file.rid);
 	}
 
 	return size;
@@ -209,18 +216,18 @@ export function consoleSizeViaDenoAPI(
  * @param rid ~ resource ID
  */
 export function consoleSizeAsync(
-	rid: number = Deno.stdout.rid,
+	rid: number = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
 	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
+		fallbackRIDs: [Deprecated.Deno.stderr.rid],
 		consoleFileFallback: true,
 		useCache: true,
 		...options_,
 	};
 	if (options.useCache) {
 		const memo = consoleSizeCache.get(JSON.stringify({ rid, options }));
-		if (memo != undefined) return Promise.resolve(memo);
+		if (memo != null) return Promise.resolve(memo);
 	}
 	// attempt fast API first, with fallback to slower shell scripts
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
@@ -232,7 +239,7 @@ export function consoleSizeAsync(
 			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 			return size;
 		})
-		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
+		.then((size) => (size != null) ? size : Promise.reject(undefined))
 		.catch((_) =>
 			// shell script fallbacks
 			// ~ 25 ms for WinOS ; ~ 75 ms for POSIX
@@ -242,18 +249,12 @@ export function consoleSizeAsync(
 			// ref: https://stackoverflow.com/questions/21260602/how-to-reject-a-promise-from-inside-then-function
 			Promise
 				.any([
-					consoleSizeViaMode().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
+					consoleSizeViaMode().then((size) => (size != null) ? size : Promise.reject(undefined)),
 					consoleSizeViaPowerShell().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
+						(size != null) ? size : Promise.reject(undefined)
 					),
-					consoleSizeViaSTTY().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
-					consoleSizeViaTPUT().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
+					consoleSizeViaSTTY().then((size) => (size != null) ? size : Promise.reject(undefined)),
+					consoleSizeViaTPUT().then((size) => (size != null) ? size : Promise.reject(undefined)),
 				])
 				.then((size) => {
 					consoleSizeCache.set(JSON.stringify({ rid, options }), size);
@@ -281,8 +282,7 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 
 	const output = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
 				stdin: 'null',
 				stderr: 'null',
@@ -335,8 +335,7 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: [
 					'powershell',
 					'-nonInteractive',
@@ -366,6 +365,43 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	return promise;
 }
 
+// consoleSizeViaResize()
+/** Get the size of the console as columns/rows, using the `resize` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaResize();
+ * ```
+ *
+ * @tags non-winos-only
+ */
+export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
+	// * note: `resize -u` generates shell command text to set COLUMNS and LINES environment variables; output will be `bash`-compatible, regardless of the in-use shell
+	if (isWinOS) return Promise.resolve(undefined);
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const output = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['resize', '-u'],
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'piped',
+			});
+			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+
+	const promise = output
+		.then((text) => text?.split(/\r|\r?\n/)?.slice(0, 2)?.map((s) => s.match(/\d+/)?.[0]))
+		.then((values) =>
+			(values && values.length === 2 && values.every((s) => s && (s.length > 0)))
+				? { columns: Number(values.shift()), rows: Number(values.shift()) }
+				: undefined
+		);
+	return promise;
+}
+
 // consoleSizeViaSTTY()
 /** Get the size of the console as columns/rows, using the `stty` shell command.
  *
@@ -380,16 +416,25 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// if (Deprecated.Deno.isatty(Deprecated.Deno.stdin.rid) !== true) return Promise.resolve(undefined); // requires STDIN to be a TTY
+	// const ttyRID = Deprecated.Deno.openSync('/dev/tty').rid;
+	const devTTY = Deno.openSync(isWinOS ? 'CONIN$' : '/dev/tty');
 	const output = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['stty', 'size', 'sane'],
-				stdin: 'inherit',
+				// stdin: 'inherit',
+				stdin: devTTY.rid,
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return (process.output())
+				.then((out) => {
+					const s = decode(out);
+					console.warn({ s });
+					return s;
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -398,7 +443,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	const promise = output
 		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0).reverse() ?? [])
 		.then((values) =>
-			values.length > 0
+			values.length === 2
 				? { columns: Number(values.shift()), rows: Number(values.shift()) }
 				: undefined
 		);
@@ -415,15 +460,20 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  * @tags winos-only
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
-	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two system shell calls
+	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// if (
+	// 	[Deprecated.Deno.stdin.rid, Deprecated.Deno.stderr.rid, Deprecated.Deno.stdout.rid].find((
+	// 		rid,
+	// 	) => Deprecated.Deno.isatty(rid) === true) == null
+	// ) return Promise.resolve(undefined); // requires at least one TTY
+	const devTTY = Deno.openSync(isWinOS ? 'CONIN$' : '/dev/tty');
 	const colsOutput = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'cols'],
-				stdin: 'null',
-				stderr: 'null',
+				stdin: devTTY.rid,
+				stderr: 'piped',
 				stdout: 'piped',
 			});
 			return (process.output()).then((out) => decode(out)).finally(() => process.close());
@@ -433,11 +483,10 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	})();
 	const linesOutput = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'lines'],
-				stdin: 'null',
-				stderr: 'null',
+				stdin: devTTY.rid,
+				stderr: 'piped',
 				stdout: 'piped',
 			});
 			return (process.output()).then((out) => decode(out)).finally(() => process.close());
@@ -448,6 +497,10 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 
 	const promise = Promise
 		.all([colsOutput, linesOutput])
+		.then(([colsText, linesText]) => {
+			console.warn({ colsText, linesText });
+			return [colsText ?? '', linesText ?? ''];
+		})
 		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
 		.then(([cols, lines]) =>
 			(cols.length > 0 && lines.length > 0)

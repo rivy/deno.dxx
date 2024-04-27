@@ -1,5 +1,7 @@
 // spell-checker:ignore (names) Deno
 
+import { Deprecated } from '../src/lib/$deprecated.ts';
+
 import { assertEquals, equal } from './$deps.ts';
 
 import {
@@ -27,21 +29,30 @@ await panicIfMissingPermits([
 
 const warn = createWarnFn(import.meta.url);
 
-const newlines = /\r?\n|\n/g;
+const newlines = /\r|\r?\n/g;
+
+const semverMmrReS = '(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)';
+const semverPatchReS = '(?:-(?:[0-9a-zA-Z-]*(?:[.][0-9a-zA-Z-]*)*))';
+const versionRx = new RegExp(`^[vV]?(${semverMmrReS}${semverPatchReS}?)$`, 'gms');
+
+const gitDescribeCommand = ['git', 'describe', '--tags', '--exclude', '[!vV0-9]*'];
 
 const gitDescribe = (await haveGit())
-	? () => {
+	? async () => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const p = Deno.run({ cmd: ['git', 'describe', '--tags'], stdout: 'piped', stderr: 'piped' });
-			return Promise
+			const p = Deprecated.Deno.run({
+				cmd: [...gitDescribeCommand],
+				stdout: 'piped',
+				stderr: 'piped',
+			});
+			return await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
 				.then(([_status, out, _err]) => {
 					return decode(out);
 				})
 				.finally(() => p.close());
 		} catch (_) {
-			return Promise.resolve(undefined);
+			return undefined;
 		}
 	}
 	: () => Promise.resolve(undefined);
@@ -51,7 +62,13 @@ const gitDescribeVersion = async () =>
 
 if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 	warn(
-		`\`git describe --tags\` reports the version as '${await gitDescribeVersion()}' instead of '${VERSION}'.`,
+		[
+			'`',
+			...gitDescribeCommand,
+			'`',
+			`reports the version as '${await gitDescribeVersion()}' instead of '${VERSION}'`,
+		]
+			.join(' '),
 	);
 }
 
@@ -60,11 +77,11 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 // * ref: <https://docs.github.com/en/actions/learn-github-actions/environment-variables>
 {
 	const githubRef = env('GITHUB_REF') || '';
-	const isVersionTaggedCommit = githubRef.match(/v?(?:\d+[.])*\d+$/);
+	const isVersionTaggedCommit = githubRef.match(versionRx);
 	if (isVersionTaggedCommit) {
 		// const text = await gitDescribeVersion;
 		// testing a version tagged commit
-		test('version matches `git describe --tags`', async () => {
+		test(`version matches \`${gitDescribeCommand.join(' ')}\``, async () => {
 			const expected = VERSION;
 			const actual = await gitDescribeVersion();
 			assertEquals(actual, expected);
@@ -72,13 +89,13 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 	}
 }
 
-test(`project version matches 'VERSION' file`, () => {
+test("project version matches 'VERSION' file", () => {
 	const expected = VERSION;
 	const actual = Deno.readTextFileSync(projectLocations.version).replace(newlines, '');
 	assertEquals(actual, expected);
 });
 
-if ((projectName && (projectName.length > 0))) {
+if (projectName && projectName.length > 0) {
 	const readmeText = Deno.readTextFileSync(projectLocations.readme);
 	const URLrx = new RegExp(`https?://deno.land/x/${projectName}@v?((?:\\d+[.])*\\d+)(?=/)`, 'gim');
 	const readmeURLs = readmeText ? Array.from(readmeText.matchAll(URLrx)) : [];
