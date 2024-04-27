@@ -1,5 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
+import { Deprecated } from './lib/$deprecated.ts';
 import {
 	$colors,
 	$lodash,
@@ -242,7 +243,7 @@ await log.resume();
 
 //===
 
-if (argv == undefined) {
+if (argv == null) {
 	console.warn(`\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
@@ -466,8 +467,7 @@ spinnerForInstall.clear();
 spinnerForInstall.text = spinnerText;
 spinnerForInstall.render();
 
-// deno-lint-ignore no-deprecated-deno-api
-const process = Deno.run(runOptions);
+const process = Deprecated.Deno.run(runOptions);
 const mergedOutput = mergeReadableStreams(
 	process.stderr?.readable || new ReadableStream(),
 	process.stdout?.readable || new ReadableStream(),

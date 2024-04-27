@@ -8,6 +8,7 @@
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
+import { Deprecated } from './$deprecated.ts';
 import { $colors, $fs, $path } from './$deps.ts';
 import { atImportPermissions } from './$shared.TLA.ts';
 
@@ -785,8 +786,7 @@ export function mightUseUnicode() {
 export const commandVOf = (name: string) => {
 	if (!allowRun) return Promise.resolve(undefined);
 	try {
-		// deno-lint-ignore no-deprecated-deno-api
-		const process = Deno.run({
+		const process = Deprecated.Deno.run({
 			cmd: [
 				...(isWinOS
 					? ['cmd', '/x/d/c']
