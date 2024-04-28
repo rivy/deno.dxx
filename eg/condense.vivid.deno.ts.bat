@@ -6,6 +6,7 @@
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
 @set "RANDOM=" &@:: reset RANDOM (defensive avoidance of any prior pinned value)
+@set "DATE=" &@:: reset DATE (defensive avoidance of any prior pinned value)
 @set "TIME=" &@:: reset TIME (defensive avoidance of any prior pinned value)
 @set SHIM_RUNNER=deno.exe "run" --allow-all --quiet --
 @if NOT DEFINED SHIM_TARGET @goto :skip_SHIM_TARGET_check
@@ -23,7 +24,7 @@
 @:post_SHIM_args_setup
 @set "SHIM_ORIGIN=%~f0"
 @:create_unique_tid
-@set "SHIM_TID=$shim_target_id-%TIME::=%-%RANDOM%$" &@:: unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
+@set "SHIM_TID=$shim_target_id-%DATE%-%TIME::=%-%RANDOM%$" &@:: unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
 @set "SHIM_TARGET=%SHIM_ORIGIN%.$deno$ext.%SHIM_TID%.ts"
 @if EXIST "%SHIM_TARGET%" @goto :confirm_unique_tid
 @copy /y "%SHIM_ORIGIN%" "%SHIM_TARGET%" >NUL
@@ -59,11 +60,14 @@
 // spell-checker:ignore () LogLevel
 // spell-checker:ignore () nightside
 
+// spell-checker:ignore (people) rivy (themes) nightside
+
 // console.warn("Hello (via Deno)!");
 // console.warn({ args: Deno.args, main: Deno.mainModule, meta: import.meta });
 // console.warn({ SHIM: Object.entries(Deno.env.toObject()).filter((v) => v[0].startsWith('SHIM_')) });
-// throw 'error';
 // Deno.exit(1010);
+
+//===
 
 import { $path } from '../src/lib/$deps.ts';
 import { $me } from '../src/lib/$locals.ts';
@@ -109,7 +113,7 @@ function existsSync(filePath: string | URL) {
 }
 
 function pathJoin(...paths: (string | undefined)[]) {
-	const p = paths.filter(Boolean) as string[];
+	const p = paths.filter(Boolean /* aka, != null && .length > 0 */) as string[];
 	try {
 		return $path.join(...p);
 	} catch (_) {
@@ -123,13 +127,13 @@ interface IVividTheme {
 
 /** * priority list of possible configuration directories */
 const maybeConfigDirs = [
-	Deno.env.get('XDG_CONFIG_HOME') ?? '',
+	Deno.env.get('XDG_CONFIG_HOME'),
 	...((Deno.env.get('XDG_CONFIG_DIRS')?.split(';')) ?? []),
 	// * `vivid`-specific configuration locations
-	Deno.env.get('HOME') ? pathJoin(Deno.env.get('HOME') + '.config') : '',
-	isWinOS ? Deno.env.get('APPDATA') : '',
+	Deno.env.get('HOME') ? pathJoin(Deno.env.get('HOME'), '.config') : undefined,
+	isWinOS ? Deno.env.get('APPDATA') : undefined,
 	'/usr/share',
-];
+].filter(Boolean /* aka, != null && .length > 0 */);
 const vividConfigDirPath = maybeConfigDirs.map((v) => pathJoin(v, 'vivid'))
 	.filter((v) => v && existsSync(v))
 	.shift();
