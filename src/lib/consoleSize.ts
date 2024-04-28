@@ -253,6 +253,7 @@ export function consoleSizeAsync(
 					consoleSizeViaPowerShell().then((size) =>
 						(size != null) ? size : Promise.reject(undefined)
 					),
+					consoleSizeViaResize().then((size) => (size != null) ? size : Promise.reject(undefined)),
 					consoleSizeViaSTTY().then((size) => (size != null) ? size : Promise.reject(undefined)),
 					consoleSizeViaTPUT().then((size) => (size != null) ? size : Promise.reject(undefined)),
 				])
@@ -375,9 +376,10 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
  * @tags non-winos-only
  */
 export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
-	// * note: `resize -u` generates shell command text to set COLUMNS and LINES environment variables; output will be `bash`-compatible, regardless of the in-use shell
+	// * note: `resize` is available from `sudo apt install xterm`
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// * `resize -u` => output consists of shell command text to set COLUMNS and LINES environment variables; will be `bash`-compatible, regardless of the in-use shell
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
@@ -413,27 +415,31 @@ export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
-	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
+	// - ref: <https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns> @@ <https://archive.is/nM1ky>
+	// - ref: <https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window> @@ <https://archive.is/n5KoU>
+	// - ref: <https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html> @@ <https://archive.is/RAZMG>
+	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
-	// if (Deprecated.Deno.isatty(Deprecated.Deno.stdin.rid) !== true) return Promise.resolve(undefined); // requires STDIN to be a TTY
+	// if (Deprecated.Deno.isatty(Deprecated.Deno.stdin.rid) !== true) return Promise.resolve(undefined); // requires STDIN to be a TTY => use `--file=/dev/tty` to force a TTY
 	// const ttyRID = Deprecated.Deno.openSync('/dev/tty').rid;
-	const devTTY = Deno.openSync(isWinOS ? 'CONIN$' : '/dev/tty');
+	// const devTTY = Deno.openSync(isWinOS ? 'CONIN$' : '/dev/tty');
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['stty', 'size', 'sane'],
+				cmd: ['stty', 'size', 'sane', '--file=/dev/tty'],
 				// stdin: 'inherit',
-				stdin: devTTY.rid,
+				// stdin: devTTY.rid,
+				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
 			});
 			return (process.output())
-				.then((out) => {
-					const s = decode(out);
-					console.warn({ s });
-					return s;
-				})
+				// .then((out) => {
+				// 	console.warn({ output: decode(out) });
+				// 	return out;
+				// })
+				.then((out) => decode(out))
 				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
@@ -461,6 +467,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
+	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`)
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	// if (
 	// 	[Deprecated.Deno.stdin.rid, Deprecated.Deno.stderr.rid, Deprecated.Deno.stdout.rid].find((
@@ -497,10 +504,10 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 
 	const promise = Promise
 		.all([colsOutput, linesOutput])
-		.then(([colsText, linesText]) => {
-			console.warn({ colsText, linesText });
-			return [colsText ?? '', linesText ?? ''];
-		})
+		// .then(([colsText, linesText]) => {
+		// 	console.warn({ colsText, linesText });
+		// 	return [colsText ?? '', linesText ?? ''];
+		// })
 		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
 		.then(([cols, lines]) =>
 			(cols.length > 0 && lines.length > 0)
