@@ -2,7 +2,7 @@
 // spell-checker:ignore (Deno) rid rid's
 // spell-checker:ignore (names) Deno
 // spell-checker:ignore (shell) stty tput
-// spell-checker:ignore (shell/CMD) CONOUT
+// spell-checker:ignore (shell/CMD) CONIN CONOUT
 // spell-checker:ignore (Typescript) ts-nocheck nocheck usize
 // spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS WCHAR
 
@@ -247,12 +247,13 @@ export function consoleSizeAsync(
 			// ref: https://medium.com/@mpodlasin/promises-vs-observables-4c123c51fe13 @@ <https://archive.is/daGxV>
 			// ref: https://stackoverflow.com/questions/21260602/how-to-reject-a-promise-from-inside-then-function
 			Promise.any([
-				consoleSizeViaMode().then((size) => (size != undefined ? size : Promise.reject(undefined))),
+				consoleSizeViaMode().then((size) => (size != null ? size : Promise.reject(undefined))),
 				consoleSizeViaPowerShell().then((size) =>
-					size != undefined ? size : Promise.reject(undefined),
+					size != null ? size : Promise.reject(undefined),
 				),
-				consoleSizeViaSTTY().then((size) => (size != undefined ? size : Promise.reject(undefined))),
-				consoleSizeViaTPUT().then((size) => (size != undefined ? size : Promise.reject(undefined))),
+				consoleSizeViaResize().then((size) => (size != null ? size : Promise.reject(undefined))),
+				consoleSizeViaSTTY().then((size) => (size != null ? size : Promise.reject(undefined))),
+				consoleSizeViaTPUT().then((size) => (size != null ? size : Promise.reject(undefined))),
 			])
 				.then((size) => {
 					consoleSizeCache.set(JSON.stringify({ rid, options }), size);
@@ -370,6 +371,47 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	return promise;
 }
 
+// consoleSizeViaResize()
+/** Get the size of the console as columns/rows, using the `resize` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaResize();
+ * ```
+ *
+ * @tags non-winos-only
+ */
+export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
+	// * note: `resize` is available from `sudo apt install xterm`
+	if (isWinOS) return Promise.resolve(undefined);
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// * `resize -u` => output consists of shell command text to set COLUMNS and LINES environment variables; will be `bash`-compatible, regardless of the in-use shell
+	const output = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['resize', '-u'],
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'piped',
+			});
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+
+	const promise = output
+		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? [])
+		.then((values) =>
+			values.length > 0
+				? { columns: Number(values.shift()), rows: Number(values.shift()) }
+				: undefined,
+		);
+	return promise;
+}
+
 // consoleSizeViaSTTY()
 /** Get the size of the console as columns/rows, using the `stty` shell command.
  *
@@ -381,21 +423,35 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
-	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid
+	// - ref: <https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns> @@ <https://archive.is/nM1ky>
+	// - ref: <https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window> @@ <https://archive.is/n5KoU>
+	// - ref: <https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html> @@ <https://archive.is/RAZMG>
+	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// if (Deprecated.Deno.isatty(Deprecated.Deno.stdin.rid) !== true) return Promise.resolve(undefined); // requires STDIN to be a TTY => use `--file=/dev/tty` to force a TTY
+	// const ttyRID = Deprecated.Deno.openSync('/dev/tty').rid;
+	// const devTTY = Deno.openSync(isWinOS ? 'CONIN$' : '/dev/tty');
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['stty', 'size', 'sane'],
-				stdin: 'inherit',
+				cmd: ['stty', 'size', 'sane', '--file=/dev/tty'],
+				// stdin: 'inherit',
+				// stdin: devTTY.rid,
+				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return process
-				.output()
-				.then((out) => decode(out))
-				.finally(() => process.close());
+			return (
+				process
+					.output()
+					// .then((out) => {
+					// 	console.warn({ output: decode(out) });
+					// 	return out;
+					// })
+					.then((out) => decode(out))
+					.finally(() => process.close())
+			);
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -427,7 +483,8 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  * @tags winos-only
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
-	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires two system shell calls
+	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
+	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`)
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const colsOutput = (() => {
 		try {
@@ -463,6 +520,10 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	})();
 
 	const promise = Promise.all([colsOutput, linesOutput])
+		// .then(([colsText, linesText]) => {
+		// 	console.warn({ colsText, linesText });
+		// 	return [colsText ?? '', linesText ?? ''];
+		// })
 		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
 		.then(([cols, lines]) =>
 			cols.length > 0 && lines.length > 0
