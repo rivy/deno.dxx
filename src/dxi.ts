@@ -456,8 +456,8 @@ await log.trace({
 
 const runOptions: Deno.RunOptions = {
 	cmd: ['deno', ...denoArgs, '--', ...args],
-	stderr: 'piped',
 	stdin: 'null',
+	stderr: 'piped',
 	stdout: 'piped',
 };
 await log.debug({ runOptions });
@@ -482,13 +482,9 @@ const outputReader = mergedOutput.getReader();
 
 let out = '';
 const status = (await Promise.all([
-	(() => {
-		{
-			const status = process.status();
-			performance.mark('install.deno-install:end');
-			return status;
-		}
-	})(),
+	(() => process.status())().finally(() => {
+		performance.mark('install.deno-install:end');
+	}),
 	(async () => {
 		let buffer = '';
 		while (true) {
