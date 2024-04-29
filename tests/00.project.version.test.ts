@@ -29,7 +29,7 @@ await panicIfMissingPermits([
 
 const warn = createWarnFn(import.meta.url);
 
-const newlines = /\r|\r?\n/g;
+const allNewlines = /\r?\n|\r/g;
 
 const semverMmrReS = '(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)';
 const semverPatchReS = '(?:-(?:[0-9a-zA-Z-]*(?:[.][0-9a-zA-Z-]*)*))';
@@ -91,7 +91,7 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 
 test("project version matches 'VERSION' file", () => {
 	const expected = VERSION;
-	const actual = Deno.readTextFileSync(projectLocations.version).replace(newlines, '');
+	const actual = Deno.readTextFileSync(projectLocations.version).replace(allNewlines, '');
 	assertEquals(actual, expected);
 });
 
