@@ -6,6 +6,17 @@
 // spell-checker:ignore (Typescript) ts-nocheck nocheck usize
 // spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS WCHAR
 
+// ToDO: add tests to run all functions in console and check that all return the same values or are undefined
+
+// * NOTE: any defined results will be accurate (non-default)
+// * MacOS, if STDIN/STDERR/STDOUT are all redirected to non-consoles, `--allow-run` is needed to produce any defined results
+// * POSIX, if STDIN/STDERR/STDOUT are all redirected to non-consoles, `--allow-run` is needed to produce any defined results
+// * WinOS, if STDERR/STDOUT are all redirected, `--allow-run` is needed to produce any defined results
+
+// note: to eval all fns, try...
+// * POSIX * `deno run -A ./tests/helpers/consoleSize.display-results.ts </dev/null 2>&1 | cat`
+// * WinOS * `deno run -A ./tests/helpers/consoleSize.display-results.ts <NUL 2>&1 | find /v ""`
+
 //===
 
 import { Deprecated } from './$deprecated.ts';
