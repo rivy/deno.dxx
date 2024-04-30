@@ -306,6 +306,7 @@ const spinnerForInstall = $spin
 		text: spinnerInstallTextBase,
 		// spinner: 'line',
 		symbols: $spin.symbolStrings.emoji,
+		clearOnWrite: true,
 	})
 	.start();
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -469,13 +470,48 @@ spinnerForInstall.text = spinnerText;
 spinnerForInstall.render();
 
 const process = Deprecated.Deno.run(runOptions);
+
+function markStream(stream: ReadableStream<Uint8Array>, marker: string): ReadableStream<string> {
+	let buffer = '';
+	return new ReadableStream({
+		async start(controller) {
+			const reader = stream.getReader();
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) {
+					if (buffer) {
+						controller.enqueue(`${marker}:${buffer}`);
+					}
+					break;
+				}
+				buffer += decoder.decode(value, { stream: true });
+
+				let newlineIndex = 0;
+				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+					const line = buffer.slice(0, newlineIndex + 1);
+					controller.enqueue(`${marker}:${line}`);
+					buffer = buffer.slice(newlineIndex + 1);
+				}
+			}
+			controller.close();
+		},
+	});
+}
+
 const mergedOutput = mergeReadableStreams(
-	// readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),
-	// readableStreamFromReader(process.stdout || { read: (_) => Promise.resolve(null) }),
-	process.stderr?.readable || new ReadableStream(),
-	process.stdout?.readable || new ReadableStream(),
+	markStream(process.stderr?.readable || new ReadableStream<Uint8Array>(), 'stderr'),
+	markStream(process.stdout?.readable || new ReadableStream<Uint8Array>(), 'stdout'),
 );
+
+// const mergedOutput = mergeReadableStreams(
+// 	// readableStreamFromReader(process.stderr || { read: (_) => Promise.resolve(null) }),
+// 	// readableStreamFromReader(process.stdout || { read: (_) => Promise.resolve(null) }),
+// 	process.stderr?.readable || new ReadableStream(),
+// 	process.stdout?.readable || new ReadableStream(),
+// );
 const outputReader = mergedOutput.getReader();
+// const errReader = process.stderr?.readable || new ReadableStream();
+// const outReader = process.stdout?.readable || new ReadableStream();
 
 // const out = await readAll(readerFromStreamReader(outputReader)).then((arr) =>
 // 	decoder.decode(arr)
@@ -483,23 +519,39 @@ const outputReader = mergedOutput.getReader();
 // ?.replace(/^(\S+)(?=\s+Success)/gmsu, $spin.symbolStrings.emoji.success);
 // ?.replace(/^/gmsu, '| ')
 
-let out = '';
+const outLines: [string, string][] = [];
 const status = (await Promise.all([
 	(() => process.status())().finally(() => {
 		performance.mark('install.deno-install:end');
 	}),
 	(async () => {
 		let buffer = '';
+		const spinnerMaxDynamicOutputLines = 1;
 		while (true) {
 			const { value, done } = await outputReader.read();
 			if (done) break;
-			buffer += decoder.decode(value);
+			buffer += value;
 			let newlineIndex;
 			while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
 				const line = buffer.slice(0, newlineIndex);
-				out += line + '\n';
-				const s = line?.trimEnd().replace(/^/gmsu, '* ');
-				spinnerForInstall.text = spinnerText + '\n' + s + '\n';
+				const separatorIndex = line.indexOf(':');
+				const marker = line.substring(0, separatorIndex);
+				const text = line.substring(separatorIndex + 1);
+				// spinnerForInstall.info(`line=${line}\nmarker=${marker}\ntext=${text}`);
+				outLines.push([marker, text]);
+				const spinnerSubText: string[] = ((spinnerMaxDynamicOutputLines > 1) && (outLines
+						.length > spinnerMaxDynamicOutputLines))
+					? ['+ [...]']
+					: [];
+				if (spinnerMaxDynamicOutputLines > 2) {
+					spinnerSubText.push(
+						...outLines.slice(-spinnerMaxDynamicOutputLines + 2).map(([_, s]) =>
+							s.replace(/^/, '│ ').trimEnd()
+						),
+					);
+				}
+				spinnerSubText.push(...outLines.slice(-1).map(([_, s]) => s.replace(/^/, '* ').trimEnd()));
+				spinnerForInstall.text = [spinnerText, ...spinnerSubText].join('\n') + '\n';
 				spinnerForInstall.render();
 				buffer = buffer.slice(newlineIndex + 1);
 			}
@@ -512,6 +564,7 @@ spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
 writeAllSync(Deno.stdout, encoder.encode(prefixChar + ' ' + spinnerText + '\n'));
 
+const out = outLines.map(([_, s]) => s).join('\n');
 writeAllSync(Deno.stdout, encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
 
 const installDuration = performanceDuration('install.deno-install');
@@ -519,11 +572,9 @@ const installDuration = performanceDuration('install.deno-install');
 writeAllSync(
 	Deno.stdout,
 	encoder.encode(
-		'└─ ' + (status.success
-		    ? $colors.green('Done') 
-		    : $colors.red('Failed')) + (installDuration
-				? (' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 }))
-				: '') + '\n',
+		'└─ ' + (status.success ? $colors.green('Done') : $colors.red('Failed')) + (installDuration
+			? (' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 }))
+			: '') + '\n',
 	),
 );
 if (!status.success) await log.error('`deno install ...` failed');
