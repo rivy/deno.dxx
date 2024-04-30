@@ -13,10 +13,10 @@ export interface prettyBenchmarkHistoryOptions<T = unknown, K = unknown> {
   strict?: boolean | strictHistoryRules;
   /** Throw an error, when **any** benchmark has lower runsCount than the set value. */
   minRequiredRuns?: number;
-  /** Saves the `measuredRunsMs` array for each benchmark. 
-   * 
-   * **WARNING** this could result in a very big history file overtime. 
-   * 
+  /** Saves the `measuredRunsMs` array for each benchmark.
+   *
+   * **WARNING** this could result in a very big history file overtime.
+   *
    * Consider calculating necessary values before save instead with `benchExtras` or `runExtras`.*/
   saveIndividualRuns?: boolean;
   /** Saves the returned `object` for each benchmark into it's `extras` property. */
@@ -35,7 +35,7 @@ export type strictHistoryRules = {
   noRunsCountChange?: boolean;
 };
 
-/** Represents the stored historic benchmark data 
+/** Represents the stored historic benchmark data
  *
  * @template T The type that is calculated with `benchExtras` function and stored in each benchmarks' `extras`.
  * @template K The type that is calculated with `runExtras` function and stored in each runs' `runExtras`.
@@ -45,8 +45,8 @@ export interface BenchmarkHistory<T = unknown, K = unknown> {
   history: BenchmarkHistoryItem<T, K>[];
 }
 
-/** Represents the results of one `runBenchmarks` run. 
- * 
+/** Represents the results of one `runBenchmarks` run.
+ *
  * @template T The type that is calculated with `benchExtras` function and stored in each benchmarks' `extras`.
  * @template K The type that is calculated with `runExtras` function and stored in each runs' `runExtras`.
 */
@@ -64,8 +64,8 @@ export interface BenchmarkHistoryItem<T = unknown, K = unknown> {
   };
 }
 
-/** Represents the results of one benchmark's single run. 
- * 
+/** Represents the results of one benchmark's single run.
+ *
  * @template T The type that is calculated with `benchExtras` function and stored in each benchmarks' `extras`.
  */
 export interface BenchmarkHistoryRunItem<T = unknown> {
@@ -76,7 +76,7 @@ export interface BenchmarkHistoryRunItem<T = unknown> {
   /** The average time of running the benchmark in milliseconds. */
   measuredRunsAvgMs: number;
   /** The individual measurements in milliseconds it took to run the benchmark.
-   * 
+   *
    * Gets saved only, when `saveIndividualRuns` is set in the options. */
   measuredRunsMs?: number[];
   /** The object calculated by `benchExtras` function if provided in the options. */
@@ -94,11 +94,11 @@ export interface Delta {
 export type DeltaKey<T = unknown> = (keyof T | "measuredRunsAvgMs" | "totalMs");
 
 /** Handles and enforces the set rules on the historic benchmarking data.
- * 
+ *
  * Typical usage:
  * ```ts
  *  // add benches, then
- * 
+ *
  *  let historicData;
  *  try {
  *      historicData = JSON.parse(Deno.readTextFileSync("./benchmarks/history.json"));
@@ -110,15 +110,15 @@ export type DeltaKey<T = unknown> = (keyof T | "measuredRunsAvgMs" | "totalMs");
  *  const history = new prettyBenchmarkHistory(historicData, {
  *      //options
  *  });
- * 
+ *
  *  runBenchmarks().then((results: BenchmarkRunResult) => {
  *      history.addResults(results);
  *      Deno.writeTextFileSync("./benchmarks/history.json", history.getDataString());
  *  });
  * ```
- * 
+ *
  * **Note**
- * 
+ *
  * The saving and loading of the generated data is the user's responsibility, this class is not doing any file handling. See examples for more info. */
 export class prettyBenchmarkHistory<T = unknown, K = unknown> {
   private data!: BenchmarkHistory<T, K>;
@@ -292,12 +292,12 @@ export class prettyBenchmarkHistory<T = unknown, K = unknown> {
     return this;
   }
 
-  /** Calculates `deltas` for each benchmark in the provided `BenchmarkRunResult` for each provided property key. 
-   * 
+  /** Calculates `deltas` for each benchmark in the provided `BenchmarkRunResult` for each provided property key.
+   *
    * Keys are either `measuredRunsAvgMs`, `totalMs` or point to `number` properties of the calculated `extras`.
    * Error is thrown, when a key points to a non number property.
    * No delta is calculated for key's which are not present in the `extras`
-   * 
+   *
    * Returns `false` for a given benchmark when there is no history for it. */
   getDeltasFrom(
     results: BenchmarkRunResult,
@@ -315,12 +315,12 @@ export class prettyBenchmarkHistory<T = unknown, K = unknown> {
     return deltas;
   }
 
-  /** Calculates `deltas` for given `BenchmarkResult` for each provided property key. 
-   * 
+  /** Calculates `deltas` for given `BenchmarkResult` for each provided property key.
+   *
    * Keys are either `measuredRunsAvgMs`, `totalMs` or point to `number` properties of the calculated `extras`.
    * Error is thrown, when a key points to a non number property.
    * No delta is calculated for key's which are not present in the `extras`
-   * 
+   *
    * Returns `false` when there is no history for the given benchmark. */
   getDeltaForBenchmark(
     result: BenchmarkResult,
@@ -367,7 +367,7 @@ export class prettyBenchmarkHistory<T = unknown, K = unknown> {
           !currentResultExtras || typeof currentResultExtras[key] === undefined
         ) {
           throw new Error(
-            `No property named "${key}" in calculated extras for the currently measured benchmark named "${result.name}".`,
+            `No property named "${String(key)}" in calculated extras for the currently measured benchmark named "${result.name}".`,
           );
         }
 
@@ -408,14 +408,14 @@ export class prettyBenchmarkHistory<T = unknown, K = unknown> {
 }
 
 /** Calculates `Thresholds` from the historic data for each benchmark.
- * 
+ *
  * **EXPERIMENTAL** The default way of calculating may change, if you relay on thresholds provide your calculation so it wont change unexpectedly
- * 
+ *
  * The default way the thresholds are calculated:
  * * only calculate threshold for benchmark, which has at least `5` previous runs
  * * `green` is the (minimum of the measured `measuredRunsAvgMs`) * `1.1`
  * * `yellow` is the (maximum of the measured `measuredRunsAvgMs`) * `1.2`
- * 
+ *
  * This can be overridden with the options.*/
 export function calculateThresholds<T, K>(
   history: prettyBenchmarkHistory<T, K>,
