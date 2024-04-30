@@ -2393,7 +2393,7 @@ type ArgumentType<A extends string, U, T = Merge<DefaultTypes, U>> = A extends
   : A extends SingleArg ? string
   : unknown;
 
-type ArgumentTypes<A extends string, T> = A extends `${string} ${string}`
+type ArgumentTypes<A extends string, T extends void | Record<string, any>> = A extends `${string} ${string}`
   ? TypedArguments<A, T>
   : ArgumentType<A, T>;
 
@@ -2457,7 +2457,7 @@ type ValueOption<
 type ValuesOption<
   T extends string,
   Rest extends string,
-  V,
+  V extends void | Record<string, any>,
   R extends boolean | undefined = undefined,
   D = undefined,
 > = T extends `${infer Name}.${infer RestName}` ? (R extends true ? {
@@ -2516,7 +2516,7 @@ type MergeOptions<T, CO, O, N = GetOptionName<T>> = N extends `no-${string}`
 type TypedOption<
   F extends string,
   CO,
-  T,
+  T extends void | Record<string, any>,
   R extends boolean | undefined = undefined,
   D = undefined,
 > = number extends T ? any
@@ -2542,7 +2542,7 @@ type TypedArguments<A extends string, T extends Record<string, any> | void> =
     : A extends `[${string}]` ? [ArgumentType<A, T>?]
     : [ArgumentType<A, T>];
 
-type TypedCommandArguments<N extends string, T> = number extends T ? any
+type TypedCommandArguments<N extends string, T extends void | Record<string, any>> = number extends T ? any
   : N extends `${string} ${infer Args}` ? TypedArguments<Args, T>
   : [];
 

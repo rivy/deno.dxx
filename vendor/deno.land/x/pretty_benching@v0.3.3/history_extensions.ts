@@ -10,12 +10,12 @@ import type {
   prettyBenchmarkHistory,
 } from "./pretty_benchmark_history.ts";
 
-/** Returns the calculated delta for the specific benchmark in a formatted string. 
- * 
+/** Returns the calculated delta for the specific benchmark in a formatted string.
+ *
  * Meant to be used as:
  * ```ts
  * prettyBenchmarkProgress({rowExtras: deltaProgressRowExtra(history)});
- * ``` 
+ * ```
  * .*/
 export function deltaProgressRowExtra(history: prettyBenchmarkHistory) {
   return (
@@ -32,12 +32,12 @@ export function deltaProgressRowExtra(history: prettyBenchmarkHistory) {
   };
 }
 
-/** Returns the calculated delta for the specific benchmark in a formatted string. 
- * 
+/** Returns the calculated delta for the specific benchmark in a formatted string.
+ *
  * Meant to be used as:
  * ```ts
  * prettyBenchmarkResult({infoCell: deltaResultInfoCell(history)});
- * ``` 
+ * ```
  * .*/
 export function deltaResultInfoCell(history: prettyBenchmarkHistory) {
   return (result: BenchmarkResult, options?: prettyBenchmarkResultOptions) => {
@@ -52,7 +52,7 @@ export function deltaResultInfoCell(history: prettyBenchmarkHistory) {
 }
 
 /** Defines a delta column, which shows the changes for the benchmark. Shows `-` when there was no previous measurements for the benchmark in the history.
- * 
+ *
  * Calculates delta on `measuredRunsAvgMs` by default, which can be changed in the options with `key`.*/
 export function deltaColumn<T = unknown>(
   history: prettyBenchmarkHistory<T>,
@@ -61,7 +61,7 @@ export function deltaColumn<T = unknown>(
   const workingKey = options?.key || "measuredRunsAvgMs";
 
   return {
-    title: `Change in ${options?.key || "average"}`,
+    title: `Change in ${String(options?.key) || "average"}`,
     formatter: (result, cd) => {
       const delta = history.getDeltaForBenchmark(result, [workingKey]);
       if (delta) {
@@ -86,9 +86,9 @@ export function deltaColumn<T = unknown>(
 }
 
 /** Defines a column for each different `runBenchmarks` results in the history.
- * 
+ *
  * The title of the columns are the dates they were run or the `id`'s of them if they are present.
- * 
+ *
  * Shows `measuredRunsAvgMs` by default, which can be changed in the options with `key`.*/
 export function historyColumns<T = unknown>(
   history: prettyBenchmarkHistory<T>,
