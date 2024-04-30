@@ -564,16 +564,23 @@ if (status.success && isWinOS) {
 	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimBinPath)));
 	const shimBinName = $path.parse(shimBinPath).name;
 	const info = shimInfo(contentsOriginal);
-	const { denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs } = info;
+	const { denoRunOptions, denoRunTarget, denoRunTargetArgs } = info;
 	const addQuietOption = quietShim && !denoRunOptions.match(/(^|\s|'|")--quiet("|'|\s|$)/);
-	await log.trace({ info, denoRunOptions, denoRunTarget, shimBinName, addQuietOption });
+	await log.trace({
+		info,
+		denoRunOptions,
+		denoRunTarget,
+		denoRunTargetArgs,
+		shimBinName,
+		addQuietOption,
+	});
 	// const denoRunOptionsUpdated = denoRunOptions.
 	const appNameVersion = '`' + $me.name + '` ' + appVersion;
 	const contentsUpdated = eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
 			denoRunOptions: denoRunOptions.concat(addQuietOption ? ' "--quiet"' : '').trim(),
 			denoRunTarget,
-			denoRunTargetPrefixArgs,
+			denoRunTargetArgs,
 			shimBinName,
 			appNameVersion,
 		}),
