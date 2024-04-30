@@ -44,4 +44,4 @@ export * as $levels from 'https://esm.sh/rfc-log-levels@3.17.0';
 
 export type { Location, Offset } from 'https://esm.sh/get-current-line@6.6.0';
 export type { LevelInfo, LevelsMap as LevelMap } from 'https://esm.sh/rfc-log-levels@3.17.0';
-export type { DeepReadonly } from 'https://esm.sh/ts-essentials@9.0.0';
+export type { DeepReadonly } from 'https://esm.sh/ts-essentials@9.4.2';
