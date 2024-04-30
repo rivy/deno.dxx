@@ -23,12 +23,12 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @for %%G in ("%COMSPEC%") do @title %%~nG
 @set "SHIM_PIPE=%SHIM_PIPE%"
 @set "SHIM_ARG0=%~0"
-@set SHIM_ARGS_PREFIX=<%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>
+@set SHIM_ARGS_PREFIX=<%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>
 @rem:: reverse parentheses escaping and remove added leading '.'
 @set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
 @call set SHIM_ARGS=%%SHIM_ARGS:~1%%
 @set "SHIM_TARGET=<%=denoRunTarget%>"
-@call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS%%
+@call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
 @if EXIST "%SHIM_PIPE%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
@@ -70,25 +70,25 @@ export function shimInfo(contentsOriginal: string) {
 		// * run-target is matched as the first double-quoted URL-like (like "<scheme>:...") argument
 		// eg, `deno install ...` => `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
 		// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%SHIM_ARGS%%`
-		/^(.*?)?(\x22?deno(?:[.]exe)?\x22?)\s+\x22?run\x22?\s+(.*\s+)?(?:[\x22]([a-z][a-z0-9+.-]+:[^\x22]+)[\x22]|[\x27]([a-z][a-z0-9+.-]+:[^\x27]+)[\x27])\s+(?:(.*?)\s*(?:\x22[$]@\x22|%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
+		/^(.*?)?(\x22?deno(?:[.]exe)?\x22?)\s+\x22?run\x22?\s+(.*\s+)?([\x22](?:[a-z][a-z0-9+.-]+:[^\x22]+)[\x22]|[\x27](?:[a-z][a-z0-9+.-]+:[^\x27]+)[\x27])\s+(?:(.*?)\s*(?:\x22[$]@\x22|%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
 	) || [];
 	const [
 		_match,
 		denoCommandPrefix,
 		denoCommand,
 		denoRunOptionsRaw,
-		denoRunTarget,
+		denoRunTargetQuoted,
 		denoRunTargetArgs,
-		denoRunTargetPrefixArgs,
 	] = reMatchArray;
 
 	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 
 	let denoRunOptions = denoRunOptionsRaw || '';
+	const denoRunTarget = denoRunTargetQuoted.replace(/^[\x22\x27](.*?)[\x22\x27]$/, '$1');
 
 	denoRunOptions = denoRunOptions.replace(/(?<=^|\s+)[\x22\x27]?--[\x22\x27]?(?=\s+|$)/gm, '') // remove any "--" (quoted or not); avoids collision with "--" added by template
 		.toString();
-	7;
+
 	// change purposeful use of unstable flags to `--allow-all`
 	// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
 	// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
@@ -120,8 +120,8 @@ export function shimInfo(contentsOriginal: string) {
 		denoCommandPrefix,
 		denoCommand,
 		denoRunOptions,
+		denoRunTargetQuoted,
 		denoRunTarget,
 		denoRunTargetArgs,
-		denoRunTargetPrefixArgs,
 	};
 }
