@@ -17,12 +17,14 @@ import { Deprecated } from './$deprecated.ts';
 // import { assert as _assert } from 'https://deno.land/std@0.178.0/testing/asserts.ts';
 
 import { consoleSizeViaFFI } from './consoleSizeViaFFI.ts';
+export { consoleSizeViaFFI };
 
 //===
 
 const decoder = new TextDecoder(); // default == 'utf-8'
 const decode = (input?: Uint8Array): string => decoder.decode(input);
 
+const isMacOS = Deno.build.os === 'darwin';
 const isWinOS = Deno.build.os === 'windows';
 
 const atImportAllowRead =
@@ -335,6 +337,8 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
+	// MacOS: requires STDOUT to be a TTY o/w returns default 80x24
+	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
@@ -403,7 +407,20 @@ export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
 	})();
 
 	const promise = output
-		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? [])
+		/* expected output (from `resize -u`):
+		```text
+		COLUMNS=123;
+		LINES=43;
+		export COLUMNS LINES;
+		```
+		*/
+		.then(
+			(text) =>
+				text
+					?.split(/\r|\r?\n/)
+					?.slice(0, 2)
+					?.map((s) => s.match(/\d+/)?.[0]) ?? [],
+		)
 		.then((values) =>
 			values.length > 0
 				? { columns: Number(values.shift()), rows: Number(values.shift()) }
@@ -426,18 +443,15 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// - ref: <https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns> @@ <https://archive.is/nM1ky>
 	// - ref: <https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window> @@ <https://archive.is/n5KoU>
 	// - ref: <https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html> @@ <https://archive.is/RAZMG>
-	// * note: On Windows, `stty size` causes odd end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
+	// * note: On Windows, `stty size` causes odd and persistent end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
+	// MacOS: `--file=/dev/tty` isn't recognized as a valid option, must use `-f /dev/tty` and use it prior to stty commands
 	if (isWinOS) return Promise.resolve(undefined);
+	const fileOption = isMacOS ? ['-f', '/dev/tty'] : ['--file=/dev/tty'];
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
-	// if (Deprecated.Deno.isatty(Deprecated.Deno.stdin.rid) !== true) return Promise.resolve(undefined); // requires STDIN to be a TTY => use `--file=/dev/tty` to force a TTY
-	// const ttyRID = Deprecated.Deno.openSync('/dev/tty').rid;
-	// const devTTY = Deno.openSync(isWinOS ? 'CONIN$' : '/dev/tty');
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['stty', 'size', 'sane', '--file=/dev/tty'],
-				// stdin: 'inherit',
-				// stdin: devTTY.rid,
+				cmd: ['stty', ...fileOption, 'size', 'sane'],
 				stdin: 'null',
 				stderr: 'null',
 				stdout: 'piped',
@@ -458,6 +472,11 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	})();
 
 	const promise = output
+		/* expected output (from `stty size`):
+		```text
+		43 123
+		```
+		*/
 		.then(
 			(text) =>
 				text
@@ -484,14 +503,21 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
-	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`)
+	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
+	// MacOS: either STDOUT or STDERR must be a TTY for correct results
+	// if (isMacOS) return Promise.resolve(undefined); // MacOS requires STDERR or STDOUT to be a TTY which makes suppression of unexpected output impossible
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	if (!atImportAllowRead) return Promise.resolve(undefined); // requires 'read' permission; note: avoids any 'read' permission prompts
+	const devTtyPath = isWinOS ? 'CONIN$' : '/dev/tty';
+	// open TTY devices with read and write permissions to avoid mis-categorization of TTYs; ref: [🐛(WinOS) Deno.isatty() sometimes returns incorrect false result for 'CONOUT$'](https://github.com/denoland/deno/issues/18168)
+	const devTTY = denoOpenSyncNT(devTtyPath, { read: true /* , write: true */ });
+	if (devTTY == null) return Promise.resolve(undefined);
 	const colsOutput = (() => {
 		try {
 			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'cols'],
-				stdin: 'null',
-				stderr: 'null',
+				stdin: devTTY.rid,
+				stderr: isMacOS ? devTTY.rid : 'null',
 				stdout: 'piped',
 			});
 			return process
@@ -506,8 +532,8 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 		try {
 			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'lines'],
-				stdin: 'null',
-				stderr: 'null',
+				stdin: devTTY.rid,
+				stderr: isMacOS ? devTTY.rid : 'null',
 				stdout: 'piped',
 			});
 			return process
@@ -519,7 +545,206 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 		}
 	})();
 
-	const promise = Promise.all([colsOutput, linesOutput])
+	const promise = Promise
+		/* expected output from `tput cols` == `123`, `tput lines` == `43` */
+		.all([colsOutput, linesOutput])
+		// .then(([colsText, linesText]) => {
+		// 	console.warn({ devTtyPath, devIsTTY: Deno.isatty(devTTY.rid), colsText, linesText });
+		// 	return [colsText ?? '', linesText ?? ''];
+		// })
+		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
+		.then(([cols, lines]) =>
+			cols.length > 0 && lines.length > 0
+				? { columns: Number(cols), rows: Number(lines) }
+				: undefined,
+		);
+	return promise;
+}
+
+// consoleSizeViaXargsSTTY()
+/** Get the size of the console as columns/rows, using the `stty` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaSTTY();
+ * ```
+ *
+ * @tags non-winos-only
+ */
+export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
+	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
+	// - ref: <https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns> @@ <https://archive.is/nM1ky>
+	// - ref: <https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window> @@ <https://archive.is/n5KoU>
+	// - ref: <https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html> @@ <https://archive.is/RAZMG>
+	// * note: On Windows, `stty size` causes odd and persistent end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
+	// MacOS: `xargs` is FreeBSD and will not run at all if STDIN contains no arguments (eg, is '/dev/null')
+	if (isWinOS) return Promise.resolve(undefined);
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const output = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['xargs', '-o', 'stty', 'size', 'sane'],
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'piped',
+			});
+			return (
+				process
+					.output()
+					// .then((out) => {
+					// 	console.warn({ output: decode(out) });
+					// 	return out;
+					// })
+					.then((out) => decode(out))
+					.finally(() => process.close())
+			);
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+
+	const promise = output
+		/* expected output (from `stty size`):
+		```text
+		43 123
+		```
+		*/
+		.then(
+			(text) =>
+				text
+					?.split(/\s+/)
+					.filter((s) => s.length > 0)
+					.reverse() ?? [],
+		)
+		.then((values) =>
+			values.length === 2
+				? { columns: Number(values.shift()), rows: Number(values.shift()) }
+				: undefined,
+		);
+	return promise;
+}
+
+// consoleSizeViaXargsTPUT()
+/** Get the size of the console as columns/rows, using the `tput` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaTPUT();
+ * ```
+ *
+ * @tags winos-only
+ */
+export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
+	// MacOS: `xargs` only recognizes the short form of the `-o` option
+	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
+	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
+	// MacOS: `xargs` is FreeBSD and will not run at all if STDIN contains no arguments
+	// if (isMacOS) return Promise.resolve(undefined); // MacOS requires STDERR or STDOUT to be a TTY which makes suppression of unexpected output impossible
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// const devTTY = denoOpenSyncNT(isWinOS ? 'CONIN$' : '/dev/tty');
+	// if (devTTY == null) return Promise.resolve(undefined);
+	const colsOutput = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['xargs', '-o', 'tput', 'cols'],
+				stdin: 'null',
+				stderr: 'piped',
+				stdout: 'piped',
+			});
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+	const linesOutput = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['xargs', '-o', 'tput', 'lines'],
+				stdin: 'null',
+				stderr: 'piped',
+				stdout: 'piped',
+			});
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+
+	const promise = Promise
+		/* expected output from `tput cols` == `123`, `tput lines` == `43` */
+		.all([colsOutput, linesOutput])
+		// .then(([colsText, linesText]) => {
+		// 	console.warn({ colsText, linesText });
+		// 	return [colsText ?? '', linesText ?? ''];
+		// })
+		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
+		.then(([cols, lines]) =>
+			cols.length > 0 && lines.length > 0
+				? { columns: Number(cols), rows: Number(lines) }
+				: undefined,
+		);
+	return promise;
+}
+
+// consoleSizeViaXargsTPUT()
+/** Get the size of the console as columns/rows, using the `tput` shell command.
+ *
+ * ```ts
+ * const { columns, rows } = await consoleSizeViaTPUT();
+ * ```
+ *
+ * @tags winos-only
+ */
+export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
+	// MacOS: `xargs` only recognizes the short form of the `-o` option
+	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
+	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
+	// MacOS: `xargs` is FreeBSD and will not run at all if STDIN contains no arguments
+	// `/usr/bin/env sh -c 'printf "0" | xargs -o tput cols 100' </dev/null` works on MacOS (additional argument on command line is ignored)
+	if (isMacOS) return Promise.resolve(undefined); // MacOS requires STDERR or STDOUT to be a TTY which makes suppression of unexpected output impossible
+	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	// const devTTY = denoOpenSyncNT(isWinOS ? 'CONIN$' : '/dev/tty');
+	// if (devTTY == null) return Promise.resolve(undefined);
+	const colsOutput = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['/usr/bin/env', 'sh', '-c', 'printf "0" | xargs -o tput cols'],
+				stdin: 'null',
+				stderr: 'piped',
+				stdout: 'piped',
+			});
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+	const linesOutput = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: ['/usr/bin/env', 'sh', '-c', 'printf "0" | xargs -o tput lines'],
+				stdin: 'null',
+				stderr: 'piped',
+				stdout: 'piped',
+			});
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+
+	const promise = Promise
+		/* expected output from `tput cols` == `123`, `tput lines` == `43` */
+		.all([colsOutput, linesOutput])
 		// .then(([colsText, linesText]) => {
 		// 	console.warn({ colsText, linesText });
 		// 	return [colsText ?? '', linesText ?? ''];
