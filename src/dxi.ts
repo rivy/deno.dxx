@@ -574,13 +574,14 @@ if (status.success && isWinOS) {
 		shimBinName,
 		addQuietOption,
 	});
-	// const denoRunOptionsUpdated = denoRunOptions.
 	const appNameVersion = '`' + $me.name + '` ' + appVersion;
 	const contentsUpdated = eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
 			denoRunOptions: denoRunOptions.concat(addQuietOption ? ' "--quiet"' : '').trim(),
 			denoRunTarget,
-			denoRunTargetArgs,
+			// remove leading '--' (only the first, quoted or not) from target args for compatibility with `deno install` functionality
+			denoRunTargetArgs: (denoRunTargetArgs
+				.replace(/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/, '$1')),
 			shimBinName,
 			appNameVersion,
 		}),
