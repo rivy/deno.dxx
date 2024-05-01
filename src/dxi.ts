@@ -9,6 +9,7 @@ import {
 	mergeReadableStreams,
 	// readAll,
 	// readerFromStreamReader,
+	writeAllSync,
 } from './lib/$deps.ts';
 import {
 	$version,
@@ -510,18 +511,20 @@ const status = (
 				}
 			}
 		})(),
-		delay(100),
+		delay(200),
 	])
 )[0]; // await completion status with simultaneous output display (and `delay(100)` to avoid visible spinner flash)
 
 spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
-Deno.stdout.writeSync(encoder.encode(prefixChar + ' ' + spinnerText + '\n'));
+writeAllSync(Deno.stdout, encoder.encode(prefixChar + ' ' + spinnerText + '\n'));
 
-Deno.stdout.writeSync(encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
+writeAllSync(Deno.stdout, encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
 
 const installDuration = performanceDuration('install.deno-install');
-Deno.stdout.writeSync(
+
+writeAllSync(
+	Deno.stdout,
 	encoder.encode(
 		'└─ ' +
 			(status.success ? $colors.green('Done') : $colors.red('Failed')) +
@@ -543,6 +546,7 @@ const shimBinPath = (() => {
 })();
 
 await log.trace({ status, process, out });
+await log.trace({ count: out.split('\n').length, lines: out.split('\n').slice(-30) });
 await log.debug({ shimBinPath });
 
 if (status.success && hasDenoHelpOption) {
@@ -580,8 +584,10 @@ if (status.success && isWinOS) {
 			denoRunOptions: denoRunOptions.concat(addQuietOption ? ' "--quiet"' : '').trim(),
 			denoRunTarget,
 			// remove leading '--' (only the first, quoted or not) from target args for compatibility with `deno install` functionality
-			denoRunTargetArgs: (denoRunTargetArgs
-				.replace(/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/, '$1')),
+			denoRunTargetArgs: denoRunTargetArgs.replace(
+				/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/,
+				'$1',
+			),
 			shimBinName,
 			appNameVersion,
 		}),
@@ -589,7 +595,8 @@ if (status.success && isWinOS) {
 	Deno.writeFileSync(shimBinPath, encoder.encode(contentsUpdated));
 	performance.mark('install.enhance-shim:stop');
 	const enhanceShimDuration = performanceDuration('install.enhance-shim');
-	Deno.stdout.writeSync(
+	writeAllSync(
+		Deno.stdout,
 		encoder.encode(
 			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\` (in ${
 				enhanceShimDuration ? formatDuration(enhanceShimDuration) : 'unknown time'
