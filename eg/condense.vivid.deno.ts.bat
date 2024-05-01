@@ -1,7 +1,7 @@
 <1> /*! :: note: TypeScript-only chimera lead-in which is *preserved* after reformatting by deno/dprint
 @::# --* typescript *--
 @::# (emacs/sublime) -*- mode: typescript; coding: dos; -*-
-@::# spell-checker:ignore (names) Deno ; (shell/CMD) ERRORLEVEL
+@::# spell-checker:ignore (names) Deno ; (shell/CMD) ERRORLEVEL delims
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive avoidance of any prior pinned value)
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
@@ -24,8 +24,10 @@
 @:post_SHIM_args_setup
 @set "SHIM_ORIGIN=%~f0"
 @:create_unique_tid
-@set "SHIM_TID=$shim_target_id-%DATE%-%TIME::=%-%RANDOM%$" &@:: unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
-@set "SHIM_TARGET=%SHIM_ORIGIN%.$deno$ext.%SHIM_TID%.ts"
+@:: TID == TargetID; unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
+@for /f "tokens=1,2,3,4 delims=/ " %%G in ("%DATE%") do @set "SHIM_TID=$shim_tid-%%J%%H%%I.%TIME::=%-%RANDOM%$"
+@set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
+@set "SHIM_TARGET=%SHIM_ORIGIN%.%SHIM_TID%.$deno$ext.ts"
 @if EXIST "%SHIM_TARGET%" @goto :confirm_unique_tid
 @copy /y "%SHIM_ORIGIN%" "%SHIM_TARGET%" >NUL
 @deno.exe fmt "%SHIM_TARGET%" >NUL 2>NUL &@:: HACK: (optional) quick conversion to LF EOLs to avoid error/panic source map bug (see https://github.com/denoland/deno/issues/16815)
