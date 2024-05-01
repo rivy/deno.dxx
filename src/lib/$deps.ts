@@ -6,6 +6,7 @@ export {
 	readableStreamFromReader,
 	readAll,
 	readerFromStreamReader,
+	writeAllSync,
 } from 'https://deno.land/std@0.134.0/streams/conversion.ts';
 export { mergeReadableStreams } from 'https://deno.land/std@0.134.0/streams/merge.ts';
 
