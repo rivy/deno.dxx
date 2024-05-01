@@ -1,7 +1,7 @@
 // spell-checker:ignore (vars) ARGX
 
 const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
-@rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
+@rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL delims ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive de-cloaking to avoid any prior pinned value)
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
@@ -46,7 +46,9 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=."
 @:prep
-@set "SHIM_TID=$shim_tid-%DATE%-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
+@:create_unique_tid
+@:: TID == TargetID; unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
+@for /f "tokens=1,2,3,4 delims=/ " %%G in ("%DATE%") do @set "SHIM_TID=$shim_tid-%%J%%H%%I.%TIME::=%-%RANDOM%$"
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.$shim_pipe$.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
