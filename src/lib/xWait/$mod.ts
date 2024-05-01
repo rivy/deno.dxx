@@ -40,6 +40,7 @@ export interface SpinnerOptions {
 	prefix?: string;
 	spinner?: string | SpinnerAnimation;
 	color?: string | ColorFunction;
+	clearOnWrite?: boolean;
 	hideCursor?: boolean;
 	indent?: number;
 	interval?: number;
@@ -64,6 +65,7 @@ export function wait(opts: string | SpinnerOptions) {
 		prefix: opts.prefix ?? '',
 		color: opts.color ?? $colors.cyan,
 		spinner: opts.spinner ?? 'dots',
+		clearOnWrite: opts.clearOnWrite ?? true,
 		hideCursor: opts.hideCursor ?? true,
 		indent: opts.indent ?? 0,
 		interval: opts.interval ?? 100,
@@ -171,7 +173,34 @@ export class Spinner {
 	}
 
 	private write(data: string) {
-		this.#stream.writeSync(encode(data));
+		const lines = (() => {
+			if (this.#opts.clearOnWrite) {
+				return [{ text: data, eol: undefined }];
+			} else {
+				return data
+					.split(/(\r?\n|\r)/)
+					.map((line, index, array) => {
+						if (index % 2 === 0) {
+							return { text: line, eol: array[index + 1] };
+						}
+					})
+					.filter(Boolean);
+			}
+		})();
+		for (let i = 0; i < lines.length; i++) {
+			let encodedData = encode(lines[i]?.text);
+			// `writeSync()` may not write all data in a single call (ie, if buffer becomes full); alternative would be to use `writeAllSync()` (from streams/conversion.ts)
+			let bytesWritten = 0;
+			while (bytesWritten < encodedData.byteLength) {
+				bytesWritten += this.#stream.writeSync(encodedData);
+			}
+			if (!this.#opts.clearOnWrite) $tty.clearRightSync(this.#stream);
+			bytesWritten = 0;
+			encodedData = encode(lines[i]?.eol);
+			while (bytesWritten < encodedData.byteLength) {
+				bytesWritten += this.#stream.writeSync(encodedData);
+			}
+		}
 	}
 
 	start(): Spinner {
@@ -194,7 +223,11 @@ export class Spinner {
 	}
 
 	render(): void {
-		this.clear();
+		if (this.#opts.clearOnWrite) this.clear();
+		else {
+			$tty.goUpSync(this.#linesCount - 1, this.#stream);
+			$tty.goRightSync(this.indent - 1, this.#stream);
+		}
 		this.write(`${this.frame()}\n`);
 		this.updateLines();
 		this.#linesToClear = this.#linesCount;
