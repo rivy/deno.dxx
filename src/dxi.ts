@@ -390,6 +390,7 @@ if (status.success) {
 Deno.stdout.writeSync(encoder.encode(out));
 
 const shimBinPath = (() => {
+	if (!status.success) return '';
 	const m = out.match(/^\s*(.*[.](?:bat|cmd))\s*$/mu);
 	if (m) return m[1];
 	return '';
@@ -398,7 +399,7 @@ const shimBinPath = (() => {
 await log.trace({ status, process, out });
 await log.debug({ shimBinPath });
 
-if (shimBinPath === '') {
+if (status.success && shimBinPath === '') {
 	await log.error('Could not find shim path');
 	Deno.exit(1);
 }
