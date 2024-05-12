@@ -413,7 +413,7 @@ if (status.success && isWinOS) {
 	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimBinPath)));
 	const shimBinName = $path.parse(shimBinPath).name;
 	const info = shimInfo(contentsOriginal);
-	const { denoRunOptions, denoRunTarget } = info;
+	const { denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs } = info;
 	const addQuietOption = quietShim && !denoRunOptions.match(/(^|\s|'|")--quiet("|'|\s|$)/);
 	await log.trace({ info, denoRunOptions, denoRunTarget, shimBinName, addQuietOption });
 	// const denoRunOptionsUpdated = denoRunOptions.
@@ -423,6 +423,7 @@ if (status.success && isWinOS) {
 				.concat(addQuietOption ? ' "--quiet"' : '')
 				.trim(),
 			denoRunTarget,
+			denoRunTargetPrefixArgs,
 			shimBinName,
 		}),
 	);
