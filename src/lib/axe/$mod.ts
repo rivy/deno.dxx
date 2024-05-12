@@ -47,7 +47,7 @@ export function env(varName: string, options?: { guard: boolean }) {
 //===
 
 export interface Writer<T = unknown> {
-	write(chunk: T): Promise<unknown>;
+	write(chunk: T): Promise<number>;
 }
 
 export interface WriterDetail {
@@ -179,7 +179,7 @@ export class TransformWriter<I = unknown, O = I> implements Writer<I>, Transform
 		let isTransformed = false;
 		let data: O | undefined;
 		let s: string;
-		const promises: Promise<unknown>[] = [];
+		const promises: Promise<number>[] = [];
 		for (const writer of this._previewers) {
 			promises.push(this._writeQueue.add(() => writer.write(chunk)));
 		}
@@ -206,11 +206,13 @@ export class TransformWriter<I = unknown, O = I> implements Writer<I>, Transform
 				// });
 				return (typeof data !== 'undefined')
 					? writer.write(encode(options.eol ? (s + options.eol) : s))
-					: Promise.resolve();
+					: Promise.resolve(0);
 			});
 			promises.push(promise);
 		}
-		return Promise.allSettled(promises);
+		return Promise.all(promises).then((results) =>
+			results.reduce((allBytesWritten, bytesWritten) => allBytesWritten + bytesWritten, 0)
+		);
 	}
 }
 
