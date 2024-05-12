@@ -345,9 +345,14 @@ const updates = await collect(map(async function (fileEntry) {
 	const contentsOriginal = $eol.LF(decoder.decode(await Deno.readFile(shimPath)));
 	const shimBinName = $path.parse(shimPath).name;
 	const info = shimInfo(contentsOriginal);
-	const { denoRunOptions, denoRunTarget } = info;
+	const { denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs } = info;
 	const contentsUpdated = $eol.CRLF(
-		$lodash.template(cmdShimTemplate(enablePipe))({ denoRunOptions, denoRunTarget, shimBinName }),
+		$lodash.template(cmdShimTemplate(enablePipe))({
+			denoRunOptions,
+			denoRunTarget,
+			denoRunTargetPrefixArgs,
+			shimBinName,
+		}),
 	);
 	return {
 		shimPath,
