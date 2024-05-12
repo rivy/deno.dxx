@@ -46,6 +46,16 @@ export function env(varName: string, options?: { guard: boolean }) {
 
 //===
 
+async function writeAll(writer: Deno.Writer, data: Uint8Array): Promise<number> {
+	let bytesWritten = 0;
+	while (bytesWritten < data.byteLength) {
+		bytesWritten += await writer.write(data.subarray(bytesWritten));
+	}
+	return bytesWritten;
+}
+
+//===
+
 export interface Writer<T = unknown> {
 	write(chunk: T): Promise<number>;
 }
@@ -205,7 +215,10 @@ export class TransformWriter<I = unknown, O = I> implements Writer<I>, Transform
 				// 	s,
 				// });
 				return (typeof data !== 'undefined')
-					? writer.write(encode(options.eol ? (s + options.eol) : s))
+					? (async () => {
+						const buf = encode(options.eol ? (s + options.eol) : s);
+						return await writeAll(writer as Writer<typeof buf>, buf);
+					})()
 					: Promise.resolve(0);
 			});
 			promises.push(promise);
