@@ -3,6 +3,7 @@
 import {
 	$lodash,
 	$path,
+	$semver,
 	mergeReadableStreams,
 	readAll,
 	readerFromStreamReader,
@@ -83,12 +84,15 @@ const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	.epilog('* Copyright (c) 2021-2022 * Roy Ivy III (MIT license)')
 	.usage(`$0 ${version}\n
 Install command script as an executable (with enhanced WinOS command line capabilities [via an enhancing shim]).\n
-Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND`)
+Usage:\n  ${runAsName} [OPTION..] [[--] [INSTALL_ARGUMENT..]] COMMAND [COMMAND_ARGUMENT..]`)
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({ 'Positionals:': 'Arguments:' })
 	.positional('OPTION', { describe: 'OPTION(s), as listed here (below)' })
-	.positional('INSTALL_OPTION', { describe: 'INSTALL_OPTION(s) delegated to `deno install ...`' })
+	.positional('INSTALL_ARGUMENT', {
+		describe: 'INSTALL_ARGUMENT(s) delegated to `deno install ...`',
+	})
 	.positional('COMMAND', { describe: 'Path/URL of COMMAND to install' })
+	.positional('COMMAND_ARGUMENT', { describe: 'COMMAND_ARGUMENT(s) for all executions of COMMAND' })
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
 		throw new Error(msg);
@@ -239,17 +243,17 @@ if (argv.version) {
 //=== ***
 
 const allArgs = argv._.map(String);
-const delegatedArgs: string[] = [];
+const delegatedDenoArgs: string[] = [];
 let idx = 0;
 for (const arg of allArgs) {
 	if (!arg.startsWith('-')) break;
 	idx += 1;
 	if (arg === endOfOptionsSignal) break;
-	delegatedArgs.push(arg);
+	delegatedDenoArgs.push(arg);
 }
 const args = allArgs.slice(idx);
 
-await log.trace({ delegatedArgs, args });
+await log.trace({ allArgs, delegatedDenoArgs, args });
 
 //===
 
@@ -340,7 +344,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // * a bug was introduced into deno v1.29.0+ which suppresses `deno install...` output when supplying `--quiet` to the installed script
 // * ref: <https://github.com/denoland/deno/issues/19037>
 let quietShim = false;
-const filteredDelegatedArgs = delegatedArgs.flatMap((arg) => {
+const filteredDelegatedDenoArgs = delegatedDenoArgs.flatMap((arg) => {
 	if (arg === '--quiet' || arg === '-q') {
 		quietShim = true;
 		return [];
@@ -357,12 +361,55 @@ const filteredDelegatedArgs = delegatedArgs.flatMap((arg) => {
 	return [arg];
 });
 
-const denoArgs = ['install', ...filteredDelegatedArgs].filter(Boolean);
+// determine if `--help` or `-h` is present in the delegatedArgs
+const hasDenoHelpOption = filteredDelegatedDenoArgs.find((arg) => {
+	if (arg === '--help' || arg === '-h') {
+		return true;
+	}
+	const matches = arg.match(/^-[^-].*/);
+	if (matches) {
+		// `arg` matches a combined short option
+		const matches = arg.match(/h/);
+		if (matches) {
+			return true;
+		}
+	}
+	return false;
+}) != null;
 
-await log.trace({ quietShim, denoArgs, delegatedArgs, filteredDelegatedArgs });
+// determine if `--global` or `-g` is present in the delegatedArgs
+const hasDenoGlobalOption = filteredDelegatedDenoArgs.find((arg) => {
+	if (arg === '--global' || arg === '-g') {
+		return true;
+	}
+	const matches = arg.match(/^-[^-].*/);
+	if (matches) {
+		// `arg` matches a combined short option
+		const matches = arg.match(/g/);
+		if (matches) {
+			return true;
+		}
+	}
+	return false;
+}) != null;
+
+// suppress deno behaviors change warning about `--global` option (for Deno v1.42.0+)
+if (!hasDenoGlobalOption && $semver.satisfies(Deno.version.deno, '>=1.42.0')) {
+	const _ = filteredDelegatedDenoArgs.unshift('--global');
+}
+
+const denoArgs = ['install', ...filteredDelegatedDenoArgs].filter(Boolean);
+
+await log.trace({
+	quietShim,
+	hasDenoHelpOption,
+	denoArgs,
+	delegatedDenoArgs,
+	filteredDelegatedDenoArgs,
+});
 
 const runOptions: Deno.RunOptions = {
-	cmd: ['deno', ...denoArgs, ...args],
+	cmd: ['deno', ...denoArgs, '--', ...args],
 	stderr: 'piped',
 	stdin: 'null',
 	stdout: 'piped',
@@ -398,6 +445,10 @@ const shimBinPath = (() => {
 
 await log.trace({ status, process, out });
 await log.debug({ shimBinPath });
+
+if (status.success && hasDenoHelpOption) {
+	Deno.exit(0);
+}
 
 if (status.success && shimBinPath === '') {
 	await log.error('Could not find shim path');
