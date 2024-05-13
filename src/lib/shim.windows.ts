@@ -2,9 +2,10 @@
 
 const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
 @rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
-@set "ERRORLEVEL="
-@set "SHIM_ERRORLEVEL="
+@set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive de-cloaking to avoid any prior pinned value)
+@set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
+@REM * @set "DENO_NO_PROMPT=1" &:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions; use \`--no-prompt\` instead
 @set "DENO_NO_UPDATE_CHECK=1" &:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
 @set "DENO_NO_DEPRECATION_WARNINGS=1" &:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
 @set SHIM_ARGS=%*
