@@ -526,7 +526,7 @@ const installDuration = performanceDuration('install.deno-install');
 writeAllSync(
 	Deno.stdout,
 	encoder.encode(
-		'└─ ' +
+		'└─ ' + //(fmt:add-break)
 			(status.success ? $colors.green('Done') : $colors.red('Failed')) +
 			(installDuration
 				? ' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 })
