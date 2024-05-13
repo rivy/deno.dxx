@@ -28,14 +28,18 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
 @call set SHIM_ARGS=%%SHIM_ARGS:~1%%
 @set "SHIM_TARGET=<%=denoRunTarget%>"
-@REM * @set "DENO_NO_PROMPT=1" &@:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice (use \`--no-prompt\` instead)
-@set "DENO_NO_UPDATE_CHECK=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
-@set "DENO_NO_DEPRECATION_WARNINGS=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
+@REM @rem:: suppress default [ugly UI/UX] prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice [use \`--no-prompt\` instead]
+@REM * @set "DENO_NO_PROMPT=1"
+@rem:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
+@set "DENO_NO_UPDATE_CHECK=1"
+@rem:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
+@set "DENO_NO_DEPRECATION_WARNINGS=1"
 @call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
-@REM * @set "DENO_NO_PROMPT=%DENO_NO_PROMPT%" &@:: reset to prior value
-@set "DENO_NO_UPDATE_CHECK=%DENO_NO_UPDATE_CHECK%" &@:: reset to prior value
-@set "DENO_NO_DEPRECATION_WARNINGS=%DENO_NO_DEPRECATION_WARNINGS%" &@:: reset to prior value
+@rem:: reset DENO_NO_... ENV suppression vars to prior values
+@REM * @set "DENO_NO_PROMPT=%DENO_NO_PROMPT%"
+@set "DENO_NO_UPDATE_CHECK=%DENO_NO_UPDATE_CHECK%"
+@set "DENO_NO_DEPRECATION_WARNINGS=%DENO_NO_DEPRECATION_WARNINGS%"
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
 @if EXIST "%SHIM_PIPE%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
 @set "SHIM_PIPE="
