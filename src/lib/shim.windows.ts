@@ -54,7 +54,7 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @:: TID == TargetID; unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
 @for /f "tokens=1,2,3,4 delims=/ " %%G in ("%DATE%") do @set "SHIM_TID=$shim_tid-%%J%%H%%I.%TIME::=%-%RANDOM%$" &@:: $shim_tid-YYYYMMDD.HHMMSS.ss-NNNNN$
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (avoids issues with spaces in path; eg, for times between 0:00 and 9:59)
-@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.$shim_pipe$.%SHIM_TID%.cmd"
+@set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.%SHIM_TID%.$shim_pipe$.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
 @if DEFINED SHIM_PIPE @> "%SHIM_PIPE%" echo % \`<%=shimBinName%>\` shell pipe %
 @if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo # SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
