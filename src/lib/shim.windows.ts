@@ -2,6 +2,9 @@
 
 const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
 @rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL delims ; (deno) Deno hrtime ; (bin) <%=shimBinName%> <%=denoRunTarget%>
+@rem
+@if DEFINED SHIM_DEBUG @echo # SHIM_DEBUG='%SHIM_DEBUG%' ## defined and active 1>&2
+@rem
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive de-cloaking to avoid any prior pinned value)
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
@@ -36,6 +39,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @set "SHIM_ARG0="
 @set "SHIM_ARGS="
 @set "SHIM_TARGET="
+@if DEFINED SHIM_DEBUG @call echo # SHIM_ERRORLEVEL='%%SHIM_ERRORLEVEL%%' 1>&2
 @%COMSPEC% /d/c "exit %%SHIM_ERRORLEVEL%%" & @set "SHIM_ERRORLEVEL="
 )
 `;
@@ -53,7 +57,7 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.$shim_pipe$.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
 @if DEFINED SHIM_PIPE @> "%SHIM_PIPE%" echo % \`<%=shimBinName%>\` shell pipe %
-@if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
+@if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo # SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
 const cmdShimPrepNoPipe = `@:pipeDisabled`;
 
 export function cmdShimTemplate(enablePipe: boolean) {
