@@ -6,11 +6,11 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @if DEFINED SHIM_DEBUG @echo # SHIM_DEBUG='%SHIM_DEBUG%' ## defined and active 1>&2
 @rem
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive de-cloaking to avoid any prior pinned value)
-@set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
+@set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL is used to report final ERRORLEVEL (and ultimately reset to null); * side-effect of proper return of script to process error level
 @setLocal
-@REM * @set "DENO_NO_PROMPT=1" &:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions; use \`--no-prompt\` instead
-@set "DENO_NO_UPDATE_CHECK=1" &:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
-@set "DENO_NO_DEPRECATION_WARNINGS=1" &:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
+@REM * @set "DENO_NO_PROMPT=1" &@:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice (use \`--no-prompt\` instead)
+@set "DENO_NO_UPDATE_CHECK=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
+@set "DENO_NO_DEPRECATION_WARNINGS=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
 @rem
 @rem:: escape closing parentheses to prevent parsing issues in the final parse group
 @rem:: - ref: [SO ~ Escaping parentheses...](https://stackoverflow.com/questions/12976351/escaping-parentheses-within-parentheses-for-batch-file) @@ https://archive.is/biqAW
@@ -52,8 +52,8 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @:prep
 @:create_unique_tid
 @:: TID == TargetID; unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
-@for /f "tokens=1,2,3,4 delims=/ " %%G in ("%DATE%") do @set "SHIM_TID=$shim_tid-%%J%%H%%I.%TIME::=%-%RANDOM%$"
-@set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
+@for /f "tokens=1,2,3,4 delims=/ " %%G in ("%DATE%") do @set "SHIM_TID=$shim_tid-%%J%%H%%I.%TIME::=%-%RANDOM%$" &@:: $shim_tid-YYYYMMDD.HHMMSS.ss-NNNNN$
+@set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (avoids issues with spaces in path; eg, for times between 0:00 and 9:59)
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.$shim_pipe$.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
 @if DEFINED SHIM_PIPE @> "%SHIM_PIPE%" echo % \`<%=shimBinName%>\` shell pipe %
