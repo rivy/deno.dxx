@@ -43,11 +43,13 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 )
 `;
 const cmdShimPrepPipe = `@:pipeEnabled
-@set "RANDOM=" &:: remove any cloak from dynamic variable RANDOM
+@set "RANDOM=" &@:: reset RANDOM (dynamic variable; defensive de-cloaking to avoid any prior pinned value)
+@set "TIME=" &@:: reset TIME (dynamic variable; defensive de-cloaking of any prior pinned value)
 @if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
 @if NOT EXIST "%TEMP%" @set "TEMP=."
 @:prep
-@set "SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%" &:: TID = Temp-ID
+@set "SHIM_TID=$shim_tid-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
+@set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
 @set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%SHIM_TID%.cmd"
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%SHIM_TID%.cmd"
 @if EXIST "%SHIM_EXEC%" @goto :prep
