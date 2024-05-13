@@ -40,7 +40,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @set "SHIM_ARGS="
 @set "SHIM_TARGET="
 @if DEFINED SHIM_DEBUG @call echo # SHIM_ERRORLEVEL='%%SHIM_ERRORLEVEL%%' 1>&2
-@%COMSPEC% /d/c "exit %%SHIM_ERRORLEVEL%%" & @set "SHIM_ERRORLEVEL="
+@for /f %%G in ('echo %%SHIM_ERRORLEVEL%%') do @(set "SHIM_ERRORLEVEL=" & "%COMSPEC%" /d/c "@exit %%G")
 )
 `;
 const cmdShimPrepPipe = `@:pipeEnabled
