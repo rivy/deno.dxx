@@ -71,17 +71,7 @@ const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
 const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_'];
-const shimEnvBaseNames = [
-	'URL',
-	'TARGET',
-	'ARG0',
-	'ARGS_PREFIX',
-	'ARGS',
-	'ARGV',
-	'ARGV0',
-	'PIPE',
-	'EXEC',
-];
+const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC'];
 
 //===
 
@@ -116,8 +106,6 @@ export const shim = await (async () => {
 		TARGET?: string;
 		/** * original `argv[0]` which invoked this process (if/when available) */
 		ARG0?: string;
-		/** * preliminary argument(s) "curried" into shim as an argument prefix */
-		ARGS_PREFIX?: string;
 		/** * original argument text string */
 		ARGS?: string;
 		// useful ~ for Windows modification of parent environment (needed for creation of equivalents for enhanced-`cd` (`enhan-cd`, `goto`, `scd`, ...) and `source` applications) // spell-checker:ignore enhan
@@ -146,7 +134,6 @@ export const shim = await (async () => {
 		(await envAsync('SHIM_ARG0')) ??
 		(await envAsync('SHIM_ARGV0')) ??
 		(await envAsync('DENO_SHIM_ARG0'));
-	parts.ARGS_PREFIX = (await envAsync('SHIM_ARGS_PREFIX')) ?? (await envAsync('DENO_ARGS_PREFIX'));
 	parts.ARGS =
 		(await envAsync('SHIM_ARGS')) ??
 		(await envAsync('SHIM_ARGV')) ??
@@ -401,11 +388,9 @@ export const argsAsync = async () => {
 		(() => {
 			if (isEnhancedShimTarget) {
 				if (shim.scriptArgs != null) {
-					return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
-						Boolean,
-					);
+					return [...shim.scriptArgs].filter(Boolean);
 				}
-				if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
+				if (shim.ARGS != null) return shim.ARGS;
 			}
 			if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
 			return Deno.args;
@@ -420,11 +405,9 @@ export const argsSync = () => {
 		(() => {
 			if (isEnhancedShimTarget) {
 				if (shim.scriptArgs != null) {
-					return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
-						Boolean,
-					);
+					return [...shim.scriptArgs].filter(Boolean);
 				}
-				if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
+				if (shim.ARGS != null) return shim.ARGS;
 			}
 			if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
 			return Deno.args;
