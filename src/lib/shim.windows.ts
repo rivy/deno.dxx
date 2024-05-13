@@ -8,33 +8,30 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @REM * @set "DENO_NO_PROMPT=1" &:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions; use \`--no-prompt\` instead
 @set "DENO_NO_UPDATE_CHECK=1" &:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
 @set "DENO_NO_DEPRECATION_WARNINGS=1" &:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
-@set SHIM_ARGS=%*
-@rem:: double '%' characters in SHIM_ARGS; needed for correct output of \`... echo @set SHIM_ARGS=%SHIM_ARGS%\`; used in SHIM_EXEC
-@rem:: * delayed expansion is required to double the '%' characters
-@setLocal EnableDelayedExpansion
-@set SHIM_ARGS=!SHIM_ARGS:%%=%%%%!
-@endLocal & set SHIM_ARGS=%SHIM_ARGS%
+@rem
+@rem:: escape closing parentheses to prevent parsing issues in the final parse group
+@rem:: - ref: [SO ~ Escaping parentheses...](https://stackoverflow.com/questions/12976351/escaping-parentheses-within-parentheses-for-batch-file) @@ https://archive.is/biqAW
+@rem:: * leading '.' is to avoid empty SHIM_ARGS which won't be manipulated correctly by the expansion string substitutions
+@set SHIM_ARGS=.%*
+@set SHIM_ARGS=%SHIM_ARGS:)=^^^)%
 @rem
 @set "SHIM_PIPE="
 @set "SHIM_TARGET="
 @:...prep...
-@:launch
-@rem:: use of SHIM_EXEC is a circumlocution to avoid \`%*\` within the later, parentheses-surrounded, final parse group [o/w parentheses within args may cause parsing/execution misbehavior]
-@>>"%SHIM_EXEC%" echo @set SHIM_ARGS=%SHIM_ARGS%
-@>>"%SHIM_EXEC%" echo @(goto) 2^>NUL ^|^| @for %%%%G in ("%COMSPEC%") do @title %%%%~nG ^& @deno.exe "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS%%
 @(
 @(goto) 2>NUL
 @for %%G in ("%COMSPEC%") do @title %%~nG
-@set "SHIM_EXEC=%SHIM_EXEC%"
 @set "SHIM_PIPE=%SHIM_PIPE%"
 @set "SHIM_ARG0=%~0"
+@set SHIM_ARGS_PREFIX=<%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>
+@rem:: reverse parentheses escaping and remove added leading '.'
+@set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
+@call set SHIM_ARGS=%%SHIM_ARGS:~1%%
 @set "SHIM_TARGET=<%=denoRunTarget%>"
-@call "%SHIM_EXEC%"
+@call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetPrefixArgs ? (denoRunTargetPrefixArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
-@if EXIST "%SHIM_EXEC%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_EXEC%" 2>NUL
 @if EXIST "%SHIM_PIPE%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
-@set "SHIM_EXEC="
 @set "SHIM_PIPE="
 @set "SHIM_ARG0="
 @set "SHIM_ARGS="
@@ -50,21 +47,10 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @:prep
 @set "SHIM_TID=$shim_tid-%TIME::=%-%RANDOM%$" &:: TID = Temp-ID
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (for times between 0000 and 0059; avoids issues with spaces in path)
-@set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%SHIM_TID%.cmd"
 @set "SHIM_PIPE=%TEMP%\\<%=shimBinName%>.shim.pipe.%SHIM_TID%.cmd"
-@if EXIST "%SHIM_EXEC%" @goto :prep
 @if EXIST "%SHIM_PIPE%" @goto :prep
-@if DEFINED SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%SHIM_EXEC%"
 @if DEFINED SHIM_PIPE echo @rem \`<%=shimBinName%>\` shell pipe > "%SHIM_PIPE%"`;
-const cmdShimPrepNoPipe = `@:pipeDisabled
-@set "RANDOM=" &:: remove any cloak from dynamic variable RANDOM
-@if NOT EXIST "%TEMP%" @set "TEMP=%TMP%"
-@if NOT EXIST "%TEMP%" @set "TEMP=."
-@:prep
-@set "SHIM_TID=%RANDOM%.%RANDOM%.%RANDOM%"
-@set "SHIM_EXEC=%TEMP%\\<%=shimBinName%>.shim.exec.%SHIM_TID%.cmd"
-@if EXIST "%SHIM_EXEC%" @goto :prep
-@if DEFINED SHIM_EXEC echo @rem \`<%=shimBinName%>\` shell exec > "%SHIM_EXEC%"`;
+const cmdShimPrepNoPipe = `@:pipeDisabled`;
 
 export function cmdShimTemplate(enablePipe: boolean) {
 	return cmdShimBase.replace('@:...prep...', enablePipe ? cmdShimPrepPipe : cmdShimPrepNoPipe);
