@@ -8,9 +8,6 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive de-cloaking to avoid any prior pinned value)
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL is used to report final ERRORLEVEL (and ultimately reset to null); * side-effect of proper return of script to process error level
 @setLocal
-@REM * @set "DENO_NO_PROMPT=1" &@:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice (use \`--no-prompt\` instead)
-@set "DENO_NO_UPDATE_CHECK=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
-@set "DENO_NO_DEPRECATION_WARNINGS=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
 @rem
 @rem:: escape closing parentheses to prevent parsing issues in the final parse group
 @rem:: - ref: [SO ~ Escaping parentheses...](https://stackoverflow.com/questions/12976351/escaping-parentheses-within-parentheses-for-batch-file) @@ https://archive.is/biqAW
@@ -31,8 +28,14 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
 @call set SHIM_ARGS=%%SHIM_ARGS:~1%%
 @set "SHIM_TARGET=<%=denoRunTarget%>"
+@REM * @set "DENO_NO_PROMPT=1" &@:: suppress default (ugly UI/UX) prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice (use \`--no-prompt\` instead)
+@set "DENO_NO_UPDATE_CHECK=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
+@set "DENO_NO_DEPRECATION_WARNINGS=1" &@:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
 @call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
+@REM * @set "DENO_NO_PROMPT=%DENO_NO_PROMPT%" &@:: reset to prior value
+@set "DENO_NO_UPDATE_CHECK=%DENO_NO_UPDATE_CHECK%" &@:: reset to prior value
+@set "DENO_NO_DEPRECATION_WARNINGS=%DENO_NO_DEPRECATION_WARNINGS%" &@:: reset to prior value
 @if EXIST "%SHIM_PIPE%" call "%SHIM_PIPE%" >NUL 2>NUL
 @if EXIST "%SHIM_PIPE%" if NOT DEFINED SHIM_DEBUG del /q "%SHIM_PIPE%" 2>NUL
 @set "SHIM_PIPE="
