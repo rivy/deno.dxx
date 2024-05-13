@@ -26,7 +26,7 @@ const cmdShimBase = `% \`<%=shimBinName%>\` (*enhanced* Deno CMD shim; by <%=app
 @for %%G in ("%COMSPEC%") do @title %%~nG
 @set "SHIM_PIPE=%SHIM_PIPE%"
 @set "SHIM_ARG0=%~0"
-@set SHIM_ARGS_PREFIX=<%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>
+@REM * set SHIM_ARGS_PREFIX=<%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>&:: ## *DISABLED* as not needed; incorporated directly into \`deno run ...\` command
 @rem:: reverse parentheses escaping and remove added leading '.'
 @set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
 @call set SHIM_ARGS=%%SHIM_ARGS:~1%%
