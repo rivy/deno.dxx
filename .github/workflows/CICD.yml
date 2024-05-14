@@ -56,7 +56,7 @@ jobs:
       - name: Install `dprint`
         shell: bash
         run: |
-          dprint_version=0.30.3
+          dprint_version=0.45.1
           curl -fsSL https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
           echo '/home/runner/.dprint/bin' >> $GITHUB_PATH
           # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
