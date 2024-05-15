@@ -358,6 +358,32 @@ export const haveDPrint = () => {
 	}
 };
 
+//
+
+export const haveExpectVersion = () => {
+	try {
+		const process = Deprecated.Deno.run({
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'expect', '-v'],
+			stdin: 'null',
+			stderr: 'piped',
+			stdout: 'piped',
+		});
+		return Promise
+			.all([process.status(), process.output(), process.stderrOutput()])
+			.then(([status, out, _err]) => {
+				// console.debug({ status: status, out: decode(out), err: decode(_err) });
+				return (status.success ? ((decode(out)?.match(/\d+([.]\d+)+$/ms) || [])[0]) : undefined);
+			})
+			.finally(() => process.close());
+	} catch (_) {
+		return Promise.resolve(undefined);
+	}
+};
+
+export const haveExpect = () => {
+	return haveExpectVersion().then((version) => version != null);
+};
+
 // [`git`](https://git-scm.com); install: (POSIX) `apt install git`, (WinOS) `scoop install git`
 
 export const haveGit = () => {

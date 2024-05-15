@@ -6,9 +6,10 @@
 
 import { Deprecated } from '../src/lib/$deprecated.ts';
 
-import { $args, $colors, $path, assert } from './$deps.ts';
+import { $args, $colors, $path, assert, assertEquals } from './$deps.ts';
 import {
 	decode,
+	haveExpectVersion,
 	haveMadgeVersion,
 	isWinOS,
 	panicIfMissingPermits,
@@ -41,6 +42,9 @@ const projectCodeFilesByKind: Record<string, string[]> = {
 	examples: expand(['eg', 'egs', 'examples'].map((s) => $path.join(projectPath, s, '*.ts')), {
 		nullglob: true,
 	}),
+	libs: expand(['source', 'src'].map((s) => $path.join(projectPath, s, 'lib/**/*.ts')), {
+		nullglob: true,
+	}),
 	source: expand(['source', 'src'].map((s) => $path.join(projectPath, s, '**/*.ts')), {
 		nullglob: true,
 	}),
@@ -53,7 +57,8 @@ const projectCodeFilesByKind: Record<string, string[]> = {
 	),
 };
 const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
-	projectCodeFilesByKind[arr].flat()
+	// 'libs' are all duplicates of 'source' files
+	arr != 'libs' ? projectCodeFilesByKind[arr].flat() : []
 );
 
 test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.length} found)`, async () => {
@@ -192,3 +197,66 @@ test(`syntax ~ tools compile correctly (${projectCodeFilesByKind.tools.length} f
 	}
 	assert(status.success);
 });
+
+// ref: [HowTO test that a module is *no-panic* and *no-prompt* when statically imported?](https://github.com/denoland/deno/discussions/15356)
+
+test(`syntax ~ all libs are *no-panic* (${projectCodeFilesByKind.libs.length} found)`, async () => {
+	const files = projectCodeFilesByKind.libs.flatMap((e) => traversal(e) || []);
+	console.log({ files });
+
+	const flawedFilesPromises = files.map(async (file) => {
+		const cmd = ['deno', 'run', '--no-prompt', '--', file];
+		// console.debug({ cmd });
+		const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+		const [status, out, err] = await Promise
+			.all([p.status(), p.output(), p.stderrOutput()])
+			.finally(() => p.close());
+		return !status.success
+			? { file, cmd: cmd.join(' '), status, out: decode(out), err: decode(err) }
+			: undefined;
+	});
+	const flawedFiles = (await Promise.all(flawedFilesPromises)).filter(Boolean);
+	if (flawedFiles.length > 0) {
+		console.warn('The following files *panic* when run via `deno run --no-prompt FILE`:');
+		console.warn(flawedFiles);
+	}
+	assertEquals({ flawedFiles: 0 }, { flawedFiles: flawedFiles.length });
+});
+
+{
+	const description =
+		`syntax ~ all libs are *no-prompt* (${projectCodeFilesByKind.libs.length} found)`;
+	const expectVersion = await haveExpectVersion();
+	if (expectVersion == null) {
+		test.skip(description + '...skipped (`expect` not found)');
+	} else {
+		test(description, async () => {
+			const files = projectCodeFilesByKind.libs.flatMap((e) => traversal(e) || []);
+			console.log({ files });
+
+			const flawedFilesPromises = files.map(async (file) => {
+				// spell-checker:ignore noecho
+				const cmd = [
+					'expect',
+					'-c',
+					`spawn -noecho deno run -- "${
+						file.replace('$', '\\$')
+					}" 2>&1 ; expect -regexp ".+" { exit 1 } ;`,
+				];
+				const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+				const [status, out, err] = await Promise
+					.all([p.status(), p.output(), p.stderrOutput()])
+					.finally(() => p.close());
+				return !status.success
+					? { file, cmd: cmd.join(' '), status, out: decode(out), err: decode(err) }
+					: undefined;
+			});
+			const flawedFiles = (await Promise.all(flawedFilesPromises)).filter(Boolean);
+			if (flawedFiles.length > 0) {
+				console.warn('The following files *prompt* when run via `deno run FILE`:');
+				console.warn(flawedFiles);
+			}
+			assertEquals({ flawedFiles: 0 }, { flawedFiles: flawedFiles.length });
+		});
+	}
+}
