@@ -559,7 +559,7 @@ if (status.success && isWinOS) {
 	const shimBinName = $path.parse(shimBinPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget, denoRunTargetArgs } = info;
-	const addQuietOption = quietShim && !denoRunOptions.match(/(^|\s|'|")--quiet("|'|\s|$)/);
+	const addQuietOption = quietShim && !denoRunOptions?.match(/(^|\s|'|")--quiet("|'|\s|$)/);
 	await log.trace({
 		info,
 		denoRunOptions,
@@ -571,11 +571,11 @@ if (status.success && isWinOS) {
 	const appNameVersion = '`' + $me.name + '` ' + appVersion;
 	const contentsUpdated = eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
-			denoRunOptions: denoRunOptions.concat(addQuietOption ? ' "--quiet"' : '').trim(),
+			denoRunOptions: denoRunOptions?.concat(addQuietOption ? ' "--quiet"' : '').trim(),
 			denoRunTarget,
 			// remove leading '--' (only the first, quoted or not) from target args for compatibility with `deno install` functionality
 			denoRunTargetArgs: (denoRunTargetArgs
-				.replace(/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/, '$1')),
+				?.replace(/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/, '$1')),
 			shimBinName,
 			appNameVersion,
 		}),
