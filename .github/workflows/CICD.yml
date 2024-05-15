@@ -60,10 +60,21 @@ jobs:
           curl -fsSL https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
           echo '/home/runner/.dprint/bin' >> $GITHUB_PATH
           # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
-      - name: '[Style tests]'
+      - name: Info
         shell: bash
         run: |
-          true
+          ## Info
+          # environment
+          echo "## environment"
+          # ref: <https://www.baeldung.com/linux/find-current-shell> @@ <https://archive.is/poU3Z>
+          echo "SHELL='$(readlink /proc/$$/exe)'"
+          echo "BASH_VERSION='${BASH_VERSION}'"
+          echo "BASHOPTS='${BASHOPTS}'"
+          echo "CI='${CI}'"
+          # tooling info display
+          echo "## tooling"
+          deno --version
+          npm --version
       - name: 'Dependency testing (`deno cache`)'
         if: success() || failure() # run regardless of prior step success/failure
         shell: bash
@@ -106,6 +117,10 @@ jobs:
           ## maint: [2021-11-10; rivy] the `--no-progress` option for `cspell` is a `cspell` v5+ option
           # S=$(cspell ${CSPELL_CFG_OPTION} --no-summary --no-progress "**/*") && printf "%s\n" "$S" || { printf "%s\n" "$S" ; printf "%s" "$S" | sed -E -n "s/${PWD//\//\\/}\/(.*):(.*):(.*) - (.*)/::error file=\1,line=\2,col=\3::ERROR: \4 (file:'\1', line:\2)/p" ; exit 1 ; }
           S=$(cspell ${CSPELL_CFG_OPTION} --no-summary "**/*") && printf "%s\n" "$S" || { printf "%s\n" "$S" ; printf "%s" "$S" | sed -E -n "s/${PWD//\//\\/}\/(.*):(.*):(.*) - (.*)/::error file=\1,line=\2,col=\3::ERROR: \4 (file:'\1', line:\2)/p" ; exit 1 ; }
+      - name: '[Style tests]'
+        shell: bash
+        run: |
+          deno test --allow-all tests/00.project.style.test.ts
 
   build:
     name: Build
