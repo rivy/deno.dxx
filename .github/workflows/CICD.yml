@@ -48,18 +48,27 @@ jobs:
         shell: bash
         run: |
           ## Install/setup prerequisites
+          sudo apt-get -y update
+          sudo apt-get -y install npm
           # * pin installed cspell to v4.2.8 (cspell v5+ is broken for NodeJS < v12)
           ## maint: [2021-11-10; rivy] `cspell` version may be advanced to v5 when used with NodeJS >= v12
-          sudo apt-get -y update ; sudo apt-get -y install npm ; sudo npm install cspell@4.2.8 -g ;
+          sudo npm install cspell@4.2.8 -g
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
-      - name: Install `dprint`
+      - name: Install additional CLI utilities
         shell: bash
         run: |
+          # * bmp
+          deno install --allow-read=. --allow-write=. --allow-run=git -f https://deno.land/x/bmp@v0.0.7/cli.ts
+          # * commitlint
+          npm install --global @commitlint/cli@17 @commitlint/config-conventional@17
+          # * dprint
+          # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
           dprint_version=0.47.2
           curl -fsSL https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
           echo '/home/runner/.dprint/bin' >> $GITHUB_PATH
-          # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
+          # * madge
+          npm install --global madge@6
       - name: Info
         shell: bash
         run: |
@@ -74,7 +83,11 @@ jobs:
           # tooling info display
           echo "## tooling"
           deno --version
-          npm --version
+          echo node $(node --version)
+          echo npm $(npm --version)
+          echo cspell $(cspell --version)
+          dprint --version
+          echo madge $(madge --version)
       - name: 'Dependency testing (`deno cache`)'
         if: success() || failure() # run regardless of prior step success/failure
         shell: bash
