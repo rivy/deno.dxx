@@ -2,6 +2,8 @@
 
 import * as M from '../../src/lib/shim.windows.ts';
 
+import { $path } from '../$deps.ts';
+
 const args = Deno.args;
 
 if (args.length === 0) {
@@ -12,18 +14,52 @@ if (args.length === 0) {
 	args.push('-');
 }
 
+const isWinOS = Deno.build.os === 'windows';
+
 const decoder = new TextDecoder('utf-8');
+
+type TypedArray = ArrayLike<number | bigint> & {
+	set(t: ArrayLike<number | bigint>, offset?: number): void;
+};
+type TypedArrayConstructor = {
+	new (length: number): TypedArray;
+	// new (typedArray: TypedArray): TypedArray;
+	// new (object: Iterable<number>): TypedArray;
+	// new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+};
+function concatTypedArrays<T extends TypedArray>(a: T, b: T): T {
+	const constructor = a.constructor as TypedArrayConstructor;
+	const result = new constructor(a.length + b.length) as typeof a;
+	result.set(a);
+	result.set(b, a.length);
+	return result;
+}
+
+async function readAllIfShebangFile(stream: Deno.Reader): Promise<Uint8Array | undefined> {
+	const headerBuf = new Uint8Array(2);
+	const bytesRead = await stream.read(headerBuf);
+	if (bytesRead === null) return undefined;
+	if (!(headerBuf[0] === 0x23 && headerBuf[1] === 0x21)) {
+		/* headerBuf !== '#!' */
+		return undefined;
+	}
+	return concatTypedArrays(headerBuf, await Deno.readAll(stream));
+}
 
 for (let i = 0; i < Deno.args.length; i++) {
 	const filename = Deno.args[i];
-	const file = await (async () => {
+	if (isWinOS && !['.bat', '.cmd'].includes($path.extname(filename))) continue;
+	const stream = await (async () => {
 		if (filename === '-') {
 			return Deno.stdin;
-		} else return await Deno.open(filename);
+		} else return await Deno.open(filename, { read: true });
 	})();
-	const data = decoder.decode(await Deno.readAll(file));
-	Deno.close(file.rid);
+	const data = decoder.decode(
+		isWinOS ? await Deno.readAll(stream) : await readAllIfShebangFile(stream),
+	);
+	Deno.close(stream.rid);
 
+	// const result = (data != '') ? M.shimInfo(data) : undefined;
 	const result = M.shimInfo(data);
 
 	console.log({ filename, result });
