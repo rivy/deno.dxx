@@ -79,14 +79,13 @@ export function shimInfo(contentsOriginal: string) {
 		contentsOriginal.match(/\(\s*goto\s*\)\s+2\s*>\s*NUL/i) ||
 		contentsOriginal.match(/shim\s*;\s*by\s*`?dxi`?/i);
 
-	const reMatchArray =
-		contentsOriginal.match(
-			// match `deno run` options, run-target (as a URL-like quoted string), and run-target arguments from shim text
-			// * run-target is matched as the first double-quoted URL-like (like "<scheme>:...") argument
-			// eg, `deno install ...` => `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
-			// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%SHIM_ARGS%%`
-			/^(.*?)?(\x22?deno(?:[.]exe)?\x22?)\s+\x22?run\x22?\s+(.*\s+)?([\x22](?:[a-z][a-z0-9+.-]+:[^\x22]+)[\x22]|[\x27](?:[a-z][a-z0-9+.-]+:[^\x27]+)[\x27])\s+(?:(.*?)\s*(?:\x22[$]@\x22|%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
-		) || [];
+	const reMatchArray = contentsOriginal.match(
+		// match `deno run` options, run-target (as a URL-like quoted string), and run-target arguments from shim text
+		// * run-target is matched as the first double-quoted URL-like (like "<scheme>:...") argument
+		// eg, `deno install ...` => `@deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %*`
+		// eg, `dxi ...` => `... @deno run "--allow-..." ... "https://deno.land/x/denon/denon.ts" %%SHIM_ARGS%%`
+		/^(.*?)?(\x22?deno(?:[.]exe)?\x22?)\s+\x22?run\x22?\s+(.*\s+)?([\x22](?:[a-z][a-z0-9+.-]+:[^\x22]+)[\x22]|[\x27](?:[a-z][a-z0-9+.-]+:[^\x27]+)[\x27])\s+(?:(.*?)\s*(?:\x22[$]@\x22|%[*]|%%(?:DENO_)?SHIM_ARGS%%))\s*$/m,
+	);
 	const [
 		_match,
 		denoCommandPrefix,
@@ -94,42 +93,44 @@ export function shimInfo(contentsOriginal: string) {
 		denoRunOptionsRaw,
 		denoRunTargetQuoted,
 		denoRunTargetArgs,
-	] = reMatchArray;
+	] = reMatchArray ?? ([] as (string | undefined)[]);
 
 	// import * as Semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 
-	let denoRunOptions = denoRunOptionsRaw || '';
-	const denoRunTarget = denoRunTargetQuoted.replace(/^[\x22\x27](.*?)[\x22\x27]$/, '$1');
+	const denoRunTarget = denoRunTargetQuoted?.replace(/^[\x22\x27](.*?)[\x22\x27]$/, '$1');
 
-	denoRunOptions = denoRunOptions
-		.replace(/(?<=^|\s+)[\x22\x27]?--[\x22\x27]?(?=\s+|$)/gm, '') // remove any "--" (quoted or not); avoids collision with "--" added by template
-		.toString();
+	let denoRunOptions = denoRunOptionsRaw;
+	if (denoRunOptions != null && denoRunOptions.length > 0) {
+		denoRunOptions = denoRunOptions
+			.replace(/(?<=^|\s+)[\x22\x27]?--[\x22\x27]?(?=\s+|$)/gm, '') // remove any "--" (quoted or not); avoids collision with "--" added by template
+			.toString();
 
-	// change purposeful use of unstable flags to `--allow-all`
-	// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
-	// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
-	denoRunOptions = denoRunOptions
-		.replace(/(?<=^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno <= v1.12
-		.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno >= v1.13
-		.toString();
+		// change purposeful use of unstable flags to `--allow-all`
+		// * repairs breaking change from deno v1.12 to v1.13; ref: https://github.com/denoland/deno/issues/11819
+		// const usingUnstable = denoRunOptions.match(/(^|\s+)[\x22\x27]?--unstable\b/ms);
+		denoRunOptions = denoRunOptions
+			?.replace(/(?<=^|\s+)[\x22\x27]?--allow-plugin[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno <= v1.12
+			.replace(/(?<=^|\s+)[\x22\x27]?--allow-ffi[\x22\x27]?(?=\s+|$)/gm, '"--allow-all"') // deno >= v1.13
+			.toString();
 
-	// summarize flags/options for `--allow-all` or (unrestricted) `--allow-run`
-	if (denoRunOptions.match(/(?<=^|\s)[\x22\x27]?--allow-(all|run)(?:[\x22\x27]|\s|$)/m)) {
-		denoRunOptions = [
-			'"--allow-all"',
-			denoRunOptions.replace(
-				/(?<=^|\s)[\x22\x27]?--allow-\S+(?:=.*?[\x22\x27]|[\x22\x27]|\s|$)/g,
-				'',
-			),
-		]
-			.filter(Boolean)
-			.join(' ');
+		// summarize flags/options for `--allow-all` or (unrestricted) `--allow-run`
+		if (denoRunOptions.match(/(?<=^|\s)[\x22\x27]?--allow-(all|run)(?:[\x22\x27]|\s|$)/m)) {
+			denoRunOptions = [
+				'"--allow-all"',
+				denoRunOptions.replace(
+					/(?<=^|\s)[\x22\x27]?--allow-\S+(?:=.*?[\x22\x27]|[\x22\x27]|\s|$)/g,
+					'',
+				),
+			]
+				.filter(Boolean)
+				.join(' ');
+		}
+
+		denoRunOptions = denoRunOptions
+			.replace(/^\s+/m, '') // remove leading whitespace
+			.replace(/\s+$/m, '') // remove trailing whitespace
+			.toString();
 	}
-
-	denoRunOptions = denoRunOptions
-		.replace(/^\s+/m, '') // remove leading whitespace
-		.replace(/\s+$/m, '') // remove trailing whitespace
-		.toString();
 
 	return {
 		isEnhanced,
