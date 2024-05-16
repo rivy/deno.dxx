@@ -24,7 +24,8 @@ env:
   #.or.# CDN_PREFIX: 'https://cdn.statically.io/gh'
   #.or.# CDN_PREFIX: 'https://rawcdn.githack.com'
   #
-  TERM_FALLBACK: 'screen-w' ## 132x24 (columns x lines)
+  TERM_FALLBACK: 'dumb' ## 80x24 (columns x lines)
+  # TERM_FALLBACK: 'screen-w' ## 132x24 (columns x lines)
 
 # # need a TTY device for consoleSize testing
 # # ref: https://github.com/actions/runner/issues/241 , https://github.com/gfx/example-github-actions-with-tty
@@ -95,11 +96,11 @@ jobs:
           # terminal info
           echo "## terminal"
           export TERM="${TERM:-${TERM_FALLBACK}}"
-          echo "columns='$((tput cols 2>&1) | tr '\n' ' ')'"
-          echo "lines='$((tput lines 2>&1) | tr '\n' ' ')'"
-          echo "tput cols lines (via expect) = '$((expect -c 'spawn -noecho tput cols lines ; expect eof;' 2>&1) | tr '\n' ' ')'"
-          echo "stty size = '$((stty size 2>&1) | tr '\n' ' ')'"
-          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | tr '\n' ' ')'"
+          echo "columns='$((tput cols 2>&1) | xargs)'"
+          echo "lines='$((tput lines 2>&1) | xargs)'"
+          echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
+          echo "stty size = '$((stty size 2>&1) | xargs)'"
+          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | xargs)'"
           # tooling info display
           echo "## tooling"
           deno --version
@@ -230,9 +231,10 @@ jobs:
         shell: bash
         run: |
           ## Install/setup prerequisites
+          # * install `expect`
           case '${{ matrix.job.os }}' in
             macos-*) brew install expect ;;
-            *) sudo apt-get -y update ; sudo apt-get -y install expect ;;
+            ubuntu-*) sudo apt-get -y update ; sudo apt-get -y install expect ;;
           esac
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
@@ -251,11 +253,11 @@ jobs:
           # terminal info
           echo "## terminal"
           export TERM="${TERM:-${TERM_FALLBACK}}"
-          echo "columns='$((tput cols 2>&1) | tr '\n' ' ')'"
-          echo "lines='$((tput lines 2>&1) | tr '\n' ' ')'"
-          echo "tput cols lines (via expect) = '$((expect -c 'spawn -noecho tput cols lines ; expect eof;' 2>&1) | tr '\n' ' ')'"
-          echo "stty size = '$((stty size 2>&1) | tr '\n' ' ')'"
-          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | tr '\n' ' ')'"
+          echo "columns='$((tput cols 2>&1) | xargs)'"
+          echo "lines='$((tput lines 2>&1) | xargs)'"
+          echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
+          echo "stty size = '$((stty size 2>&1) | xargs)'"
+          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | xargs)'"
           echo "## tooling"
           deno --version
           # dependencies
@@ -276,14 +278,22 @@ jobs:
             macos-*) (
               export TERM=${TERM:-${TERM_FALLBACK}}
               script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts
-              ) ;;
-            *) (
+              expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+              )
+              ;;
+            ubuntu-*) (
               export TERM=${TERM:-${TERM_FALLBACK}}
               script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
-              ) ;;
+              expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+              )
+              ;;
+            windows-*) (
+              export TERM=${TERM:-${TERM_FALLBACK}}
+              script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
+              # expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+              )
+              ;;
           esac
-          expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
-          # faketty deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ;;
           # * generate LCOV coverage data file
           deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
           cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
