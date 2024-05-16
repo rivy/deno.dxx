@@ -23,6 +23,8 @@ env:
   CDN_PREFIX: 'https://cdn.jsdelivr.net/gh'
   #.or.# CDN_PREFIX: 'https://cdn.statically.io/gh'
   #.or.# CDN_PREFIX: 'https://rawcdn.githack.com'
+  #
+  TERM_FALLBACK: 'xterm'
 
 on: [push, pull_request]
 
@@ -82,6 +84,7 @@ jobs:
           echo "CI='${CI}'"
           # terminal info
           echo "## terminal"
+          if [ -n "${TERM}" ]; then echo "TERM='${TERM}'" ; else export TERM="${TERM_FALLBACK}" ; fi
           echo columns $(tput cols)
           echo lines $(tput lines)
           # tooling info display
