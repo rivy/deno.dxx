@@ -23,8 +23,6 @@ env:
   CDN_PREFIX: 'https://cdn.jsdelivr.net/gh'
   #.or.# CDN_PREFIX: 'https://cdn.statically.io/gh'
   #.or.# CDN_PREFIX: 'https://rawcdn.githack.com'
-  #
-  TERM: 'xterm'
 
 on: [push, pull_request]
 
