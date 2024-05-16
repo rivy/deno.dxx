@@ -247,6 +247,10 @@ jobs:
           ## `deno test` (with coverage)
           # * note: `deno test` with coverage data generation
           deno test --allow-all --coverage=.coverage
+          case '${{ matrix.job.os }}' in
+            macos-*) script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ;;
+            *) script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts" ;;
+          esac
           # * generate LCOV coverage data file
           deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
           cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
@@ -263,7 +267,7 @@ jobs:
           case '${{ matrix.job.os }}' in
             macos-*) CODECOV_OSID='macos' ;;
             windows-*) CODECOV_OSID='windows' ;;
-          esac;
+          esac
           curl --fail --location --silent --show-error "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" --output ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
           chmod +x ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
           #ls -Al
