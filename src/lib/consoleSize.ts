@@ -322,16 +322,22 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ```
 	const promise = output
 		.then((text) =>
-			text
-				?.split(/\r?\n/)
-				.filter((s) => s.length > 0)
-				.slice(2, 4)
-				.map((s) => s.match(/(\d+)\s*$/)?.[1])
-				.filter((s) => s && (s.length > 0)) ?? []
+			text?.split(/\r?\n/).filter((s) => s.length > 0).slice(2, 4).map((s) =>
+				s.match(/(\d+)\s*$/)?.[1]
+			)
 		)
-		.then((values) =>
-			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined
-		);
+		.then((values) => {
+			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -376,12 +382,19 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 		}
 	})();
 
-	const promise = output.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? []).then((
-		values,
-	) =>
-		values.length > 0
-			? { columns: Number(values.shift()), rows: Number(values.shift()) }
-			: undefined
+	const promise = output.then((text) => text?.split(/\s+/).filter((s) => s.length > 0)).then(
+		(values) => {
+			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		},
 	);
 	return promise;
 }
@@ -430,11 +443,18 @@ export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
 		```
 		*/
 		.then((text) => text?.split(/\r|\r?\n/)?.slice(0, 2)?.map((s) => s.match(/\d+/)?.[0]))
-		.then((values) =>
-			(values && values.length === 2 && values.every((s) => s && (s.length > 0)))
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined
-		);
+		.then((values) => {
+			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -484,12 +504,19 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 		43 123
 		```
 		*/
-		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0).reverse() ?? [])
-		.then((values) =>
-			values.length === 2
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined
-		);
+		.then((text) => text?.split(/\s+/).reverse())
+		.then((values) => {
+			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -584,12 +611,18 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 		// 	console.warn({ devTtyPath, devIsTTY: Deno.isatty(devTTY.rid), colsText, linesText });
 		// 	return [colsText ?? '', linesText ?? ''];
 		// })
-		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
-		.then(([cols, lines]) =>
-			(cols.length > 0 && lines.length > 0)
-				? { columns: Number(cols), rows: Number(lines) }
-				: undefined
-		);
+		// .then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
+		.then(([cols, lines]) => {
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -638,12 +671,19 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 		43 123
 		```
 		*/
-		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0).reverse() ?? [])
-		.then((values) =>
-			values.length === 2
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined
-		);
+		.then((text) => text?.split(/\s+/).reverse())
+		.then((values) => {
+			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -734,12 +774,18 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 		// 	console.warn({ colsText, linesText });
 		// 	return [colsText ?? '', linesText ?? ''];
 		// })
-		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
-		.then(([cols, lines]) =>
-			(cols.length > 0 && lines.length > 0)
-				? { columns: Number(cols), rows: Number(lines) }
-				: undefined
-		);
+		// .then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
+		.then(([cols, lines]) => {
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -825,12 +871,18 @@ export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
 		// 	console.warn({ colsText, linesText });
 		// 	return [colsText ?? '', linesText ?? ''];
 		// })
-		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
-		.then(([cols, lines]) =>
-			(cols.length > 0 && lines.length > 0)
-				? { columns: Number(cols), rows: Number(lines) }
-				: undefined
-		);
+		// .then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
+		.then(([cols, lines]) => {
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
