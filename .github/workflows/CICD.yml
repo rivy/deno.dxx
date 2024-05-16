@@ -28,7 +28,7 @@ env:
 
 # # need a TTY device for consoleSize testing
 # # ref: https://github.com/actions/runner/issues/241 , https://github.com/gfx/example-github-actions-with-tty
-# # ref: https://github.com/Yuri6037/Action-FakeTTY(eg, https://github.com/BlockProject3D/Framework/blob/master/.github/workflows/build-debug.yml)
+# # ref: https://github.com/Yuri6037/Action-FakeTTY (eg, https://github.com/BlockProject3D/Framework/blob/master/.github/workflows/build-debug.yml)
 # # ref: (background) https://www.reddit.com/r/commandline/comments/3yb1g7/standard_terminal_size/
 # defaults:
 #   run:
@@ -221,6 +221,7 @@ jobs:
       #     # * pin installed cspell to v4.2.8 (cspell v5+ is broken for NodeJS < v12)
       #     ## maint: [2021-11-10; rivy] `cspell` version may be advanced to v5 when used with NodeJS >= v12
       #     sudo npm install cspell@4.2.8 -g
+      - uses: Yuri6037/Action-FakeTTY@v1
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
       - name: Info
@@ -256,10 +257,11 @@ jobs:
           ## `deno test` (with coverage)
           # * note: `deno test` with coverage data generation
           deno test --allow-all --coverage=.coverage
-          case '${{ matrix.job.os }}' in
-            macos-*) ( COLUMNS=80 LINES=24 TERM=dumb script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ) ;;
-            *) ( COLUMNS=80 LINES=24 TERM=dumb script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts" ) ;;
-          esac
+          # case '${{ matrix.job.os }}' in
+          #   macos-*) ( COLUMNS=80 LINES=24 TERM=dumb script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ) ;;
+          #   *) ( COLUMNS=80 LINES=24 TERM=dumb script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts" ) ;;
+          # esac
+          faketty deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ;;
           # * generate LCOV coverage data file
           deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
           cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
