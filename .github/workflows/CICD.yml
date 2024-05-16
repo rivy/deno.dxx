@@ -26,6 +26,16 @@ env:
   #
   TERM_FALLBACK: 'xterm'
 
+# # need a TTY device for consoleSize testing
+# # ref: https://github.com/actions/runner/issues/241 , https://github.com/gfx/example-github-actions-with-tty
+# # ref: https://github.com/Yuri6037/Action-FakeTTY(eg, https://github.com/BlockProject3D/Framework/blob/master/.github/workflows/build-debug.yml)
+# # ref: (background) https://www.reddit.com/r/commandline/comments/3yb1g7/standard_terminal_size/
+# defaults:
+#   run:
+#     # GitHub Actions run without a TTY device. This is a workaround to get one,
+#     # based on https://github.com/actions/runner/issues/241#issuecomment-2019042651
+#     shell: 'script --return --quiet --log-out /dev/null --command "bash -e {0}"'
+
 on: [push, pull_request]
 
 jobs:
