@@ -24,7 +24,7 @@ env:
   #.or.# CDN_PREFIX: 'https://cdn.statically.io/gh'
   #.or.# CDN_PREFIX: 'https://rawcdn.githack.com'
   #
-  TERM_FALLBACK: 'xterm'
+  TERM_FALLBACK: 'screen-w' ## 132x24 (columns x lines)
 
 # # need a TTY device for consoleSize testing
 # # ref: https://github.com/actions/runner/issues/241 , https://github.com/gfx/example-github-actions-with-tty
@@ -94,8 +94,12 @@ jobs:
           echo "CI='${CI}'"
           # terminal info
           echo "## terminal"
-          echo columns $(tput cols)
-          echo lines $(tput lines)
+          export TERM="${TERM:-${TERM_FALLBACK}}"
+          echo "columns='$((tput cols 2>&1) | tr '\n' ' ')'"
+          echo "lines='$((tput lines 2>&1) | tr '\n' ' ')'"
+          echo "tput cols lines (via expect) = '$((expect -c 'spawn -noecho tput cols lines ; expect eof;' 2>&1) | tr '\n' ' ')'"
+          echo "stty size = '$((stty size 2>&1) | tr '\n' ' ')'"
+          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | tr '\n' ' ')'"
           # tooling info display
           echo "## tooling"
           deno --version
@@ -221,7 +225,15 @@ jobs:
       #     # * pin installed cspell to v4.2.8 (cspell v5+ is broken for NodeJS < v12)
       #     ## maint: [2021-11-10; rivy] `cspell` version may be advanced to v5 when used with NodeJS >= v12
       #     sudo npm install cspell@4.2.8 -g
-      - uses: Yuri6037/Action-FakeTTY@v1
+      # - uses: Yuri6037/Action-FakeTTY@v1 ## too old, dies while using fully-deprecated GHA commands
+      - name: Install/setup prerequisites
+        shell: bash
+        run: |
+          ## Install/setup prerequisites
+          case '${{ matrix.job.os }}' in
+            macos-*) brew install expect ;;
+            *) sudo apt-get -y update ; sudo apt-get -y install expect ;;
+          esac
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
       - name: Info
@@ -238,9 +250,12 @@ jobs:
           # tooling info display
           # terminal info
           echo "## terminal"
-          echo columns $(tput cols)
-          echo lines $(tput lines)
-          echo stty sane size = $(stty sane size)
+          export TERM="${TERM:-${TERM_FALLBACK}}"
+          echo "columns='$((tput cols 2>&1) | tr '\n' ' ')'"
+          echo "lines='$((tput lines 2>&1) | tr '\n' ' ')'"
+          echo "tput cols lines (via expect) = '$((expect -c 'spawn -noecho tput cols lines ; expect eof;' 2>&1) | tr '\n' ' ')'"
+          echo "stty size = '$((stty size 2>&1) | tr '\n' ' ')'"
+          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | tr '\n' ' ')'"
           echo "## tooling"
           deno --version
           # dependencies
@@ -257,11 +272,18 @@ jobs:
           ## `deno test` (with coverage)
           # * note: `deno test` with coverage data generation
           deno test --allow-all --coverage=.coverage
-          # case '${{ matrix.job.os }}' in
-          #   macos-*) ( COLUMNS=80 LINES=24 TERM=dumb script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ) ;;
-          #   *) ( COLUMNS=80 LINES=24 TERM=dumb script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts" ) ;;
-          # esac
-          faketty deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ;;
+          case '${{ matrix.job.os }}' in
+            macos-*) (
+              export TERM=${TERM:-${TERM_FALLBACK}}
+              script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts
+              ) ;;
+            *) (
+              export TERM=${TERM:-${TERM_FALLBACK}}
+              script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
+              ) ;;
+          esac
+          expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+          # faketty deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ;;
           # * generate LCOV coverage data file
           deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
           cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
