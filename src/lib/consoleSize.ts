@@ -349,28 +349,6 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// MacOS: requires STDOUT to be a TTY o/w returns default 80x24
 	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
-	const _vt = (() => {
-		try {
-			const process = Deprecated.Deno.run({
-				cmd: [
-					'powershell',
-					'-nonInteractive',
-					'-noProfile',
-					'-executionPolicy',
-					'unrestricted',
-					'-command',
-					'$Host.UI.SupportsVirtualTerminal',
-				],
-				stdin: 'null',
-				stderr: 'null',
-				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
-		} catch (_) {
-			return Promise.resolve(undefined);
-		}
-	})();
-	console.trace({ '$Host.UI.SupportsVirtualTerminal': _vt });
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
@@ -422,10 +400,17 @@ export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
 			const process = Deprecated.Deno.run({
 				cmd: ['resize', '-u'],
 				stdin: 'null',
-				stderr: 'null',
+				stderr: 'piped',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return Promise
+				.all([process.status(), process.output(), process.stderrOutput()])
+				.then(([status, out, err]) => {
+					decode(out);
+					console.warn('ViaResize', { status, out: decode(out), err: decode(err) });
+					return decode(out);
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -472,15 +457,16 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 			const process = Deprecated.Deno.run({
 				cmd: ['stty', ...fileOption, 'size', 'sane'],
 				stdin: 'null',
-				stderr: 'null',
+				stderr: 'piped',
 				stdout: 'piped',
 			});
-			return (process.output())
-				// .then((out) => {
-				// 	console.warn({ output: decode(out) });
-				// 	return out;
-				// })
-				.then((out) => decode(out))
+			return Promise
+				.all([process.status(), process.output(), process.stderrOutput()])
+				.then(([status, out, err]) => {
+					decode(out);
+					console.warn('ViaSTTY', { status, out: decode(out), err: decode(err) });
+					return decode(out);
+				})
 				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
@@ -530,7 +516,14 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 				stderr: isMacOS ? devTTY.rid : 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return Promise
+				.all([process.status(), process.output()])
+				.then(([status, out]) => {
+					decode(out);
+					console.warn('ViaTPUT (cols)', { status, out: decode(out) });
+					return decode(out);
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -543,7 +536,14 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 				stderr: isMacOS ? devTTY.rid : 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return Promise
+				.all([process.status(), process.output()])
+				.then(([status, out]) => {
+					decode(out);
+					console.warn('ViaTPUT (lines)', { status, out: decode(out) });
+					return decode(out);
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -588,15 +588,16 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 			const process = Deprecated.Deno.run({
 				cmd: ['xargs', '-o', 'stty', 'size', 'sane'],
 				stdin: 'null',
-				stderr: 'null',
+				stderr: 'piped',
 				stdout: 'piped',
 			});
-			return (process.output())
-				// .then((out) => {
-				// 	console.warn({ output: decode(out) });
-				// 	return out;
-				// })
-				.then((out) => decode(out))
+			return Promise
+				.all([process.status(), process.output(), process.stderrOutput()])
+				.then(([status, out, err]) => {
+					decode(out);
+					console.warn('ViaXargsSTTY', { status, out: decode(out), err: decode(err) });
+					return decode(out);
+				})
 				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
@@ -644,7 +645,14 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 				stderr: 'piped',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return Promise
+				.all([process.status(), process.output(), process.stderrOutput()])
+				.then(([status, out, err]) => {
+					decode(out);
+					console.warn('ViaXargsTPUT (cols)', { status, out: decode(out), err: decode(err) });
+					return decode(out);
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -657,7 +665,14 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 				stderr: 'piped',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return Promise
+				.all([process.status(), process.output(), process.stderrOutput()])
+				.then(([status, out, err]) => {
+					decode(out);
+					console.warn('ViaXargsTPUT (lines)', { status, out: decode(out), err: decode(err) });
+					return decode(out);
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -701,12 +716,19 @@ export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
 	const colsOutput = (() => {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['/usr/bin/env', 'sh', '-c', 'printf "0" | xargs -o tput cols'],
+				cmd: ['/usr/bin/env', 'sh', '-c', 'printf "lines" | xargs -o tput cols'],
 				stdin: 'null',
 				stderr: 'piped',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return Promise
+				.all([process.status(), process.output(), process.stderrOutput()])
+				.then(([status, out, err]) => {
+					decode(out);
+					console.warn('ViaShXargsTPUT', { status, out: decode(out), err: decode(err) });
+					return decode(out);
+				})
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}

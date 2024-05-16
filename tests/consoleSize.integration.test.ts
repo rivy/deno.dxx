@@ -101,6 +101,29 @@ test('consoleSize ~ fully redirected, FFI permission', () => {
 });
 
 test('consoleSize ~ fully redirected, full permissions', () => {
+	const _vt = (() => {
+		try {
+			const process = new Deno.Command('powershell', {
+				args: [
+					'-nonInteractive',
+					'-noProfile',
+					'-executionPolicy',
+					'unrestricted',
+					'-command',
+					'$Host.UI.SupportsVirtualTerminal',
+				],
+				stdin: 'null',
+				stderr: 'piped',
+				stdout: 'piped',
+			});
+			const { code, stdout, stderr } = process.outputSync();
+			console.debug({ code, stdout, stderr });
+			return (code == 0) ? decode(stdout) : undefined;
+		} catch (_) {
+			return undefined;
+		}
+	})();
+	console.debug({ '$Host.UI.SupportsVirtualTerminal': _vt });
 	const cmd = 'deno';
 	const args = ['run', '--allow-all', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
