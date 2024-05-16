@@ -346,8 +346,6 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
  */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
-	// MacOS: requires STDOUT to be a TTY o/w returns default 80x24
-	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
