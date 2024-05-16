@@ -219,10 +219,10 @@ jobs:
           for file in "${files[@]}"; do
             deno info "${file}"
           done
-      - name: '`deno test`'
+      - name: '`deno test` (with coverage)'
         shell: bash
         run: |
-          ## `deno test`
+          ## `deno test` (with coverage)
           # * note: `deno test` with coverage data generation
           deno test --allow-all --coverage=.coverage
           # * generate LCOV coverage data file
