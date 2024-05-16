@@ -28,7 +28,7 @@ on: [push, pull_request]
 
 jobs:
   style:
-    name: Style
+    name: Style/Syntax
     runs-on: ${{ matrix.job.os }}
     strategy:
       fail-fast: false
@@ -49,7 +49,7 @@ jobs:
         run: |
           ## Install/setup prerequisites
           sudo apt-get -y update
-          sudo apt-get -y install npm
+          sudo apt-get -y install expect npm
           # * pin installed cspell to v4.2.8 (cspell v5+ is broken for NodeJS < v12)
           ## maint: [2021-11-10; rivy] `cspell` version may be advanced to v5 when used with NodeJS >= v12
           sudo npm install cspell@4.2.8 -g
@@ -87,6 +87,7 @@ jobs:
           echo npm $(npm --version)
           echo cspell $(cspell --version)
           dprint --version
+          expect -v
           echo madge $(madge --version)
       - name: 'Dependency testing (`deno cache`)'
         if: success() || failure() # run regardless of prior step success/failure
@@ -133,7 +134,7 @@ jobs:
       - name: '[Style tests]'
         shell: bash
         run: |
-          deno test --allow-all tests/00.project.style.test.ts
+          deno test --allow-all tests/00.project.style.test.ts tests/00.project.syntax.test.ts
 
   build:
     name: Build
