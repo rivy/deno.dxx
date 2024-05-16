@@ -65,7 +65,7 @@ jobs:
           # * dprint
           # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
           dprint_version=0.47.2
-          curl -fsSL https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
+          curl --fail --location --silent --show-error https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
           echo '/home/runner/.dprint/bin' >> $GITHUB_PATH
           # * madge
           npm install --global madge@6
@@ -242,7 +242,7 @@ jobs:
             macos-*) CODECOV_OSID='macos' ;;
             windows-*) CODECOV_OSID='windows' ;;
           esac;
-          curl --no-progress --location "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" --output ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
+          curl --fail --location --silent --show-error "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" --output ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
           chmod +x ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
           #ls -Al
           #ls -Al .coverage/bin/
