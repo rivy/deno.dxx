@@ -460,7 +460,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['stty', ...fileOption, 'size', 'sane'],
+				cmd: ['stty', ...fileOption, 'size' /* , 'sane' */],
 				stdin: 'null',
 				stderr: 'piped',
 				stdout: 'piped',
@@ -614,7 +614,7 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['xargs', '-o', 'stty', 'size', 'sane'],
+				cmd: ['xargs', '-o', 'stty', 'size' /* , 'sane' */],
 				stdin: 'null',
 				stderr: 'piped',
 				stdout: 'piped',
