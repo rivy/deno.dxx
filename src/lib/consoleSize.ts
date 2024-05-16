@@ -349,6 +349,28 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// MacOS: requires STDOUT to be a TTY o/w returns default 80x24
 	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const _vt = (() => {
+		try {
+			const process = Deprecated.Deno.run({
+				cmd: [
+					'powershell',
+					'-nonInteractive',
+					'-noProfile',
+					'-executionPolicy',
+					'unrestricted',
+					'-command',
+					'$Host.UI.SupportsVirtualTerminal',
+				],
+				stdin: 'null',
+				stderr: 'null',
+				stdout: 'piped',
+			});
+			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+		} catch (_) {
+			return Promise.resolve(undefined);
+		}
+	})();
+	console.trace({ '$Host.UI.SupportsVirtualTerminal': _vt });
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
