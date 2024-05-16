@@ -2,14 +2,20 @@ import { $semver, /* $fs, $path, */ assert /* , assertEquals */ } from './$deps.
 import {
 	decode,
 	deepEqual,
-	// env,
-	// panicIfMissingPermits,
+	env,
+	panicIfMissingPermits,
 	// pathToOsStyle,
 	// projectPath as maybeProjectPath,
 	test,
 } from './$shared.ts';
 
 // import * as $consoleSize from './src/lib/console-size.ts';
+
+//===
+
+await panicIfMissingPermits([/* access to 'TERM' is required */ 'env']);
+
+//===
 
 const isWinOS = Deno.build.os == 'windows';
 
@@ -20,10 +26,18 @@ const denoOptionsFFI = $semver.satisfies(Deno.version.deno, '>= 1.38.0')
 	? ['--allow-ffi', '--unstable-ffi']
 	: ['--allow-ffi', '--unstable'];
 
+const TERM = (env('TERM') !== 'dumb' ? env('TERM') : undefined) ?? 'xterm'; // use non-'dumb' env(TERM) with 'xterm' fallback
+
 test('consoleSize ~ fully redirected, no permissions', () => {
 	const cmd = 'deno';
 	const args = ['run', './tests/helpers/consoleSize.display-results.ts'];
-	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const process = new Deno.Command(cmd, {
+		args,
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+		env: !isWinOS ? { TERM } : {},
+	});
 	const { code, stdout, stderr } = process.outputSync();
 	const out = decode(stdout);
 	const err = decode(stderr);
@@ -48,7 +62,13 @@ test('consoleSize ~ fully redirected, no permissions', () => {
 test('consoleSize ~ fully redirected, run permission', () => {
 	const cmd = 'deno';
 	const args = ['run', '--allow-run', './tests/helpers/consoleSize.display-results.ts'];
-	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const process = new Deno.Command(cmd, {
+		args,
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+		env: !isWinOS ? { TERM } : {},
+	});
 	const { code, stdout, stderr } = process.outputSync();
 	const out = decode(stdout);
 	const err = decode(stderr);
@@ -78,7 +98,13 @@ test('consoleSize ~ fully redirected, FFI permission', () => {
 		...denoOptionsFFI,
 		'./tests/helpers/consoleSize.display-results.ts',
 	];
-	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const process = new Deno.Command(cmd, {
+		args,
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+		env: !isWinOS ? { TERM } : {},
+	});
 	const { code, stdout, stderr } = process.outputSync();
 	const out = decode(stdout);
 	const err = decode(stderr);
@@ -131,7 +157,13 @@ test('consoleSize ~ fully redirected, full permissions, via shell', () => {
 		...shellOptions,
 		'deno run --allow-all ./tests/helpers/consoleSize.display-results.ts',
 	];
-	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const process = new Deno.Command(cmd, {
+		args,
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+		env: !isWinOS ? { TERM } : {},
+	});
 	const { code, stdout, stderr } = process.outputSync();
 	const out = decode(stdout);
 	const err = decode(stderr);
@@ -161,7 +193,13 @@ test('consoleSize ~ fully redirected, full permissions + FFI', () => {
 		...denoOptionsFFI,
 		'./tests/helpers/consoleSize.display-results.ts',
 	];
-	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const process = new Deno.Command(cmd, {
+		args,
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+		env: !isWinOS ? { TERM } : {},
+	});
 	const { code, stdout, stderr } = process.outputSync();
 	const out = decode(stdout);
 	const err = decode(stderr);
@@ -191,7 +229,13 @@ test('consoleSize ~ fully redirected, full permissions + FFI, via shell', () => 
 			' ',
 		)} ./tests/helpers/consoleSize.display-results.ts`,
 	];
-	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const process = new Deno.Command(cmd, {
+		args,
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+		env: !isWinOS ? { TERM } : {},
+	});
 	const { code, stdout, stderr } = process.outputSync();
 	const out = decode(stdout);
 	const err = decode(stderr);
