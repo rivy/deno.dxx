@@ -26,7 +26,7 @@ const denoOptionsFFI = $semver.satisfies(Deno.version.deno, '>= 1.38.0')
 	? ['--allow-ffi', '--unstable-ffi']
 	: ['--allow-ffi', '--unstable'];
 
-const TERM = env('TERM') ?? 'xterm';
+const TERM = (env('TERM') === 'dumb' ? undefined : env('TERM')) ?? 'xterm';
 
 test('consoleSize ~ fully redirected, no permissions', () => {
 	const cmd = 'deno';
@@ -136,7 +136,7 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 					'-executionPolicy',
 					'unrestricted',
 					'-command',
-					'$Host.UI.SupportsVirtualTerminal',
+					'$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI.WindowSize.Width;$Host.UI.RawUI.WindowSize.Height',
 				],
 				stdin: 'null',
 				stderr: 'piped',
@@ -150,7 +150,7 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 			return undefined;
 		}
 	})();
-	console.debug({ '$Host.UI.SupportsVirtualTerminal': _vt });
+	console.debug({ '$Host.UI.SupportsVirtualTerminal;Columns;Lines': _vt });
 	const cmd = 'deno';
 	const args = ['run', '--allow-all', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
