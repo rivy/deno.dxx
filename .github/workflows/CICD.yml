@@ -80,6 +80,10 @@ jobs:
           echo "BASH_VERSION='${BASH_VERSION}'"
           echo "BASHOPTS='${BASHOPTS}'"
           echo "CI='${CI}'"
+          # terminal info
+          echo "## terminal"
+          echo columns $(tput cols)
+          echo lines $(tput lines)
           # tooling info display
           echo "## tooling"
           deno --version
@@ -210,6 +214,10 @@ jobs:
           echo "BASHOPTS='${BASHOPTS}'"
           echo "CI='${CI}'"
           # tooling info display
+          # terminal info
+          echo "## terminal"
+          echo columns $(tput cols)
+          echo lines $(tput lines)
           echo "## tooling"
           deno --version
           # dependencies
