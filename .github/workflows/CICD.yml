@@ -234,17 +234,19 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           ## Push coverage to CodeCov
+          # * use CodeCov's modern uploader
+          # * requires CODECOV_TOKEN secret (from <https://codecov.io/gh/{username}/{repo}/settings/tokens>) to avoid severe rate limiting
           mkdir -p .coverage/bin
           CODECOV_OSID="linux"
           case '${{ matrix.job.os }}' in
             macos-*) CODECOV_OSID='macos' ;;
             windows-*) CODECOV_OSID='windows' ;;
           esac;
-          curl -L "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" -o .coverage/bin/codecov
-          chmod +x .coverage/bin/codecov
-          ls -Al
-          ls -Al .coverage/bin/
-          # deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}\\/SF:/gmsu;' > .coverage/@coverage.lcov
+          curl --no-progress --location "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" --output ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
+          chmod +x ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
+          #ls -Al
+          #ls -Al .coverage/bin/
+          # (already done) # deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}\\/SF:/gmsu;' > .coverage/@coverage.lcov
           .coverage/bin/codecov --verbose --file .coverage/@coverage.lcov
       - name: '`deno compile`'
         if: steps.vars.outputs.ARTIFACTS
