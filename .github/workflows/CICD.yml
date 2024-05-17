@@ -217,16 +217,6 @@ jobs:
           ## Create build/work space
           mkdir -p '${{ steps.vars.outputs.STAGING }}'
           mkdir -p '${{ steps.vars.outputs.STAGING }}/${{ steps.vars.outputs.PKG_BASENAME }}/bin'
-      # - name: Install/setup prerequisites
-      #   shell: bash
-      #   run: |
-      #     ## Install/setup prerequisites
-      #     sudo apt-get -y update
-      #     sudo apt-get -y install expect npm
-      #     # * pin installed cspell to v4.2.8 (cspell v5+ is broken for NodeJS < v12)
-      #     ## maint: [2021-11-10; rivy] `cspell` version may be advanced to v5 when used with NodeJS >= v12
-      #     sudo npm install cspell@4.2.8 -g
-      # - uses: Yuri6037/Action-FakeTTY@v1 ## too old, dies while using fully-deprecated GHA commands
       - name: Install/setup prerequisites
         shell: bash
         run: |
@@ -294,15 +284,15 @@ jobs:
               expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
               )
               ;;
-            windows-*) (
-              export TERM=${TERM:-${TERM_FALLBACK}}
-              echo "[ (local) TERM='${TERM}' ]"
-              echo '$ '"script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'"
-              script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'
-              # echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
-              # expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
-              )
-              ;;
+            # windows-*) (
+            #   export TERM=${TERM:-${TERM_FALLBACK}}
+            #   echo "[ (local) TERM='${TERM}' ]"
+            #   echo '$ '"script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'"
+            #   script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'
+            #   # echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
+            #   # expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+            #   )
+            #   ;;
           esac
           # * generate LCOV coverage data file
           deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
