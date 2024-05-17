@@ -253,6 +253,7 @@ jobs:
           # terminal info
           echo "## terminal"
           export TERM="${TERM:-${TERM_FALLBACK}}"
+          echo "[ (local) TERM='${TERM}' ]"
           echo "columns='$((tput cols 2>&1) | xargs)'"
           echo "lines='$((tput lines 2>&1) | xargs)'"
           echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
@@ -277,19 +278,28 @@ jobs:
           case '${{ matrix.job.os }}' in
             macos-*) (
               export TERM=${TERM:-${TERM_FALLBACK}}
+              echo "[ (local) TERM='${TERM}' ]"
+              echo '$ '"script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
               script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts
+              echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
               expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
               )
               ;;
             ubuntu-*) (
               export TERM=${TERM:-${TERM_FALLBACK}}
-              script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
+              echo "[ (local) TERM='${TERM}' ]"
+              echo '$ '"script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'"
+              script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'
+              echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
               expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
               )
               ;;
             windows-*) (
               export TERM=${TERM:-${TERM_FALLBACK}}
-              script --return --quiet --log-out /dev/null --command "deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
+              echo "[ (local) TERM='${TERM}' ]"
+              echo '$ '"script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'"
+              script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'
+              # echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
               # expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
               )
               ;;
@@ -303,7 +313,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           ## Push coverage to CodeCov
-          # * use CodeCov's modern uploader
+          # * use CodeCov's "modern" CLI uploader; ref: <https://docs.codecov.com/docs/codecov-uploader>
           # * requires CODECOV_TOKEN secret (from <https://codecov.io/gh/{username}/{repo}/settings/tokens>) to avoid severe rate limiting
           mkdir -p .coverage/bin
           CODECOV_OSID="linux"
@@ -313,8 +323,6 @@ jobs:
           esac
           curl --fail --location --silent --show-error "https://uploader.codecov.io/latest/${CODECOV_OSID}/codecov${{ steps.vars.outputs.EXE_suffix }}" --output ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
           chmod +x ".coverage/bin/codecov${{ steps.vars.outputs.EXE_suffix }}"
-          #ls -Al
-          #ls -Al .coverage/bin/
           # (already done) # deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}\\/SF:/gmsu;' > .coverage/@coverage.lcov
           .coverage/bin/codecov --verbose --file .coverage/@coverage.lcov
       - name: '`deno compile`'
