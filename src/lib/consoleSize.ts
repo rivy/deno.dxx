@@ -385,7 +385,7 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 				.all([process.status(), process.output(), process.stderrOutput()])
 				.then(([status, out, err]) => {
 					decode(out);
-					console.warn('ViaResize', { status, out: decode(out), err: decode(err) });
+					console.warn('ViaPowerShell', { status, out: decode(out), err: decode(err) });
 					return decode(out);
 				})
 				.finally(() => process.close());
@@ -683,7 +683,7 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 		43 123
 		```
 		*/
-		.then((text) => text?.split(/\s+/).reverse())
+		.then((text) => text?.split(/\s+/).slice(0, 2).reverse())
 		.then((values) => {
 			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
 			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
