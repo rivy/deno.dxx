@@ -203,20 +203,29 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 	const ptrView = (ptr != null) ? new unstable.UnsafePointerView(ptr) : null;
 	const info = (ptrView != null)
 		? {
+			/** Console screen buffer dimensions/size (measured in character cells) */
 			dwSize: { columns: ptrView.getInt16(0), rows: ptrView.getInt16(2) },
+			/** Cursor position within the console screen buffer */
 			dwCursorPosition: { column: ptrView.getInt16(4), row: ptrView.getInt16(6) },
+			/** Controls the appearance (foreground + background RGB color and intensities) of text written to the console screen buffer */
 			wAttributes: ptrView.getUint16(8),
+			/** Coordinates of the console window (aka, the visible portion of the console screen buffer) */
 			srWindow: {
 				Left: ptrView.getInt16(10),
 				Top: ptrView.getInt16(12),
 				Right: ptrView.getInt16(14),
 				Bottom: ptrView.getInt16(16),
 			},
+			/** Maximum dimension/size of the console window (aka, maximum visible portion) based on character cell size and screen size */
 			dwMaximumWindowSize: { columns: ptrView.getInt16(18), rows: ptrView.getInt16(20) },
 		}
 		: null;
 	// console.warn('FFI', { buffer, info });
-	if (info != null) size = { columns: info.dwSize.columns, rows: info.dwSize.rows };
+	if (info != null) {
+		const columns = info.srWindow.Right - info.srWindow.Left + 1;
+		const rows = info.srWindow.Bottom - info.srWindow.Top + 1;
+		size = { columns, rows };
+	}
 
 	return size;
 }
