@@ -516,7 +516,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 		43 123
 		```
 		*/
-		.then((text) => text?.split(/\s+/).reverse())
+		.then((text) => text?.split(/\s+/).slice(0, 2).reverse())
 		.then((values) => {
 			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
 			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
@@ -544,7 +544,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
 	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
-	// ... more modern `tput` versions will output cols and lines in one call and no longer requires two system shell calls
+	// ... more modern (non-BSD) `tput` versions will output cols and lines in one call and no longer requires two system shell calls
 	// MacOS: `tput ...` requires either STDOUT or STDERR to be a TTY for correct results, making suppression of unexpected output impossible
 	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
@@ -711,7 +711,7 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
 	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
-	// ... more modern `tput` versions will output cols and lines in one call and no longer requires two system shell calls
+	// ... more modern (non-BSD) `tput` versions will output cols and lines in one call and no longer requires two system shell calls
 	// MacOS: BSD `xargs` - will not execute the TARGET at all if STDIN contains no arguments (eg, is '/dev/null') or only ''; only recognizes the short form of the `-o` option
 	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
@@ -813,9 +813,10 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
 	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
-	// ... more modern `tput` versions will output cols and lines in one call and no longer requires two system shell calls
+	// ... more modern (non-BSD) `tput` versions will output cols and lines in one call and no longer requires two system shell calls
 	// MacOS: BSD `xargs` - will not execute the TARGET at all if STDIN contains no arguments (eg, is '/dev/null') or only ''; only recognizes the short form of the `-o` option
 	// MacOS: fails when STDERR/STDOUT are redirected, falling back to 80x24 (width x height)
+	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	// const devTTY = denoOpenSyncNT(isWinOS ? 'CONIN$' : '/dev/tty');
