@@ -262,7 +262,6 @@ export function consoleSizeAsync(
 			// ref: https://stackoverflow.com/questions/21260602/how-to-reject-a-promise-from-inside-then-function
 			Promise
 				.any([
-					consoleSizeViaMode().then((size) => (size != null) ? size : Promise.reject(undefined)),
 					consoleSizeViaPowerShell().then((size) =>
 						(size != null) ? size : Promise.reject(undefined)
 					),
@@ -289,69 +288,70 @@ export function consoleSizeAsync(
 	return promise;
 }
 
-// consoleSizeViaMode()
-/** Get the size of the console as columns/rows, using the `mode` shell command.
- *
- * ```ts
- * const { columns, rows } = await consoleSizeViaMode();
- * ```
- *
- * @tags winos-only
- */
-export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
-	// ~ 25 ms (WinOS-only)
-	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
-
-	const output = (() => {
-		try {
-			const process = Deprecated.Deno.run({
-				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
-				stdin: 'null',
-				stderr: 'null',
-				stdout: 'piped',
-			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
-		} catch (_) {
-			return Promise.resolve(undefined);
-		}
-	})();
-
-	// ref: <https://superuser.com/questions/680746/is-it-possible-to-fetch-the-current-cmd-window-size-rows-and-columns-in-window>
-	// ```text
-	// C:> mode con /status
-	//
-	// Status for device CON:
-	// ----------------------
-	//     Lines:          45
-	//     Columns:        132
-	//     Keyboard rate:  31
-	//     Keyboard delay: 0
-	//     Code page:      65001
-	// ```
-	const promise = output
-		.then((text) =>
-			text
-				?.split(/\r?\n/)
-				.filter((s) => s.length > 0)
-				.slice(2, 4)
-				.map((s) => s.match(/(\d+)\s*$/)?.[1])
-				.reverse()
-		)
-		.then((values) => {
-			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
-			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
-				const columns = Number(cols);
-				const rows = Number(lines);
-				if (columns === 0 || rows === 0) return undefined;
-				if (!isNaN(columns) && !isNaN(rows)) {
-					return { columns, rows };
-				}
-			}
-			return undefined;
-		});
-	return promise;
-}
+// // consoleSizeViaMode()
+// /** Get the size of the console as columns/rows, using the `mode` shell command.
+//  *
+//  * ```ts
+//  * const { columns, rows } = await consoleSizeViaMode();
+//  * ```
+//  *
+//  * @tags winos-only
+//  */
+// export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
+// 	// ~ 25 ms (WinOS-only)
+// 	// !* actually returns the buffer size *not* the visible console window size
+// 	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
+// 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+//
+// 	const output = (() => {
+// 		try {
+// 			const process = Deprecated.Deno.run({
+// 				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
+// 				stdin: 'null',
+// 				stderr: 'null',
+// 				stdout: 'piped',
+// 			});
+// 			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+// 		} catch (_) {
+// 			return Promise.resolve(undefined);
+// 		}
+// 	})();
+//
+// 	// ref: <https://superuser.com/questions/680746/is-it-possible-to-fetch-the-current-cmd-window-size-rows-and-columns-in-window>
+// 	// ```text
+// 	// C:> mode con /status
+// 	//
+// 	// Status for device CON:
+// 	// ----------------------
+// 	//     Lines:          45
+// 	//     Columns:        132
+// 	//     Keyboard rate:  31
+// 	//     Keyboard delay: 0
+// 	//     Code page:      65001
+// 	// ```
+// 	const promise = output
+// 		.then((text) =>
+// 			text
+// 				?.split(/\r?\n/)
+// 				.filter((s) => s.length > 0)
+// 				.slice(2, 4)
+// 				.map((s) => s.match(/(\d+)\s*$/)?.[1])
+// 				.reverse()
+// 		)
+// 		.then((values) => {
+// 			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
+// 			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+// 				const columns = Number(cols);
+// 				const rows = Number(lines);
+// 				if (columns === 0 || rows === 0) return undefined;
+// 				if (!isNaN(columns) && !isNaN(rows)) {
+// 					return { columns, rows };
+// 				}
+// 			}
+// 			return undefined;
+// 		});
+// 	return promise;
+// }
 
 // consoleSizeViaPowerShell()
 /** Get the size of the console as columns/rows, using `PowerShell`.
