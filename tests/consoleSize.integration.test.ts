@@ -136,7 +136,8 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 					'-executionPolicy',
 					'unrestricted',
 					'-command',
-					'$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI.WindowSize.Width;$Host.UI.RawUI.WindowSize.Height',
+					// '$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI.WindowSize.Width;$Host.UI.RawUI.WindowSize.Height',
+					'$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI',
 				],
 				stdin: 'null',
 				stderr: 'piped',
@@ -150,7 +151,7 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 			return undefined;
 		}
 	})();
-	console.debug({ '$Host.UI.SupportsVirtualTerminal;Columns;Lines': _vt });
+	console.debug({ '$Host.UI.SupportsVirtualTerminal;RawUI': _vt });
 	const cmd = 'deno';
 	const args = ['run', '--allow-all', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
