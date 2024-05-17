@@ -331,9 +331,12 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	// ```
 	const promise = output
 		.then((text) =>
-			text?.split(/\r?\n/).filter((s) => s.length > 0).slice(2, 4).map((s) =>
-				s.match(/(\d+)\s*$/)?.[1]
-			)
+			text
+				?.split(/\r?\n/)
+				.filter((s) => s.length > 0)
+				.slice(2, 4)
+				.map((s) => s.match(/(\d+)\s*$/)?.[1])
+				.reverse()
 		)
 		.then((values) => {
 			const [cols, lines] = ((values != null) && (values.length === 2)) ? values : [];
@@ -813,7 +816,6 @@ export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
 	// ... more modern `tput` versions will output cols and lines in one call and no longer requires two system shell calls
 	// MacOS: BSD `xargs` - will not execute the TARGET at all if STDIN contains no arguments (eg, is '/dev/null') or only ''; only recognizes the short form of the `-o` option
 	// MacOS: fails when STDERR/STDOUT are redirected, falling back to 80x24 (width x height)
-	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	// const devTTY = denoOpenSyncNT(isWinOS ? 'CONIN$' : '/dev/tty');
