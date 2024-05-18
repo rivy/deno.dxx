@@ -96,8 +96,13 @@ jobs:
           # terminal info
           echo "## terminal"
           export TERM="${TERM:-${TERM_FALLBACK}}"
+          echo "[ (local) TERM='${TERM}' ]"
           echo "columns='$((tput cols 2>&1) | xargs)'"
           echo "lines='$((tput lines 2>&1) | xargs)'"
+          export TERMINAL_PATH=/dev/tty
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
+          export TERMINAL_PATH=/dev/pty/0
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
           echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
           echo "stty size = '$((stty size 2>&1) | xargs)'"
           echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | xargs)'"
@@ -239,16 +244,20 @@ jobs:
           echo "BASH_VERSION='${BASH_VERSION}'"
           echo "BASHOPTS='${BASHOPTS}'"
           echo "CI='${CI}'"
-          # tooling info display
           # terminal info
           echo "## terminal"
           export TERM="${TERM:-${TERM_FALLBACK}}"
           echo "[ (local) TERM='${TERM}' ]"
           echo "columns='$((tput cols 2>&1) | xargs)'"
           echo "lines='$((tput lines 2>&1) | xargs)'"
+          export TERMINAL_PATH=/dev/tty
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
+          export TERMINAL_PATH=/dev/pty/0
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
           echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
           echo "stty size = '$((stty size 2>&1) | xargs)'"
           echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | xargs)'"
+          # tooling info display
           echo "## tooling"
           deno --version
           # dependencies
