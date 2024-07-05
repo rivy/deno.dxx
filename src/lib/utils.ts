@@ -19,13 +19,17 @@
 // WString == WSTR == [WCHAR] == `Uint16Array` == unsigned 16-bit integer (aka, u16) array buffer
 // CWSTR == CWString == NUL-terminated WSTR
 
+export type CString = Uint8Array;
+export type CWString = Uint16Array;
+
 // stringToCSTR()
 /** Convert `s` to a WinOS-compatible NUL-terminated CSTR buffer, *dropping* any internal NUL characters.
  *
  * NOTE: supports *only* ASCII characters, silently **dropping** non-ASCII-compatible code points without error/panic.
  */
-export function stringToCSTR(s: string) {
-	// CSTR == NUL-terminated string of 8-bit Windows (ANSI) characters; note: ANSI representation of non-ASCII characters is code-page dependent
+export function stringToCSTR(s: string): CString {
+	// RETURN == a NUL-terminated CSTR
+	// * CSTR == NUL-terminated string of 8-bit Windows (ANSI) characters; note: ANSI representation of non-ASCII characters is code-page dependent
 	// [2023-01] note: JavaScript `TextEncoder()` now only supports 'utf-8' encoding
 	// * alternatively, legacy support for code-page encoding is available via `npm:text-encoding` [code @ <https://github.com/inexorabletash/text-encoding>]
 	const MAX_ASCII = 127;
@@ -49,9 +53,11 @@ export function stringToCSTR(s: string) {
  *
  * Note: assumes/requires WinOS support for UTF-16 (not just UCS-2); ie, requires WinOS >= v5.0/2000.
  */
-export function stringToCWSTR(s: string) {
-	// CWSTR = a string of 16-bit Unicode characters (aka, wide-characters/WCHAR/wchar_t), which MAY be null-terminated
-	// note: WinOS *after* Windows NT uses UTF-16 encoding; WinOS versions *prior* Windows 2000 use UCS-2 (aka UTF-16 w/o surrogate support [ie, BMP-plane-only])
+export function stringToCWSTR(s: string): CWString {
+	// RETURN == a NUL-terminated CWSTR
+	// * CWSTR == a string of 16-bit Unicode characters (aka, wide-characters/WCHAR/wchar_t), which MAY be null-terminated
+	// note: WinOS versions *prior* to Windows 2000 with multi-byte character support (WinNT, Win95, Win98) use UCS-2 (aka UTF-16 w/o surrogate support [ie, BMP-plane-only])
+	//   ... WinOS versions *after/including* Windows 2000 (eg, XP, Vista, 7, 8, 10, ...) use UTF-16 encoding
 	const NUL = 0;
 	const length = s.length; // length in UTF-16 code units
 	const buffer = new ArrayBuffer((length + 1) * Uint16Array.BYTES_PER_ELEMENT);
