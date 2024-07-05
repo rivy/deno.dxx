@@ -1,10 +1,23 @@
-// spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS WCHAR
+// spell-checker:ignore (WinAPI) CSTR CWSTR DWORD LPCSTR LPCWSTR MBCS TCHAR WCHAR WideString WSTR
 
-// ref: [JoelOnSoftware ~ Minimum knowledge of Unicode](https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses) @@ <>
-// ref: [JavaScript character encoding](https://mathiasbynens.be/notes/javascript-encoding) @@ <https://archive.is/yNnof>
-// ref: [MSDN ~ Unicode and MBCS support](https://learn.microsoft.com/en-us/cpp/atl-mfc-shared/unicode-and-multibyte-character-set-mbcs-support) @@ <>
-// ref: [MSDN ~ string conversions](https://learn.microsoft.com/en-US/sql/relational-databases/collations/collation-and-unicode-support#utf8) @@ <https://archive.is/hZvZx>
-// ref: [MSDN ~ LPCSTR](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/f8d4fe46-6be8-44c9-8823-615a21d17a61) @@ <https://archive.is/AduZv>)
+// ref:[JoelOnSoftware ~ Minimum knowledge of Unicode](https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses) @@ <https://archive.is/2UVWT>
+// ref:[The Tragedy of UCS-2](https://unascribed.com/b/2019-08-02-the-tragedy-of-ucs2.html) @@ <https://archive.is/x4SxI>
+// ref:[SO ~ Which Unicode (with history)?](https://stackoverflow.com/questions/3473295/utf-8-or-utf-16-or-utf-32-or-ucs-2) @@ <>
+// ref:[UTF-8 Everywhere](https://utf8everywhere.org) @@ <https://archive.is/7b6ga>
+// ref:[Unicode in MS Windows](https://en.wikipedia.org/wiki/Unicode_in_Microsoft_Windows) @@ <https://archive.is/Mmf48>
+// ref:[JavaScript character encoding](https://mathiasbynens.be/notes/javascript-encoding) @@ <https://archive.is/yNnof>
+// ref:[MSDN ~ Unicode and MBCS support](https://learn.microsoft.com/en-us/cpp/atl-mfc-shared/unicode-and-multibyte-character-set-mbcs-support) @@ <https://archive.is/Iy2Js>
+// ref:[MSDN ~ string conversions](https://learn.microsoft.com/en-US/sql/relational-databases/collations/collation-and-unicode-support#utf8) @@ <https://archive.is/hZvZx>
+// ref:[MSDN ~ LPCSTR](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/f8d4fe46-6be8-44c9-8823-615a21d17a61) @@ <https://archive.is/AduZv>)
+// ref:[WTF-8 encoding](https://simonsapin.github.io/wtf-8) @@ <https://archive.is/irzit>
+// ref:[MSDN ~ String type conversions](https://learn.microsoft.com/en-us/cpp/text/how-to-convert-between-various-string-types) @@ <https://archive.is/lKYhP>
+// ref:[rust ~ 'widestring' lib](https://docs.rs/widestring/latest/widestring) @@ <https://archive.is/maIo3>
+
+// CHAR == unsigned 8-bit integer (aka, u8)
+// CString == CSTR == [CHAR] == `Uint8Array` == NUL-terminated unsigned 8-bit integer (aka, u8) array buffer
+// WCHAR == wchar_t == unsigned 16-bit integer (aka, u16)
+// WString == WSTR == [WCHAR] == `Uint16Array` == unsigned 16-bit integer (aka, u16) array buffer
+// CWSTR == CWString == NUL-terminated WSTR
 
 // stringToCSTR()
 /** Convert `s` to a WinOS-compatible NUL-terminated CSTR buffer, *dropping* any internal NUL characters.
