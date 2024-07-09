@@ -498,6 +498,7 @@ export function ensureAsURL(path: string | URL) {
 */
 // const allowRead = (await Deno.permissions?.query({ name: 'read' })).state === 'granted';
 const allowRead = atImportPermissions.read.state === 'granted';
+const allowRun = atImportPermissions.run.state === 'granted';
 
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
@@ -782,6 +783,7 @@ export function mightUseUnicode() {
 //===
 
 export const commandVOf = (name: string) => {
+	if (!allowRun) return Promise.resolve(undefined);
 	try {
 		// deno-lint-ignore no-deprecated-deno-api
 		const process = Deno.run({
