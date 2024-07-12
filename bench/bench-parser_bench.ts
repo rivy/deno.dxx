@@ -7,7 +7,7 @@ import { env } from '../tests/$shared.ts';
 
 // import {
 // 	bench,
-// 	BenchmarkTimer,
+// 	type BenchmarkTimer,
 // 	runBenchmarks,
 // } from 'https://deno.land/std@0.134.0/testing/bench.ts';
 // import {
