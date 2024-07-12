@@ -2,7 +2,7 @@
 // ref: <https://biomejs.dev/reference/configuration>
 // v2024.04.25 [rivy]
 {
-	"$schema": "https://biomejs.dev/schemas/1.6.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
 	"formatter": {
 		"ignore": [".vscode", "node_modules", "vendor"],
 		"indentStyle": "tab",
@@ -14,7 +14,7 @@
 			"quoteStyle": "single",
 			"jsxQuoteStyle": "single",
 			"semicolons": "always",
-			"trailingComma": "all"
+			"trailingCommas": "all"
 		}
 	},
 	"json": { "parser": { "allowComments": true /* , "allowTrailingCommas": true */ } },
