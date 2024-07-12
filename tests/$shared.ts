@@ -511,16 +511,16 @@ export function median(arr: number[]): number | undefined {
 export function stdDevPopulation(arr: number[], mean_?: number): number | undefined {
 	if (arr.length <= 0) return undefined;
 	if (arr.length === 1) return arr[0];
-	const m = (mean_ != undefined) ? mean_ : mean(arr);
-	if (m == undefined) return undefined;
+	const m = (mean_ != null) ? mean_ : mean(arr);
+	if (m == null) return undefined;
 	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / arr.length);
 	return stdDev;
 }
 export function stdDevSample(arr: number[], mean_?: number): number | undefined {
 	if (arr.length <= 0) return undefined;
 	if (arr.length === 1) return arr[0];
-	const m = (mean_ != undefined) ? mean_ : mean(arr);
-	if (m == undefined) return undefined;
+	const m = (mean_ != null) ? mean_ : mean(arr);
+	if (m == null) return undefined;
 	const stdDev = Math.sqrt(
 		arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / (arr.length - 1),
 	);
