@@ -178,6 +178,31 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	// ToDO: [2023-10-03; rivy] check for correct configuration; present and working config file (including plugins; may use `commitlint --config .commitlint.config.js --print-config`)
 	const command = 'commitlint';
 	const haveCommand = await haveCommitLint();
+	const semverMmrReS = '(0|[1-9]\\d*)[.](0|[1-9]\\d*)[.](0|[1-9]\\d*)';
+	const semverPatchReS = '(?:-(?:[0-9a-zA-Z-]*(?:[.][0-9a-zA-Z-]*)*))';
+	const versionRx = new RegExp(`^[vV]?(${semverMmrReS}${semverPatchReS}?)$`, 'gms');
+
+	const gitDescribeCommand = ['git', 'describe', '--tags', '--exclude', '[!vV0-9]*'];
+
+	const gitDescribe = (await haveGit())
+		? async () => {
+			try {
+				const p = Deprecated.Deno.run({
+					cmd: [...gitDescribeCommand],
+					stdout: 'piped',
+					stderr: 'piped',
+				});
+				return await Promise
+					.all([p.status(), p.output(), p.stderrOutput()])
+					.then(([_status, out, _err]) => {
+						return decode(out);
+					})
+					.finally(() => p.close());
+			} catch (_) {
+				return undefined;
+			}
+		}
+		: () => Promise.resolve(undefined);
 	const commitLintFrom = await (async () => {
 		// find a commit-ish reference to use as base parent for "new" commits
 		// * using "new" commits avoids testing for errors in earlier commits which might be "immutable" (ie, after being published)
@@ -208,10 +233,11 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	const exeArgs = [
 		'--config',
 		'.commitlint.config.js',
-		'--strict',
+		(await gitDescribe())?.match(versionRx) ? '--strict' : undefined,
 		'--from',
 		commitLintFrom || 'HEAD',
-	];
+	]
+		.filter((e) => e != null) as string[];
 	const exeCmd = [command, ...exeArgs].join(' ');
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
