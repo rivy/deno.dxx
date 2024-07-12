@@ -4,6 +4,7 @@
 // spell-checker:ignore (utils) dprint git
 // spell-checker:ignore (options) refname
 
+import { Deprecated } from '../src/lib/$deprecated.ts';
 // import { $colors } from './$deps.ts';
 import { $args, $path, assert, assertEquals, equal } from './$deps.ts';
 import {
@@ -86,8 +87,7 @@ function xSplit(s: string, sep: RegExp | string, options?: { trailing: boolean }
 const _gitLsFiles = (await haveGit())
 	? () => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const p = Deno.run({
+			const p = Deprecated.Deno.run({
 				cmd: ['git', 'ls-files', '--eol', '--full-name', projectPath],
 				stdout: 'piped',
 				stderr: 'piped',
@@ -158,8 +158,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	} else {
 		// console.debug({ cmd });
 		test(description, async () => {
-			// deno-lint-ignore no-deprecated-deno-api
-			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
 				.finally(() => p.close());
@@ -185,11 +184,11 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		// * (in priority order) 'local/last' or 'origin/last' (by project convention), a tag which contains HEAD~1 commit, or first repo commit hash
 		const cliShellCommand = isWinOS ? ['cmd', '/x/d/c'] : ['sh', '-c'];
 		const cliCommandSep = isWinOS ? ' & ' : ' ; ';
-		// POSIX requires quotes to avoid glob-expansion, *but* `Deno.run()` has a WinOS bug breaking any `cmd` element containing double-quotes
+		// POSIX requires quotes to avoid glob-expansion, *but* `Deprecated.Deno.run()` has a WinOS bug breaking any `cmd` element containing double-quotes
 		// * ref: <https://github.com/denoland/deno/issues/8852>
 		const gitVersionTagGlob = isWinOS ? '[#v]*' : '"[#v]*"';
-		// deno-lint-ignore no-deprecated-deno-api
-		const p = Deno.run({
+
+		const p = Deprecated.Deno.run({
 			cmd: [
 				...cliShellCommand,
 				[
@@ -223,8 +222,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
-			// deno-lint-ignore no-deprecated-deno-api
-			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
 				.finally(() => p.close());
@@ -257,8 +255,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
-			// deno-lint-ignore no-deprecated-deno-api
-			const p = Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise
 				.all([p.status(), p.output(), p.stderrOutput()])
 				.finally(() => p.close());
@@ -274,8 +271,12 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 }
 
 test('style ~ `deno lint`', async () => {
-	// deno-lint-ignore no-deprecated-deno-api
-	const p = Deno.run({ cmd: ['deno', 'lint'], stdin: 'null', stdout: 'piped', stderr: 'piped' });
+	const p = Deprecated.Deno.run({
+		cmd: ['deno', 'lint'],
+		stdin: 'null',
+		stdout: 'piped',
+		stderr: 'piped',
+	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
 		() => p.close()
 	);
@@ -293,8 +294,7 @@ test('style ~ `deno lint`', async () => {
 		test.skip(description + '...skipped (`dprint` not found)');
 	} else {
 		test(description, async () => {
-			// deno-lint-ignore no-deprecated-deno-api
-			const p = Deno.run({
+			const p = Deprecated.Deno.run({
 				cmd: ['dprint', 'check'],
 				stdin: 'null',
 				stdout: 'piped',
