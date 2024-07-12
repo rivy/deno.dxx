@@ -1,5 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
+import { Deprecated } from '../src/lib/$deprecated.ts';
 import { $colors, $fs, $semver } from './lib/$deps.ts';
 import {
 	$version,
@@ -324,16 +325,14 @@ await log.trace({ runOptions });
 
 if (['all', 'deno'].includes(formatter)) {
 	await log.info('Formatting with `deno`');
-	// deno-lint-ignore no-deprecated-deno-api
-	const process = Deno.run(runOptions['deno']);
+	const process = Deprecated.Deno.run(runOptions['deno']);
 	const status = await process.status();
 	if (!status.success) Deno.exit(status.code);
 }
 
 if (['default', 'all', 'dprint'].includes(formatter)) {
 	await log.info('Formatting with `dprint`');
-	// deno-lint-ignore no-deprecated-deno-api
-	const process = Deno.run(runOptions['dprint']);
+	const process = Deprecated.Deno.run(runOptions['dprint']);
 	const status = await process.status();
 	if (!status.success) Deno.exit(status.code);
 }
@@ -344,8 +343,7 @@ Deno.exit(0);
 
 function haveDprintVersion() {
 	try {
-		// deno-lint-ignore no-deprecated-deno-api
-		const process = Deno.run({
+		const process = Deprecated.Deno.run({
 			cmd: ['dprint', '--version'],
 			stdin: 'null',
 			stderr: 'null',
@@ -361,8 +359,7 @@ function haveDprintVersion() {
 
 function haveDenoVersion() {
 	try {
-		// deno-lint-ignore no-deprecated-deno-api
-		const process = Deno.run({
+		const process = Deprecated.Deno.run({
 			cmd: ['deno', '--version'],
 			stdin: 'null',
 			stderr: 'null',

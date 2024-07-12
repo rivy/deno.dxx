@@ -2,6 +2,8 @@
 
 // spell-checker:ignore (people) Luca Casonato * lucacasonato
 
+import { Deprecated } from './$deprecated.ts';
+
 import { iter } from 'https://deno.land/std@0.134.0/io/util.ts';
 import { lookup } from 'https://deno.land/x/media_types@v2.8.4/mod.ts';
 
@@ -84,8 +86,7 @@ async function fetch(input: string | Request | URL, init?: RequestInit): Promise
 		// ref: <https://nodejs.org/api/stream.html>
 		const p = (() => {
 			try {
-				// deno-lint-ignore no-deprecated-deno-api
-				return Deno.run({
+				return Deprecated.Deno.run({
 					// -# == display progress as a hashed bar and percentage complete (* could be used to track progress if/when needed)
 					// --fail == fail "silently" (no stdout output; error is displayed on stderr and error code is returned as process status)
 					// --location == follow redirects
