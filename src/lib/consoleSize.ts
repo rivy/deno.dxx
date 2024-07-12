@@ -8,6 +8,10 @@
 
 //===
 
+import { Deprecated } from './$deprecated.ts';
+
+//===
+
 // import type * as DenoUnstable from '../../vendor/deno-unstable.lib.d.ts'; // import Deno UNSTABLE types (fails b/c of duplicate included types)
 
 // import { assert as _assert } from 'https://deno.land/std@0.178.0/testing/asserts.ts';
@@ -132,12 +136,12 @@ export const consoleSize = consoleSizeAsync; // default to fully functional `con
  * @tags unstable
  */
 export function consoleSizeSync(
-	rid: number = Deno.stdout.rid,
+	rid: number = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): ConsoleSize | undefined {
 	// ~ 0.75ms for WinOS
 	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
+		fallbackRIDs: [Deprecated.Deno.stderr.rid],
 		consoleFileFallback: true,
 		useCache: true,
 		...options_,
@@ -163,10 +167,14 @@ export function consoleSizeSync(
  * @tags unstable
  */
 export function consoleSizeViaDenoAPI(
-	rid: number = Deno.stdout.rid,
+	rid: number = Deprecated.Deno.stdout.rid,
 	options_: Partial<Omit<ConsoleSizeOptions, 'useCache'>> = {},
 ): ConsoleSize | undefined {
-	const options = { fallbackRIDs: [Deno.stderr.rid], consoleFileFallback: true, ...options_ };
+	const options = {
+		fallbackRIDs: [Deprecated.Deno.stderr.rid],
+		consoleFileFallback: true,
+		...options_,
+	};
 	if (denoConsoleSizeNT == undefined) return undefined;
 
 	let size = denoConsoleSizeNT(rid);
@@ -185,8 +193,7 @@ export function consoleSizeViaDenoAPI(
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
 		size = file && denoConsoleSizeNT(file.rid);
 		// note: Deno.FsFile added (with close()) in Deno v1.19.0
-		// deno-lint-ignore no-deprecated-deno-api
-		file && Deno.close(file.rid);
+		file && Deprecated.Deno.close(file.rid);
 	}
 
 	return size;
@@ -209,11 +216,11 @@ export function consoleSizeViaDenoAPI(
  * @param rid ~ resource ID
  */
 export function consoleSizeAsync(
-	rid: number = Deno.stdout.rid,
+	rid: number = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
 	const options = {
-		fallbackRIDs: [Deno.stderr.rid],
+		fallbackRIDs: [Deprecated.Deno.stderr.rid],
 		consoleFileFallback: true,
 		useCache: true,
 		...options_,
@@ -281,8 +288,7 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 
 	const output = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['cmd', '/d/c', 'mode', 'con', '/status'],
 				stdin: 'null',
 				stderr: 'null',
@@ -335,8 +341,7 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: [
 					'powershell',
 					'-nonInteractive',
@@ -382,8 +387,7 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['stty', 'size', 'sane'],
 				stdin: 'inherit',
 				stderr: 'null',
@@ -419,8 +423,7 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const colsOutput = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'cols'],
 				stdin: 'null',
 				stderr: 'null',
@@ -433,8 +436,7 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	})();
 	const linesOutput = (() => {
 		try {
-			// deno-lint-ignore no-deprecated-deno-api
-			const process = Deno.run({
+			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'lines'],
 				stdin: 'null',
 				stderr: 'null',
