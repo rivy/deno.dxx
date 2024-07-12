@@ -277,7 +277,7 @@ export const defLogLevels: LevelMap = {
 //===
 
 export function deepClone<T>(source: T): T {
-	if ((source == undefined) || (typeof source === 'function') || (typeof source !== 'object')) {
+	if ((source == null) || (typeof source === 'function') || (typeof source !== 'object')) {
 		return source;
 	}
 	return deepMerge.all([{}, source]) as T;
@@ -369,7 +369,7 @@ export class Metadata {
 		for (const scope of scopes) {
 			const vars = this.getScopedData(scope);
 			for (const name of names) {
-				if ((o[name] == undefined) && (vars?.[name] != undefined)) {
+				if ((o[name] == null) && (vars?.[name] != null)) {
 					o[name] = vars?.[name]; // first matching
 				}
 			}
@@ -389,7 +389,7 @@ export class Metadata {
 		for (const scope of scopes) {
 			const vars = this.getScopedData(scope) || {};
 			for (const key of Object.keys(vars)) {
-				if ((o[key] == undefined) && (vars[key] != undefined)) {
+				if ((o[key] == null) && (vars[key] != null)) {
 					o[key] = vars[key]; // first matching
 				}
 			}
@@ -687,7 +687,7 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 			: ((typeof mayBeLogLevel === 'string')
 				? rfcGetLogLevel(mayBeLogLevel, context.#context.levels)
 				: undefined);
-		if (levelInfo == undefined) {
+		if (levelInfo == null) {
 			// fallback to the default log level
 			levelInfo = context.#context.defaultLevelInfo;
 			// as the level (first param) was not actually a level, put it back
@@ -874,7 +874,7 @@ export class Filter extends TransformWriter<LogEntry> {
 	// 	return context;
 	// }
 	protected _getLevelNumber(level: number | string, levels: LevelMap) {
-		if (level == undefined) return undefined;
+		if (level == null) return undefined;
 		return (rfcGetLogLevel(level, levels))?.levelNumber ?? undefined;
 	}
 	predicate: (entry: LogEntry, props?: Record<string, unknown>) => boolean = (entry, props) => {
