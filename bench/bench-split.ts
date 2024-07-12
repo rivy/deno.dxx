@@ -185,9 +185,7 @@ for (const result of results) {
 	table.push([
 		result.name,
 		result.runsCount,
-		formatDuration(result.measuredRunsAvgMs) +
-			' +/- ' +
-			formatDuration(stdDevSample(result.measuredRunsMs) ?? 0),
+		`${formatDuration(result.measuredRunsAvgMs)} +/- ${formatDuration(stdDevSample(result.measuredRunsMs) ?? 0)}`,
 		formatDuration(median(result.measuredRunsMs) ?? 0),
 		formatN(result.measuredRunsAvgMs === minDuration ? 1 : result.measuredRunsAvgMs / minDuration, {
 			minimumFractionDigits: 1,
