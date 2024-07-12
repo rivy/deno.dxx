@@ -7,7 +7,7 @@ import { env, formatDuration, formatN, median, stdDevSample } from '../tests/$sh
 
 import {
 	bench,
-	BenchmarkTimer,
+	type BenchmarkTimer,
 	runBenchmarks,
 } from 'https://deno.land/std@0.134.0/testing/bench.ts';
 import {
