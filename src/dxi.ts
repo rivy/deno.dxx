@@ -243,7 +243,7 @@ await log.resume();
 
 //===
 
-if (argv == undefined) {
+if (argv == null) {
 	console.warn(`\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }

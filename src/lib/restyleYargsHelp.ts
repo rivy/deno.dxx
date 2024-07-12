@@ -34,7 +34,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 	// console.warn({ helpLines });
 	const help: string[] = [];
 	const titleLine = helpLines.shift();
-	if (titleLine == undefined) return [];
+	if (titleLine == null) return [];
 	// 1st line == name + version
 	help.push($colors.italic(titleLine));
 	while ((helpLines.length > 0) && helpLines[0].length === 0) {
