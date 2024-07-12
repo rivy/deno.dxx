@@ -247,7 +247,7 @@ await log.resume();
 
 //===
 
-if (argv == undefined) {
+if (argv == null) {
 	// $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 	console.warn(`\nUse \`${runAsName} --help\` to show full usage and available options`);
 	Deno.exit(1);
@@ -306,7 +306,7 @@ await log.debug({ CWD: Deno.cwd(), targetPath, targetURL, argv });
 const max_shim_args_size = 8 * 1024; // heuristic max environment use for SHIM_ARGS (use 8kiB; max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
 // FixME: fall back to unexpanded args for TARGET?
 // ... instead output large SHIM_ARGS to a temporary file (path in SHIM_ARGF==Deno.makeTempFile({prefix: 'SHIM_ARGS-', suffix: '.txt'})) and use SHIM_ARGF as a transport mechanism
-// ... and SHIM_ARGS == undefined
+// ... and SHIM_ARGS == null/undefined
 // ... remove SHIM_ARGF file upon consumption (if possible, warn if not? or ignore?)
 // ... spell-checker:ignore () SHIM_ARGF
 

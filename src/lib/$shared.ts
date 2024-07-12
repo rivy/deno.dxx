@@ -693,7 +693,7 @@ export function performanceDuration(tag: string) {
 			if (entries.length > 0) return entries;
 			return undefined;
 		})();
-		// if ((performanceEntries == undefined) || performanceEntries.length < 2) return undefined;
+		// if ((performanceEntries == null) || performanceEntries.length < 2) return undefined;
 		if (performanceEntries == null) return undefined;
 		const duration = (performanceEntries.pop()?.startTime ?? now) -
 			(performanceEntries.shift()?.startTime ?? now);

@@ -175,17 +175,17 @@ export function consoleSizeViaDenoAPI(
 		consoleFileFallback: true,
 		...options_,
 	};
-	if (denoConsoleSizeNT == undefined) return undefined;
+	if (denoConsoleSizeNT == null) return undefined;
 
 	let size = denoConsoleSizeNT(rid);
 
 	let fallbackRID;
-	while (size == undefined && (fallbackRID = options.fallbackRIDs.shift()) != undefined) {
+	while (size == null && (fallbackRID = options.fallbackRIDs.shift()) != null) {
 		// console.warn(`fallbackRID = ${fallbackRID}; isatty(...) = ${Deno.isatty(fallbackRID)}`);
 		size = denoConsoleSizeNT(fallbackRID);
 	}
 
-	if ((size == undefined) && atImportAllowRead && options.consoleFileFallback) {
+	if ((size == null) && atImportAllowRead && options.consoleFileFallback) {
 		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
