@@ -558,12 +558,10 @@ export async function* globExpandIter(
 			).replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			const maxDepth = (parsed.globScanTokens as unknown as any) // deno-lint-ignore no-explicit-any
-				.reduce(
-					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-						acc + (value.isGlob ? value.depth : 0),
-					0,
-				);
+			const maxDepth = parsed.globScanTokens.reduce(
+				(acc: number, token) => acc + (token.isGlob ? token.depth : 0),
+				0,
+			);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude+; evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
@@ -642,12 +640,11 @@ export function* globExpandIterSync(
 			).replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			const maxDepth = (parsed.globScanTokens as unknown as any) // deno-lint-ignore no-explicit-any
-				.reduce(
-					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
-						acc + (value.isGlob ? value.depth : 0),
-					0,
-				);
+			const maxDepth = parsed.globScanTokens.reduce(
+				(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
+					acc + (value.isGlob ? value.depth : 0),
+				0,
+			);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude (10-20x); evaluate whether 'u' is needed here
 			const re = new RegExp(
 				'^' + globEscapedPrefix + parsed.globAsReS + '$',
@@ -823,7 +820,17 @@ export function parseGlob(s: string) {
 			parts: true,
 		},
 	);
-	const globScanTokens = globScan.tokens;
+	const globScanTokens = globScan.tokens as {
+		value: string;
+		depth: number;
+		isGlob: boolean;
+		backslashes?: boolean | undefined;
+		isBrace?: boolean | undefined;
+		isGlobstar?: boolean | undefined;
+		isExtGlob?: boolean | undefined;
+		isPrefix?: boolean | undefined;
+		negated?: boolean | undefined;
+	}[];
 	const globScanSlashes = globScan.slashes;
 	const globScanParts = globScan.parts;
 	// const globParsed = Picomatch.scan(glob, {
