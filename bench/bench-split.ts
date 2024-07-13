@@ -41,7 +41,7 @@ const runs = 10000;
 
 const usePresetPRNGSeed = false;
 const presetPRNGSeed = 'rft6tgk10mg1szn83nam'; // spell-checker:disable-line
-const seed = usePresetPRNGSeed ? presetPRNGSeed : (new Random()).string(20);
+const seed = usePresetPRNGSeed ? presetPRNGSeed : (new Random() as Random).string(20);
 console.log({ seed });
 
 const seededPRNG = new Seed(seed);

@@ -45,7 +45,7 @@ performance.mark('setup:start');
 
 const usePresetPRNGSeed = false;
 const presetPRNGSeed = 'bpcc2cfyslscmgrylcy2'; // spell-checker:disable-line
-const seed = usePresetPRNGSeed ? presetPRNGSeed : (new Random()).string(20);
+const seed = usePresetPRNGSeed ? presetPRNGSeed : (new Random() as Random).string(20);
 console.log({ seed });
 
 const seededPRNG = new Seed(seed);
@@ -56,7 +56,7 @@ function randomBoolean() {
 }
 
 function randomTokenFragment() {
-	const quote = randomBoolean() ? '' : (randomBoolean() ? '"' : `'`);
+	const quote = randomBoolean() ? '' : random.pick('"', `'`);
 	const length = random.int(1, 10);
 	return (quote +
 		random.string(length, Random.LOWER_ALPHA_NUMERICS + (quote ? '' : '           ')) +
@@ -116,7 +116,8 @@ await log.debug(`setup done (duration: ${
 	(() => {
 		const duration = performance.getEntriesByName('setup')[0].duration;
 		const [unit, n] = (duration > 1000) ? ['s', duration / 1000] : ['ms', duration];
-		return (new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(n)) + ' ' + unit;
+		const NumberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 });
+		return NumberFormat.format(n) + ' ' + unit;
 	})()
 })`);
 
