@@ -358,13 +358,13 @@ await log.trace(
 );
 
 // ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
-const source =
-	SOURCE === '-'
-		? // * stdin is readable only once; for multiple targets, cache stdin into a Uint8Array for repeated use
-			TARGET.length < 2
-			? Deno.stdin
-			: await readAll(Deno.stdin)
-		: intoURL(SOURCE);
+const sourceIsSTDIN = SOURCE === '-';
+const source = sourceIsSTDIN
+	? // * stdin is readable only once; for multiple targets, cache stdin into a Uint8Array for repeated use
+		TARGET.length < 2
+		? Deno.stdin
+		: await readAll(Deno.stdin)
+	: intoURL(SOURCE);
 if (source == null) {
 	await log.error(`'${SOURCE}' is an invalid source`);
 	Deno.exit(1);
@@ -378,13 +378,14 @@ if (!argv?.serialize) {
 	await Promise.all(
 		TARGET.map(async (t) => {
 			// ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
-			const target = t === '-' ? Deno.stdout : intoURL(t);
+			const targetIsSTDOUT = t === '-';
+			const target = targetIsSTDOUT ? Deno.stdout : intoURL(t);
 			if (!target) {
 				await log.error(`'${t}' is an invalid target`);
 				appState.exitValue = 1;
 			} else {
 				const protectTarget = argv.noClobber ?? false;
-				const preventTargetClose = target === Deno.stdout;
+				const preventTargetClose = targetIsSTDOUT;
 				await log.trace({
 					source: source instanceof Uint8Array ? `Uint8Array[${source.length}]` : source,
 					target,
@@ -414,13 +415,14 @@ if (!argv?.serialize) {
 	await TARGET.reduce(async (chain, t) => {
 		await chain;
 		// ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
-		const target = t === '-' ? Deno.stdout : intoURL(t);
+		const targetIsSTDOUT = t === '-';
+		const target = targetIsSTDOUT ? Deno.stdout : intoURL(t);
 		if (!target) {
 			await log.error(`'${t}' is an invalid target`);
 			appState.exitValue = 1;
 		} else {
 			const protectTarget = argv.noClobber ?? false;
-			const preventTargetClose = t === '-';
+			const preventTargetClose = targetIsSTDOUT;
 			await log.trace({
 				source: source instanceof Uint8Array ? `Uint8Array[${source.length}]` : source,
 				target,
