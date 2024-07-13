@@ -1,6 +1,6 @@
 {
 	// `dprint` configuration; ref: <https://dprint.dev/config>
-	// v2024.03.06 [rivy]
+	// v2024.07.13 [rivy]
 	// spell-checker:ignore () commitlint dprint remarkrc rustfmt (people) Rivy Ivy III * rivy
 	//
 	// * "$schema": "https://dprint.dev/schemas/v0.json",
@@ -35,9 +35,16 @@
 	],
 	//
 	"exec": {
-		"commands": [ // { /* example from dprint */ "command": "rustfmt --edition 2021 --config imports_granularity=item", "exts": ["rs"] }
+		"commands": [
+			// { /* example from dprint */ "command": "rustfmt --edition 2021 --config imports_granularity=item", "exts": ["rs"] }
 			{ "command": "rustfmt", "exts": ["rs"] }
 		]
+	},
+	"biome": {
+		"lineWidth": 100,
+		// "preferSingleLine": true,
+		"quoteStyle": "single",
+		"trailingCommas": "all"
 	},
 	"json": { "preferSingleLine": true, "trailingCommas": "never" /* `deno fmt` compatible */ },
 	"markdown": { "textWrap": "always", "lineWidth": 99999 },
@@ -67,18 +74,25 @@
 		"module.sortImportDeclarations": "caseInsensitive",
 		"module.sortExportDeclarations": "caseInsensitive"
 	},
+	"yaml": { "quotes": "preferSingle", "useTabs": false },
 	//
 	"plugins": [
 		// ref: <https://plugins.dprint.dev>
-		"https://plugins.dprint.dev/exec-0.4.4.json@c207bf9b9a4ee1f0ecb75c594f774924baf62e8e53a2ce9d873816a408cecbf7",
-		"https://plugins.dprint.dev/typescript-0.89.3.wasm",
-		"https://plugins.dprint.dev/json-0.19.2.wasm",
-		"https://plugins.dprint.dev/markdown-0.16.4.wasm",
-		"https://plugins.dprint.dev/toml-0.6.1.wasm",
-		"https://plugins.dprint.dev/dockerfile-0.3.0.wasm",
-		"https://plugins.dprint.dev/biome-0.3.2.wasm",
-		"https://plugins.dprint.dev/ruff-0.2.0.wasm",
-		"https://plugins.dprint.dev/jupyter-0.1.3.wasm",
+		// * plugins are in priority order (ie, 'biome, typescript, json' means that typescript and json plugins will not be used [unless overriden by 'associations'])
+		"https://plugins.dprint.dev/exec-0.5.0.json@8d9972eee71fa1590e04873540421f3eda7674d0f1aae3d7c788615e7b7413d0",
+		"https://plugins.dprint.dev/biome-0.6.0.wasm",
+		"https://plugins.dprint.dev/typescript-0.91.3.wasm",
+		"https://plugins.dprint.dev/json-0.19.3.wasm",
+		"https://plugins.dprint.dev/markdown-0.17.1.wasm",
+		"https://plugins.dprint.dev/toml-0.6.2.wasm",
+		"https://plugins.dprint.dev/g-plane/pretty_yaml-v0.3.0.wasm",
+		"https://plugins.dprint.dev/dockerfile-0.3.2.wasm",
+		"https://plugins.dprint.dev/g-plane/malva-v0.5.1.wasm",
+		"https://plugins.dprint.dev/g-plane/markup_fmt-v0.10.0.wasm",
+		"https://plugins.dprint.dev/ruff-0.3.9.wasm",
+		"https://plugins.dprint.dev/jupyter-0.1.4.wasm",
+		// ref: <https://github.com/dprint/dprint-plugin-roslyn/releases>
+		"https://plugins.dprint.dev/roslyn-0.18.0.json@9586754a7e586ccda5dba4e694c0f225aabde63720c905dd85e02453b6f5e5de",
 		// ref: <https://github.com/dprint/dprint-plugin-rustfmt/releases>
 		// "https://plugins.dprint.dev/rustfmt-0.6.1.exe-plugin@99b89a0599fd3a63e597e03436862157901f3facae2f0c2fbd0b9f656cdbc2a5",
 		// "https://plugins.dprint.dev/rustfmt-0.6.2.json@886c6f3161cf020c2d75160262b0f56d74a521e05cfb91ec4f956650c8ca76ca",
@@ -87,6 +101,7 @@
 		// "https://plugins.dprint.dev/prettier-0.8.0.json@7229a9f8c7c07a0f2865f665728160c1a50f56d7a447117884fbd5fb803df90a"
 		// "https://plugins.dprint.dev/prettier-0.9.0.json@76c20538ea4231b3daa9b62059f90ec144200cab5477b7e95b730cbb3ed48957"
 		// "https://plugins.dprint.dev/prettier-0.10.0.json@ca9a97de84cbb2cd60534eb72c0455f3ca8704743917569ace70499136cf5c9c"
-		"https://plugins.dprint.dev/prettier-0.39.0.json@896b70f29ef8213c1b0ba81a93cee9c2d4f39ac2194040313cd433906db7bc7c"
+		// "https://plugins.dprint.dev/prettier-0.39.0.json@896b70f29ef8213c1b0ba81a93cee9c2d4f39ac2194040313cd433906db7bc7c"
+		"https://plugins.dprint.dev/prettier-0.40.0.json@68c668863ec834d4be0f6f5ccaab415df75336a992aceb7eeeb14fdf096a9e9c"
 	]
 }
