@@ -891,8 +891,8 @@ function v(options?: vOptions) {
 	const options_ = options ?? vOptionsDefault;
 	// uses 'relaxed' semantic versioning (allows for variable length version numbers [M, M.m, M.m.r, M.m.r.n, etc])
 	// ref: [Semantic Versioning](https://semver.org) @@ <https://archive.is/Z02ta>
-	// simple 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*"
-	// extended 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*([-].*)?"
+	// simple 'relaxed' semantic version tag = /[vV]?\d+([.]\d+)*/
+	// extended 'relaxed' semantic version tag = /[vV]?\d+([.]\d+)*([-].*)?/
 	const tagIsCommitHash = projectVersionTagFromURL?.match(/^[0-9a-fA-F]{5,}$/) != null; // heuristic: any string of solely 5+ hex digits is assumed to be a commit hash
 	if (tagIsCommitHash) {
 		return `${projectVersionTextViaImport}+${projectVersionTagFromURL.slice(
