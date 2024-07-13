@@ -27,13 +27,15 @@ import { $yargs } from '../src/lib/$deps.cli.ts';
 
 //===
 
-await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-	// * script specific requirements
-	['read', 'write'],
-));
+await abortIfMissingPermits(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// * script specific requirements
+		['read', 'write'],
+	),
+);
 
 //===
 
@@ -50,9 +52,8 @@ const runAsName = $me.runAs;
 
 // logger.mergeMetadata({ authority: $me.name });
 
-const logLevelFromEnv = $logger.logLevelFromEnv() ??
-	(env('DEBUG') ? 'debug' : undefined) ??
-	undefined;
+const logLevelFromEnv =
+	$logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined) ?? undefined;
 await log.debug(
 	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );
@@ -68,7 +69,7 @@ log.mergeMetadata({
 		showLabel: true,
 		showSymbol: 'unicodeDoubleWidth',
 		// note: `labelFormatFn` should assume `s` is a unicode string (with possible surrogate pairs, not simple UTF-16 characters) and may contain ANSI escape codes
-		labelFormatFn: (s: string) => ($colors.inverse(s.slice(0, -1))),
+		labelFormatFn: (s: string) => $colors.inverse(s.slice(0, -1)),
 	},
 	// Humane: {
 	// 	showLabel: false,
@@ -120,7 +121,7 @@ Usage:\n  ${runAsName} [OPTION..]`)
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: (yargs bug) must precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -200,8 +201,7 @@ const possibleLogLevels = ((defaultLevel = 'note') => {
 		(args.verbose as boolean) ? 'info' : undefined,
 		(args.debug as boolean) ? 'debug' : undefined,
 		(args.trace as boolean) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
+	].filter(Boolean);
 	return (levels.length > 0 ? levels : [defaultLevel])
 		.map((s) => log.logLevelDetail(s)?.levelNumber)
 		.filter(Boolean)
@@ -247,8 +247,7 @@ if (args.version) {
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/min/lodash.js';
 // import * as _ from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 
-const cmdShimTemplate =
-	`@rem:: \`<%=targetBinName%>\` (*enhanced* \`npm\` CMD shim; by <%=appNameVersion%>)
+const cmdShimTemplate = `@rem:: \`<%=targetBinName%>\` (*enhanced* \`npm\` CMD shim; by <%=appNameVersion%>)
 @setLocal
 @echo off
 goto :_START_
@@ -305,7 +304,7 @@ async function* findExecutable(
 				try {
 					return [undefined, await Deno.lstat(p)];
 				} catch (e) {
-					return [(typeof e === 'object' && e instanceof Error) ? e : new Error(e), undefined];
+					return [typeof e === 'object' && e instanceof Error ? e : new Error(e), undefined];
 				}
 			})();
 			if (err) {
@@ -316,7 +315,7 @@ async function* findExecutable(
 					`Panic: ${err.name} for '${p}' ("${err.message}").`,
 				);
 			}
-			if (maybeLStat && (isWinOS || ((maybeLStat.mode || 0) & 0o111))) {
+			if (maybeLStat && (isWinOS || (maybeLStat.mode || 0) & 0o111)) {
 				yield p;
 			}
 		}
@@ -358,19 +357,22 @@ if (npmBinPath) {
 // const files = await collect(fs.expandGlob(path.join(npmBinPath, '*.cmd')));
 const files = $fs.expandGlob($path.join(npmBinPath, '*.cmd'));
 
-const updates = await collect(map(async function (file) {
-	const name = file.path;
-	const contentsOriginal = decoder.decode(await Deno.readFile(name));
-	const targetBinPath = ($eol
-		.LF(contentsOriginal)
-		.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
-	const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
-	const appNameVersion = '`' + appName + '` ' + version;
-	const contentsUpdated = $eol.CRLF(
-		$lodash.template(cmdShimTemplate)({ targetBinName, targetBinPath, appNameVersion }),
-	);
-	return { name, isUpdatable: !!targetBinPath, targetBinPath, contentsOriginal, contentsUpdated };
-}, files));
+const updates = await collect(
+	map(async function (file) {
+		const name = file.path;
+		const contentsOriginal = decoder.decode(await Deno.readFile(name));
+		const targetBinPath =
+			($eol
+				.LF(contentsOriginal)
+				.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
+		const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
+		const appNameVersion = '`' + appName + '` ' + version;
+		const contentsUpdated = $eol.CRLF(
+			$lodash.template(cmdShimTemplate)({ targetBinName, targetBinPath, appNameVersion }),
+		);
+		return { name, isUpdatable: !!targetBinPath, targetBinPath, contentsOriginal, contentsUpdated };
+	}, files),
+);
 
 for await (const update of updates) {
 	// if (options.debug) {

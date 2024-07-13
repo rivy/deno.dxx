@@ -24,9 +24,8 @@ import * as $args from '../lib/xArgs.ts';
 
 //===
 
-const atImportPermissions = (Deno?.permissions?.querySync != null)
-	? permitsSync()
-	: await permitsAsync();
+const atImportPermissions =
+	Deno?.permissions?.querySync != null ? permitsSync() : await permitsAsync();
 const permittedRead = atImportPermissions.read.state === 'granted';
 const permittedRun = atImportPermissions.run.state === 'granted';
 
@@ -51,7 +50,7 @@ const execPathExtensions = isWinOS
 // * and compatibility with other runners (such as NodeJS) should be more achievable.
 const runnerNameReS = '^deno(?:[.]exe)?$'; // *note*: using a runner with a different, unexpected name will cause failures at multiple points
 const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]js$`;
-const enhancedShellRx = new RegExp('[\\\/][^\\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
+const enhancedShellRx = new RegExp('[\\/][^\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
 const removableExtensions = (execPathExtensions ?? []).concat(
 	'.cjs',
 	'.cts',
@@ -139,14 +138,18 @@ export const shim = await (async () => {
 		scriptCode?: string;
 		scriptArgs?: string[];
 	} = {};
-	parts.TARGET = (await envAsync('SHIM_TARGET')) ||
+	parts.TARGET =
+		(await envAsync('SHIM_TARGET')) ||
 		(await envAsync('SHIM_URL')) ||
 		(await envAsync('DENO_SHIM_URL'));
-	parts.ARG0 = (await envAsync('SHIM_ARG0')) ??
+	parts.ARG0 =
+		(await envAsync('SHIM_ARG0')) ??
 		(await envAsync('SHIM_ARGV0')) ??
 		(await envAsync('DENO_SHIM_ARG0'));
-	parts.ARGS_PREFIX = await envAsync('SHIM_ARGS_PREFIX') ?? await envAsync('DENO_ARGS_PREFIX');
-	parts.ARGS = (await envAsync('SHIM_ARGS')) ?? (await envAsync('SHIM_ARGV')) ??
+	parts.ARGS_PREFIX = (await envAsync('SHIM_ARGS_PREFIX')) ?? (await envAsync('DENO_ARGS_PREFIX'));
+	parts.ARGS =
+		(await envAsync('SHIM_ARGS')) ??
+		(await envAsync('SHIM_ARGV')) ??
 		(await envAsync('DENO_SHIM_ARGS'));
 	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
 	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC'));
@@ -159,7 +162,8 @@ export const shim = await (async () => {
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
 	if (
 		/* aka `isEnhancedShimTarget` */
-		parts.targetURL && pathEquivalent(parts.targetURL, denoMainModule)
+		parts.targetURL &&
+		pathEquivalent(parts.targetURL, denoMainModule)
 	) {
 		// shim is targeting current process
 		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an enhanced shim
@@ -198,22 +202,24 @@ export const shim = await (async () => {
 //  ... * generally, a process expecting to be a target should likely clear the SHIM info for any sub-processes it creates
 // consume/reset SHIM environment variables to avoid interpretation by a subsequent process
 const envVarNames = shimEnvPrefix.flatMap((prefix) =>
-	shimEnvBaseNames.map((base) => prefix + base)
+	shimEnvBaseNames.map((base) => prefix + base),
 );
-await Promise.all(envVarNames.map(async (name) => {
-	if ((await Deno.permissions?.query({ name: 'env', variable: 'name' })).state === 'granted') {
-		Deno.env.delete(name);
-	}
-}));
+await Promise.all(
+	envVarNames.map(async (name) => {
+		if ((await Deno.permissions?.query({ name: 'env', variable: 'name' })).state === 'granted') {
+			Deno.env.delete(name);
+		}
+	}),
+);
 
 //===
 
 export const isEnhancedShimTarget =
-	shim.targetURL &&
-		(pathEquivalent(shim.targetURL, denoMainModule) || (pathEquivalent(
-			shim.targetURL,
-			denoExecPath,
-		) && pathEquivalent(shim.scriptName, denoMainModule))) || false;
+	(shim.targetURL &&
+		(pathEquivalent(shim.targetURL, denoMainModule) ||
+			(pathEquivalent(shim.targetURL, denoExecPath) &&
+				pathEquivalent(shim.scriptName, denoMainModule)))) ||
+	false;
 
 //===
 
@@ -263,23 +269,28 @@ export const commandLineParts = (() => {
 /** * path string of main script file (best guess from all available sources) */
 export const pathURL =
 	(isEnhancedShimTarget ? intoURL(deQuote(shim.scriptName))?.href : undefined) ??
-		(isDirectExecution
-			? denoExecPath
-			: (intoURL(deQuote(commandLineParts.scriptName))?.href ?? denoMainModule));
+	(isDirectExecution
+		? denoExecPath
+		: intoURL(deQuote(commandLineParts.scriptName))?.href ?? denoMainModule);
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
 const pathUrlBase = $path.parse(pathURL || '').base;
 /** * determine if base has a removable extension and return it (note: longer extensions have priority) */
-const removableExtension = removableExtensions.sort((a, b) => b.length - a.length).find((e) =>
-	caseSensitiveFiles ? pathUrlBase.endsWith(e) : toCommonCase(pathUrlBase).endsWith(toCommonCase(e))
-);
+const removableExtension = removableExtensions
+	.sort((a, b) => b.length - a.length)
+	.find((e) =>
+		caseSensitiveFiles
+			? pathUrlBase.endsWith(e)
+			: toCommonCase(pathUrlBase).endsWith(toCommonCase(e)),
+	);
 
 /** * name of main script file (from best guess path) */
-export const name = (pathUrlBase.length > 0)
-	? decodeURIComponent(
-		removableExtension ? pathUrlBase.slice(0, removableExtension.length * -1) : pathUrlBase,
-	)
-	: undefined;
+export const name =
+	pathUrlBase.length > 0
+		? decodeURIComponent(
+				removableExtension ? pathUrlBase.slice(0, removableExtension.length * -1) : pathUrlBase,
+			)
+		: undefined;
 
 // console.warn({
 // 	name,
@@ -287,7 +298,7 @@ export const name = (pathUrlBase.length > 0)
 // 	runner: shim.runner,
 // });
 // simplify shim.runner when possible (heuristic for POSIX-like executables)
-if (!isWinOS && (name != null) && permittedRun && (shim.runner === (await commandVOf(name)))) {
+if (!isWinOS && name != null && permittedRun && shim.runner === (await commandVOf(name))) {
 	// console.warn({ name, commandVOf: await commandVOf(name), shim });
 	shim.runner = name;
 }
@@ -298,34 +309,40 @@ if (!isWinOS && (name != null) && permittedRun && (shim.runner === (await comman
 // });
 
 /** * executable text string which initiated/invoked execution of the current process */
-export const argv0 = (isEnhancedShimTarget ? shim.runner : undefined) ?? commandLineParts.runner ??
-	denoExecPath;
+export const argv0 =
+	(isEnhancedShimTarget ? shim.runner : undefined) ?? commandLineParts.runner ?? denoExecPath;
 /** * runner specific command line options */
 export const execArgv = [
 	...((isEnhancedShimTarget ? shim.runnerArgs : undefined) ?? commandLineParts.runnerArgs ?? []),
 ];
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
-export const runAs = (isEnhancedShimTarget && shim.runner)
-	? ([shim.runner, ...shim.runnerArgs ?? [], shim.scriptName].filter(Boolean).join(' '))
-	: commandLineParts.runner
-	? ([commandLineParts.runner, ...commandLineParts.runnerArgs ?? [], commandLineParts.scriptName]
-		.filter(Boolean)
-		.join(' '))
-	: isDirectExecution
-	? ([commandLineParts.scriptName].filter(Boolean).join(' '))
-	: isEval
-	? [defaultRunner, 'eval', /* ToDO?: find reference to eval text */ '...'].join(' ')
-	: pathURL?.length
-	? [
-		defaultRunner,
-		...defaultRunnerArgs,
-		$args.reQuote(
-			decodeURIComponent(traversal(pathURL || '')?.replace(/^-/, '.' + $path.SEP + '-') ?? ''),
-		),
-	]
-		.join(' ')
-	: undefined;
+export const runAs =
+	isEnhancedShimTarget && shim.runner
+		? [shim.runner, ...(shim.runnerArgs ?? []), shim.scriptName].filter(Boolean).join(' ')
+		: commandLineParts.runner
+			? [
+					commandLineParts.runner,
+					...(commandLineParts.runnerArgs ?? []),
+					commandLineParts.scriptName,
+				]
+					.filter(Boolean)
+					.join(' ')
+			: isDirectExecution
+				? [commandLineParts.scriptName].filter(Boolean).join(' ')
+				: isEval
+					? [defaultRunner, 'eval', /* ToDO?: find reference to eval text */ '...'].join(' ')
+					: pathURL?.length
+						? [
+								defaultRunner,
+								...defaultRunnerArgs,
+								$args.reQuote(
+									decodeURIComponent(
+										traversal(pathURL || '')?.replace(/^-/, '.' + $path.SEP + '-') ?? '',
+									),
+								),
+							].join(' ')
+						: undefined;
 
 //===
 
@@ -355,10 +372,10 @@ export const impaired = isWinOS
 export const impairedWarningMessage = () => {
 	return impaired
 		? `degraded capacity (faulty ` +
-			[!haveSuppliedArgv0 ? '"$0"' : '', !haveEnhancedArgs ? 'argument' : ''].filter(Boolean).join(
-				' and ',
-			) +
-			` resolution); full/correct function requires an enhanced runner or shim (use \`dxr\` or install with \`dxi\`)`
+				[!haveSuppliedArgv0 ? '"$0"' : '', !haveEnhancedArgs ? 'argument' : '']
+					.filter(Boolean)
+					.join(' and ') +
+				` resolution); full/correct function requires an enhanced runner or shim (use \`dxr\` or install with \`dxi\`)`
 		: undefined;
 };
 
@@ -380,35 +397,39 @@ export const warnIfImpaired = (
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return await $args.argsAsync((() => {
-		if (isEnhancedShimTarget) {
-			if (shim.scriptArgs != null) {
-				return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
-					Boolean,
-				);
+	return await $args.argsAsync(
+		(() => {
+			if (isEnhancedShimTarget) {
+				if (shim.scriptArgs != null) {
+					return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
+						Boolean,
+					);
+				}
+				if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
 			}
-			if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
-		}
-		if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
-		return Deno.args;
-	})()); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+			if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
+			return Deno.args;
+		})(),
+	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsSync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
-	return $args.argsSync((() => {
-		if (isEnhancedShimTarget) {
-			if (shim.scriptArgs != null) {
-				return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
-					Boolean,
-				);
+	return $args.argsSync(
+		(() => {
+			if (isEnhancedShimTarget) {
+				if (shim.scriptArgs != null) {
+					return [...$args.wordSplitCLText(shim.ARGS_PREFIX ?? ''), ...shim.scriptArgs].filter(
+						Boolean,
+					);
+				}
+				if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
 			}
-			if (shim.ARGS != null) return [shim.ARGS_PREFIX, shim.ARGS].filter(Boolean).join(' ');
-		}
-		if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
-		return Deno.args;
-	})()); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
+			if (commandLineParts.scriptArgs != undefined) return commandLineParts.scriptArgs;
+			return Deno.args;
+		})(),
+	); // ToDO: add type ArgsOptions = { suppressExpansion: boolean } == { suppressExpansion: false }
 };
 
 /** * array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */

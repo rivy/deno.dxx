@@ -269,7 +269,7 @@ export function shiftCLTextWord(
 			s = '';
 		}
 	}
-	assert(!initialS || (s !== initialS), 'non-progression of `shiftCLTextWord()`'); // assert progress has been made o/w panic
+	assert(!initialS || s !== initialS, 'non-progression of `shiftCLTextWord()`'); // assert progress has been made o/w panic
 	return [token, s];
 }
 
@@ -373,9 +373,8 @@ ANSICDecodeTable['v'] = '\v';
 	const baseCharCode = '@'.charCodeAt(0);
 	for (i = 0; i <= 0x1f; i++) {
 		const iToChar = String.fromCharCode(baseCharCode + i);
-		ANSICDecodeTable['c' + iToChar.toLowerCase()] =
-			ANSICDecodeTable['c' + iToChar.toUpperCase()] =
-				String.fromCharCode(i);
+		ANSICDecodeTable['c' + iToChar.toLowerCase()] = ANSICDecodeTable['c' + iToChar.toUpperCase()] =
+			String.fromCharCode(i);
 	}
 	ANSICDecodeTable['c?'] = '\x7f';
 }
@@ -393,20 +392,20 @@ function decodeANSIC(s: string) {
 			const escapeCode = escapeString.slice(1);
 			const escapeCodeType = escapeCode[0];
 			let decoded = '';
-			if ((escapeCodeType === 'u') || (escapeCodeType === 'U')) {
+			if (escapeCodeType === 'u' || escapeCodeType === 'U') {
 				const decodedCode = parseInt(escapeCode.slice(1), 16);
 				try {
 					decoded = String.fromCodePoint(decodedCode);
 				} catch (_) {
 					decoded = String.fromCharCode(decodedCode);
 				}
-			} else if ((escapeCodeType === 'x') || (escapeCodeType.match(/[0-9]/))) {
+			} else if (escapeCodeType === 'x' || escapeCodeType.match(/[0-9]/)) {
 				// hex (`\x..`) or octal (`\nnn`) sequences may result in a non-UTF string
 				// * all sequential escapes are collected as one into a Uint8Array and the converted to UTF-8 via a no-error lossy conversion
 				const splitSep = '\\';
 				const codesText = escapeString.split(splitSep).slice(1);
 				const codesRaw = codesText.map((codeText) => {
-					const parseBase = (codeText[0] === 'x') ? 16 : 8;
+					const parseBase = codeText[0] === 'x' ? 16 : 8;
 					return parseInt(codeText[0] === 'x' ? codeText.slice(1) : codeText, parseBase);
 				});
 				const codes = new Uint8Array(codesRaw);
@@ -436,7 +435,7 @@ export function reQuote(s: string) {
 	const hasSpecialChar = specialChars.find((c) => s.includes(c));
 	const hasWhiteSpace = s.match(/\s/msu);
 	if (hasSpecialChar || hasWhiteSpace) {
-		s = isWinOS ? (`"` + s.replaceAll(`"`, `""""`) + `"`) : (`'` + s.replaceAll(`'`, `"'"`) + `'`);
+		s = isWinOS ? `"` + s.replaceAll(`"`, `""""`) + `"` : `'` + s.replaceAll(`'`, `"'"`) + `'`;
 	}
 	return s;
 }
@@ -461,7 +460,7 @@ export function shellDeQuote(s: string) {
 					const qChar = matchStr[0];
 					const spl = matchStr.split(qChar);
 					matchStr = spl[1];
-				} else if ((matchStr.length > 1) && matchStr[0] === '$' && matchStr[1] === SQ) {
+				} else if (matchStr.length > 1 && matchStr[0] === '$' && matchStr[1] === SQ) {
 					// $'...'
 					const spl = matchStr.split(SQ);
 					// console.warn('xArgs.shellDeQuote()', { s, matchStr, spl });
@@ -554,15 +553,12 @@ export async function* globExpandIter(
 			// const globEscapedPrefix = escapeRegExp(normalizedPrefix).replace(/\\\\|\//g, '[\\\\/]');
 			// FixME: [2021-10-07; rivy] this *assumes* that resolvedPrefix will NOT have a trailing SEP
 			// * parsed.globScan.glob == "normalized" POSIX-style glob expression
-			const globEscapedPrefix =
-				(escapeRegExp(
-					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar) ? '' : $path.SEP),
-				))
-					.replace(/\\\\|\//g, '[\\\\/]');
+			const globEscapedPrefix = escapeRegExp(
+				resolvedPrefix + (resolvedHasTrailingSep || initialGlobstar ? '' : $path.SEP),
+			).replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
-				.globScanTokens as unknown as any)
+			const maxDepth = (parsed.globScanTokens as unknown as any) // deno-lint-ignore no-explicit-any
 				.reduce(
 					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
 						acc + (value.isGlob ? value.depth : 0),
@@ -583,11 +579,13 @@ export async function* globExpandIter(
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walk(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for await (const e of walkIt) {
-				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
+				const p =
+					((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
 						new RegExp(
-							'^' + globEscapedPrefix +
-								((!resolvedHasTrailingSep && initialGlobstar) ? '[\\\\/]' : ''),
+							'^' +
+								globEscapedPrefix +
+								(!resolvedHasTrailingSep && initialGlobstar ? '[\\\\/]' : ''),
 						),
 						'',
 					);
@@ -639,15 +637,12 @@ export function* globExpandIterSync(
 		if ($fs.existsSync(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
 			const initialGlobstar = parsed.globScan.glob.startsWith('**/');
-			const globEscapedPrefix =
-				(escapeRegExp(
-					resolvedPrefix + ((resolvedHasTrailingSep || initialGlobstar) ? '' : $path.SEP),
-				))
-					.replace(/\\\\|\//g, '[\\\\/]');
+			const globEscapedPrefix = escapeRegExp(
+				resolvedPrefix + (resolvedHasTrailingSep || initialGlobstar ? '' : $path.SEP),
+			).replace(/\\\\|\//g, '[\\\\/]');
 			// some paths are resolved to paths with trailing separators (eg, root or network paths) and other are not
 			// const trailingSep = globEscapedPrefix.endsWith('[\\\\/]');
-			const maxDepth = (parsed // deno-lint-ignore no-explicit-any
-				.globScanTokens as unknown as any)
+			const maxDepth = (parsed.globScanTokens as unknown as any) // deno-lint-ignore no-explicit-any
 				.reduce(
 					(acc: number, value: { value: string; depth: number; isGlob: boolean }) =>
 						acc + (value.isGlob ? value.depth : 0),
@@ -662,11 +657,13 @@ export function* globExpandIterSync(
 			// note: `walk/walkSync` match re is compared to the full path during the walk
 			const walkIt = walkSync(resolvedPrefix, { match: [re], maxDepth: maxDepth ? maxDepth : 1 });
 			for (const e of walkIt) {
-				const p = ((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
+				const p =
+					((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
 						new RegExp(
-							'^' + globEscapedPrefix +
-								((!resolvedHasTrailingSep && initialGlobstar) ? '[\\\\/]' : ''),
+							'^' +
+								globEscapedPrefix +
+								(!resolvedHasTrailingSep && initialGlobstar ? '[\\\\/]' : ''),
 						),
 						'',
 					);
@@ -896,7 +893,7 @@ export function globToReS(s: string) {
 	});
 	// console.warn('xArgs.globToReS()', { parsed });
 	// deno-lint-ignore no-explicit-any
-	return ((parsed as unknown) as any).output as string;
+	return (parsed as unknown as any).output as string;
 }
 
 export type ArgsOptions = { nullglob: boolean };
@@ -932,7 +929,7 @@ export async function shellExpandAsync(
 			continue;
 		}
 		for (const x of [e].flatMap(Braces.expand).map(tildeExpand)) {
-			arrOut.push(...await globExpandAsync(x as GlobString, options));
+			arrOut.push(...(await globExpandAsync(x as GlobString, options)));
 		}
 	}
 
@@ -1054,8 +1051,8 @@ export async function argsAsync(
 	// console.warn('xArgs.argsAsync()', { argsText, options });
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
-	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
-	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
+	const expand = arr.length ? arr.slice(0, idx < 0 ? undefined : idx + 1) : [];
+	const raw = arr.length && idx > 0 && idx < arr.length ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.args()', { arr, idx, expand, raw });
 	return (await shellExpand(expand, options)).map(shellDeQuote).concat(raw);
 }
@@ -1088,8 +1085,8 @@ export function argsSync(
 	// console.warn('xArgs.argsSync()', { argsText, options });
 	const arr = Array.isArray(argsText) ? argsText : wordSplitCLText(argsText);
 	const idx = arr.findIndex((v) => v === endExpansionToken);
-	const expand = arr.length ? (arr.slice(0, idx < 0 ? undefined : (idx + 1))) : [];
-	const raw = (arr.length && (idx > 0) && (idx < arr.length)) ? arr.slice(idx + 1) : [];
+	const expand = arr.length ? arr.slice(0, idx < 0 ? undefined : idx + 1) : [];
+	const raw = arr.length && idx > 0 && idx < arr.length ? arr.slice(idx + 1) : [];
 	// console.warn('xArgs.argsSync()', { arr, idx, expand, raw });
 	return shellExpandSync(expand, options).map(shellDeQuote).concat(raw);
 }
@@ -1150,12 +1147,15 @@ export async function* argsItAsync(
 		[argText, argsText] = shiftCLTextWord(argsText);
 		if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
-				globExpandIter(e as GlobString, options)
-			)
-			: [(async function* () {
-				yield argText;
-			})()];
+			? [argText]
+					.flatMap(Braces.expand)
+					.map(tildeExpand)
+					.map((e) => globExpandIter(e as GlobString, options))
+			: [
+					(async function* () {
+						yield argText;
+					})(),
+				];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
 			const argExpansion = argExpansions[idx];
 			let current = await argExpansion.next();
@@ -1166,10 +1166,12 @@ export async function* argsItAsync(
 					arg: shellDeQuote(current.value),
 					tailOfArgExpansion: [
 						...(!next.done
-							? [(async function* () {
-								yield next.value;
-								for await (const e of argExpansion) yield e;
-							})()]
+							? [
+									(async function* () {
+										yield next.value;
+										for await (const e of argExpansion) yield e;
+									})(),
+								]
 							: []),
 						...argExpansions.slice(idx + 1),
 					],
@@ -1226,9 +1228,10 @@ export function* argsItSync(
 		[argText, argsText] = shiftCLTextWord(argsText);
 		// if (argText === endExpansionToken) continueExpansions = false;
 		const argExpansions = continueExpansions
-			? [argText].flatMap(Braces.expand).map(tildeExpand).map((e) =>
-				globExpandSync(e as GlobString, options)
-			)
+			? [argText]
+					.flatMap(Braces.expand)
+					.map(tildeExpand)
+					.map((e) => globExpandSync(e as GlobString, options))
 			: [[argText]];
 		for (let idx = 0; idx < argExpansions.length; idx++) {
 			const argExpansion = argExpansions[idx];

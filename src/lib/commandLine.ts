@@ -37,18 +37,18 @@ const unstable = (() => {
 })();
 
 const _fns: /* Record<string, Deno.ForeignFunction> */ Deno.ForeignLibraryInterface = {
-	'GetCommandLineA': { parameters: [], result: 'pointer' },
-	'GetCommandLineW': { parameters: [], result: 'pointer' },
+	GetCommandLineA: { parameters: [], result: 'pointer' },
+	GetCommandLineW: { parameters: [], result: 'pointer' },
 };
 const dll = isWinOS
 	? unstable?.dlopen(
-		'kernel32.dll',
-		/* fns */
-		{
-			'GetCommandLineA': { parameters: [], result: 'pointer' },
-			'GetCommandLineW': { parameters: [], result: 'pointer' },
-		},
-	)
+			'kernel32.dll',
+			/* fns */
+			{
+				GetCommandLineA: { parameters: [], result: 'pointer' },
+				GetCommandLineW: { parameters: [], result: 'pointer' },
+			},
+		)
 	: undefined;
 
 //===
@@ -80,7 +80,7 @@ function GetCommandLineW(): WString | undefined {
 	let idx = 0;
 	byteOffset = 0;
 	value = ptrView.getUint16(byteOffset);
-	while ((value != null && value !== 0)) {
+	while (value != null && value !== 0) {
 		s[idx++] = value;
 		byteOffset = byteOffset + Uint16ByteSize;
 		value = ptrView.getUint16(byteOffset);

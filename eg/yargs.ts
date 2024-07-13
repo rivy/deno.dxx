@@ -26,7 +26,7 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -122,13 +122,15 @@ if (argv.help) {
 	console.log(yargsHelp);
 	// const help = await restyleYargsHelp(yargsHelp, { consoleWidth: consoleSize?.columns ?? 80 });
 	// console.log(help);
-	const onlyHelp = (argv._.length === 0) &&
+	const onlyHelp =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv.version) {
 	console.log(`${appName} ${appVersion}`);
-	const onlyVersion = (argv._.length === 0) &&
+	const onlyVersion =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyVersion ? 0 : 1);
 }

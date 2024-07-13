@@ -23,7 +23,7 @@ export function stringToCSTR(s: string) {
 	let bufferIndex = 0;
 	for (let i = 0; i <= length; i++) {
 		const charCode = s.charCodeAt(i);
-		if (!isNaN(charCode) && (charCode <= MAX_ASCII) && (charCode != NUL)) {
+		if (!isNaN(charCode) && charCode <= MAX_ASCII && charCode != NUL) {
 			u8[bufferIndex++] = charCode;
 		}
 	}
@@ -47,7 +47,7 @@ export function stringToCWSTR(s: string) {
 	for (let i = 0; i <= length; i++) {
 		{
 			const charCode = s.charCodeAt(i);
-			if (!isNaN(charCode) && (charCode != NUL)) {
+			if (!isNaN(charCode) && charCode != NUL) {
 				u16[bufferIndex++] = charCode;
 			}
 		}

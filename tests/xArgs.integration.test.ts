@@ -99,7 +99,7 @@ const cliArgs = [...commandArgs, ...exeArgs];
 const cliCmd = [command, ...cliArgs].join(' ');
 
 const useCMD = isWinOS && !command.match(/[.](com|exe)$/); // `/[.](com|exe|bat|cmd)$/` also seems to work but might have internal/unknown argument parsing/quoting by `Deno.Command()`
-const runner = isWinOS ? (useCMD ? 'cmd' : command) : (env('SHELL') || 'bash');
+const runner = isWinOS ? (useCMD ? 'cmd' : command) : env('SHELL') || 'bash';
 const args = (() => {
 	if (isWinOS) {
 		return [...(useCMD ? ['/x/d/c', `"${[`"${command}"`, ...cliArgs].join(' ')}"`] : [...cliArgs])];

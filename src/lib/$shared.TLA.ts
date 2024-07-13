@@ -12,7 +12,7 @@ export const atImportPermissions = await permitsAsync();
 
 function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	const c: Record<T, U> = {} as Record<T, U>;
-	a.map((e: T, idx: number) => c[e] = b[idx]);
+	a.map((e: T, idx: number) => (c[e] = b[idx]));
 	return c;
 }
 
@@ -21,8 +21,8 @@ export async function permitsAsync(
 ) {
 	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
 		names,
-		(await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((e) =>
-			e ?? { state: 'granted', onchange: null }
+		(await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map(
+			(e) => e ?? { state: 'granted', onchange: null },
 		),
 	);
 	return permits;
@@ -35,8 +35,8 @@ export async function permitsAsync(
 @param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 */
 export function env(varName: string, options?: { guard: boolean }) {
-	const guard = (options != null) ? options.guard : true;
-	const useDenoGet = !guard || (atImportPermissions.env.state === 'granted');
+	const guard = options != null ? options.guard : true;
+	const useDenoGet = !guard || atImportPermissions.env.state === 'granted';
 	try {
 		return useDenoGet ? Deno.env.get(varName) : undefined;
 	} catch (_) {

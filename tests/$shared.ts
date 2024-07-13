@@ -80,8 +80,8 @@ function toSpecFormat(specifier: string, value: unknown): string {
 export function format(...args: unknown[]) {
 	const replacement: [number, string][] = [];
 	const formatSpecifierRx = /%(s|d|i|f|j|o|O|c|%)/g;
-	const hasFormatTemplate = args.length > 0 &&
-		(typeof args[0] === 'string' || args[0] instanceof String);
+	const hasFormatTemplate =
+		args.length > 0 && (typeof args[0] === 'string' || args[0] instanceof String);
 	const formatTemplate = hasFormatTemplate ? (args[0] as string) : '';
 	let i = hasFormatTemplate ? 1 : 0;
 	let arr: RegExpExecArray | null = null;
@@ -124,7 +124,9 @@ function lineCount(filePath: string) {
 		try {
 			testFilePathLineCounts.set(
 				filePath,
-				Deno.readTextFileSync(traversal(filePath) ?? '').replace(/\r?\n$/ms, '').split(/\n/).length,
+				Deno.readTextFileSync(traversal(filePath) ?? '')
+					.replace(/\r?\n$/ms, '')
+					.split(/\n/).length,
 			);
 		} catch (_) {
 			// console.error('`lineCount()`: error happened');
@@ -134,7 +136,7 @@ function lineCount(filePath: string) {
 	}
 	const count = testFilePathLineCounts.get(filePath);
 	// console.error('`lineCount()`', { filePath, count });
-	return ((count != undefined) && (count >= 0)) ? count : undefined;
+	return count != undefined && count >= 0 ? count : undefined;
 }
 
 function composeTestName(
@@ -147,13 +149,13 @@ function composeTestName(
 		if (!align) return 0;
 		const tagLineText = tag.match(/:(\d+)$/)?.[1];
 		const tagLine = isNaN(Number(tagLineText)) ? -1 : Number(tagLineText);
-		const maxLines = ((tagLine >= 0) ? lineCount(tag.replace(/(:\d+)*$/, '')) : undefined) ?? -1;
-		return ((tagLine >= 0) && (maxLines >= 0) && (maxLines > tagLine))
-			? ([...maxLines.toString()].length - [...tagLine.toString()].length)
+		const maxLines = (tagLine >= 0 ? lineCount(tag.replace(/(:\d+)*$/, '')) : undefined) ?? -1;
+		return tagLine >= 0 && maxLines >= 0 && maxLines > tagLine
+			? [...maxLines.toString()].length - [...tagLine.toString()].length
 			: 0;
 	})();
 	const filePathText = tag
-		? ($colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) + ' ')
+		? $colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) + ' '
 		: '';
 	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
 }
@@ -167,18 +169,20 @@ export function createTestFn(testFilePath?: string | URL) {
 		// console.debug({ callers });
 		// ToDO: [2023-10-10; rivy] to avoid quiet failures, add testing to confirm that `callersFromStackTrace()` contains the expected data
 		// Deno 1.33.0+ adds at least one extra caller level (ie, `ext:core/01_core.js:166:11`) to the stack trace; remove it/them
-		while ((callers.length > 0) && (callers[callers.length - 1]?.startsWith('ext:'))) {
+		while (callers.length > 0 && callers[callers.length - 1]?.startsWith('ext:')) {
 			const _ = callers.pop();
 		}
 
 		const tag =
 			(pathOfTestFile
 				? pathOfTestFile
-				: callers.pop()?.replace(
-					/:\d+$/,
-					'',
-				) /* remove trailing character position data from stack frame data (formatted as `URL:LINE:CHAR_POS`) */) ??
-				'';
+				: callers
+						.pop()
+						?.replace(
+							/:\d+$/,
+							'',
+						)) /* remove trailing character position data from stack frame data (formatted as `URL:LINE:CHAR_POS`) */ ??
+			'';
 		const testName: TestName = composeTestName(tag, description, {
 			align: !pathOfTestFile,
 			ignore: !!options.ignore,
@@ -200,7 +204,7 @@ export function createTestFn(testFilePath?: string | URL) {
 					await fn();
 				} catch (e) {
 					const logText = testLog.flatMap(([n, v]) =>
-						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : []
+						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : [],
 					);
 					if (logText.length > 0) {
 						logText.unshift($colors.dim('# ---- test log:begin > ----'));
@@ -240,13 +244,12 @@ export const haveBmpVersion = () => {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return Promise
-			.all([process.status(), process.output()])
+		return Promise.all([process.status(), process.output()])
 			.then(([status, out]) => {
 				// console.debug({ status: status, out: decode(out) });
-				return (status.success
-					? ((decode(out)?.match(/(?:^|@)(\d+(?:[.]\d+)+)/) || [])[1])
-					: undefined);
+				return status.success
+					? (decode(out)?.match(/(?:^|@)(\d+(?:[.]\d+)+)/) || [])[1]
+					: undefined;
 			})
 			.finally(() => process.close());
 	} catch (_) {
@@ -268,13 +271,12 @@ export const haveCommitLintVersion = () => {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return Promise
-			.all([process.status(), process.output()])
+		return Promise.all([process.status(), process.output()])
 			.then(([status, out]) => {
 				// console.debug({ status: status, out: decode(out) });
-				return (status.success
-					? ((decode(out)?.match(/(?:^|@)(\d+(?:[.]\d+)+)/) || [])[1])
-					: undefined);
+				return status.success
+					? (decode(out)?.match(/(?:^|@)(\d+(?:[.]\d+)+)/) || [])[1]
+					: undefined;
 			})
 			.finally(() => process.close());
 	} catch (_) {
@@ -296,13 +298,12 @@ export const haveCSpellVersion = () => {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return Promise
-			.all([process.status(), process.output()])
+		return Promise.all([process.status(), process.output()])
 			.then(([_status, out]) => {
 				// console.debug({ status: _status, out: decode(out) });
 				// for some early versions, `cspell --version` returns status == 1 and version line followed by usage
 				// o/w for later v4 and >= v5, `cspell --version` returns status == 0 and version line only
-				return ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[0]);
+				return (decode(out)?.match(/^\d+([.]\d+)+/) || [])[0];
 			})
 			.finally(() => process.close());
 	} catch (_) {
@@ -324,13 +325,12 @@ export const haveDenoVersion = () => {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return Promise
-			.all([process.status(), process.output()])
+		return Promise.all([process.status(), process.output()])
 			.then(([status, out]) => {
 				// console.debug({ status: status, out: decode(out) });
-				return (status.success
-					? ((decode(out)?.match(/(?:^deno\s+)(\d+(?:[.]\d+)+)/) || [])[1])
-					: undefined);
+				return status.success
+					? (decode(out)?.match(/(?:^deno\s+)(\d+(?:[.]\d+)+)/) || [])[1]
+					: undefined;
 			})
 			.finally(() => process.close());
 	} catch (_) {
@@ -352,7 +352,10 @@ export const haveDPrint = () => {
 			stderr: 'null',
 			stdout: 'null',
 		});
-		return (process.status()).then((status) => status.success).finally(() => process.close());
+		return process
+			.status()
+			.then((status) => status.success)
+			.finally(() => process.close());
 	} catch (_) {
 		return Promise.resolve(false);
 	}
@@ -368,7 +371,10 @@ export const haveGit = () => {
 			stderr: 'null',
 			stdout: 'null',
 		});
-		return (process.status()).then((status) => status.success).finally(() => process.close());
+		return process
+			.status()
+			.then((status) => status.success)
+			.finally(() => process.close());
 	} catch (_) {
 		return Promise.resolve(false);
 	}
@@ -384,11 +390,10 @@ export const haveMadgeVersion = () => {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return Promise
-			.all([process.status(), process.output()])
+		return Promise.all([process.status(), process.output()])
 			.then(([status, out]) => {
 				// console.debug({ status: status, out: decode(out) });
-				return (status.success ? ((decode(out)?.match(/^\d+([.]\d+)+/) || [])[0]) : undefined);
+				return status.success ? (decode(out)?.match(/^\d+([.]\d+)+/) || [])[0] : undefined;
 			})
 			.finally(() => process.close());
 	} catch (_) {
@@ -411,7 +416,10 @@ export const isGitRepo = async (path = projectPath) => {
 				stderr: 'null',
 				stdout: 'null',
 			});
-			return (process.status()).then((status) => status.success).finally(() => process.close());
+			return process
+				.status()
+				.then((status) => status.success)
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(false);
 		}
@@ -432,7 +440,11 @@ export const gitProjectFilesWithEolDetail = async (path = projectPath, _options 
 			const result = Promise.all([process.status(), process.output()]);
 			return result
 				.then(([status, output]) =>
-					status.success ? decode(output).replace(/\r?\n$/, '').split(/\r?\n/) : undefined
+					status.success
+						? decode(output)
+								.replace(/\r?\n$/, '')
+								.split(/\r?\n/)
+						: undefined,
 				)
 				.finally(() => process.close());
 		} catch (_) {
@@ -443,9 +455,7 @@ export const gitProjectFilesWithEolDetail = async (path = projectPath, _options 
 
 export const gitProjectFiles = async (path = projectPath, options = {}) => {
 	const files = await gitProjectFilesWithEolDetail(path, options);
-	return (files && files.length > 0)
-		? files.map((file) => file.replace(/^[^\t]*\t/, ''))
-		: undefined;
+	return files && files.length > 0 ? files.map((file) => file.replace(/^[^\t]*\t/, '')) : undefined;
 };
 
 //===
@@ -470,9 +480,9 @@ export function deepEqual(x: unknown, y: unknown): boolean {
 	type AnObject = { [k: PropertyKey]: unknown };
 	const ok = Object.keys;
 	return x && y && typeof x === 'object' && typeof y === 'object'
-		? (ok(x).length === ok(y).length &&
-			ok(x).every((key) => deepEqual((x as AnObject)[key], (y as AnObject)[key])))
-		: (x === y);
+		? ok(x).length === ok(y).length &&
+				ok(x).every((key) => deepEqual((x as AnObject)[key], (y as AnObject)[key]))
+		: x === y;
 }
 
 //===
@@ -482,7 +492,7 @@ export function formatDuration(
 	durationInMS: number,
 	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
 ): string {
-	const [unit, n] = (durationInMS > 1000) ? ['s', durationInMS / 1000] : ['ms', durationInMS];
+	const [unit, n] = durationInMS > 1000 ? ['s', durationInMS / 1000] : ['ms', durationInMS];
 	const NumberFormat = new Intl.NumberFormat(undefined, options);
 	return NumberFormat.format(n) + ' ' + unit;
 }
@@ -506,26 +516,24 @@ export function median(arr: number[]): number | undefined {
 	if (arr.length === 1) return arr[0];
 	const sorted = [...arr].sort();
 	const size = sorted.length;
-	const isEven = (size % 2) === 0;
+	const isEven = size % 2 === 0;
 	const midpoint = Math.floor(sorted.length / 2);
-	return isEven ? ((sorted[midpoint - 1] + sorted[midpoint]) / 2) : sorted[midpoint];
+	return isEven ? (sorted[midpoint - 1] + sorted[midpoint]) / 2 : sorted[midpoint];
 }
 export function stdDevPopulation(arr: number[], mean_?: number): number | undefined {
 	if (arr.length <= 0) return undefined;
 	if (arr.length === 1) return arr[0];
-	const m = (mean_ != null) ? mean_ : mean(arr);
+	const m = mean_ != null ? mean_ : mean(arr);
 	if (m == null) return undefined;
-	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / arr.length);
+	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / arr.length);
 	return stdDev;
 }
 export function stdDevSample(arr: number[], mean_?: number): number | undefined {
 	if (arr.length <= 0) return undefined;
 	if (arr.length === 1) return arr[0];
-	const m = (mean_ != null) ? mean_ : mean(arr);
+	const m = mean_ != null ? mean_ : mean(arr);
 	if (m == null) return undefined;
-	const stdDev = Math.sqrt(
-		arr.reduce((acc, v) => acc + (Math.pow(v - m, 2)), 0) / (arr.length - 1),
-	);
+	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / (arr.length - 1));
 	return stdDev;
 }
 

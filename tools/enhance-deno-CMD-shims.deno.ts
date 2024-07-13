@@ -30,13 +30,15 @@ import { $yargs } from '../src/lib/$deps.cli.ts';
 
 //===
 
-await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-	// * script specific requirements
-	['read', 'write'],
-));
+await abortIfMissingPermits(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// * script specific requirements
+		['read', 'write'],
+	),
+);
 
 //===
 
@@ -53,9 +55,8 @@ const runAsName = $me.runAs;
 
 // logger.mergeMetadata({ authority: $me.name });
 
-const logLevelFromEnv = $logger.logLevelFromEnv() ??
-	(env('DEBUG') ? 'debug' : undefined) ??
-	undefined;
+const logLevelFromEnv =
+	$logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined) ?? undefined;
 await log.debug(
 	`log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );
@@ -71,7 +72,7 @@ log.mergeMetadata({
 		showLabel: true,
 		showSymbol: 'unicodeDoubleWidth',
 		// note: `labelFormatFn` should assume `s` is a unicode string (with possible surrogate pairs, not simple UTF-16 characters) and may contain ANSI escape codes
-		labelFormatFn: (s: string) => ($colors.inverse(s.slice(0, -1))),
+		labelFormatFn: (s: string) => $colors.inverse(s.slice(0, -1)),
 	},
 	// Humane: {
 	// 	showLabel: false,
@@ -128,7 +129,7 @@ Usage:\n  ${runAsName} [OPTION..]`)
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: (yargs bug) must precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -208,8 +209,7 @@ const possibleLogLevels = ((defaultLevel = 'note') => {
 		(args.verbose as boolean) ? 'info' : undefined,
 		(args.debug as boolean) ? 'debug' : undefined,
 		(args.trace as boolean) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
+	].filter(Boolean);
 	return (levels.length > 0 ? levels : [defaultLevel])
 		.map((s) => log.logLevelDetail(s)?.levelNumber)
 		.filter(Boolean)
@@ -303,8 +303,7 @@ const re = new RegExp(
 	// $path.globToRegExp(cmdGlob, { extended: true, globstar: true, os: 'windows' }),
 	$path
 		.globToRegExp(disableWinGlobEscape(cmdGlob), { extended: true, globstar: true, os: 'windows' })
-		.source
-		.replace(
+		.source.replace(
 			// * remove leading "anchor"
 			/^[^]/,
 			'',
@@ -316,15 +315,17 @@ const re = new RegExp(
 // const identity = <T>(x: T) => x;
 
 const res = [re];
-const fileEntries = await collect(filter(
-	// 	// (walkEntry) => walkEntry.path !== denoInstallRoot,
-	() => true,
-	$xWalk.walkSync(denoInstallRoot + '/.', {
-		maxDepth: 1,
-		match: res,
-		// skip: [/[.]/],
-	}),
-));
+const fileEntries = await collect(
+	filter(
+		// 	// (walkEntry) => walkEntry.path !== denoInstallRoot,
+		() => true,
+		$xWalk.walkSync(denoInstallRoot + '/.', {
+			maxDepth: 1,
+			match: res,
+			// skip: [/[.]/],
+		}),
+	),
+);
 // console.log({
 // 	denoInstallRoot,
 // 	res,
@@ -340,30 +341,32 @@ const fileEntries = await collect(filter(
 
 import { cmdShimTemplate, shimInfo } from '../src/lib/shim.windows.ts';
 
-const updates = await collect(map(async function (fileEntry) {
-	const shimPath = fileEntry.path;
-	const contentsOriginal = $eol.LF(decoder.decode(await Deno.readFile(shimPath)));
-	const shimBinName = $path.parse(shimPath).name;
-	const info = shimInfo(contentsOriginal);
-	const { denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs } = info;
-	const appNameVersion = '`' + appName + '` ' + version;
-	const contentsUpdated = $eol.CRLF(
-		$lodash.template(cmdShimTemplate(enablePipe))({
-			denoRunOptions,
-			denoRunTarget,
-			denoRunTargetPrefixArgs,
-			shimBinName,
-			appNameVersion,
-		}),
-	);
-	return {
-		shimPath,
-		knownFormat: !!info.denoRunTarget,
-		...info,
-		contentsOriginal,
-		contentsUpdated,
-	};
-}, fileEntries));
+const updates = await collect(
+	map(async function (fileEntry) {
+		const shimPath = fileEntry.path;
+		const contentsOriginal = $eol.LF(decoder.decode(await Deno.readFile(shimPath)));
+		const shimBinName = $path.parse(shimPath).name;
+		const info = shimInfo(contentsOriginal);
+		const { denoRunOptions, denoRunTarget, denoRunTargetPrefixArgs } = info;
+		const appNameVersion = '`' + appName + '` ' + version;
+		const contentsUpdated = $eol.CRLF(
+			$lodash.template(cmdShimTemplate(enablePipe))({
+				denoRunOptions,
+				denoRunTarget,
+				denoRunTargetPrefixArgs,
+				shimBinName,
+				appNameVersion,
+			}),
+		);
+		return {
+			shimPath,
+			knownFormat: !!info.denoRunTarget,
+			...info,
+			contentsOriginal,
+			contentsUpdated,
+		};
+	}, fileEntries),
+);
 
 for await (const update of updates) {
 	await log.trace({ update });

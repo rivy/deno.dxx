@@ -40,11 +40,13 @@ import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
 // 	Deno.exit(1);
 // }
 
-abortIfMissingPermitsSync(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-));
+abortIfMissingPermitsSync(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+	),
+);
 
 //===
 
@@ -116,7 +118,7 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -225,18 +227,17 @@ log.trace({ bakedArgs, argv });
 const possibleLogLevels = ((defaultLevel = 'notice') => {
 	const levels = [
 		logLevelFromEnv,
-		(argv?.silent) ? 'error' : undefined,
-		(argv?.quiet) ? 'warn' : undefined,
-		(argv?.verbose) ? 'info' : undefined,
-		(argv?.debug) ? 'debug' : undefined,
-		(argv?.trace) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
-	const logLevelFromArgv =
-		(Array.isArray(argv?.logLevel)
-			? argv?.logLevel as string[]
-			: [argv?.logLevel as string | undefined])
-			.pop();
+		argv?.silent ? 'error' : undefined,
+		argv?.quiet ? 'warn' : undefined,
+		argv?.verbose ? 'info' : undefined,
+		argv?.debug ? 'debug' : undefined,
+		argv?.trace ? 'trace' : undefined,
+	].filter(Boolean);
+	const logLevelFromArgv = (
+		Array.isArray(argv?.logLevel)
+			? (argv?.logLevel as string[])
+			: [argv?.logLevel as string | undefined]
+	).pop();
 	log.trace({ logLevelFromEnv, levels, logLevelFromArgv });
 	return [log.logLevelDetail(logLevelFromArgv)?.levelName]
 		.concat(
@@ -309,13 +310,15 @@ if (argv.help) {
 	await log.debug(durationText('run:generateHelp:customize'));
 	await log.debug(durationText('run:generateHelp'));
 	console.log(help);
-	const onlyHelp = (argv._.length === 0) &&
+	const onlyHelp =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv.version) {
 	console.log(`${appName} ${appVersion}`);
-	const onlyVersion = (argv._.length === 0) &&
+	const onlyVersion =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyVersion ? 0 : 1);
 }
@@ -326,7 +329,7 @@ if (argv.zero) {
 	console.log('$0 =', $me.argv0);
 }
 
-const output = (argv._.map(String))?.join(argv.lines ? '\n' : ' ');
+const output = argv._.map(String)?.join(argv.lines ? '\n' : ' ');
 if (output.length > 0) {
 	console.log(output);
 }

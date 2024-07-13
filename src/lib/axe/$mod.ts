@@ -19,7 +19,7 @@ type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 //===
 
 export const atImportPermissions = {
-	env: (await (Deno.permissions?.query({ name: 'env' }))) ?? { state: 'granted', onchange: null },
+	env: (await Deno.permissions?.query({ name: 'env' })) ?? { state: 'granted', onchange: null },
 	// ffi: (await (Deno.permissions?.query({ name: 'ffi' }))).state ?? 'granted',
 	// hrtime: (await (Deno.permissions?.query({ name: 'hrtime' }))).state ?? 'granted',
 	// net: (await (Deno.permissions?.query({ name: 'net' }))).state ?? 'granted',
@@ -35,8 +35,8 @@ export const atImportPermissions = {
 @param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
  */
 export function env(varName: string, options?: { guard: boolean }) {
-	const guard = (options != null) ? options.guard : true;
-	const useDenoGet = !guard || (atImportPermissions.env.state === 'granted');
+	const guard = options != null ? options.guard : true;
+	const useDenoGet = !guard || atImportPermissions.env.state === 'granted';
 	try {
 		return useDenoGet ? Deno.env.get(varName) : undefined;
 	} catch (_) {
@@ -200,9 +200,10 @@ export class TransformWriter<I = unknown, O = I> implements Writer<I>, Transform
 				if (!isTransformed) {
 					data = await this._transform?.(this, chunk);
 					if (typeof data !== 'undefined') {
-						s = typeof data === 'string'
-							? data
-							: (inspect(data, DEFAULT_INSPECT_OPTIONS).replaceAll(/\n\s*/gim, ' '));
+						s =
+							typeof data === 'string'
+								? data
+								: inspect(data, DEFAULT_INSPECT_OPTIONS).replaceAll(/\n\s*/gim, ' ');
 					}
 					isTransformed = true;
 				}
@@ -214,17 +215,17 @@ export class TransformWriter<I = unknown, O = I> implements Writer<I>, Transform
 				// 	data,
 				// 	s,
 				// });
-				return (typeof data !== 'undefined')
+				return typeof data !== 'undefined'
 					? (async () => {
-						const buf = encode(options.eol ? (s + options.eol) : s);
-						return await writeAll(writer as Writer<typeof buf>, buf);
-					})()
+							const buf = encode(options.eol ? s + options.eol : s);
+							return await writeAll(writer as Writer<typeof buf>, buf);
+						})()
 					: Promise.resolve(0);
 			});
 			promises.push(promise);
 		}
 		return Promise.all(promises).then((results) =>
-			results.reduce((allBytesWritten, bytesWritten) => allBytesWritten + bytesWritten, 0)
+			results.reduce((allBytesWritten, bytesWritten) => allBytesWritten + bytesWritten, 0),
 		);
 	}
 }
@@ -277,7 +278,7 @@ export const defLogLevels: LevelMap = {
 //===
 
 export function deepClone<T>(source: T): T {
-	if ((source == null) || (typeof source === 'function') || (typeof source !== 'object')) {
+	if (source == null || typeof source === 'function' || typeof source !== 'object') {
 		return source;
 	}
 	return deepMerge.all([{}, source]) as T;
@@ -317,12 +318,13 @@ export class Metadata {
 		// return this._data;
 	}
 	mergeData(data: DeepReadonly<AnObject>) {
-		this._data = (data instanceof Metadata)
-			? new Metadata(deepMerge.all([{}, this._data, data.getData()]))
-			: new Metadata(deepMerge.all([{}, this._data, data]));
+		this._data =
+			data instanceof Metadata
+				? new Metadata(deepMerge.all([{}, this._data, data.getData()]))
+				: new Metadata(deepMerge.all([{}, this._data, data]));
 	}
 	resetData(data: DeepReadonly<AnObject> = {}) {
-		this._data = (data instanceof Metadata) ? data.getData() : deepClone(data);
+		this._data = data instanceof Metadata ? data.getData() : deepClone(data);
 	}
 
 	// setData(o: AnObject) {
@@ -331,23 +333,20 @@ export class Metadata {
 
 	getScopedData(scope: string): AnObject | undefined {
 		// console.warn('getScopedData', { scope, data: this._data, type: typeof this._data[scope] });
-		return (scope && (typeof this._data[scope] === 'object'))
+		return scope && typeof this._data[scope] === 'object'
 			? (this._data[scope] as AnObject)
 			: undefined;
 	}
 	getGlobalData(): AnObject | undefined {
-		return (this._data[GLOBAL_SCOPE_REF_KEY] &&
-				(typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string'))
+		return this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string'
 			? this.getScopedData(this._data[GLOBAL_SCOPE_REF_KEY] as string)
 			: undefined;
 	}
 
 	getProp(name: string, scopes: string | string[] = []) {
 		if (!Array.isArray(scopes)) scopes = [scopes];
-		scopes = scopes.length > 0 ? scopes : this._data[DEFAULT_SCOPES_KEY] as string[];
-		if (
-			this._data[GLOBAL_SCOPE_REF_KEY] && (typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string')
-		) {
+		scopes = scopes.length > 0 ? scopes : (this._data[DEFAULT_SCOPES_KEY] as string[]);
+		if (this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string') {
 			scopes.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
 		}
 		for (const scope of scopes) {
@@ -359,17 +358,15 @@ export class Metadata {
 	getProps(names: string | string[], scopes: string | string[] = []) {
 		if (!Array.isArray(names)) names = [names];
 		if (!Array.isArray(scopes)) scopes = [scopes];
-		scopes = scopes.length > 0 ? scopes : this._data[DEFAULT_SCOPES_KEY] as string[];
-		if (
-			this._data[GLOBAL_SCOPE_REF_KEY] && (typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string')
-		) {
+		scopes = scopes.length > 0 ? scopes : (this._data[DEFAULT_SCOPES_KEY] as string[]);
+		if (this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string') {
 			scopes.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
 		}
 		const o: Record<string, unknown> = {};
 		for (const scope of scopes) {
 			const vars = this.getScopedData(scope);
 			for (const name of names) {
-				if ((o[name] == null) && (vars?.[name] != null)) {
+				if (o[name] == null && vars?.[name] != null) {
 					o[name] = vars?.[name]; // first matching
 				}
 			}
@@ -378,10 +375,8 @@ export class Metadata {
 	}
 	getAllProps(scopes: string | string[] = []) {
 		if (!Array.isArray(scopes)) scopes = [scopes];
-		scopes = scopes.length > 0 ? scopes : this._data[DEFAULT_SCOPES_KEY] as string[];
-		if (
-			this._data[GLOBAL_SCOPE_REF_KEY] && (typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string')
-		) {
+		scopes = scopes.length > 0 ? scopes : (this._data[DEFAULT_SCOPES_KEY] as string[]);
+		if (this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string') {
 			scopes.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
 		}
 		// console.warn('getAllProps()', { scopes, data: this._data });
@@ -389,7 +384,7 @@ export class Metadata {
 		for (const scope of scopes) {
 			const vars = this.getScopedData(scope) || {};
 			for (const key of Object.keys(vars)) {
-				if ((o[key] == null) && (vars[key] != null)) {
+				if (o[key] == null && vars[key] != null) {
 					o[key] = vars[key]; // first matching
 				}
 			}
@@ -504,16 +499,15 @@ class LoggerContext {
 
 	constructor(options?: LoggerOptions & { instanceClass?: string; instanceID?: string }) {
 		this.metadata =
-			((options?.metadata instanceof Metadata)
+			(options?.metadata instanceof Metadata
 				? options.metadata
 				: new Metadata(options?.metadata)) ?? new Metadata();
 
 		// options
-		this.lineOffset = (options?.lineOffset != null)
-			? options.lineOffset
-			: { file: /logger/i, method: /log/i };
-		this.levels = (options?.levels != null) ? deepClone(options.levels) : defLogLevels;
-		this.lineLevel = (options?.lineLevel != null) ? options.lineLevel : -Infinity;
+		this.lineOffset =
+			options?.lineOffset != null ? options.lineOffset : { file: /logger/i, method: /log/i };
+		this.levels = options?.levels != null ? deepClone(options.levels) : defLogLevels;
+		this.lineLevel = options?.lineLevel != null ? options.lineLevel : -Infinity;
 
 		// options: default level
 		const defaultLevel = options?.defaultLevel ?? 'notice';
@@ -550,14 +544,15 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		return this.#context.metadata.getData();
 	}
 	mergeMetadata(data: AnObject) {
-		this.#context.metadata = (data instanceof Metadata)
-			? new Metadata(
-				deepMerge.all([{}, this.#context.metadata.getData(), (data as Metadata).getData()]),
-			)
-			: new Metadata(deepMerge.all([{}, this.#context.metadata.getData(), data]));
+		this.#context.metadata =
+			data instanceof Metadata
+				? new Metadata(
+						deepMerge.all([{}, this.#context.metadata.getData(), (data as Metadata).getData()]),
+					)
+				: new Metadata(deepMerge.all([{}, this.#context.metadata.getData(), data]));
 	}
 	resetMetadata(data: AnObject) {
-		this.#context.metadata = (data instanceof Metadata) ? data : new Metadata(data);
+		this.#context.metadata = data instanceof Metadata ? data : new Metadata(data);
 	}
 
 	#suspended: boolean;
@@ -596,7 +591,7 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		super(undefined, options);
 		// FixME: [2021-10-29; rivy] this forced type revision is a hack to supply the default transform function for `Logger<unknown,LogEntry>`; it definitely can break for other class uses.
 		// *** maybe make `LogEntry` a class and somehow check for instanceof ...
-		(this as Mutable<this>)._transform = fn ?? Logger.LoggerTransformFn as any;
+		(this as Mutable<this>)._transform = fn ?? (Logger.LoggerTransformFn as any);
 		this.#context = new LoggerContext({
 			...options,
 			instanceID: this.id,
@@ -618,12 +613,12 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 
 	/** Alias for {@link logLevelDetail} using the configured logger levels. */
 	logLevelDetail(value?: number | string) {
-		return (value != undefined)
-			? (rfcGetLogLevel(value, this.#context.levels) ??
-				((typeof value === 'string')
-					? rfcGetLogLevel(value.toLocaleLowerCase(), this.#context.levels)
-					: undefined) ??
-				undefined)
+		return value != undefined
+			? rfcGetLogLevel(value, this.#context.levels) ??
+					(typeof value === 'string'
+						? rfcGetLogLevel(value.toLocaleLowerCase(), this.#context.levels)
+						: undefined) ??
+					undefined
 			: undefined;
 	}
 
@@ -660,12 +655,15 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 			writers: this._writers.concat(t._writers),
 			writeQueue: this._writeQueue, // note: drops/ignores _writeQueue from chained TransformWriter
 			metadata: new Metadata(
-				deepMerge.all([this.#context.metadata.getData(), {
-					chain_id: {
-						from: this.id,
-						chain: t.id,
+				deepMerge.all([
+					this.#context.metadata.getData(),
+					{
+						chain_id: {
+							from: this.id,
+							chain: t.id,
+						},
 					},
-				}]),
+				]),
 			), // ToDO?: merge metadata from t.context(), if it exists?
 		});
 	}
@@ -676,17 +674,18 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		args_: unknown | unknown[],
 	): LogEntry | undefined {
 		// console.warn('LoggerTransformFn()', { context_ });
-		const context = context_ && (context_ instanceof Logger) ? context_ : new Logger();
+		const context = context_ && context_ instanceof Logger ? context_ : new Logger();
 		const args: unknown[] = Array.isArray(args_) ? [...args_] : [args_];
 		// console.warn('LoggerTransformFn()', { context_, context, args });
 
 		// ToDO: rework this levelInfo determination...
 		const mayBeLogLevel = args.shift();
-		let levelInfo = (mayBeLogLevel === 'default')
-			? context.#context.defaultLevelInfo
-			: ((typeof mayBeLogLevel === 'string')
-				? rfcGetLogLevel(mayBeLogLevel, context.#context.levels)
-				: undefined);
+		let levelInfo =
+			mayBeLogLevel === 'default'
+				? context.#context.defaultLevelInfo
+				: typeof mayBeLogLevel === 'string'
+					? rfcGetLogLevel(mayBeLogLevel, context.#context.levels)
+					: undefined;
 		if (levelInfo == null) {
 			// fallback to the default log level
 			levelInfo = context.#context.defaultLevelInfo;
@@ -727,9 +726,10 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		const date = new Date().toISOString();
 
 		// fetch the line information
-		const lineInfo = levelInfo.levelNumber <= context.#context.lineLevel
-			? getCurrentLine(context.#context.lineOffset)
-			: { line: -1, char: -1, method: '', file: '' };
+		const lineInfo =
+			levelInfo.levelNumber <= context.#context.lineLevel
+				? getCurrentLine(context.#context.lineOffset)
+				: { line: -1, char: -1, method: '', file: '' };
 
 		let additionalMetadata = new Metadata({});
 		if (args && Array.isArray(args)) {
@@ -740,15 +740,20 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		}
 		const configuredMetadata = context?.getMetadata();
 		const metadata = new Metadata(
-			deepMerge.all([configuredMetadata, {
-				[`${context?.id}`]: deepMerge.all([configuredMetadata, {
-					levels: context
-						.#context
-						.levels,
-					levelInfo,
-					lineInfo,
-				}]),
-			}, additionalMetadata.getData()]),
+			deepMerge.all([
+				configuredMetadata,
+				{
+					[`${context?.id}`]: deepMerge.all([
+						configuredMetadata,
+						{
+							levels: context.#context.levels,
+							levelInfo,
+							lineInfo,
+						},
+					]),
+				},
+				additionalMetadata.getData(),
+			]),
 			{ globalScope: `${context?.id}` },
 		);
 		// const scopes = [...new Set([context.instanceClass, context.instanceID].filter(Boolean))];
@@ -831,7 +836,7 @@ export interface FilterOptions extends TransformWriterOptions<LogEntry> {
 
 function FilterTransformFn(context_: unknown | null, entry: LogEntry): LogEntry | undefined {
 	// console.warn('FilterTransform()', { context_, entry });
-	const context = context_ && (context_ instanceof Filter) ? context_ : new Filter();
+	const context = context_ && context_ instanceof Filter ? context_ : new Filter();
 	const thisID = context.id;
 	const thisClass = context.constructor.name;
 	const metadata = entry.metadata;
@@ -875,10 +880,10 @@ export class Filter extends TransformWriter<LogEntry> {
 	// }
 	protected _getLevelNumber(level: number | string, levels: LevelMap) {
 		if (level == null) return undefined;
-		return (rfcGetLogLevel(level, levels))?.levelNumber ?? undefined;
+		return rfcGetLogLevel(level, levels)?.levelNumber ?? undefined;
 	}
 	predicate: (entry: LogEntry, props?: Record<string, unknown>) => boolean = (entry, props) => {
-		const level = ((v = props?.level) => (v != null) ? format('%s', v) : undefined)() ?? this.level;
+		const level = ((v = props?.level) => (v != null ? format('%s', v) : undefined))() ?? this.level;
 		const filterLevelN = this._getLevelNumber(level, entry.levels) ?? Infinity;
 		const mayProceed = entry.levelNumber <= filterLevelN;
 		// console.warn('Filter/predicate()', { entry, props, level, filterLevelN });
@@ -918,7 +923,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 	// ref: <https://www.unicode.org/reports/tr51/tr51-21.html#Emoji_Variation_Sequences> @@ <https://archive.md/BT41I>
 	// ref: <https://unicode.org/emoji/charts/emoji-variants.html> @@ <https://archive.md/mI8co>
 	// ref: <http://www.iemoji.com> (note double-width "emoji-style" versions [vs single width "text-style"])
-	0: { // emergency
+	0: {
+		// emergency
 		label: 'emergency',
 		style: { prefix: $colors.brightRed, message: $colors.brightRed },
 		symbol: {
@@ -930,7 +936,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	1: { // alert
+	1: {
+		// alert
 		label: 'alert',
 		style: { prefix: $colors.brightRed, message: $colors.brightRed },
 		symbol: {
@@ -942,7 +949,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	2: { // critical
+	2: {
+		// critical
 		label: 'critical',
 		style: { prefix: $colors.brightRed, message: $colors.brightRed },
 		symbol: {
@@ -954,7 +962,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	3: { // error
+	3: {
+		// error
 		label: 'ERROR',
 		style: { prefix: $colors.red, message: $colors.red },
 		symbol: {
@@ -966,7 +975,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	4: { // warning
+	4: {
+		// warning
 		label: 'Warning',
 		style: { prefix: $colors.magenta, message: $colors.magenta },
 		symbol: {
@@ -978,7 +988,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	5: { // notice
+	5: {
+		// notice
 		label: 'note',
 		style: { prefix: $colors.cyan, message: $colors.cyan },
 		symbol: {
@@ -990,7 +1001,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	6: { // information
+	6: {
+		// information
 		label: 'info',
 		style: { prefix: $colors.brightCyan, message: $colors.brightCyan },
 		symbol: {
@@ -1002,7 +1014,8 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 			),
 		},
 	},
-	7: { // debug
+	7: {
+		// debug
 		label: 'debug',
 		style: { prefix: $colors.yellow, message: $colors.yellow },
 		symbol: {
@@ -1030,7 +1043,7 @@ export const defLevelProps: { [logLevel: number]: Required<LogLevelProperty> } =
 };
 
 const HumaneSymbolTypes = ['ascii', 'emoji', 'unicode', 'unicodeDoubleWidth'] as const;
-type HumaneSymbolOption = false | typeof HumaneSymbolTypes[number];
+type HumaneSymbolOption = false | (typeof HumaneSymbolTypes)[number];
 export interface HumaneOptions extends TransformWriterOptions<LogEntry, string> {
 	id?: string;
 	levelProps?: LogLevelProps;
@@ -1062,37 +1075,41 @@ export class Humane extends TransformWriter<LogEntry, string> {
 	// FixME: translate this to a `static` function with appropriate context
 	static HumaneTransformFn(context_: unknown | null, entry: LogEntry): string {
 		// console.warn('Humane/transform()', { context_, entry });
-		const context = (context_ && (context_ instanceof Humane)) ? context_ : new Humane();
+		const context = context_ && context_ instanceof Humane ? context_ : new Humane();
 		const thisID = context.id;
 		const thisClass = context.constructor.name;
 		const level = entry.levelNumber;
 		const metadata = entry.metadata;
 
 		const props = metadata?.getAllProps([...new Set([thisID || thisClass, thisClass])]) ?? {};
-		const authority = ((v = props.authority) => (v != null) ? format('%s', v) : undefined)();
-		const label = ((v = props.label) => (v != null) ? format('%s', v) : undefined)() ??
-			(context.levelProps[level]?.label) ??
+		const authority = ((v = props.authority) => (v != null ? format('%s', v) : undefined))();
+		const label =
+			((v = props.label) => (v != null ? format('%s', v) : undefined))() ??
+			context.levelProps[level]?.label ??
 			entry.levelName;
 		const showLabel = Boolean(
-			((v = props.showLabel) => (v != null) ? v : undefined)() ?? context.showLabel,
+			((v = props.showLabel) => (v != null ? v : undefined))() ?? context.showLabel,
 		);
 		const showStyle = Boolean(
-			((v = props.showStyle) => (v != null) ? v : undefined)() ?? context.showStyle,
+			((v = props.showStyle) => (v != null ? v : undefined))() ?? context.showStyle,
 		);
-		const maybeShowSymbol = ((v = props.showSymbol) => (v != null) ? format('%s', v) : undefined)();
+		const maybeShowSymbol = ((v = props.showSymbol) => (v != null ? format('%s', v) : undefined))();
 		const allowedSymbolTypes = HumaneSymbolTypes as unknown as string[];
-		const showSymbol = allowedSymbolTypes.indexOf(maybeShowSymbol ?? '') >= 0
-			? maybeShowSymbol as unknown as typeof HumaneSymbolTypes[number]
-			: false;
+		const showSymbol =
+			allowedSymbolTypes.indexOf(maybeShowSymbol ?? '') >= 0
+				? (maybeShowSymbol as unknown as (typeof HumaneSymbolTypes)[number])
+				: false;
 		const symbol = showSymbol
-			? ((context.levelProps[level]?.symbol as LogLevelSymbol)?.[showSymbol])
+			? (context.levelProps[level]?.symbol as LogLevelSymbol)?.[showSymbol]
 			: '*';
-		const prefixFormatFn = (props.prefixFormatFn as FormatFn) ??
+		const prefixFormatFn =
+			(props.prefixFormatFn as FormatFn) ??
 			((s) =>
 				(((showStyle && context.levelProps[level]?.style) as LogLevelStyle)?.prefix || IdentityFn)(
 					s,
 				));
-		const messageFormatFn = (props.messageFormatFn as FormatFn) ??
+		const messageFormatFn =
+			(props.messageFormatFn as FormatFn) ??
 			((s) =>
 				(((showStyle && context.levelProps[level]?.style) as LogLevelStyle)?.message || IdentityFn)(
 					s,
@@ -1103,15 +1120,15 @@ export class Humane extends TransformWriter<LogEntry, string> {
 		const prefix = prefixFormatFn(
 			[
 				showSymbol ? `${symbol}` : '',
-				showLabel ? (`${label}${authority ? ('/[' + authority + ']') : ''}:`) : '',
+				showLabel ? `${label}${authority ? '/[' + authority + ']' : ''}:` : '',
 			]
 				.filter(Boolean)
-				.join((showSymbol !== 'unicodeDoubleWidth') ? ' ' : ''),
+				.join(showSymbol !== 'unicodeDoubleWidth' ? ' ' : ''),
 		);
 		const text = messageFormatFn(format(...entry.args));
-		return [prefix, text].filter(Boolean).join(
-			(showLabel || showSymbol !== 'unicodeDoubleWidth') ? ' ' : '',
-		);
+		return [prefix, text]
+			.filter(Boolean)
+			.join(showLabel || showSymbol !== 'unicodeDoubleWidth' ? ' ' : '');
 
 		// form(data) receives {level: number, levelProps, authority?: string, messageStyleFn}
 	}
@@ -1135,8 +1152,9 @@ export function logLevelFromEnv(options?: { vars: string[] }): string | undefine
 
 //====
 
-export const logger = new Logger().chain(new Filter({ level: 'note' })).chain(new Humane()).into(
-	Deno.stderr,
-);
+export const logger = new Logger()
+	.chain(new Filter({ level: 'note' }))
+	.chain(new Humane())
+	.into(Deno.stderr);
 
 //===

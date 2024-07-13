@@ -4,7 +4,7 @@ export interface SpinnerAnimation {
 	frames: string[];
 }
 
-export default <{ [key: string]: SpinnerAnimation }> {
+export default (<{ [key: string]: SpinnerAnimation }>{
 	dots: { interval: 80, frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] },
 	dots2: { interval: 80, frames: ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'] },
 	dots3: { interval: 80, frames: ['⠋', '⠙', '⠚', '⠞', '⠖', '⠦', '⠴', '⠲', '⠳', '⠓'] },
@@ -753,4 +753,4 @@ export default <{ [key: string]: SpinnerAnimation }> {
 		// spell-checker:ignore ρββββββ , βρβββββ , ββρββββ , βββρβββ , ββββρββ , βββββρβ , ββββββρ
 		frames: ['ρββββββ', 'βρβββββ', 'ββρββββ', 'βββρβββ', 'ββββρββ', 'βββββρβ', 'ββββββρ'],
 	},
-};
+});

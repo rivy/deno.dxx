@@ -107,9 +107,8 @@ export class Spinner {
 		this.#linesToClear = 0;
 		this.#linesCount = 1;
 
-		this.#enabled = typeof opts.enabled === 'boolean'
-			? opts.enabled
-			: $tty.isInteractive(this.#stream);
+		this.#enabled =
+			typeof opts.enabled === 'boolean' ? opts.enabled : $tty.isInteractive(this.#stream);
 
 		if (opts.hideCursor) {
 			addEventListener('unload', () => {
@@ -205,9 +204,8 @@ export class Spinner {
 		frame = this.#color(frame);
 
 		this.#frameIndex = ++this.#frameIndex % frames.length;
-		const fullPrefixText = typeof this.prefix === 'string' && this.prefix !== ''
-			? this.prefix + ' '
-			: '';
+		const fullPrefixText =
+			typeof this.prefix === 'string' && this.prefix !== '' ? this.prefix + ' ' : '';
 		const fullText = typeof this.text === 'string' ? ' ' + this.text : '';
 
 		return fullPrefixText + frame + fullText;
@@ -231,12 +229,12 @@ export class Spinner {
 		const denoConsoleSize = (Deno as any).consoleSize;
 		const columns = denoConsoleSize ? denoConsoleSize(this.#stream.rid)?.columns || 80 : 80;
 		const fullPrefixText = typeof this.prefix === 'string' ? this.prefix + '-' : '';
-		this.#linesCount = $colors.stripColor(fullPrefixText + '--' + this.text).split('\n').reduce(
-			(count, line) => {
+		this.#linesCount = $colors
+			.stripColor(fullPrefixText + '--' + this.text)
+			.split('\n')
+			.reduce((count, line) => {
 				return count + Math.max(1, Math.ceil($tty.wcswidth(line) / columns));
-			},
-			0,
-		);
+			}, 0);
 	}
 
 	stop() {
