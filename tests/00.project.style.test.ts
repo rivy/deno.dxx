@@ -80,28 +80,27 @@ const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorc
 function xSplit(s: string, sep: RegExp | string, options?: { trailing: boolean }) {
 	const opts = { trailing: false, ...options };
 	const r = s.split(sep);
-	if (!opts.trailing && (r[r.length - 1] === '')) r.pop();
+	if (!opts.trailing && r[r.length - 1] === '') r.pop();
 	return r;
 }
 
 const _gitLsFiles = (await haveGit())
 	? () => {
-		try {
-			const p = Deprecated.Deno.run({
-				cmd: ['git', 'ls-files', '--eol', '--full-name', projectPath],
-				stdout: 'piped',
-				stderr: 'piped',
-			});
-			return Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.then(([_status, out, _err]) => {
-					return decode(out);
-				})
-				.finally(() => p.close());
-		} catch (_) {
-			return Promise.resolve(undefined);
+			try {
+				const p = Deprecated.Deno.run({
+					cmd: ['git', 'ls-files', '--eol', '--full-name', projectPath],
+					stdout: 'piped',
+					stderr: 'piped',
+				});
+				return Promise.all([p.status(), p.output(), p.stderrOutput()])
+					.then(([_status, out, _err]) => {
+						return decode(out);
+					})
+					.finally(() => p.close());
+			} catch (_) {
+				return Promise.resolve(undefined);
+			}
 		}
-	}
 	: () => Promise.resolve(undefined);
 
 const _gitFiles = xSplit((await _gitLsFiles()) || '', /r?\n|\r/);
@@ -126,19 +125,21 @@ const _tabbedFilesRxs = '[.](bat|cmd)';
 
 const projectPotentialPaths = args(
 	$path.join(projectPath, `!(${excludeDirsRxs.join('|')}){*,*/**/*}`),
-)
-	.filter((path) =>
-		!$path.relative(projectPath, path).match(
-			new RegExp(
-				`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
-				isWinOS ? 'i' : '',
+).filter(
+	(path) =>
+		!$path
+			.relative(projectPath, path)
+			.match(
+				new RegExp(
+					`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
+					isWinOS ? 'i' : '',
+				),
 			),
-		)
-	);
+);
 
 const projectFiles = projectPotentialPaths.filter((path) => Deno.lstatSync(path).isFile);
-const projectNonBinaryFiles = projectFiles.filter((file) =>
-	!$path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : ''))
+const projectNonBinaryFiles = projectFiles.filter(
+	(file) => !$path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : '')),
 );
 // const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
 
@@ -159,9 +160,11 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		// console.debug({ cmd });
 		test(description, async () => {
 			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
-			const [status, out, err] = await Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.finally(() => p.close());
+			const [status, out, err] = await Promise.all([
+				p.status(),
+				p.output(),
+				p.stderrOutput(),
+			]).finally(() => p.close());
 			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
 			if (!status.success) {
 				console.warn(`\`${command}\` status`, status);
@@ -186,22 +189,21 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 
 	const gitDescribe = (await haveGit())
 		? async () => {
-			try {
-				const p = Deprecated.Deno.run({
-					cmd: [...gitDescribeCommand],
-					stdout: 'piped',
-					stderr: 'piped',
-				});
-				return await Promise
-					.all([p.status(), p.output(), p.stderrOutput()])
-					.then(([_status, out, _err]) => {
-						return decode(out);
-					})
-					.finally(() => p.close());
-			} catch (_) {
-				return undefined;
+				try {
+					const p = Deprecated.Deno.run({
+						cmd: [...gitDescribeCommand],
+						stdout: 'piped',
+						stderr: 'piped',
+					});
+					return await Promise.all([p.status(), p.output(), p.stderrOutput()])
+						.then(([_status, out, _err]) => {
+							return decode(out);
+						})
+						.finally(() => p.close());
+				} catch (_) {
+					return undefined;
+				}
 			}
-		}
 		: () => Promise.resolve(undefined);
 	const commitLintFrom = await (async () => {
 		// find a commit-ish reference to use as base parent for "new" commits
@@ -221,14 +223,13 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 					`git tag --list ${gitVersionTagGlob} --contains origin/last --sort=v:refname`,
 					'git describe --tags --abbrev=0 HEAD~1',
 					'git rev-list --max-parents=0 HEAD --abbrev-commit --abbrev=16',
-				]
-					.join(cliCommandSep),
+				].join(cliCommandSep),
 			],
 			stderr: 'piped',
 			stdout: 'piped',
 		});
 		await p.status();
-		return (decode(await p.output()).split(/\r?\n/))[0] || undefined;
+		return decode(await p.output()).split(/\r?\n/)[0] || undefined;
 	})();
 	const exeArgs = [
 		'--config',
@@ -236,8 +237,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		(await gitDescribe())?.match(versionRx) ? '--strict' : undefined,
 		'--from',
 		commitLintFrom || 'HEAD',
-	]
-		.filter((e) => e != null) as string[];
+	].filter((e) => e != null) as string[];
 	const exeCmd = [command, ...exeArgs].join(' ');
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
@@ -249,9 +249,11 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
 			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
-			const [status, out, err] = await Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.finally(() => p.close());
+			const [status, out, err] = await Promise.all([
+				p.status(),
+				p.output(),
+				p.stderrOutput(),
+			]).finally(() => p.close());
 			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
 			if (!status.success) {
 				console.warn(`\`${command}\` status`, status);
@@ -268,7 +270,7 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 	const command = 'cspell';
 	const haveCommand = await haveCSpell();
 	const exeArgs = [
-		...((versionCompare(cSpellVersion, '5.0.0') >= 0) ? ['lint', '--no-progress'] : []),
+		...(versionCompare(cSpellVersion, '5.0.0') >= 0 ? ['lint', '--no-progress'] : []),
 		'--config',
 		'./.vscode/cspell.json',
 		'**',
@@ -282,9 +284,11 @@ const projectNonBinaryFiles = projectFiles.filter((file) =>
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
 			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
-			const [status, out, err] = await Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.finally(() => p.close());
+			const [status, out, err] = await Promise.all([
+				p.status(),
+				p.output(),
+				p.stderrOutput(),
+			]).finally(() => p.close());
 			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
 			if (!status.success) {
 				console.warn(`\`${command}\` status`, status);
@@ -304,7 +308,7 @@ test('style ~ `deno lint`', async () => {
 		stderr: 'piped',
 	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
+		() => p.close(),
 	);
 	if (!status.success) {
 		console.warn('`deno lint` status', status);
@@ -316,7 +320,7 @@ test('style ~ `deno lint`', async () => {
 
 {
 	const description = 'style ~ `dprint check`';
-	if (!await haveDPrint()) {
+	if (!(await haveDPrint())) {
 		test.skip(description + '...skipped (`dprint` not found)');
 	} else {
 		test(description, async () => {
@@ -326,9 +330,11 @@ test('style ~ `deno lint`', async () => {
 				stdout: 'piped',
 				stderr: 'piped',
 			});
-			const [status, out, err] = await Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.finally(() => p.close());
+			const [status, out, err] = await Promise.all([
+				p.status(),
+				p.output(),
+				p.stderrOutput(),
+			]).finally(() => p.close());
 			if (!status.success) {
 				console.warn('`dprint check` status', status);
 				console.warn(decode(out).replace(/\r?\n$/ms, ''));
@@ -345,10 +351,10 @@ test(`style ~ non-binary project files exist (${projectNonBinaryFiles.length} fo
 
 test('style ~ non-binary project files do not contain leading utf-8 BOM', () => {
 	// # utf-8 BOM == 0xEF 0xBB 0xBF
-	const UTF8_BOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
+	const UTF8_BOM = new Uint8Array([0xef, 0xbb, 0xbf]);
 	const flawedFiles = projectNonBinaryFiles.filter((file) => {
 		const content = Deno.readFileSync(file);
-		return (content.length > 0 && (equal(content.slice(0, 3), UTF8_BOM)));
+		return content.length > 0 && equal(content.slice(0, 3), UTF8_BOM);
 	});
 	if (flawedFiles.length > 0) {
 		console.warn('The following files contain leading utf-8 BOM:');
@@ -360,7 +366,7 @@ test('style ~ non-binary project files do not contain leading utf-8 BOM', () => 
 test('style ~ non-binary project files (when non-empty) end with a newline', () => {
 	const flawedFiles = projectNonBinaryFiles.filter((file) => {
 		const content = Deno.readTextFileSync(file);
-		return (content.length > 0 && (!content.slice(-1).match(/\r|\n/ms)));
+		return content.length > 0 && !content.slice(-1).match(/\r|\n/ms);
 	});
 	if (flawedFiles.length > 0) {
 		console.warn('The following files do not end with a newline:');
@@ -373,7 +379,7 @@ test('style ~ non-binary project files (when non-empty) use LF as newline by def
 	const flaws = projectNonBinaryFiles.flatMap((file) => {
 		if ($path.extname(file).match(new RegExp(crlfFilesRxs, isWinOS ? 'i' : ''))) return [];
 		const content = Deno.readTextFileSync(file);
-		const lines: string[] = (content.length > 0) ? content.split(/(?<=\r?\n)/) : []; // CRLF | LF | CR
+		const lines: string[] = content.length > 0 ? content.split(/(?<=\r?\n)/) : []; // CRLF | LF | CR
 		// const content = Deno.readTextFileSync(file).split(/(?<=\r?\n|\r)/); // CRLF | LF | CR // ref: https://runkit.com/rivy/6146e4954b13950008d994ca
 		const files: [string, number, string][] = [];
 		// console.error({ file, lines: content.length });
@@ -386,8 +392,9 @@ test('style ~ non-binary project files (when non-empty) use LF as newline by def
 	if (flaws.length > 0) {
 		console.warn(`The following ${flaws.length} line(s) have non-LF newlines:`);
 		console.warn(
-			flaws.map(([file, index, line]) =>
-				`File: '${$path.relative(projectPath, file)}', Line: ${index}, "${line}"`
+			flaws.map(
+				([file, index, line]) =>
+					`File: '${$path.relative(projectPath, file)}', Line: ${index}, "${line}"`,
 			),
 		);
 	}
@@ -406,8 +413,8 @@ test('style ~ non-binary project files have no lines containing trailing whitesp
 	if (flaws.length > 0) {
 		console.warn(`The following ${flaws.length} line(s) contain trailing whitespace:`);
 		console.warn(
-			flaws.map(([file, index, _line]) =>
-				`File: '${$path.relative(projectPath, file)}', Line: ${index}`
+			flaws.map(
+				([file, index, _line]) => `File: '${$path.relative(projectPath, file)}', Line: ${index}`,
 			),
 		);
 	}

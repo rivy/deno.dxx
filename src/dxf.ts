@@ -28,13 +28,15 @@ import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
 
 //===
 
-await abortIfMissingPermitsSync(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-	// * script specific requirements
-	['read', 'run'], // required to find and run formatter commands
-));
+await abortIfMissingPermitsSync(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// * script specific requirements
+		['read', 'run'], // required to find and run formatter commands
+	),
+);
 
 //===
 
@@ -78,13 +80,12 @@ log.mergeMetadata({
 			// ref: <https://metacpan.org/dist/Regexp-Common-Other/source/lib/Regexp/Common/ANSIescape.pm>
 			// ref: <https://stackoverflow.com/a/14693789/43774> @@ <https://archive.md/JwwBc>
 			// ref: <https://github.com/arcanis/slice-ansi> , <https://github.com/chalk/slice-ansi> , <https://github.com/mafintosh/ansi-split>
-			const AnsiEscapeReS = '(?:\x1b(?:[@-Z_-]|\[[0-?]*[ -/]*[@-~]))'; // 7-bit ANSI escapes
+			const AnsiEscapeReS = '(?:\x1b(?:[@-Z_-]|\\[[0-?]*[ -/]*[@-~]))'; // 7-bit ANSI escapes
 			const VariationSelectorReS = '(?:[\ufe00-\ufe0f])'; // unicode variation selectors ; ref: <https://en.wikipedia.org/wiki/Variation_Selectors_(Unicode_block)>
 			const symbolReS = `(?:.${VariationSelectorReS}?)`;
 			const labelWithNameAndAuthSubgroupsReS = '(?:(.*?)(?:/\\[(.*?)\\])?)';
-			const prefixReS =
-				`^(${AnsiEscapeReS}*)(${symbolReS})?(${AnsiEscapeReS}*)\\s*(${labelWithNameAndAuthSubgroupsReS}):?(${AnsiEscapeReS}*)$`;
-			return ($colors.inverse(
+			const prefixReS = `^(${AnsiEscapeReS}*)(${symbolReS})?(${AnsiEscapeReS}*)\\s*(${labelWithNameAndAuthSubgroupsReS}):?(${AnsiEscapeReS}*)$`;
+			return $colors.inverse(
 				s.replace(
 					new RegExp(prefixReS),
 					(
@@ -97,16 +98,14 @@ log.mergeMetadata({
 						_authority,
 						ansiSuffix,
 					) => {
-						const symbol = ((useUnicode && useColor) || !useColor) ? _symbol : ` ${_symbol} `;
-						if (
-							['note', 'info', 'debug', 'trace'].includes(_levelName.toLocaleLowerCase())
-						) {
+						const symbol = (useUnicode && useColor) || !useColor ? _symbol : ` ${_symbol} `;
+						if (['note', 'info', 'debug', 'trace'].includes(_levelName.toLocaleLowerCase())) {
 							return `${ansiPrefix}${symbol}${ansiSeparator}${ansiSuffix}`;
 						}
 						return `${ansiPrefix}${symbol}${ansiSeparator}${_label}${ansiSuffix}`;
 					},
 				) ?? s,
-			));
+			);
 		},
 	},
 });
@@ -168,7 +167,7 @@ Usage:\n  ${runAsName} [OPTION..] [-- [FORMAT_OPTION..]] [FILE..]`)
 	.group(['help', 'version'], '*Help/Info:')
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// ref: <https://github.com/yargs/yargs-parser#configuration>
 	.parserConfiguration({
@@ -217,18 +216,17 @@ log.trace({ bakedArgs, argv });
 const possibleLogLevels = ((defaultLevel = 'notice') => {
 	const levels = [
 		logLevelFromEnv,
-		(argv?.silent) ? 'error' : undefined,
-		(argv?.quiet) ? 'warn' : undefined,
-		(argv?.verbose) ? 'info' : undefined,
-		(argv?.debug) ? 'debug' : undefined,
-		(argv?.trace) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
-	const logLevelFromArgv =
-		(Array.isArray(argv?.logLevel)
-			? argv?.logLevel as string[]
-			: [argv?.logLevel as string | undefined])
-			.pop();
+		argv?.silent ? 'error' : undefined,
+		argv?.quiet ? 'warn' : undefined,
+		argv?.verbose ? 'info' : undefined,
+		argv?.debug ? 'debug' : undefined,
+		argv?.trace ? 'trace' : undefined,
+	].filter(Boolean);
+	const logLevelFromArgv = (
+		Array.isArray(argv?.logLevel)
+			? (argv?.logLevel as string[])
+			: [argv?.logLevel as string | undefined]
+	).pop();
 	log.trace({ logLevelFromEnv, levels, logLevelFromArgv });
 	return [log.logLevelDetail(logLevelFromArgv)?.levelName]
 		.concat(
@@ -287,7 +285,7 @@ const args = argv._.map(String);
 //=== ***
 
 const files = args;
-const formatter = argv.formatter as string | undefined ?? 'dprint';
+const formatter = (argv.formatter as string | undefined) ?? 'dprint';
 
 const denoVersion = await haveDenoVersion();
 const denoFmtHasConfig = denoVersion != undefined && $semver.gte(denoVersion, '1.14.0');
@@ -314,8 +312,9 @@ runOptions['deno'] = {
 };
 
 runOptions['dprint'] = {
-	cmd: ['dprint', 'fmt'].concat((haveDprintConfig ? ['--config', dprintConfigPath[0]] : [])
-		.concat([...files])),
+	cmd: ['dprint', 'fmt'].concat(
+		(haveDprintConfig ? ['--config', dprintConfigPath[0]] : []).concat([...files]),
+	),
 	stderr: 'inherit',
 	stdin: 'inherit',
 	stdout: 'inherit',
@@ -349,7 +348,8 @@ function haveDprintVersion() {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return (process.output())
+		return process
+			.output()
 			.then((output) => decode(output).match(/^dprint\s+(\d+([.]\d+)*)/im)?.[1])
 			.finally(() => process.close());
 	} catch (_) {
@@ -365,7 +365,8 @@ function haveDenoVersion() {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return (process.output())
+		return process
+			.output()
 			.then((output) => decode(output).match(/^deno\s+(\d+([.]\d+)*)/im)?.[1])
 			.finally(() => process.close());
 	} catch (_) {

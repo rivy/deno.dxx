@@ -80,7 +80,7 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 			dlopen: Deno.dlopen,
 			UnsafePointer: Deno.UnsafePointer,
 			// deno-lint-ignore no-explicit-any
-			UnsafePointerValue: ((Deno.UnsafePointer) as any)?.value,
+			UnsafePointerValue: (Deno.UnsafePointer as any)?.value,
 			UnsafePointerView: Deno.UnsafePointerView,
 		};
 		// console.warn({ u });
@@ -95,17 +95,17 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 	const dllKernel = (() => {
 		try {
 			return unstable.dlopen('kernel32.dll', {
-				'GetConsoleScreenBufferInfo':
+				GetConsoleScreenBufferInfo:
 					/* https://learn.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo */ {
 						parameters: ['pointer', 'buffer'],
 						result: 'u32', // BOOL
 					},
-				'CreateFileW':
+				CreateFileW:
 					/* https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew */ {
 						parameters: ['pointer', 'u32', 'u32', 'pointer', 'u32', 'u32', 'pointer'],
-						result: 'pointer', /* file handle */
+						result: 'pointer' /* file handle */,
 					},
-				'OpenFile': /* https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfile */
+				OpenFile /* https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfile */:
 					{ parameters: ['pointer', 'pointer', 'u32'], result: 'pointer' },
 			});
 		} catch {
@@ -128,13 +128,13 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 	const GENERIC_WRITE = 0x40000000;
 	// ref: [Correct use of `CreateFileW()`](https://stackoverflow.com/questions/49145316/why-no-text-colors-after-using-createfileconout-to-redirect-the-console)
 	const h = dllKernel?.symbols.CreateFileW(
-		unstable.UnsafePointer.of(stringToCWSTR('CONOUT$')), /* lpFileName (a NUL-terminated CWSTR) */
-		ToUint32(GENERIC_WRITE | GENERIC_READ), /* dwDesiredAccess */
-		ToUint32(FILE_SHARE_WRITE), /* dwShareMode */
-		null, /* lpSecurityAttributes (optional) */
-		ToUint32(CF_OPEN_EXISTING), /* dwCreationDisposition */
-		0, /* dwFlagsAndAttributes */
-		null, /* hTemplateFile (optional) */
+		unstable.UnsafePointer.of(stringToCWSTR('CONOUT$')) /* lpFileName (a NUL-terminated CWSTR) */,
+		ToUint32(GENERIC_WRITE | GENERIC_READ) /* dwDesiredAccess */,
+		ToUint32(FILE_SHARE_WRITE) /* dwShareMode */,
+		null /* lpSecurityAttributes (optional) */,
+		ToUint32(CF_OPEN_EXISTING) /* dwCreationDisposition */,
+		0 /* dwFlagsAndAttributes */,
+		null /* hTemplateFile (optional) */,
 	) as Deno.PointerValue;
 	// console.warn('done CreateFile');
 
@@ -188,33 +188,34 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 		...dwMaximumWindowSize,
 	];
 	const CONSOLE_SCREEN_BUFFER_INFO_size = CONSOLE_SCREEN_BUFFER_INFO.flat().reduce(
-		(sum, type) => sum += byteSizeOfNativeType(type),
+		(sum, type) => (sum += byteSizeOfNativeType(type)),
 		0,
 	);
 	const infoBuffer = new Uint8Array(CONSOLE_SCREEN_BUFFER_INFO_size);
 	// @ts-ignore # ignore early Deno version errors for unstable API (`UnsafePointer.value()` only exists in v1.31.0+)
-	const handle: Deno.PointerValue | null = (unstable.UnsafePointer.value(h) != INVALID_HANDLE)
-		? h
-		: null;
+	const handle: Deno.PointerValue | null =
+		unstable.UnsafePointer.value(h) != INVALID_HANDLE ? h : null;
 	// console.warn({ h, handle });
-	const result = (handle != null) &&
+	const result =
+		handle != null &&
 		(dllKernel?.symbols.GetConsoleScreenBufferInfo(handle, infoBuffer) ?? FALSE) != FALSE;
 	const ptr = result ? unstable.UnsafePointer.of(infoBuffer) : null;
-	const ptrView = (ptr != null) ? new unstable.UnsafePointerView(ptr) : null;
-	const info = (ptrView != null)
-		? {
-			dwSize: { columns: ptrView.getInt16(0), rows: ptrView.getInt16(2) },
-			dwCursorPosition: { column: ptrView.getInt16(4), row: ptrView.getInt16(6) },
-			wAttributes: ptrView.getUint16(8),
-			srWindow: {
-				Left: ptrView.getInt16(10),
-				Top: ptrView.getInt16(12),
-				Right: ptrView.getInt16(14),
-				Bottom: ptrView.getInt16(16),
-			},
-			dwMaximumWindowSize: { columns: ptrView.getInt16(18), rows: ptrView.getInt16(20) },
-		}
-		: null;
+	const ptrView = ptr != null ? new unstable.UnsafePointerView(ptr) : null;
+	const info =
+		ptrView != null
+			? {
+					dwSize: { columns: ptrView.getInt16(0), rows: ptrView.getInt16(2) },
+					dwCursorPosition: { column: ptrView.getInt16(4), row: ptrView.getInt16(6) },
+					wAttributes: ptrView.getUint16(8),
+					srWindow: {
+						Left: ptrView.getInt16(10),
+						Top: ptrView.getInt16(12),
+						Right: ptrView.getInt16(14),
+						Bottom: ptrView.getInt16(16),
+					},
+					dwMaximumWindowSize: { columns: ptrView.getInt16(18), rows: ptrView.getInt16(20) },
+				}
+			: null;
 	// console.warn('FFI', { buffer, info });
 	if (info != null) size = { columns: info.dwSize.columns, rows: info.dwSize.rows };
 

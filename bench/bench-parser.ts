@@ -28,8 +28,8 @@ import * as Parser from '../src/lib/xArgs.ts';
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(`log level of '${logLevelFromEnv}' generated from environment variables`);
 
-const mayBeLogLevelName = logLevelFromEnv &&
-	log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
+const mayBeLogLevelName =
+	logLevelFromEnv && log.logLevelDetail(logLevelFromEnv.toLocaleLowerCase())?.levelName;
 const logLevel = mayBeLogLevelName || 'note';
 
 log.mergeMetadata({ Filter: { level: logLevel } });
@@ -57,9 +57,11 @@ function randomBoolean() {
 function randomTokenFragment() {
 	const quote = randomBoolean() ? '' : random.pick('"', `'`);
 	const length = random.int(1, 10);
-	return (quote +
+	return (
+		quote +
 		random.string(length, Random.LOWER_ALPHA_NUMERICS + (quote ? '' : '           ')) +
-		quote);
+		quote
+	);
 }
 
 function randomTokenString() {
@@ -137,15 +139,15 @@ Deno.bench({
 performance.mark('setup:stop');
 performance.measure('setup', 'setup:start', 'setup:stop');
 
-await log.debug(`setup done (duration: ${
-	(() => {
+await log.debug(
+	`setup done (duration: ${(() => {
 		const duration = performance.getEntriesByName('setup')[0].duration;
 		const displayAsSeconds = duration > 1000;
 		const [unit, n] = displayAsSeconds ? ['s', duration / 1000] : ['ms', duration];
 		const NumberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 });
 		return NumberFormat.format(n) + ' ' + unit;
-	})()
-})`);
+	})()})`,
+);
 
 await log.debug('starting benchmarking');
 
@@ -154,8 +156,7 @@ performance.mark('bench:start');
 const benchMarkRunResult = await runBenchmarks(
 	{ silent: true, skip: /_long/ },
 	prettyBenchmarkProgress(),
-)
-	.then(prettyBenchmarkResult({ parts: { extraMetrics: true, graph: true, graphBars: 20 } }));
+).then(prettyBenchmarkResult({ parts: { extraMetrics: true, graph: true, graphBars: 20 } }));
 
 //===
 
@@ -170,8 +171,9 @@ for (const result of results) {
 	table.push([
 		result.name,
 		result.runsCount,
-		formatDuration(result.measuredRunsAvgMs) + ' +/- ' +
-		formatDuration(stdDevSample(result.measuredRunsMs) ?? 0),
+		formatDuration(result.measuredRunsAvgMs) +
+			' +/- ' +
+			formatDuration(stdDevSample(result.measuredRunsMs) ?? 0),
 		formatDuration(median(result.measuredRunsMs) ?? 0),
 		formatN(result.measuredRunsAvgMs === minDuration ? 1 : result.measuredRunsAvgMs / minDuration, {
 			minimumFractionDigits: 1,
@@ -186,9 +188,9 @@ console.log(table.toString());
 
 performance.mark('bench:stop');
 performance.measure('bench', 'bench:start', 'bench:stop');
-await log.debug(`benchmarking done (duration: ${
-	(() => {
+await log.debug(
+	`benchmarking done (duration: ${(() => {
 		const duration = performance.getEntriesByName('bench')[0].duration;
 		return formatDuration(duration, { maximumFractionDigits: 3 });
-	})()
-})`);
+	})()})`,
+);

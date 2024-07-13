@@ -77,8 +77,8 @@ export function formatWithOptions(inspectOptions_: Deno.InspectOptions, ...args:
 	const inspectOptions = { ...DEFAULT_INSPECT_OPTIONS, ...inspectOptions_ };
 	const replacement: [number, string][] = [];
 	const formatSpecifierRx = /%(s|d|i|f|j|o|O|c|%)/g;
-	const hasFormatTemplate = args.length > 0 &&
-		(typeof args[0] === 'string' || args[0] instanceof String);
+	const hasFormatTemplate =
+		args.length > 0 && (typeof args[0] === 'string' || args[0] instanceof String);
 	const formatTemplate = hasFormatTemplate ? (args[0] as string) : '';
 	let i = hasFormatTemplate ? 1 : 0;
 	let arr: RegExpExecArray | null = null;

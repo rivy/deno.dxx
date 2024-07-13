@@ -31,7 +31,7 @@ const warn = createWarnFn(import.meta.url);
 
 const newlines = /\r|\r?\n/g;
 
-const semverMmrReS = '(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)';
+const semverMmrReS = '(0|[1-9]\\d*)[.](0|[1-9]\\d*)[.](0|[1-9]\\d*)';
 const semverPatchReS = '(?:-(?:[0-9a-zA-Z-]*(?:[.][0-9a-zA-Z-]*)*))';
 const versionRx = new RegExp(`^[vV]?(${semverMmrReS}${semverPatchReS}?)$`, 'gms');
 
@@ -39,22 +39,21 @@ const gitDescribeCommand = ['git', 'describe', '--tags', '--exclude', '[!vV0-9]*
 
 const gitDescribe = (await haveGit())
 	? async () => {
-		try {
-			const p = Deprecated.Deno.run({
-				cmd: [...gitDescribeCommand],
-				stdout: 'piped',
-				stderr: 'piped',
-			});
-			return await Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.then(([_status, out, _err]) => {
-					return decode(out);
-				})
-				.finally(() => p.close());
-		} catch (_) {
-			return undefined;
+			try {
+				const p = Deprecated.Deno.run({
+					cmd: [...gitDescribeCommand],
+					stdout: 'piped',
+					stderr: 'piped',
+				});
+				return await Promise.all([p.status(), p.output(), p.stderrOutput()])
+					.then(([_status, out, _err]) => {
+						return decode(out);
+					})
+					.finally(() => p.close());
+			} catch (_) {
+				return undefined;
+			}
 		}
-	}
 	: () => Promise.resolve(undefined);
 
 const gitDescribeVersion = async () =>
@@ -67,8 +66,7 @@ if ((await haveGit()) && !equal(await gitDescribeVersion(), VERSION)) {
 			...gitDescribeCommand,
 			'`',
 			`reports the version as '${await gitDescribeVersion()}' instead of '${VERSION}'`,
-		]
-			.join(' '),
+		].join(' '),
 	);
 }
 
@@ -95,7 +93,7 @@ test(`project version matches 'VERSION' file`, () => {
 	assertEquals(actual, expected);
 });
 
-if ((projectName && (projectName.length > 0))) {
+if (projectName && projectName.length > 0) {
 	const readmeText = Deno.readTextFileSync(projectLocations.readme);
 	const URLrx = new RegExp(`https?://deno.land/x/${projectName}@v?((?:\\d+[.])*\\d+)(?=/)`, 'gim');
 	const readmeURLs = readmeText ? Array.from(readmeText.matchAll(URLrx)) : [];

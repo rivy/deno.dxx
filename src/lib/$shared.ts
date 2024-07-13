@@ -21,16 +21,16 @@ export const VERSION = '0.0.16';
 export const projectURL = new URL('../..', import.meta.url); // note: `new URL('.', ...)` => dirname(...); `new URL('..', ...) => dirname(dirname(...))
 export const projectPath = pathFromURL(projectURL);
 export const projectLocations = {
-	benchmarks: (new URL('bench', projectURL)),
-	changelog: (new URL('CHANGELOG.mkd', projectURL)),
-	editorconfig: (new URL('.editorconfig', projectURL)),
-	examples: (new URL('eg', projectURL)),
+	benchmarks: new URL('bench', projectURL),
+	changelog: new URL('CHANGELOG.mkd', projectURL),
+	editorconfig: new URL('.editorconfig', projectURL),
+	examples: new URL('eg', projectURL),
 	licenses: [new URL('LICENSE', projectURL)],
-	readme: (new URL('README.md', projectURL)),
-	source: (new URL('src', projectURL)),
-	tests: (new URL('tests', projectURL)),
-	vendor: (new URL('vendor', projectURL)),
-	version: (new URL('VERSION', projectURL)),
+	readme: new URL('README.md', projectURL),
+	source: new URL('src', projectURL),
+	tests: new URL('tests', projectURL),
+	vendor: new URL('vendor', projectURL),
+	version: new URL('VERSION', projectURL),
 };
 
 // // ToDO: investigate best practice for portability of PATH_SEP_PATTERN // note: WinOS => /[\\/]+/ ; *nix => /\/+/
@@ -105,7 +105,7 @@ export function callersFromStackTrace() {
 
 function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	const c: Record<T, U> = {} as Record<T, U>;
-	a.map((e: T, idx: number) => c[e] = b[idx]);
+	a.map((e: T, idx: number) => (c[e] = b[idx]));
 	return c;
 }
 
@@ -114,26 +114,27 @@ export function permitsSync(
 ) {
 	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
 		names,
-		names.map((name) => Deno.permissions?.querySync?.({ name })).map((e) =>
-			e ?? { state: 'granted', onchange: null }
-		),
+		names
+			.map((name) => Deno.permissions?.querySync?.({ name }))
+			.map((e) => e ?? { state: 'granted', onchange: null }),
 	);
 	return permits;
 }
 
 export async function havePermit(permitName: Deno.PermissionName) {
 	const names = [permitName];
-	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
-		e,
-	) => e ?? { state: 'granted', onchange: null });
-	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map(
+		(e) => e ?? { state: 'granted', onchange: null },
+	);
+	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return allGranted;
 }
 
 export async function haveAllPermits(permitNames: Deno.PermissionName[]) {
-	const permits = (await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name }))))
-		.map((e) => e ?? { state: 'granted', onchange: null });
-	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	const permits = (
+		await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name })))
+	).map((e) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return allGranted;
 }
 
@@ -143,36 +144,39 @@ export async function haveMissingPermits(permitNames: Deno.PermissionName[] = []
 
 export async function haveUnGrantedPermits(permitNames: Deno.PermissionName[] = []) {
 	// ToDO: [2023-09-09; rivy] consider deduplication of `permitNames` contents
-	const permits = (await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name }))))
-		.map((e) => e ?? { state: 'granted', onchange: null });
-	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	const permits = (
+		await Promise.all(permitNames.map((name) => Deno.permissions?.query({ name })))
+	).map((e) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return !allGranted;
 }
 
 export async function unGrantedPermits(permitNames: Deno.PermissionName[] = []) {
-	const permits = await Promise.all(permitNames.map(async (name) => {
-		return { name, permitStatus: await Deno.permissions?.query({ name }) };
-	}));
-	const missing = permits.filter((permit) => permit.permitStatus.state !== 'granted').map((
-		permit,
-	) => permit.name);
+	const permits = await Promise.all(
+		permitNames.map(async (name) => {
+			return { name, permitStatus: await Deno.permissions?.query({ name }) };
+		}),
+	);
+	const missing = permits
+		.filter((permit) => permit.permitStatus.state !== 'granted')
+		.map((permit) => permit.name);
 	return missing;
 }
 
 export function havePermitSync(permitName: Deno.PermissionName) {
 	const names = [permitName];
-	const permits = names.map((name) => Deno.permissions?.querySync?.({ name })).map((e) =>
-		e ?? { state: 'granted', onchange: null }
-	);
-	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	const permits = names
+		.map((name) => Deno.permissions?.querySync?.({ name }))
+		.map((e) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return allGranted;
 }
 
 export function haveAllPermitsSync(permitNames: Deno.PermissionName[]) {
-	const permits = permitNames.map((name) => Deno.permissions?.querySync?.({ name })).map((e) =>
-		e ?? { state: 'granted', onchange: null }
-	);
-	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	const permits = permitNames
+		.map((name) => Deno.permissions?.querySync?.({ name }))
+		.map((e) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return allGranted;
 }
 
@@ -182,10 +186,10 @@ export function haveMissingPermitsSync(permitNames: Deno.PermissionName[] = []) 
 
 export function haveUnGrantedPermitsSync(permitNames: Deno.PermissionName[] = []) {
 	// ToDO: [2023-09-09; rivy] consider deduplication of `permitNames` contents
-	const permits = permitNames.map((name) => Deno.permissions?.querySync?.({ name })).map((e) =>
-		e ?? { state: 'granted', onchange: null }
-	);
-	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
+	const permits = permitNames
+		.map((name) => Deno.permissions?.querySync?.({ name }))
+		.map((e) => e ?? { state: 'granted', onchange: null });
+	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return !allGranted;
 }
 
@@ -193,19 +197,19 @@ export function unGrantedPermitsSync(permitNames: Deno.PermissionName[] = []) {
 	const permits = permitNames.map((name) => {
 		return { name, permitStatus: Deno.permissions?.querySync?.({ name }) };
 	});
-	const missing = permits.filter((permit) => permit.permitStatus.state !== 'granted').map((
-		permit,
-	) => permit.name);
+	const missing = permits
+		.filter((permit) => permit.permitStatus.state !== 'granted')
+		.map((permit) => permit.name);
 	return missing;
 }
 
 function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 	/** Sorted, non-duplicated, permission names (used for flag generation) */
-	const flagNames = (permitNames.length > 0) ? [...new Set(permitNames.sort())] : ['all'];
+	const flagNames = permitNames.length > 0 ? [...new Set(permitNames.sort())] : ['all'];
 	const plural = flagNames.length > 1;
 	const msg = `Missing required permission${plural ? 's' : ''}; re-run with required permission${
 		plural ? 's' : ''
-	} (${(flagNames.map((name) => $colors.green('`--allow-' + name + '`')).join(', '))})`;
+	} (${flagNames.map((name) => $colors.green('`--allow-' + name + '`')).join(', ')})`;
 	return msg;
 }
 
@@ -213,7 +217,7 @@ export async function abortIfMissingPermits(
 	permitNames: Deno.PermissionName[] = [],
 	options?: { exitCode?: number; label?: string; writer?: (...args: unknown[]) => void },
 ) {
-	options = (options != null) ? options : {};
+	options = options != null ? options : {};
 	options.exitCode ??= 1;
 	// const callers = callersFromStackTrace();
 	// const top = callers[callers.length - 1];
@@ -222,7 +226,7 @@ export async function abortIfMissingPermits(
 	if (options.writer == null) {
 		options.writer = (args) =>
 			console.warn(
-				$colors.bgRed($colors.bold(` ${options?.label ? (options.label + ':') : ''}ERR! `)),
+				$colors.bgRed($colors.bold(` ${options?.label ? options.label + ':' : ''}ERR! `)),
 				$colors.red('*'),
 				args,
 			);
@@ -240,7 +244,7 @@ export function abortIfMissingPermitsSync(
 	permitNames: Deno.PermissionName[] = [],
 	options?: { exitCode?: number; label?: string; writer?: (...args: unknown[]) => void },
 ) {
-	options = (options != null) ? options : {};
+	options = options != null ? options : {};
 	options.exitCode ??= 1;
 	// const callers = callersFromStackTrace();
 	// const top = callers[callers.length - 1];
@@ -249,7 +253,7 @@ export function abortIfMissingPermitsSync(
 	if (options.writer == null) {
 		options.writer = (args) =>
 			console.warn(
-				$colors.bgRed($colors.bold(` ${options?.label ? (options.label + ':') : ''}ERR! `)),
+				$colors.bgRed($colors.bold(` ${options?.label ? options.label + ':' : ''}ERR! `)),
 				$colors.red('*'),
 				args,
 			);
@@ -312,8 +316,8 @@ export function deQuote(s?: string) {
 @param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
  */
 export function env(varName: string, options?: { guard: boolean }) {
-	const guard = (options != null) ? options.guard : true;
-	const useDenoGet = !guard || (atImportPermissions.env.state === 'granted');
+	const guard = options != null ? options.guard : true;
+	const useDenoGet = !guard || atImportPermissions.env.state === 'granted';
 	try {
 		return useDenoGet ? Deno.env.get(varName) : undefined;
 	} catch (_) {
@@ -328,9 +332,10 @@ export function env(varName: string, options?: { guard: boolean }) {
 @param `options``.guard` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 */
 export async function envAsync(varName: string, options?: { guard: boolean }) {
-	const guard = (options != null) ? options.guard : true;
-	const useDenoGet = !guard ||
-		((await (Deno.permissions?.query({ name: 'env', variable: varName }))).state ?? 'granted') ===
+	const guard = options != null ? options.guard : true;
+	const useDenoGet =
+		!guard ||
+		((await Deno.permissions?.query({ name: 'env', variable: varName })).state ?? 'granted') ===
 			'granted';
 	// console.warn({ varName, options, guard, useDenoGet });
 	try {
@@ -345,7 +350,7 @@ export async function envAsync(varName: string, options?: { guard: boolean }) {
 // `isFileURL()`
 /** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), naming a local file resource. */
 export function isFileURL(url: URL) {
-	return (url.protocol === 'file:');
+	return url.protocol === 'file:';
 }
 
 // `isValidURL()`
@@ -373,7 +378,7 @@ export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $pa
 */
 export function intoPath(path?: string | URL) {
 	if (path == null) return undefined;
-	return pathFromURL((path instanceof URL) ? path : intoURL(path));
+	return pathFromURL(path instanceof URL ? path : intoURL(path));
 }
 
 // ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
@@ -394,41 +399,42 @@ export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): UR
 export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
 export function intoURL(path?: string, ...args: unknown[]) {
 	if (path == null) return undefined;
-	const base = (args?.length > 0 && (args[0] instanceof URL))
-		? args.shift() as URL
-		: allowRead
-		? (() => {
-			try {
-				return $path.toFileUrl(Deno.cwd() + $path.SEP);
-			} catch {
-				return undefined;
-			}
-		})()
-		: undefined;
+	const base =
+		args?.length > 0 && args[0] instanceof URL
+			? (args.shift() as URL)
+			: allowRead
+				? (() => {
+						try {
+							return $path.toFileUrl(Deno.cwd() + $path.SEP);
+						} catch {
+							return undefined;
+						}
+					})()
+				: undefined;
 	const options = {
 		...IntoUrlOptionsDefault,
-		...(args?.length > 0) ? args.shift() as IntoUrlOptions : {},
+		...(args?.length > 0 ? (args.shift() as IntoUrlOptions) : {}),
 	};
 	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
-	const pathIsURL = (scheme != null) && (scheme.length > (options.driveLetterSchemes ? 1 : 0));
+	const pathIsURL = scheme != null && scheme.length > (options.driveLetterSchemes ? 1 : 0);
 	const pathIsFileURL = scheme === 'file';
 	// console.warn({ path, base, options, scheme, pathIsURL, pathIsFileURL });
 	try {
 		if (!pathIsURL) {
 			const pathname = (() => {
-				const pathDrive = (path.match(/^[A-Za-z]:/))?.[0];
-				const pathHost = (path.match(/^[/\\][/\\]([^/\\]+)/))?.[1];
+				const pathDrive = path.match(/^[A-Za-z]:/)?.[0];
+				const pathHost = path.match(/^[/\\][/\\]([^/\\]+)/)?.[1];
 				const pathIsAbsolute = $path.isAbsolute(path);
 				// console.warn({ path, pathDrive, pathHost, pathIsAbsolute });
-				if (pathIsAbsolute && (!isWinOS || (pathDrive != null) || (pathHost != null))) {
+				if (pathIsAbsolute && (!isWinOS || pathDrive != null || pathHost != null)) {
 					return path;
 				}
 				if (base == null) return undefined;
 				const basePath = $path.fromFileUrl(base);
-				const baseDrive = (basePath.match(/^[A-Za-z]:/))?.[0];
+				const baseDrive = basePath.match(/^[A-Za-z]:/)?.[0];
 				// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
-				const finalDrive = isWinOS ? (pathDrive ?? baseDrive) : undefined;
-				const cwd = (finalDrive != null) ? Deno.cwd() : undefined;
+				const finalDrive = isWinOS ? pathDrive ?? baseDrive : undefined;
+				const cwd = finalDrive != null ? Deno.cwd() : undefined;
 				if (finalDrive != null) Deno.chdir(finalDrive);
 				const resolved = pathIsAbsolute ? $path.resolve(path) : $path.resolve(basePath, path);
 				if (cwd != null) Deno.chdir(cwd);
@@ -512,11 +518,13 @@ export function traversal(
 	goal: string | URL,
 	base: string | URL = allowRead ? $path.toFileUrl(Deno.cwd() + $path.SEP) : '',
 ) {
-	const url = (goal instanceof URL) ? goal : intoURL(goal);
-	const baseURL = (base instanceof URL) ? base : intoURL(base);
-	const commonOrigin = url && baseURL &&
-		(url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0) &&
-		(url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0);
+	const url = goal instanceof URL ? goal : intoURL(goal);
+	const baseURL = base instanceof URL ? base : intoURL(base);
+	const commonOrigin =
+		url &&
+		baseURL &&
+		url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0 &&
+		url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0;
 	// console.warn({ goal, url, base, baseURL, commonOrigin });
 	const basePath = pathFromURL(baseURL);
 	const goalPath = pathFromURL(url);
@@ -525,8 +533,7 @@ export function traversal(
 			// ToDO: add option to turn on/off file comparison case-sensitivity
 			mightUseFileSystemCase() ? basePath : toCommonCase(basePath),
 			mightUseFileSystemCase() ? goalPath : toCommonCase(goalPath),
-		)
-			.replace(/[^\/]*$/, '');
+		).replace(/[^\/]*$/, '');
 		// console.warn({ basePath, goalPath, commonPathPrefix });
 		// console.warn({
 		// 	basePathSlice: basePath.slice(commonPathPrefix.length),
@@ -655,12 +662,12 @@ export function firstPathContaining(goal: string, paths: string[]) {
 export function pathEquivalent(a?: string, b?: string) {
 	// console.warn({ a, b });
 	// console.warn({ aURL: intoURL(a), bURL: intoURL(b) });
-	return (a === b) || (intoURL(a)?.href === intoURL(b)?.href);
+	return a === b || intoURL(a)?.href === intoURL(b)?.href;
 }
 
 export function UrlEquivalent(a?: URL, b?: URL) {
 	// console.warn({ a, b });
-	return (a === b) || (a?.href === b?.href);
+	return a === b || a?.href === b?.href;
 }
 
 //===
@@ -670,7 +677,7 @@ export function formatDuration(
 	durationInMS: number,
 	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
 ): string {
-	const [unit, n] = (durationInMS > 1000) ? ['s', durationInMS / 1000] : ['ms', durationInMS];
+	const [unit, n] = durationInMS > 1000 ? ['s', durationInMS / 1000] : ['ms', durationInMS];
 	const NumberFormat = new Intl.NumberFormat(undefined, options);
 	return NumberFormat.format(n) + ' ' + unit;
 }
@@ -697,8 +704,8 @@ export function performanceDuration(tag: string) {
 		})();
 		// if ((performanceEntries == null) || performanceEntries.length < 2) return undefined;
 		if (performanceEntries == null) return undefined;
-		const duration = (performanceEntries.pop()?.startTime ?? now) -
-			(performanceEntries.shift()?.startTime ?? now);
+		const duration =
+			(performanceEntries.pop()?.startTime ?? now) - (performanceEntries.shift()?.startTime ?? now);
 		return duration;
 	} catch (_) {
 		return undefined;
@@ -730,7 +737,7 @@ export function isWSL() {
 	// * add `sudo echo 'Default:%sudo env_keep+="IS_WSL WSLENV WSL_*"' > /etc/sudoers.d/WSL-env_keep` for WSL
 	// * add `sudo echo 'Default:%sudo env_keep+="WT_*"' > /etc/sudoers.d/WT-env_keep` for MS Windows Terminal variables
 	// * (as an aside...) add `sudo echo 'Default:%sudo env_keep+="LANG LC_*"' > /etc/sudoers.d/SSH-env_keep` for SSH
-	return (!isWinOS) && (Boolean(env('IS_WSL')) || Boolean(env('WSL_DISTRO_NAME')));
+	return !isWinOS && (Boolean(env('IS_WSL')) || Boolean(env('WSL_DISTRO_NAME')));
 }
 
 // `canDisplayUnicode()`
@@ -742,28 +749,30 @@ export function canDisplayUnicode() {
 		// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain>
 		const isOldTerminal = ['cygwin', 'linux'].includes(env('TERM') ?? '');
 		const isWSL_ = isWSL();
-		return !isOldTerminal && // fail for old terminals
-			(( // * not isWSL
-				!isWSL_ &&
+		return (
+			!isOldTerminal && // fail for old terminals
+			// * not isWSL
+			((!isWSL_ &&
 				Boolean(
 					env('LC_ALL')?.match(/[.]utf-?8$/i) || env('LANG')?.match(/[.]utf-?8$/i),
-				) /* LC_ALL or LANG handles UTF-8? */
-			) || ( // * isWSL
-				isWSL_ && Boolean(env('WT_SESSION')) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
-			));
+				)) /* LC_ALL or LANG handles UTF-8? */ || // * isWSL
+				(isWSL_ && Boolean(env('WT_SESSION')))) // only MS Windows Terminal is supported; 'alacritty' and 'ConEmu/cmder' hosts not detectable
+		);
 	}
 
 	// WinOS
 	// note: 'alacritty' will, by default, set TERM to 'xterm-256color'
-	return (['alacritty', 'xterm-256color'].includes(env('TERM') ?? '')) || // [alacritty](https://github.com/alacritty/alacritty)
+	return (
+		['alacritty', 'xterm-256color'].includes(env('TERM') ?? '') || // [alacritty](https://github.com/alacritty/alacritty)
 		Boolean(env('ConEmuPID')) || // [ConEmu](https://conemu.github.io) and [cmder](https://cmder.net)
-		Boolean(env('WT_SESSION')); // MS Windows Terminal
+		Boolean(env('WT_SESSION'))
+	); // MS Windows Terminal
 }
 
 export function mightUseColor() {
 	// respects `NO_COLOR` env var override; use 'truthy' values?
 	// ref: <https://no-color.org> @@ <https://archive.is/Z5N1d>
-	return !(env('NO_COLOR'));
+	return !env('NO_COLOR');
 }
 
 export function mightUseFileSystemCase() {
@@ -773,7 +782,7 @@ export function mightUseFileSystemCase() {
 	// ref: <https://stackoverflow.com/questions/7199039/file-paths-in-windows-environment-not-case-sensitive> @@ <https://archive.is/i0xzb>
 	// ref: <https://nodejs.org/en/docs/guides/working-with-different-filesystems> @@ <https://archive.is/qSRjE>
 	// ref: <https://en.wikipedia.org/wiki/Filename> @@ <https://archive.is/cqe6g>
-	return !isWinOS /* assumed to be POSIX-like */ || !(env('USE_FS_CASE'));
+	return !isWinOS /* assumed to be POSIX-like */ || !env('USE_FS_CASE');
 }
 
 export function mightUseUnicode() {
@@ -792,9 +801,9 @@ export const commandVOf = (name: string) => {
 			cmd: [
 				...(isWinOS
 					? ['cmd', '/x/d/c']
-					: (env('SHELL') != null)
-					? [env('SHELL') ?? 'bash', '-c']
-					: []),
+					: env('SHELL') != null
+						? [env('SHELL') ?? 'bash', '-c']
+						: []),
 				`command -v ${name}`,
 			],
 			stdin: 'null',
@@ -802,11 +811,10 @@ export const commandVOf = (name: string) => {
 			stdout: 'piped',
 		});
 		// console.warn('commandVOf(): process created');
-		return Promise
-			.all([process.status(), process.output() /* , process.stderrOutput() */])
+		return Promise.all([process.status(), process.output() /* , process.stderrOutput() */])
 			.then(([status, out /* , err */]) => {
 				// console.warn('commandVOf', { status: status, out: decode(out) /* , err: decode(err) */ });
-				return (status.success ? decode(out)?.replace(/(\r|\r\n|\n)+$/, '') : undefined);
+				return status.success ? decode(out)?.replace(/(\r|\r\n|\n)+$/, '') : undefined;
 			})
 			.finally(() => process.close());
 	} catch (_) {
@@ -834,20 +842,20 @@ const versionURL = projectLocations.version;
 // console.warn({ projectURL, projectLocations, versionURL });
 
 // projectVersionText == first non-empty line (EOL trimmed) from VERSION
-const projectVersionTextViaFetch =
-	await (versionURL &&
-			((versionURL.protocol === 'file:')
-				? ((await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted')
-				: ((await Deno.permissions.query({
-					name: 'net',
-					host: (versionURL.host.length > 0) ? versionURL.host : undefined,
-				}))
-					.state === 'granted'))
-		? (fetch(versionURL)
-			.then((resp) => resp.ok ? resp.text() : undefined)
+const projectVersionTextViaFetch = await (versionURL &&
+(versionURL.protocol === 'file:'
+	? (await Deno.permissions.query({ name: 'read', path: versionURL })).state === 'granted'
+	: (
+			await Deno.permissions.query({
+				name: 'net',
+				host: versionURL.host.length > 0 ? versionURL.host : undefined,
+			})
+		).state === 'granted')
+	? fetch(versionURL)
+			.then((resp) => (resp.ok ? resp.text() : undefined))
 			.then((text) => text?.split(EOL).filter((s) => s)[0])
-			.catch((_) => undefined))
-		: Promise.resolve(undefined));
+			.catch((_) => undefined)
+	: Promise.resolve(undefined));
 
 // `import ...` implementation (note: requires project-level synchronization tooling)
 const projectVersionTextViaImport = VERSION;
@@ -887,9 +895,10 @@ function v(options?: vOptions) {
 	// extended 'relaxed' semantic version tag = "[vV]?\d+([.]\d+)*([-].*)?"
 	const tagIsCommitHash = projectVersionTagFromURL?.match(/^[0-9a-fA-F]{5,}$/) != null; // heuristic: any string of solely 5+ hex digits is assumed to be a commit hash
 	if (tagIsCommitHash) {
-		return `${projectVersionTextViaImport}+${
-			projectVersionTagFromURL.slice(0, options_.maxCommitHashDisplaySize)
-		}`;
+		return `${projectVersionTextViaImport}+${projectVersionTagFromURL.slice(
+			0,
+			options_.maxCommitHashDisplaySize,
+		)}`;
 	}
 	const vFromTag = projectVersionTagFromURL?.match(/^[vV]?\d+([.]\d+)*([-].*)?$/)?.[0];
 	if (vFromTag != null) return vFromTag;

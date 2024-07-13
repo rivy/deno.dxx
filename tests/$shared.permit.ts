@@ -31,7 +31,7 @@ export function createWarnFn(testFilePath?: URL | string) {
 		//# * for GHA CI, convert any warnings to GHA UI annotations; ref: <https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-warning-message>
 		const s = format(...args);
 		if (isCI && isGHA) {
-			console.log($colors.stripColor(`::warning ::${base ? (base + ': ') : ''}${s}`));
+			console.log($colors.stripColor(`::warning ::${base ? base + ': ' : ''}${s}`));
 		} else console.warn($colors.dim(base || '*'), $colors.yellow('Warning:'), s);
 	}
 	return warn;
@@ -47,7 +47,7 @@ export function setEnvFromArgs(args: string[] = Deno.args) {
 	args.forEach((arg) => {
 		const match = arg.match(/^--(?:test[_-])?(.*)$/);
 		if (match) {
-			const name = 'TEST_' + (match[1].toLocaleUpperCase()).replace(/\W/g, '_');
+			const name = 'TEST_' + match[1].toLocaleUpperCase().replace(/\W/g, '_');
 			Deno.env.set(name, 'true');
 		}
 	});

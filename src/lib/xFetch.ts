@@ -12,16 +12,18 @@ import { readableStreamFromIterable } from 'https://deno.land/std@0.134.0/stream
 const originalFetch = globalThis.fetch;
 
 function isDenoProcessStatus(x: unknown): x is Deno.ProcessStatus {
-	return ((x as Deno.ProcessStatus).success !== undefined) &&
-		((x as Deno.ProcessStatus).code !== undefined);
+	return (
+		(x as Deno.ProcessStatus).success !== undefined && (x as Deno.ProcessStatus).code !== undefined
+	);
 }
 
 async function fetch(input: string | Request | URL, init?: RequestInit): Promise<Response> {
-	const url = typeof input === 'string'
-		? new URL(input)
-		: input instanceof Request
-		? new URL(input.url)
-		: input;
+	const url =
+		typeof input === 'string'
+			? new URL(input)
+			: input instanceof Request
+				? new URL(input.url)
+				: input;
 
 	if (url.protocol === 'file:') {
 		// Only allow GET requests
@@ -108,13 +110,13 @@ async function fetch(input: string | Request | URL, init?: RequestInit): Promise
 		) {
 			// ToDO: (if needed) explore more fine-tuned failure responses for specific `curl` failure codes
 			return new Response(
-				`\`curl\` failed; (${(await p.status()).code}; ${
-					new TextDecoder().decode(await p.stderrOutput())
-				})`,
+				`\`curl\` failed; (${(await p.status()).code}; ${new TextDecoder().decode(
+					await p.stderrOutput(),
+				)})`,
 				{ status: 404 },
 			);
 		}
-		const output = (promise instanceof Uint8Array) ? promise : new Uint8Array();
+		const output = promise instanceof Uint8Array ? promise : new Uint8Array();
 		const headers = new Headers();
 		const contentType = lookup(url.pathname);
 		if (contentType) {

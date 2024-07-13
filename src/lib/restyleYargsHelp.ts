@@ -20,7 +20,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 	const displayWidth = options?.consoleWidth ?? (await $consoleSize.consoleSize())?.columns ?? 80; // `consoleSize()` may take ~ 150 ms if fallback to shell scripts are needed
 	const helpColumnN = 6; // division of screen for help (assists visual organization of help text elements)
 	const maxColWidths = [displayWidth / 2, 1, 1, displayWidth / 2, 1, displayWidth / 2];
-	const minColWidths = [4, 0, 0, 8, 0, 3 * displayWidth / helpColumnN];
+	const minColWidths = [4, 0, 0, 8, 0, (3 * displayWidth) / helpColumnN];
 	const sectionTable = new Table()
 		.maxColWidth(maxColWidths)
 		.minColWidth(minColWidths)
@@ -37,7 +37,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 	if (titleLine == null) return [];
 	// 1st line == name + version
 	help.push($colors.italic(titleLine));
-	while ((helpLines.length > 0) && helpLines[0].length === 0) {
+	while (helpLines.length > 0 && helpLines[0].length === 0) {
 		help.push(helpLines.shift() || '');
 	}
 	// console.warn({ helpLines, help });
@@ -92,7 +92,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 					let max = 0;
 					for (const line of tableLines) {
 						const arrOfChars = [...$colors.stripColor(line)];
-						max = (arrOfChars.length > max) ? arrOfChars.length : max;
+						max = arrOfChars.length > max ? arrOfChars.length : max;
 					}
 					return max;
 				})();
@@ -106,8 +106,8 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 					realMinWidths = new Array<number>(helpColumnN).fill(realMinWidths);
 				}
 
-				const maxWidthLastCol = realMinWidths[realMinWidths.length - 1] + displayWidth -
-					maxLineLength;
+				const maxWidthLastCol =
+					realMinWidths[realMinWidths.length - 1] + displayWidth - maxLineLength;
 				// console.warn({ maxSizeLast });
 				// if (Array.isArray(realMaxWidths)) {
 				// realMaxWidths = [...realMaxWidths];
@@ -181,34 +181,38 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 			}
 			if (matchOption == null) {
 				if (line.match(/^\s+/)) {
-					sectionTable.push(/* [Cell.from('\0').colSpan(6)], */ [
-						Cell.from($colors.dim('$')).colSpan(1),
-						Cell.from(line.replace(/^\s*/, '')).colSpan(5),
-					]);
+					sectionTable.push(
+						/* [Cell.from('\0').colSpan(6)], */ [
+							Cell.from($colors.dim('$')).colSpan(1),
+							Cell.from(line.replace(/^\s*/, '')).colSpan(5),
+						],
+					);
 				} else help.push(line);
 			} else {
 				const [_s, item, desc] = matchOption as RegExpMatchArray;
 				// console.warn({ state, line, _s, item, desc });
-				sectionTable.push(/* [Cell.from('\0').colSpan(6)], */ [
-					Cell.from('#').colSpan(1),
-					Cell.from(desc).colSpan(5),
-				], [
-					Cell.from('').colSpan(1),
-					Cell.from($colors.dim('$')).colSpan(1),
-					Cell.from(item).colSpan(4),
-				]);
+				sectionTable.push(
+					/* [Cell.from('\0').colSpan(6)], */ [
+						Cell.from('#').colSpan(1),
+						Cell.from(desc).colSpan(5),
+					],
+					[
+						Cell.from('').colSpan(1),
+						Cell.from($colors.dim('$')).colSpan(1),
+						Cell.from(item).colSpan(4),
+					],
+				);
 			}
 			continue;
 		}
-		if ((state === 'options') || (state === 'other')) {
+		if (state === 'options' || state === 'other') {
 			const matchOption = line.match(lineRegExp.sectionOptionsLines);
 			if (matchOption == null) {
 				help.push(line);
 			} else {
 				const [_s, item, _sep, desc, _sep2, info] = matchOption as RegExpMatchArray;
-				const i = info.replace(
-					/\[(.*?)\]/g,
-					(_: string, content: string) => $colors.dim(`{${content}}`),
+				const i = info.replace(/\[(.*?)\]/g, (_: string, content: string) =>
+					$colors.dim(`{${content}}`),
 				);
 				// resolve any BS within item
 				let item_ = item;
@@ -222,15 +226,16 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 				// 	infoLength: info.length,
 				// });
 				// if ((item.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
-				if ((item_.length > (2 * displayWidth / 6)) || (info.length > (2 * displayWidth / 6))) {
+				if (item_.length > (2 * displayWidth) / 6 || info.length > (2 * displayWidth) / 6) {
 					// |  |  |  |  |  |  |
 					// | item            |
 					// | | info          |
 					// | | * | desc      |
-					sectionTable.push([Cell.from(item_).colSpan(6)], [
-						Cell.from('').colSpan(2),
-						Cell.from(i).colSpan(4),
-					], [Cell.from('').colSpan(2), Cell.from('*').colSpan(1), Cell.from(desc).colSpan(3)]);
+					sectionTable.push(
+						[Cell.from(item_).colSpan(6)],
+						[Cell.from('').colSpan(2), Cell.from(i).colSpan(4)],
+						[Cell.from('').colSpan(2), Cell.from('*').colSpan(1), Cell.from(desc).colSpan(3)],
+					);
 					// } else if ((item_.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
 					// } else if ((item_.length + info.length) > (2 * maxWidth / 6)) {
 					let x = sectionTable.getMinColWidth();
@@ -245,15 +250,14 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 					// console.warn({ x });
 					sectionTable.minColWidth(x, true);
 					// } else if ((item_.length > (maxWidth / 6)) || (info.length > (maxWidth / 6))) {
-				} else if (((item_.length + info.length) > (displayWidth / 2))) {
+				} else if (item_.length + info.length > displayWidth / 2) {
 					// |   |   |   |   |   |   |
 					// | item  ||||| info      |
 					// |   | * | desc          |
-					sectionTable.push([
-						Cell.from(item_).colSpan(1),
-						Cell.from('').colSpan(1),
-						Cell.from(i).colSpan(4),
-					], [Cell.from('').colSpan(2), Cell.from('*').colSpan(1), Cell.from(desc).colSpan(3)]);
+					sectionTable.push(
+						[Cell.from(item_).colSpan(1), Cell.from('').colSpan(1), Cell.from(i).colSpan(4)],
+						[Cell.from('').colSpan(2), Cell.from('*').colSpan(1), Cell.from(desc).colSpan(3)],
+					);
 					let x = sectionTable.getMinColWidth();
 					if (!Array.isArray(x)) x = new Array<number>(helpColumnN).fill(x);
 					x[0] = Math.max(x[0], $colors.stripColor(item_).length);
@@ -294,7 +298,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 			let max = 0;
 			for (const line of tableLines) {
 				const arrOfChars = [...$colors.stripColor(line)];
-				max = (arrOfChars.length > max) ? arrOfChars.length : max;
+				max = arrOfChars.length > max ? arrOfChars.length : max;
 			}
 			return max;
 		})();

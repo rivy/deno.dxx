@@ -55,9 +55,13 @@
 
 export type ObjectKey = number | string | symbol;
 export type MapLikeObject<K extends ObjectKey, T> = { [P in K]: T };
-export type MapLike<K, V> = Map<K, V> | MapLikeObject<ObjectKey, V> | Record<ObjectKey, V> | {
-	entries: () => [K, V][];
-};
+export type MapLike<K, V> =
+	| Map<K, V>
+	| MapLikeObject<ObjectKey, V>
+	| Record<ObjectKey, V>
+	| {
+			entries: () => [K, V][];
+	  };
 
 type AnyGenerator<T = unknown, TReturn = unknown, TNext = unknown> =
 	| AsyncGenerator<T, TReturn, TNext>
@@ -86,26 +90,38 @@ export type Enumerable<T, K = EnumerableKeyOfT<T>, V = EnumerableValueOfT<T>> =
 	| AnyIterable<V>
 	| AnyIterator<V>;
 
-type EnumerableKeyOfT<T> = T extends [infer K, unknown][] ? K
-	: T extends ArrayLike<unknown> ? number
-	: T extends Set<infer K> ? K
-	: T extends MapLikeObject<infer K, unknown> | MapLike<infer K, unknown> ? K
-	: T extends AnyGenerator<unknown, unknown, unknown> | AnyIterable<unknown> | AnyIterator<unknown>
+type EnumerableKeyOfT<T> = T extends [infer K, unknown][]
+	? K
+	: T extends ArrayLike<unknown>
 		? number
-	: T extends Enumerable<unknown, infer K, unknown> ? K
-	: unknown;
+		: T extends Set<infer K>
+			? K
+			: T extends MapLikeObject<infer K, unknown> | MapLike<infer K, unknown>
+				? K
+				: T extends
+							| AnyGenerator<unknown, unknown, unknown>
+							| AnyIterable<unknown>
+							| AnyIterator<unknown>
+					? number
+					: T extends Enumerable<unknown, infer K, unknown>
+						? K
+						: unknown;
 // | AnySyncGenerator<[infer K, unknown], unknown, unknown> => K
 
-type EnumerableValueOfT<T> = T extends [unknown, infer V][] ? V
+type EnumerableValueOfT<T> = T extends [unknown, infer V][]
+	? V
 	: T extends
-		| ArrayLike<infer V>
-		| MapLike<unknown, infer V>
-		| AnyIterable<infer V>
-		| AnyIterableIterator<infer V>
-		| AnyIterator<infer V> ? V
-	: T extends AnyGenerator<infer V, unknown, unknown> ? V
-	: T extends Enumerable<unknown, unknown, infer V> ? V
-	: unknown;
+				| ArrayLike<infer V>
+				| MapLike<unknown, infer V>
+				| AnyIterable<infer V>
+				| AnyIterableIterator<infer V>
+				| AnyIterator<infer V>
+		? V
+		: T extends AnyGenerator<infer V, unknown, unknown>
+			? V
+			: T extends Enumerable<unknown, unknown, infer V>
+				? V
+				: unknown;
 // | AnySyncGenerator<[unknown, infer V], unknown, unknown> => V
 
 // ####
@@ -187,22 +203,22 @@ export async function* enumerate<
 	let idx = 0;
 	if (hasEntries) {
 		// [K, V] enumerates first
-		const arr = ((enumerable as unknown) as Map<TKey, TValue>).entries();
+		const arr = (enumerable as unknown as Map<TKey, TValue>).entries();
 		for (const e of arr) {
 			yield e;
 		}
 	} else if (isAsyncIterable || isIterable) {
 		// [V] enumerates
-		for await (const e of (enumerable as unknown) as AsyncIterable<TValue>) {
-			yield ([idx++, e] as unknown) as [TKey, TValue];
+		for await (const e of enumerable as unknown as AsyncIterable<TValue>) {
+			yield [idx++, e] as unknown as [TKey, TValue];
 		}
 	} else if (isObject) {
 		const arr: ObjectKey[] = Reflect.ownKeys(enumerable);
 		for (const k of arr) {
-			yield ([k, Reflect.get(enumerable, k)] as unknown) as [TKey, TValue];
+			yield [k, Reflect.get(enumerable, k)] as unknown as [TKey, TValue];
 		}
 	} else {
-		yield ([idx, enumerable] as unknown) as [TKey, TValue];
+		yield [idx, enumerable] as unknown as [TKey, TValue];
 	}
 }
 export function* enumerateSync<
@@ -217,22 +233,22 @@ export function* enumerateSync<
 	let idx = 0;
 	if (hasEntries) {
 		// [K, V] enumerates first
-		const arr = ((enumerable as unknown) as Map<TKey, TValue>).entries();
+		const arr = (enumerable as unknown as Map<TKey, TValue>).entries();
 		for (const e of arr) {
 			yield e;
 		}
 	} else if (isIterable) {
 		// [V] enumerates after [K,V]
-		for (const e of (enumerable as unknown) as Iterable<TValue>) {
-			yield ([idx++, e] as unknown) as [TKey, TValue];
+		for (const e of enumerable as unknown as Iterable<TValue>) {
+			yield [idx++, e] as unknown as [TKey, TValue];
 		}
 	} else if (isObject) {
 		const arr: ObjectKey[] = Reflect.ownKeys(enumerable);
 		for (const k of arr) {
-			yield ([k, Reflect.get(enumerable, k)] as unknown) as [TKey, TValue];
+			yield [k, Reflect.get(enumerable, k)] as unknown as [TKey, TValue];
 		}
 	} else {
-		yield ([idx, enumerable] as unknown) as [TKey, TValue];
+		yield [idx, enumerable] as unknown as [TKey, TValue];
 	}
 }
 
@@ -1082,7 +1098,7 @@ export async function head<T extends Enumerable<T>, TKey = unknown, TValue = Enu
 ): Promise<TValue | undefined> {
 	const it = iterate(en);
 	const next = await it.next();
-	return next.done ? undefined : next.value as TValue;
+	return next.done ? undefined : (next.value as TValue);
 }
 export function headSync<
 	T extends EnumerableSync<T>,
@@ -1091,7 +1107,7 @@ export function headSync<
 >(en: T): TValue | undefined {
 	const it = iterateSync(en);
 	const next = it.next();
-	return next.done ? undefined : next.value as TValue;
+	return next.done ? undefined : (next.value as TValue);
 }
 
 export async function headKV<
@@ -1101,7 +1117,7 @@ export async function headKV<
 >(en: T): Promise<[TKey, TValue] | undefined> {
 	const it = enumerate<T, TKey, TValue>(en);
 	const next = await it.next();
-	return next.done ? undefined : next.value as [TKey, TValue];
+	return next.done ? undefined : (next.value as [TKey, TValue]);
 }
 export function headKVSync<
 	T extends EnumerableSync<T>,
@@ -1110,7 +1126,7 @@ export function headKVSync<
 >(en: T): [TKey, TValue] | undefined {
 	const it = enumerateSync<T, TKey, TValue>(en);
 	const next = it.next();
-	return next.done ? undefined : next.value as [TKey, TValue];
+	return next.done ? undefined : (next.value as [TKey, TValue]);
 }
 
 export async function* tail<T extends Enumerable<T>>(en: T) {
@@ -1146,10 +1162,10 @@ export async function last<T extends Enumerable<T>, TKey = unknown, TValue = Enu
 ): Promise<TValue | undefined> {
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
-		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) as TValue : undefined;
+		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T> as TValue) : undefined;
 	}
 	const arr = await collect(list);
-	return arr.length > 0 ? arr[arr.length - 1] as TValue : undefined;
+	return arr.length > 0 ? (arr[arr.length - 1] as TValue) : undefined;
 }
 export function lastSync<
 	T extends EnumerableSync<T>,
@@ -1158,10 +1174,10 @@ export function lastSync<
 >(list: T): TValue | undefined {
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
-		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T>) as TValue : undefined;
+		return list.length > 0 ? (list[list.length - 1] as EnumerableValueOfT<T> as TValue) : undefined;
 	}
 	const arr = collectSync(list);
-	return arr.length > 0 ? arr[arr.length - 1] as TValue : undefined;
+	return arr.length > 0 ? (arr[arr.length - 1] as TValue) : undefined;
 }
 
 export async function lastKV<
@@ -1172,7 +1188,7 @@ export async function lastKV<
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
 		return list.length > 0
-			? (list[list.length - 1] as EnumerableValueOfT<T>) as [TKey, TValue]
+			? (list[list.length - 1] as EnumerableValueOfT<T> as [TKey, TValue])
 			: undefined;
 	}
 	const arr = await collectEntries<T, TKey, TValue>(list);
@@ -1186,7 +1202,7 @@ export function lastKVSync<
 	// O(n) for iterators, but O(1) by specialization for arrays
 	if (Array.isArray(list)) {
 		return list.length > 0
-			? (list[list.length - 1] as EnumerableValueOfT<T>) as [TKey, TValue]
+			? (list[list.length - 1] as EnumerableValueOfT<T> as [TKey, TValue])
 			: undefined;
 	}
 	const arr = collectEntriesSync<T, TKey, TValue>(list);

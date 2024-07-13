@@ -18,16 +18,16 @@ import * as $semver from 'https://deno.land/x/semver@v1.4.0/mod.ts';
 const isWinOS = Deno.build.os === 'windows';
 
 try {
-	const s: Deno.Signal[] = (isWinOS && ($semver
-			.satisfies(Deno.version.deno, '>=1.23.0'))
-		? ['SIGBREAK'] as unknown as Deno.Signal[]
-		: [])
-		.concat(['SIGINT']);
+	const s: Deno.Signal[] = (
+		isWinOS && $semver.satisfies(Deno.version.deno, '>=1.23.0')
+			? (['SIGBREAK'] as unknown as Deno.Signal[])
+			: []
+	).concat(['SIGINT']);
 	// console.log('Listen for %s signals', JSON.stringify(s));
 	s.forEach((signalType) =>
 		Deno.addSignalListener(signalType, () => {
 			// handle (ie, ignore) signals (target process will handle all signals)
-		})
+		}),
 	);
 } catch (_e) {
 	// console.log('Caught exception...', { _e });
@@ -65,13 +65,15 @@ import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
 
 //===
 
-await abortIfMissingPermitsSync(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-	// * script specific requirements
-	['run'], // required to run `deno` (to execute the target SCRIPT)
-));
+await abortIfMissingPermitsSync(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// * script specific requirements
+		['run'], // required to run `deno` (to execute the target SCRIPT)
+	),
+);
 
 //===
 
@@ -162,7 +164,7 @@ Usage:\n  ${runAsName} [OPTION..] [[--] [RUN_OPTION..]] [--] SCRIPT [SCRIPT_ARG.
 	.group(['help', 'version'], '*Help/Info:')
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// ref: <https://github.com/yargs/yargs-parser#configuration>
 	.parserConfiguration({
@@ -184,7 +186,7 @@ const bakedArgs = $me.args();
 const endOfOptionsSignal = '--';
 const idxFirstNonOption = ((arr) => {
 	const idx = arr.findIndex((e) => e === endOfOptionsSignal || !e.startsWith('-'));
-	return (idx < 0) ? arr.length : idx;
+	return idx < 0 ? arr.length : idx;
 })(bakedArgs);
 const usesEndOfOptions = bakedArgs[idxFirstNonOption] === endOfOptionsSignal;
 
@@ -212,18 +214,17 @@ log.trace({ bakedArgs, argv });
 const possibleLogLevels = ((defaultLevel = 'notice') => {
 	const levels = [
 		logLevelFromEnv,
-		(argv?.silent) ? 'error' : undefined,
-		(argv?.quiet) ? 'warn' : undefined,
-		(argv?.verbose) ? 'info' : undefined,
-		(argv?.debug) ? 'debug' : undefined,
-		(argv?.trace) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
-	const logLevelFromArgv =
-		(Array.isArray(argv?.logLevel)
-			? argv?.logLevel as string[]
-			: [argv?.logLevel as string | undefined])
-			.pop();
+		argv?.silent ? 'error' : undefined,
+		argv?.quiet ? 'warn' : undefined,
+		argv?.verbose ? 'info' : undefined,
+		argv?.debug ? 'debug' : undefined,
+		argv?.trace ? 'trace' : undefined,
+	].filter(Boolean);
+	const logLevelFromArgv = (
+		Array.isArray(argv?.logLevel)
+			? (argv?.logLevel as string[])
+			: [argv?.logLevel as string | undefined]
+	).pop();
 	log.trace({ logLevelFromEnv, levels, logLevelFromArgv });
 	return [log.logLevelDetail(logLevelFromArgv)?.levelName]
 		.concat(
@@ -288,7 +289,9 @@ await log.trace({ delegatedArgs, args });
 if (args.length < 1) {
 	await log.error(`SCRIPT argument is required`);
 	const yargsHelp = await app.getHelp();
-	const usage = (await restyleYargsHelp(yargsHelp) as string).match(/\n(.*?usage.*?\n)\n/ims)?.[1];
+	const usage = ((await restyleYargsHelp(yargsHelp)) as string).match(
+		/\n(.*?usage.*?\n)\n/ims,
+	)?.[1];
 	console.warn(`${usage}\nUse \`${runAsName} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
@@ -329,12 +332,10 @@ const runOptions: Deno.RunOptions = {
 	stdin: 'inherit',
 	stdout: 'inherit',
 	env: {
-		SHIM_ARG0: `${$me.runAs} ${
-			[...shimOptions, targetPath]
-				// .filter(Boolean)
-				.map((e) => e && $args.reQuote(e))
-				.join(' ')
-		}`,
+		SHIM_ARG0: `${$me.runAs} ${[...shimOptions, targetPath]
+			// .filter(Boolean)
+			.map((e) => e && $args.reQuote(e))
+			.join(' ')}`,
 		SHIM_ARGS,
 		SHIM_TARGET: targetURL ?? '',
 	},

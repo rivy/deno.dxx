@@ -185,7 +185,7 @@ export function consoleSizeViaDenoAPI(
 		size = denoConsoleSizeNT(fallbackRID);
 	}
 
-	if ((size == null) && atImportAllowRead && options.consoleFileFallback) {
+	if (size == null && atImportAllowRead && options.consoleFileFallback) {
 		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
@@ -233,13 +233,12 @@ export function consoleSizeAsync(
 	// * paying for construction and execution only if needed by using `catch()` as fallback and/or `then()` for the function calls
 	// ~ 0.5 ms for WinOS or POSIX (for open, un-redirected STDOUT or STDERR, using the fast [Deno] API)
 	// ~ 150 ms for WinOS ; ~ 75 ms for POSIX (when requiring use of the shell script fallbacks)
-	const promise = Promise
-		.resolve(consoleSizeSync(rid, options))
+	const promise = Promise.resolve(consoleSizeSync(rid, options))
 		.then((size) => {
 			consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 			return size;
 		})
-		.then((size) => (size != undefined) ? size : Promise.reject(undefined))
+		.then((size) => (size != undefined ? size : Promise.reject(undefined)))
 		.catch((_) =>
 			// shell script fallbacks
 			// ~ 25 ms for WinOS ; ~ 75 ms for POSIX
@@ -247,26 +246,19 @@ export function consoleSizeAsync(
 			// ref: https://medium.com/@mpodlasin/3-most-common-mistakes-in-using-promises-in-javascript-575fc31939b6 @@ <https://archive.is/JmH5N>
 			// ref: https://medium.com/@mpodlasin/promises-vs-observables-4c123c51fe13 @@ <https://archive.is/daGxV>
 			// ref: https://stackoverflow.com/questions/21260602/how-to-reject-a-promise-from-inside-then-function
-			Promise
-				.any([
-					consoleSizeViaMode().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
-					consoleSizeViaPowerShell().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
-					consoleSizeViaSTTY().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
-					consoleSizeViaTPUT().then((size) =>
-						(size != undefined) ? size : Promise.reject(undefined)
-					),
-				])
+			Promise.any([
+				consoleSizeViaMode().then((size) => (size != undefined ? size : Promise.reject(undefined))),
+				consoleSizeViaPowerShell().then((size) =>
+					size != undefined ? size : Promise.reject(undefined),
+				),
+				consoleSizeViaSTTY().then((size) => (size != undefined ? size : Promise.reject(undefined))),
+				consoleSizeViaTPUT().then((size) => (size != undefined ? size : Promise.reject(undefined))),
+			])
 				.then((size) => {
 					consoleSizeCache.set(JSON.stringify({ rid, options }), size);
 					return size;
 				})
-				.catch((_) => undefined)
+				.catch((_) => undefined),
 		);
 
 	return promise;
@@ -294,7 +286,10 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -313,16 +308,17 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	//     Code page:      65001
 	// ```
 	const promise = output
-		.then((text) =>
-			text
-				?.split(/\r?\n/)
-				.filter((s) => s.length > 0)
-				.slice(2, 4)
-				.map((s) => s.match(/(\d+)\s*$/)?.[1])
-				.filter((s) => s && (s.length > 0)) ?? []
+		.then(
+			(text) =>
+				text
+					?.split(/\r?\n/)
+					.filter((s) => s.length > 0)
+					.slice(2, 4)
+					.map((s) => s.match(/(\d+)\s*$/)?.[1])
+					.filter((s) => s && s.length > 0) ?? [],
 		)
 		.then((values) =>
-			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined
+			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined,
 		);
 	return promise;
 }
@@ -355,19 +351,22 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
 	})();
 
-	const promise = output.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? []).then((
-		values,
-	) =>
-		values.length > 0
-			? { columns: Number(values.shift()), rows: Number(values.shift()) }
-			: undefined
-	);
+	const promise = output
+		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? [])
+		.then((values) =>
+			values.length > 0
+				? { columns: Number(values.shift()), rows: Number(values.shift()) }
+				: undefined,
+		);
 	return promise;
 }
 
@@ -393,18 +392,27 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
 	})();
 
 	const promise = output
-		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0).reverse() ?? [])
+		.then(
+			(text) =>
+				text
+					?.split(/\s+/)
+					.filter((s) => s.length > 0)
+					.reverse() ?? [],
+		)
 		.then((values) =>
 			values.length > 0
 				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined
+				: undefined,
 		);
 	return promise;
 }
@@ -429,7 +437,10 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
@@ -442,19 +453,21 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 				stderr: 'null',
 				stdout: 'piped',
 			});
-			return (process.output()).then((out) => decode(out)).finally(() => process.close());
+			return process
+				.output()
+				.then((out) => decode(out))
+				.finally(() => process.close());
 		} catch (_) {
 			return Promise.resolve(undefined);
 		}
 	})();
 
-	const promise = Promise
-		.all([colsOutput, linesOutput])
+	const promise = Promise.all([colsOutput, linesOutput])
 		.then(([colsText, linesText]) => [colsText ?? '', linesText ?? ''])
 		.then(([cols, lines]) =>
-			(cols.length > 0 && lines.length > 0)
+			cols.length > 0 && lines.length > 0
 				? { columns: Number(cols), rows: Number(lines) }
-				: undefined
+				: undefined,
 		);
 	return promise;
 }

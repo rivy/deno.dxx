@@ -32,13 +32,15 @@ import { fetch } from '../src/lib/xFetch.ts';
 
 //===
 
-await abortIfMissingPermits(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-	// * script specific requirements
-	['net', 'read', 'write'],
-));
+await abortIfMissingPermits(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// * script specific requirements
+		['net', 'read', 'write'],
+	),
+);
 
 //===
 
@@ -51,9 +53,9 @@ $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired c
 log.trace({ $me });
 log.trace('Deno:', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
 
-const logLevelFromEnv = log
-	.logLevelDetail($logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined))
-	?.levelName;
+const logLevelFromEnv = log.logLevelDetail(
+	$logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined),
+)?.levelName;
 log.debug(
 	`(potential) log level of '${logLevelFromEnv}' generated from environment variables (LOG_LEVEL/LOGLEVEL or DEBUG)`,
 );
@@ -68,8 +70,7 @@ log.mergeMetadata({ authority: appName });
 const logLevelOptionChoices = stableSort(
 	Object.entries(log.logLevels()).filter(([key, value]) => key.length > 3 && value > 2),
 	([_keyA, valueA], [_keyB, valueB]) => valueA - valueB,
-)
-	.map(([key, _value]) => key);
+).map(([key, _value]) => key);
 log.trace('logLevelChoices', logLevelOptionChoices);
 
 performance.mark('setup:log:stop');
@@ -105,7 +106,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -204,34 +205,34 @@ performance.mark('setup:yargs:stop');
 
 performance.mark('setup:parseArgs:start');
 
-const argv = ((() => {
-	try {
-		return app.parse($me.args()) as YargsArguments;
-	} catch (e) {
-		log.error(e.message);
-		return;
-	}
-})()) || {} as YargsArguments;
+const argv =
+	(() => {
+		try {
+			return app.parse($me.args()) as YargsArguments;
+		} catch (e) {
+			log.error(e.message);
+			return;
+		}
+	})() || ({} as YargsArguments);
 
 log.trace({ '$me.args()': $me.args(), argv, appState });
 
 const defaultLogLevel = 'notice';
 const logLevelsFromOptions = [
-	(argv.silent) ? 'error' : undefined,
-	(argv.quiet) ? 'warn' : undefined,
-	(argv.verbose) ? 'info' : undefined,
-	(argv.debug) ? 'debug' : undefined,
-	(argv.trace) ? 'trace' : undefined,
+	argv.silent ? 'error' : undefined,
+	argv.quiet ? 'warn' : undefined,
+	argv.verbose ? 'info' : undefined,
+	argv.debug ? 'debug' : undefined,
+	argv.trace ? 'trace' : undefined,
 ];
-const logLevelsFromLogLevelArgv =
-	(Array.isArray(argv.logLevel) ? argv.logLevel as string[] : [argv.logLevel]).filter(
-		Boolean,
-	) as string[];
-const possibleLogLevelsInOrder =
-	([defaultLogLevel, logLevelFromEnv, ...logLevelsFromOptions, ...logLevelsFromLogLevelArgv].filter(
-		(e) => log.logLevelDetail(e)
-	) as string[])
-		.reverse();
+const logLevelsFromLogLevelArgv = (
+	Array.isArray(argv.logLevel) ? (argv.logLevel as string[]) : [argv.logLevel]
+).filter(Boolean) as string[];
+const possibleLogLevelsInOrder = (
+	[defaultLogLevel, logLevelFromEnv, ...logLevelsFromOptions, ...logLevelsFromLogLevelArgv].filter(
+		(e) => log.logLevelDetail(e),
+	) as string[]
+).reverse();
 const logLevel = possibleLogLevelsInOrder.length > 0 ? possibleLogLevelsInOrder[0] : Infinity;
 
 log.trace({
@@ -290,13 +291,15 @@ if (argv.help) {
 	await log.debug(durationText('run:generateHelp:customize'));
 	await log.debug(durationText('run:generateHelp'));
 	console.log(help);
-	const onlyRequestingHelp = (argv._.length === 0) &&
+	const onlyRequestingHelp =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyRequestingHelp ? 0 : 1);
 }
 if (argv.version) {
 	console.log(`${appName} ${appVersion}`);
-	const onlyRequestingVersion = (argv._.length === 0) &&
+	const onlyRequestingVersion =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyRequestingVersion ? 0 : 1);
 }
@@ -306,7 +309,7 @@ if (argv.version) {
 // positional arguments
 // * SOURCE
 const SOURCE = await (async () => {
-	const source = !appState.usageError ? (argv._?.shift()?.toString()) : '';
+	const source = !appState.usageError ? argv._?.shift()?.toString() : '';
 	if (!appState.usageError && source == null) {
 		appState.usageError = true;
 		await log.error(`SOURCE is a required argument`);
@@ -318,7 +321,7 @@ const SOURCE = await (async () => {
 const TARGET = await (async () => {
 	const target = !appState.usageError ? [...argv._] : [];
 	if (argv._?.length) argv._ = [];
-	if (!appState.usageError && (target.length < 1)) {
+	if (!appState.usageError && target.length < 1) {
 		// note: isTerminal() added to stderr, stdin, and stdout in Deno v1.40.0 ; added to Deno.FsFile in Deno v1.41.0
 		if (!Deprecated.Deno.isatty(Deprecated.Deno.stdout.rid)) {
 			target.push('-');
@@ -355,10 +358,13 @@ await log.trace(
 );
 
 // ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
-const source = (SOURCE === '-')
-	// * stdin is readable only once; for multiple targets, cache stdin into a Uint8Array for repeated use
-	? ((TARGET.length < 2) ? Deno.stdin : await readAll(Deno.stdin))
-	: intoURL(SOURCE);
+const source =
+	SOURCE === '-'
+		? // * stdin is readable only once; for multiple targets, cache stdin into a Uint8Array for repeated use
+			TARGET.length < 2
+			? Deno.stdin
+			: await readAll(Deno.stdin)
+		: intoURL(SOURCE);
 if (source == null) {
 	await log.error(`'${SOURCE}' is an invalid source`);
 	Deno.exit(1);
@@ -369,30 +375,32 @@ performance.mark('copy');
 
 await log.debug({ serialize: argv?.serialize });
 if (!argv?.serialize) {
-	await Promise.all(TARGET.map(async (t) => {
-		// ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
-		const target = (t === '-') ? Deno.stdout : intoURL(t);
-		if (!target) {
-			await log.error(`'${t}' is an invalid target`);
-			appState.exitValue = 1;
-		} else {
-			const protectTarget = argv.noClobber ?? false;
-			const preventTargetClose = target === Deno.stdout;
-			await log.trace({
-				source: source instanceof Uint8Array ? `Uint8Array[${source.length}]` : source,
-				target,
-			});
-			await copy(source instanceof Uint8Array ? readerFromIterable([source]) : source, target, {
-				protectTarget,
-				preventTargetClose,
-			})
-				.then(() => log.info(`'${SOURCE}' copied to '${t}'`))
-				.catch((e) => {
-					log.error(`Failed to copy '${SOURCE}' to '${t}' (${e})`);
-					appState.exitValue = 1;
+	await Promise.all(
+		TARGET.map(async (t) => {
+			// ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
+			const target = t === '-' ? Deno.stdout : intoURL(t);
+			if (!target) {
+				await log.error(`'${t}' is an invalid target`);
+				appState.exitValue = 1;
+			} else {
+				const protectTarget = argv.noClobber ?? false;
+				const preventTargetClose = target === Deno.stdout;
+				await log.trace({
+					source: source instanceof Uint8Array ? `Uint8Array[${source.length}]` : source,
+					target,
 				});
-		}
-	}));
+				await copy(source instanceof Uint8Array ? readerFromIterable([source]) : source, target, {
+					protectTarget,
+					preventTargetClose,
+				})
+					.then(() => log.info(`'${SOURCE}' copied to '${t}'`))
+					.catch((e) => {
+						log.error(`Failed to copy '${SOURCE}' to '${t}' (${e})`);
+						appState.exitValue = 1;
+					});
+			}
+		}),
+	);
 } else {
 	// note: if targets may overlap, need to serialize copy work
 	// note: `rcp FILE - - -` "succeeds" when in parallel but has "BadResource" promise rejection errors (from auto-closure within `pipeTo()`)
@@ -406,7 +414,7 @@ if (!argv?.serialize) {
 	await TARGET.reduce(async (chain, t) => {
 		await chain;
 		// ref: <https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html> @@ <https://archive.is/lEmhf>
-		const target = (t === '-') ? Deno.stdout : intoURL(t);
+		const target = t === '-' ? Deno.stdout : intoURL(t);
 		if (!target) {
 			await log.error(`'${t}' is an invalid target`);
 			appState.exitValue = 1;
@@ -454,11 +462,11 @@ async function copy(
 ) {
 	target = Array.isArray(target) ? target : [target];
 	const preventTargetClose =
-		((options?.preventTargetClose != null) && Array.isArray(options?.preventTargetClose))
+		options?.preventTargetClose != null && Array.isArray(options?.preventTargetClose)
 			? options?.preventTargetClose
-			: ((options?.preventTargetClose != null)
+			: options?.preventTargetClose != null
 				? (Array(target.length) as boolean[]).fill(options?.preventTargetClose)
-				: (Array(target.length) as boolean[]).fill(false));
+				: (Array(target.length) as boolean[]).fill(false);
 	const protectTarget = options?.protectTarget ?? false;
 	const readableStream = await (async () => {
 		if (source instanceof URL) {
@@ -483,23 +491,25 @@ async function copy(
 		} else return readableStreamFromReader(source);
 	})();
 
-	await Promise.all(target.map(async (t, index) => {
-		const writableStream = await (async () => {
-			if (t instanceof URL) {
-				const file = await Deno.open(ensureAsPath(traversal(t)), {
-					// ref: <https://doc.deno.land/deno/stable/~/Deno.OpenOptions>
-					create: !protectTarget,
-					createNew: protectTarget,
-					truncate: true, // or alternatively, follow with `await file.truncate();`
-					write: true,
-				});
-				return writableStreamFromWriter(file);
-			} else return writableStreamFromWriter(t);
-		})();
-		return readableStream.pipeTo(writableStream, {
-			preventClose: preventTargetClose[index] || false,
-		});
-	}));
+	await Promise.all(
+		target.map(async (t, index) => {
+			const writableStream = await (async () => {
+				if (t instanceof URL) {
+					const file = await Deno.open(ensureAsPath(traversal(t)), {
+						// ref: <https://doc.deno.land/deno/stable/~/Deno.OpenOptions>
+						create: !protectTarget,
+						createNew: protectTarget,
+						truncate: true, // or alternatively, follow with `await file.truncate();`
+						write: true,
+					});
+					return writableStreamFromWriter(file);
+				} else return writableStreamFromWriter(t);
+			})();
+			return readableStream.pipeTo(writableStream, {
+				preventClose: preventTargetClose[index] || false,
+			});
+		}),
+	);
 }
 
 async function _remoteCopyUsingCopy(

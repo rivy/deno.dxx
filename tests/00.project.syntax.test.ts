@@ -38,22 +38,28 @@ const projectCodeFilesByKind: Record<string, string[]> = {
 	// 	['bench', 'benchmark', 'benchmarks'].map((s) => $path.join(projectPath, s, '*.ts')),
 	// 	{ nullglob: true },
 	// ),
-	examples: expand(['eg', 'egs', 'examples'].map((s) => $path.join(projectPath, s, '*.ts')), {
-		nullglob: true,
-	}),
-	source: expand(['source', 'src'].map((s) => $path.join(projectPath, s, '**/*.ts')), {
-		nullglob: true,
-	}),
+	examples: expand(
+		['eg', 'egs', 'examples'].map((s) => $path.join(projectPath, s, '*.ts')),
+		{
+			nullglob: true,
+		},
+	),
+	source: expand(
+		['source', 'src'].map((s) => $path.join(projectPath, s, '**/*.ts')),
+		{
+			nullglob: true,
+		},
+	),
 	tools: expand($path.join(projectPath, 'tools/*.ts'), { nullglob: true }),
 	tests: expand(
 		['t', 'test', 'tests', 'bench', 'benchmark', 'benchmarks'].map((s) =>
-			$path.join(projectPath, s, '**/*.ts')
+			$path.join(projectPath, s, '**/*.ts'),
 		),
 		{ nullglob: true },
 	),
 };
 const projectCodeFiles = Object.keys(projectCodeFilesByKind).flatMap((arr) =>
-	projectCodeFilesByKind[arr].flat()
+	projectCodeFilesByKind[arr].flat(),
 );
 
 test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.length} found)`, async () => {
@@ -67,7 +73,7 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 		stderr: 'piped',
 	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
+		() => p.close(),
 	);
 	const haveWarnings = $colors.stripColor(decode(err)).match(/^warning/ims) != null;
 	if (!status.success || haveWarnings) {
@@ -90,14 +96,20 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 	} else {
 		test(description + ` (within ${projectCodeFiles.length}+ files)`, async () => {
 			const files = projectCodeFiles.flatMap((e) => traversal(e) || []);
-			const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--circular', '--no-spinner']
-				.concat(files);
+			const cmd = [
+				...(isWinOS ? ['cmd', '/x/d/c'] : []),
+				'madge',
+				'--circular',
+				'--no-spinner',
+			].concat(files);
 			console.log({ files });
 
 			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
-			const [status, out, err] = await Promise
-				.all([p.status(), p.output(), p.stderrOutput()])
-				.finally(() => p.close());
+			const [status, out, err] = await Promise.all([
+				p.status(),
+				p.output(),
+				p.stderrOutput(),
+			]).finally(() => p.close());
 			// console.debug({ status, stdout: decode(out), stderr: decode(err) });
 			if (!status.success) {
 				console.warn('`madge` status', status);
@@ -120,7 +132,7 @@ test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.len
 		stderr: 'piped',
 	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
+		() => p.close(),
 	);
 	if (!status.success) {
 		console.warn({ status });
@@ -141,7 +153,7 @@ test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFiles
 		stderr: 'piped',
 	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
+		() => p.close(),
 	);
 	if (!status.success) {
 		console.warn({ status });
@@ -162,7 +174,7 @@ test(`syntax ~ test and benchmark files (plus imports) compile correctly (${proj
 		stderr: 'piped',
 	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
+		() => p.close(),
 	);
 	if (!status.success) {
 		console.warn({ status });
@@ -183,7 +195,7 @@ test(`syntax ~ tools compile correctly (${projectCodeFilesByKind.tools.length} f
 		stderr: 'piped',
 	});
 	const [status, out, err] = await Promise.all([p.status(), p.output(), p.stderrOutput()]).finally(
-		() => p.close()
+		() => p.close(),
 	);
 	if (!status.success) {
 		console.warn({ status });

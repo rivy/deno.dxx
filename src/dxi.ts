@@ -42,13 +42,15 @@ import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
 
 //===
 
-await abortIfMissingPermitsSync(([] as Deno.PermissionName[]).concat(
-	['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
-	['read'], // required for shim targeting of argument expansion and 'yargs'
-	['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
-	// * script specific requirements
-	['run'], // required to run `deno`
-));
+await abortIfMissingPermitsSync(
+	([] as Deno.PermissionName[]).concat(
+		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
+		['read'], // required for shim targeting of argument expansion and 'yargs'
+		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// * script specific requirements
+		['run'], // required to run `deno`
+	),
+);
 
 //===
 
@@ -103,7 +105,7 @@ Usage:\n  ${appRunAs} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGU
 	// ref: update string keys/names from <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	// .updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// * (boilerplate) fail function
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
@@ -180,7 +182,7 @@ const bakedArgs = $me.args();
 const endOfOptionsSignal = '--';
 const idxFirstNonOption = ((arr) => {
 	const idx = arr.findIndex((e) => e === endOfOptionsSignal || !e.startsWith('-'));
-	return (idx < 0) ? arr.length : idx;
+	return idx < 0 ? arr.length : idx;
 })(bakedArgs);
 const usesEndOfOptions = bakedArgs[idxFirstNonOption] === endOfOptionsSignal;
 
@@ -208,18 +210,17 @@ log.trace({ bakedArgs, argv });
 const possibleLogLevels = ((defaultLevel = 'notice') => {
 	const levels = [
 		logLevelFromEnv,
-		(argv?.silent) ? 'error' : undefined,
-		(argv?.quiet) ? 'warn' : undefined,
-		(argv?.verbose) ? 'info' : undefined,
-		(argv?.debug) ? 'debug' : undefined,
-		(argv?.trace) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
-	const logLevelFromArgv =
-		(Array.isArray(argv?.logLevel)
-			? argv?.logLevel as string[]
-			: [argv?.logLevel as string | undefined])
-			.pop();
+		argv?.silent ? 'error' : undefined,
+		argv?.quiet ? 'warn' : undefined,
+		argv?.verbose ? 'info' : undefined,
+		argv?.debug ? 'debug' : undefined,
+		argv?.trace ? 'trace' : undefined,
+	].filter(Boolean);
+	const logLevelFromArgv = (
+		Array.isArray(argv?.logLevel)
+			? (argv?.logLevel as string[])
+			: [argv?.logLevel as string | undefined]
+	).pop();
 	log.trace({ logLevelFromEnv, levels, logLevelFromArgv });
 	return [log.logLevelDetail(logLevelFromArgv)?.levelName]
 		.concat(
@@ -255,13 +256,15 @@ if (argv.help) {
 	const yargsHelp = await app.getHelp();
 	const help = await restyleYargsHelp(yargsHelp);
 	console.log(help);
-	const onlyHelp = (argv._.length === 0) &&
+	const onlyHelp =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv.version) {
 	console.log(`${appName} ${appVersion}`);
-	const onlyVersion = (argv._.length === 0) &&
+	const onlyVersion =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyVersion ? 0 : 1);
 }
@@ -286,7 +289,9 @@ await log.trace({ allArgs, delegatedDenoArgs, args });
 if (args.length < 1) {
 	await log.error(`COMMAND argument is required`);
 	const yargsHelp = await app.getHelp();
-	const usage = (await restyleYargsHelp(yargsHelp) as string).match(/\n(.*?usage.*?\n)\n/ims)?.[1];
+	const usage = ((await restyleYargsHelp(yargsHelp)) as string).match(
+		/\n(.*?usage.*?\n)\n/ims,
+	)?.[1];
 	console.warn(`${usage}\nUse \`${appRunAs} --help\` to show full usage and available options`);
 	Deno.exit(1);
 }
@@ -392,36 +397,38 @@ const filteredDelegatedDenoArgs = delegatedDenoArgs.flatMap((arg) => {
 });
 
 // determine if `--help` or `-h` is present in the delegatedArgs
-const hasDenoHelpOption = filteredDelegatedDenoArgs.find((arg) => {
-	if (arg === '--help' || arg === '-h') {
-		return true;
-	}
-	const matches = arg.match(/^-[^-].*/);
-	if (matches) {
-		// `arg` matches a combined short option
-		const matches = arg.match(/h/);
-		if (matches) {
+const hasDenoHelpOption =
+	filteredDelegatedDenoArgs.find((arg) => {
+		if (arg === '--help' || arg === '-h') {
 			return true;
 		}
-	}
-	return false;
-}) != null;
+		const matches = arg.match(/^-[^-].*/);
+		if (matches) {
+			// `arg` matches a combined short option
+			const matches = arg.match(/h/);
+			if (matches) {
+				return true;
+			}
+		}
+		return false;
+	}) != null;
 
 // determine if `--global` or `-g` is present in the delegatedArgs
-const hasDenoGlobalOption = filteredDelegatedDenoArgs.find((arg) => {
-	if (arg === '--global' || arg === '-g') {
-		return true;
-	}
-	const matches = arg.match(/^-[^-].*/);
-	if (matches) {
-		// `arg` matches a combined short option
-		const matches = arg.match(/g/);
-		if (matches) {
+const hasDenoGlobalOption =
+	filteredDelegatedDenoArgs.find((arg) => {
+		if (arg === '--global' || arg === '-g') {
 			return true;
 		}
-	}
-	return false;
-}) != null;
+		const matches = arg.match(/^-[^-].*/);
+		if (matches) {
+			// `arg` matches a combined short option
+			const matches = arg.match(/g/);
+			if (matches) {
+				return true;
+			}
+		}
+		return false;
+	}) != null;
 
 // suppress deno behaviors change warning about `--global` option (for Deno v1.42.0+)
 if (!hasDenoGlobalOption && $semver.satisfies(Deno.version.deno, '>=1.42.0')) {
@@ -481,33 +488,35 @@ const outputReader = mergedOutput.getReader();
 // ?.replace(/^/gmsu, '| ')
 
 let out = '';
-const status = (await Promise.all([
-	(() => {
-		{
-			const status = process.status();
-			performance.mark('install.deno-install:end');
-			return status;
-		}
-	})(),
-	(async () => {
-		let buffer = '';
-		while (true) {
-			const { value, done } = await outputReader.read();
-			if (done) break;
-			buffer += decoder.decode(value);
-			let newlineIndex;
-			while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
-				const line = buffer.slice(0, newlineIndex);
-				out += line + '\n';
-				const s = line?.trimEnd().replace(/^/gmsu, '* ');
-				spinnerForInstall.text = spinnerText + '\n' + s + '\n';
-				spinnerForInstall.render();
-				buffer = buffer.slice(newlineIndex + 1);
+const status = (
+	await Promise.all([
+		(() => {
+			{
+				const status = process.status();
+				performance.mark('install.deno-install:end');
+				return status;
 			}
-		}
-	})(),
-	delay(100),
-]))[0]; // await completion status with simultaneous output display (and `delay(100)` to avoid visible spinner flash)
+		})(),
+		(async () => {
+			let buffer = '';
+			while (true) {
+				const { value, done } = await outputReader.read();
+				if (done) break;
+				buffer += decoder.decode(value);
+				let newlineIndex;
+				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+					const line = buffer.slice(0, newlineIndex);
+					out += line + '\n';
+					const s = line?.trimEnd().replace(/^/gmsu, '* ');
+					spinnerForInstall.text = spinnerText + '\n' + s + '\n';
+					spinnerForInstall.render();
+					buffer = buffer.slice(newlineIndex + 1);
+				}
+			}
+		})(),
+		delay(100),
+	])
+)[0]; // await completion status with simultaneous output display (and `delay(100)` to avoid visible spinner flash)
 
 spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
@@ -518,11 +527,12 @@ Deno.stdout.writeSync(encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '
 const installDuration = performanceDuration('install.deno-install');
 Deno.stdout.writeSync(
 	encoder.encode(
-		'└─ ' + (status.success
-			? $colors.green('Done')
-			: $colors.red('Failed')) + (installDuration
-				? (' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 }))
-				: '') + '\n',
+		'└─ ' +
+			(status.success ? $colors.green('Done') : $colors.red('Failed')) +
+			(installDuration
+				? ' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 })
+				: '') +
+			'\n',
 	),
 );
 if (!status.success) await log.error('`deno install ...` failed');
@@ -565,9 +575,7 @@ if (status.success && isWinOS) {
 	const appNameVersion = '`' + $me.name + '` ' + appVersion;
 	const contentsUpdated = eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
-			denoRunOptions: denoRunOptions
-				.concat(addQuietOption ? ' "--quiet"' : '')
-				.trim(),
+			denoRunOptions: denoRunOptions.concat(addQuietOption ? ' "--quiet"' : '').trim(),
 			denoRunTarget,
 			denoRunTargetPrefixArgs,
 			shimBinName,

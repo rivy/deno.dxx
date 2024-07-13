@@ -16,7 +16,7 @@ test('callersFromStack', () => {
 	const calledFromURL = import.meta.url;
 	console.log({ calledFromLine, calledFromURL, callers });
 	// pop off Deno implementation detail callers
-	while ((callers.length > 0) && (callers[callers.length - 1]?.startsWith('ext:'))) {
+	while (callers.length > 0 && callers[callers.length - 1]?.startsWith('ext:')) {
 		const _ = callers.pop();
 	}
 	console.log("removed 'ext:*'", { callers });

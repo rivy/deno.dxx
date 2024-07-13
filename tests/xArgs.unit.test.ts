@@ -56,8 +56,7 @@ async function shellExpandDuel(args: string | string[], options?: Parse.ArgsOpti
 }
 
 test('`shellExpand()` basics', () => {
-	return Promise
-		.resolve()
+	return Promise.resolve()
 		.then(async () => {
 			const exampleFiles = await Parse.shellExpand('./**/*.ext');
 			console.log({ exampleFiles });
@@ -200,8 +199,9 @@ if ($fs.existsSync(mayBeRootPath)) {
 		const results = await shellExpandDuel(mayBeRootPath + '*');
 		console.log({ results, mayBeRootPath });
 		assert(
-			results?.find((s) =>
-				pathToOsStyle(s).toLocaleLowerCase() === pathToOsStyle(mayBeRootPath).toLocaleLowerCase()
+			results?.find(
+				(s) =>
+					pathToOsStyle(s).toLocaleLowerCase() === pathToOsStyle(mayBeRootPath).toLocaleLowerCase(),
 			) != undefined,
 		);
 	});

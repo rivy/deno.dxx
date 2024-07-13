@@ -28,7 +28,7 @@ type ValidatorType = {
 }; // ref: https://github.com/neuledge/computed-types/issues/106
 const isOfType = (v: ValidatorType, value: unknown) => {
 	// deno-lint-ignore no-explicit-any
-	return ((v as unknown) as any).destruct()(value);
+	return (v as unknown as any).destruct()(value);
 };
 const assertType = (v: ValidatorType, value: unknown) => {
 	const result = isOfType(v, value) as [Error, unknown];

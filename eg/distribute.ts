@@ -109,7 +109,7 @@ Usage:\n  ${runAsName} [OPTION..] SOURCE TARGET..`)
 	.group(['help', 'version'], '*Help/Info:')
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({
-		'Unknown argument: %s': { 'one': 'Unknown option: %s', 'other': 'Unknown options: %s' },
+		'Unknown argument: %s': { one: 'Unknown option: %s', other: 'Unknown options: %s' },
 	})
 	// ref: <https://github.com/yargs/yargs-parser#configuration>
 	.parserConfiguration({
@@ -125,7 +125,7 @@ Usage:\n  ${runAsName} [OPTION..] SOURCE TARGET..`)
 	.strictOptions(/* enable */ true)
 	.option('version-regex', {
 		describe: 'Regular expression used to match SOURCE and TARGET versions',
-		default: '^\\s*(#|//)\s*v\\d+(\\.\\d+)*',
+		default: '^\\s*(#|//)\\s*v\\d+(\\.\\d+)*',
 		type: 'string',
 	})
 	.alias('version-regex', ['r']); // .demandOption(['SOURCE']);
@@ -152,18 +152,17 @@ log.trace({ bakedArgs, argv });
 const possibleLogLevels = ((defaultLevel = 'notice') => {
 	const levels = [
 		logLevelFromEnv,
-		(argv?.silent) ? 'error' : undefined,
-		(argv?.quiet) ? 'warn' : undefined,
-		(argv?.verbose) ? 'info' : undefined,
-		(argv?.debug) ? 'debug' : undefined,
-		(argv?.trace) ? 'trace' : undefined,
-	]
-		.filter(Boolean);
-	const logLevelFromArgv =
-		(Array.isArray(argv?.logLevel)
-			? argv?.logLevel as string[]
-			: [argv?.logLevel as string | undefined])
-			.pop();
+		argv?.silent ? 'error' : undefined,
+		argv?.quiet ? 'warn' : undefined,
+		argv?.verbose ? 'info' : undefined,
+		argv?.debug ? 'debug' : undefined,
+		argv?.trace ? 'trace' : undefined,
+	].filter(Boolean);
+	const logLevelFromArgv = (
+		Array.isArray(argv?.logLevel)
+			? (argv?.logLevel as string[])
+			: [argv?.logLevel as string | undefined]
+	).pop();
 	log.trace({ logLevelFromEnv, levels, logLevelFromArgv });
 	return [log.logLevelDetail(logLevelFromArgv)?.levelName]
 		.concat(
@@ -228,13 +227,15 @@ if (argv?.help) {
 	await log.debug(durationText('run:generateHelp:customize'));
 	await log.debug(durationText('run:generateHelp'));
 	console.log(help);
-	const onlyHelp = (argv._.length === 0) &&
+	const onlyHelp =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['help', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyHelp ? 0 : 1);
 }
 if (argv?.version) {
 	console.log(`${appName} ${version}`);
-	const onlyVersion = (argv._.length === 0) &&
+	const onlyVersion =
+		argv._.length === 0 &&
 		Object.keys(argv).filter((s) => !['version', '_', '$0'].includes(s)).length === 0;
 	Deno.exit(onlyVersion ? 0 : 1);
 }
