@@ -483,13 +483,15 @@ export function formatDuration(
 	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
 ): string {
 	const [unit, n] = (durationInMS > 1000) ? ['s', durationInMS / 1000] : ['ms', durationInMS];
-	return (new Intl.NumberFormat(undefined, options).format(n)) + ' ' + unit;
+	const NumberFormat = new Intl.NumberFormat(undefined, options);
+	return NumberFormat.format(n) + ' ' + unit;
 }
 export function formatN(
 	n: number,
 	options: Intl.NumberFormatOptions = { minimumFractionDigits: 3, maximumFractionDigits: 5 },
 ): string {
-	return (new Intl.NumberFormat(undefined, options).format(n));
+	const NumberFormat = new Intl.NumberFormat(undefined, options);
+	return NumberFormat.format(n);
 }
 
 //===
