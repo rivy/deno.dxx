@@ -140,7 +140,8 @@ performance.measure('setup', 'setup:start', 'setup:stop');
 await log.debug(`setup done (duration: ${
 	(() => {
 		const duration = performance.getEntriesByName('setup')[0].duration;
-		const [unit, n] = (duration > 1000) ? ['s', duration / 1000] : ['ms', duration];
+		const displayAsSeconds = duration > 1000;
+		const [unit, n] = displayAsSeconds ? ['s', duration / 1000] : ['ms', duration];
 		const NumberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 });
 		return NumberFormat.format(n) + ' ' + unit;
 	})()
