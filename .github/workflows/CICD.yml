@@ -59,25 +59,31 @@ jobs:
           ## Install/setup prerequisites
           sudo apt-get -y update
           sudo apt-get -y install expect npm
-          # * pin installed cspell to v4.2.8 (cspell v5+ is broken for NodeJS < v12)
-          ## maint: [2021-11-10; rivy] `cspell` version may be advanced to v5 when used with NodeJS >= v12
-          sudo npm install cspell@4.2.8 -g
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
       - name: Install additional CLI utilities
         shell: bash
         run: |
+          ## Install additional CLI utilities
+          # CLI versions
+          bmp_version='https://deno.land/x/bmp@v0.0.7/cli.ts'
+          ## note: cspell v5+ is broken for NodeJS < v12; if NodeJS < v12, use v4.2.8
+          cspell_version='8' ; if [ "$(printf "v12.0.0\n$(node --version)" | sort --version-sort | head --lines=1 )" != "v12.0.0" ]; then cspell_version='4.2.8' ; fi
+          commitlint_version='17'
+          dprint_version='0.47.2'
+          madge_version='6'
           # * bmp
-          deno install --allow-read=. --allow-write=. --allow-run=git -f https://deno.land/x/bmp@v0.0.7/cli.ts
+          deno install --allow-read=. --allow-write=. --allow-run=git -f "${bmp_version}"
           # * commitlint
-          npm install --global @commitlint/cli@17 @commitlint/config-conventional@17
+          npm install --global "@commitlint/cli@${commitlint_version}" "@commitlint/config-conventional@${commitlint_version}"
+          # * cspell
+          npm install --global "cspell@${cspell_version}"
           # * dprint
           # ref: GitHub Action ['dprint/check'](https://github.com/dprint/check)
-          dprint_version=0.47.2
           curl --fail --location --silent --show-error https://dprint.dev/install.sh | sh -s ${dprint_version} > /dev/null 2>&1
           echo '/home/runner/.dprint/bin' >> $GITHUB_PATH
           # * madge
-          npm install --global madge@6
+          npm install --global "madge@${madge_version}"
       - name: Info
         shell: bash
         run: |
@@ -205,6 +211,15 @@ jobs:
           ## Create build/work space
           mkdir -p '${{ steps.vars.outputs.STAGING }}'
           mkdir -p '${{ steps.vars.outputs.STAGING }}/${{ steps.vars.outputs.PKG_BASENAME }}/bin'
+      - name: Install/setup prerequisites
+        shell: bash
+        run: |
+          ## Install/setup prerequisites
+          # * install `expect`
+          case '${{ matrix.job.os }}' in
+            macos-*) brew install expect ;;
+            ubuntu-*) sudo apt-get -y update ; sudo apt-get -y install expect ;;
+          esac
       - name: Install `deno` toolchain
         uses: denoland/setup-deno@v1
       - name: Info
