@@ -36,14 +36,7 @@ jobs:
         job:
           - { os: ubuntu-latest }
     steps:
-      - uses: actions/checkout@v2
-      - name: Initialize workflow variables
-        id: vars
-        shell: bash
-        run: |
-          ## VARs setup
-          outputs() { step_id="${{ github.action }}"; for var in "$@" ; do echo steps.${step_id}.outputs.${var}="${!var}"; echo "${var}=${!var}" >> $GITHUB_OUTPUT; done; }
-          # ...
+      - uses: actions/checkout@v4
       - name: Install/setup prerequisites
         shell: bash
         run: |
@@ -150,7 +143,7 @@ jobs:
       ARTIFACTS: ${{ steps.vars.outputs.ARTIFACTS }}
       DEPLOY: ${{ steps.vars.outputs.DEPLOY }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # pull full repository (enables `git` branch/describe operations and testing)
       - name: Initialize workflow variables
@@ -287,7 +280,7 @@ jobs:
           popd >/dev/null
       - name: Reserve artifacts # (ephemeral storage; for up to 90 days)
         if: steps.vars.outputs.ARTIFACTS
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PROJECT_NAME }}-${{ matrix.job.target }}
           path: ${{ steps.vars.outputs.STAGING }}/${{ steps.vars.outputs.PKG_NAME }}
@@ -343,7 +336,7 @@ jobs:
           mkdir -p '${{ steps.vars.outputs.STAGING }}'
       - name: Retrieve artifacts
         if: steps.vars.outputs.ARTIFACTS
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: '${{ env.PROJECT_NAME }}-${{ matrix.job.target }}'
           path: '${{ steps.vars.outputs.STAGING }}'
