@@ -32,7 +32,7 @@ test('consoleSize ~ fully redirected, no permissions', () => {
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
 
@@ -48,7 +48,7 @@ test('consoleSize ~ fully redirected, run permission', () => {
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
 
@@ -64,7 +64,7 @@ test('consoleSize ~ fully redirected, FFI permission', () => {
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
 
@@ -80,7 +80,7 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
 
@@ -96,7 +96,7 @@ test('consoleSize ~ fully redirected, full permissions, via shell', () => {
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
 
@@ -112,7 +112,7 @@ test('consoleSize ~ fully redirected, full permissions + FFI', () => {
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
 
@@ -131,6 +131,6 @@ test('consoleSize ~ fully redirected, full permissions + FFI, via shell', () => 
 	const err = decode(stderr);
 	if (code != 0) console.warn({ code, out, err });
 	const results = JSON.parse(out);
-	console.debug({ code, results });
+	console.log({ code, results });
 	assert(code == 0, 'consoleSize integration test succeeds');
 });
