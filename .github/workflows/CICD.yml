@@ -95,6 +95,19 @@ jobs:
           echo "BASH_VERSION='${BASH_VERSION}'"
           echo "BASHOPTS='${BASHOPTS}'"
           echo "CI='${CI}'"
+          # terminal info
+          echo "## terminal"
+          export TERM="${TERM:-${TERM_FALLBACK}}"
+          echo "[ (local) TERM='${TERM}' ]"
+          echo "columns='$((tput cols 2>&1) | xargs)'"
+          echo "lines='$((tput lines 2>&1) | xargs)'"
+          export TERMINAL_PATH=/dev/tty
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
+          export TERMINAL_PATH=/dev/pty/0
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
+          echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
+          echo "stty size = '$((stty size 2>&1) | xargs)'"
+          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | xargs)'"
           # tooling info display
           echo "## tooling"
           deno --version
@@ -233,6 +246,19 @@ jobs:
           echo "BASH_VERSION='${BASH_VERSION}'"
           echo "BASHOPTS='${BASHOPTS}'"
           echo "CI='${CI}'"
+          # terminal info
+          echo "## terminal"
+          export TERM="${TERM:-${TERM_FALLBACK}}"
+          echo "[ (local) TERM='${TERM}' ]"
+          echo "columns='$((tput cols 2>&1) | xargs)'"
+          echo "lines='$((tput lines 2>&1) | xargs)'"
+          export TERMINAL_PATH=/dev/tty
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
+          export TERMINAL_PATH=/dev/pty/0
+          test -e "${TERMINAL_PATH}" && echo $(echo "tput cols/lines (via STDERR redirect to '${TERMINAL_PATH}') { columns: $(tput cols), rows: $(tput lines) }") 2< "${TERMINAL_PATH}" || true
+          echo "tput cols/lines (via expect) = '$((expect -c 'spawn -noecho tput cols ; expect eof; spawn -noecho tput lines ; expect eof;' 2>&1) | xargs)'"
+          echo "stty size = '$((stty size 2>&1) | xargs)'"
+          echo "stty size (via expect) = '$((expect -c 'spawn -noecho stty size ; expect eof ;' 2>&1) | xargs)'"
           # tooling info display
           echo "## tooling"
           deno --version
@@ -250,6 +276,36 @@ jobs:
           ## `deno test` (with coverage)
           # * note: `deno test` with coverage data generation
           deno test --allow-all --coverage=.coverage
+          case '${{ matrix.job.os }}' in
+            macos-*) (
+              export TERM=${TERM:-${TERM_FALLBACK}}
+              echo "[ (local) TERM='${TERM}' ]"
+              echo '$ '"script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts"
+              script -q /dev/null deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts
+              echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
+              expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+              )
+              ;;
+            ubuntu-*) (
+              export TERM=${TERM:-${TERM_FALLBACK}}
+              echo "[ (local) TERM='${TERM}' ]"
+              echo '$ '"script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'"
+              script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'
+              echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
+              expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+              )
+              ;;
+            ## note: WinOS (under GHA) does not support `script` or `expect`
+            # windows-*) (
+            #   export TERM=${TERM:-${TERM_FALLBACK}}
+            #   echo "[ (local) TERM='${TERM}' ]"
+            #   echo '$ '"script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'"
+            #   script --return --quiet --log-out /dev/null --command 'deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts'
+            #   # echo '$ '"expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'"
+            #   # expect -c 'spawn deno test --allow-all --coverage=.coverage tests/consoleSize.integration.test.ts ; expect eof ;'
+            #   )
+            #   ;;
+          esac
           # * generate LCOV coverage data file
           deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
           cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
