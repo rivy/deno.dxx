@@ -47,7 +47,7 @@ await abortIfMissingPermits(
 performance.mark('setup:start');
 performance.mark('setup:log:start');
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me });
@@ -90,9 +90,9 @@ Copy SOURCE to TARGET(s).\n
 Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	.updateStrings({ 'Positionals:': 'Arguments:' }) // note: Yargs requires this `updateStrings()` to precede `.positional(...)` definitions for correct help display
 	.positional('OPTION', { describe: 'OPTION(s); see listed *Options*' })
-	.positional('SOURCE', { describe: `SOURCE file to copy`, demand: true })
+	.positional('SOURCE', { describe: 'SOURCE file to copy', demand: true })
 	.positional('TARGET', {
-		describe: `TARGET file(s); optional (assumed to be STDOUT) when STDOUT is redirected`,
+		describe: 'TARGET file(s); optional (assumed to be STDOUT) when STDOUT is redirected',
 		demand: true,
 	})
 	.epilog(`Notes:
@@ -132,7 +132,7 @@ Usage:\n  ${appRunAs} [OPTION..] SOURCE TARGET..`)
 	// * (boilerplate) logging options
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: logLevelOptionChoices, // required for help display of choices
 	})
@@ -312,7 +312,7 @@ const SOURCE = await (async () => {
 	const source = !appState.usageError ? argv._?.shift()?.toString() : '';
 	if (!appState.usageError && source == null) {
 		appState.usageError = true;
-		await log.error(`SOURCE is a required argument`);
+		await log.error('SOURCE is a required argument');
 	}
 	return source || '';
 })();
@@ -327,7 +327,7 @@ const TARGET = await (async () => {
 			target.push('-');
 		} else {
 			appState.usageError = true;
-			await log.error(`TARGET is a required argument`);
+			await log.error('TARGET is a required argument');
 		}
 	}
 	return target.map((e) => e.toString());

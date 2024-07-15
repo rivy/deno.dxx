@@ -60,7 +60,7 @@ performance.mark('setup:log:start');
 // const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 // const pathCaseSensitive = !isWinOS;
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me, $version });
@@ -144,7 +144,7 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	// * (boilerplate) logging options
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace'], // required for help display of choices
 	})
@@ -188,12 +188,12 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	.option('lines', { describe: 'Display arguments on separate lines', boolean: true })
 	.alias('lines', 'l')
 	/* Examples...*/
-	.example(`${appRunAs} \$'\\xe2\\x98\\x80\\ufe0f\\u2601\\ufe0f\\U1f308' is ☀️☁️🌈`, `ANSI-C strings`)
+	.example(`${appRunAs} \$'\\xe2\\x98\\x80\\ufe0f\\u2601\\ufe0f\\U1f308' is ☀️☁️🌈`, 'ANSI-C strings')
 	.example(
 		`env nullglob=1 ${appRunAs} **/*.{[cm]js,js,ts}`,
-		`Bash-like brace, bracket, and advanced file globbing (with NULLGLOB support [for WinOS])`,
+		'Bash-like brace, bracket, and advanced file globbing (with NULLGLOB support [for WinOS])',
 	)
-	.example(`${appRunAs} '*' "*" *`, `Portable, correct, single and double-quoted ARGs`)
+	.example(`${appRunAs} '*' "*" *`, 'Portable, correct, single and double-quoted ARGs')
 	.example([]);
 
 performance.mark('setup:yargs:stop');

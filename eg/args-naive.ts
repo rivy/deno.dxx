@@ -46,7 +46,7 @@ performance.mark('setup:log:start');
 // const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 // const pathCaseSensitive = !isWinOS;
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 // $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 // log.trace({ $me, $version });
@@ -127,7 +127,7 @@ Usage:\n  ${appRunAs} [OPTION..] [ARG..]`)
 	// * (boilerplate) logging options
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace'], // required for help display of choices
 	})

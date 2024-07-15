@@ -28,7 +28,7 @@ performance.mark('setup:log:start');
 // const pathExtensions = (isWinOS && env('PATHEXT')?.split(pathListSeparator)) || [];
 // const pathCaseSensitive = !isWinOS;
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me });
@@ -61,8 +61,8 @@ Usage:\n  ${runAsName} [OPTION..] SOURCE TARGET..`)
 	// ref: <https://github.com/yargs/yargs/blob/59a86fb83cfeb8533c6dd446c73cf4166cc455f2/locales/en.json>
 	.updateStrings({ 'Positionals:': 'Arguments:' })
 	.positional('OPTION', { describe: 'OPTION(s); see listed *Options*' })
-	.positional('SOURCE', { describe: `SOURCE file to distribute`, demand: 1 })
-	.positional('TARGET', { describe: `TARGET file(s) of distribution`, demand: 1 })
+	.positional('SOURCE', { describe: 'SOURCE file to distribute', demand: 1 })
+	.positional('TARGET', { describe: 'TARGET file(s) of distribution', demand: 1 })
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
 		throw new Error(msg);
@@ -87,7 +87,7 @@ Usage:\n  ${runAsName} [OPTION..] SOURCE TARGET..`)
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'],
 		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 	})
 	.option('silent', {
@@ -250,7 +250,7 @@ const SOURCE = await (async () => {
 	const source = argv?._?.shift()?.toString();
 	if (source == null) {
 		usageError = true;
-		await log.error(`SOURCE is a required argument`);
+		await log.error('SOURCE is a required argument');
 	}
 	return source || '';
 })();
@@ -261,7 +261,7 @@ const TARGET = await (async () => {
 	if (argv) argv._ = [];
 	if (target.length < 1) {
 		usageError = true;
-		await log.error(`TARGET is a required argument`);
+		await log.error('TARGET is a required argument');
 	}
 	return target.map((e) => e.toString());
 })();
