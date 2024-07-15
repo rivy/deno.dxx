@@ -67,7 +67,6 @@ const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
 
 //===
 
-// export type ConsoleSize = { columns: number; rows: number };
 export type ConsoleSize = ReturnType<typeof Deno.consoleSize>;
 
 /** Options for ConsoleSize functions ...
@@ -795,50 +794,3 @@ export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
 		);
 	return promise;
 }
-
-// export function windowSizeViaWMIC(): Promise<ConsoleSize | undefined> { // * in pixels *
-// 	if (!isWinOS) return Promise.resolve(undefined); // no `wmic` on non-WinOS platforms
-// 	const output = (() => {
-// 		try {
-// 			const process = Deno.run({
-// 				cmd: [
-// 					'wmic',
-// 					'path',
-// 					'Win32_VideoController',
-// 					'get',
-// 					'CurrentHorizontalResolution,CurrentVerticalResolution',
-// 				],
-// 				stdin: 'null',
-// 				stderr: 'null',
-// 				stdout: 'piped',
-// 			});
-// 			return (process.output()).then((out) => decode(out)).finally(() => process.close());
-// 		} catch (_) {
-// 			return Promise.resolve(undefined);
-// 		}
-// 	})();
-// 	// ref: <https://superuser.com/questions/270718/get-display-resolution-from-windows-command-line>
-// 	// ```text
-// 	// C:> wmic path Win32_VideoController get CurrentHorizontalResolution,CurrentVerticalResolution
-// 	// CurrentHorizontalResolution  CurrentVerticalResolution
-// 	// 2560                         1440
-// 	// ```
-// 	const promise = output
-// 		.then((text) => {
-// 			console.warn({ text, text_split: text?.split(/\r*\n/) });
-// 			return text?.split(/\r?\n/)[1].split(/\s+/).filter((s) => s && (s.length > 0)) ?? [];
-// 		})
-// 		.then((values) =>
-// 			values.length > 0
-// 				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-// 				: undefined
-// 		);
-// 	return promise;
-// }
-
-// const consoleSizes = {
-// 	consoleSizeViaDeno: await consoleSizeViaDeno(),
-// 	consoleSizeViaPowerShell: await consoleSizeViaPowerShell(),
-// 	consoleSizeViaSTTY: await consoleSizeViaSTTY(),
-// 	consoleSizeViaTPUT: await consoleSizeViaTPUT(),
-// };
