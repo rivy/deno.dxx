@@ -19,7 +19,7 @@ import {
 } from '../src/lib/$shared.ts';
 //===
 
-import { $yargs, YargsArguments } from '../src/lib/$deps.cli.ts';
+import { $yargs, type YargsArguments } from '../src/lib/$deps.cli.ts';
 
 //===
 

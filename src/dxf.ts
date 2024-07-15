@@ -24,7 +24,7 @@ import {
 
 //===
 
-import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
+import { $yargs, type YargsArguments } from './lib/$deps.cli.ts';
 
 //===
 
