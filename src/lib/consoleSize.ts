@@ -483,8 +483,8 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// - ref: <https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns> @@ <https://archive.is/nM1ky>
 	// - ref: <https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window> @@ <https://archive.is/n5KoU>
 	// - ref: <https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html> @@ <https://archive.is/RAZMG>
-	// * note: On Windows, `stty size` causes odd and persistent end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
 	// MacOS: `--file=/dev/tty` isn't recognized as a valid option, must use `-f /dev/tty` and use it prior to stty commands
+	// WinOS: `stty size` causes odd and persistent end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
 	if (isWinOS) return Promise.resolve(undefined);
 	const fileOption = isMacOS ? ['-f', '/dev/tty'] : ['--file=/dev/tty'];
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
@@ -514,18 +514,19 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 		43 123
 		```
 		*/
-		.then(
-			(text) =>
-				text
-					?.split(/\s+/)
-					.filter((s) => s.length > 0)
-					.reverse() ?? [],
-		)
-		.then((values) =>
-			values.length > 0
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined,
-		);
+		.then((text) => text?.split(/\s+/).slice(0, 2).reverse())
+		.then((values) => {
+			const [cols, lines] = values != null && values.length === 2 ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
@@ -618,8 +619,8 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 	// - ref: <https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns> @@ <https://archive.is/nM1ky>
 	// - ref: <https://stackoverflow.com/questions/263890/how-do-i-find-the-width-height-of-a-terminal-window> @@ <https://archive.is/n5KoU>
 	// - ref: <https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html> @@ <https://archive.is/RAZMG>
-	// * note: On Windows, `stty size` causes odd and persistent end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
-	// MacOS: `xargs` is FreeBSD and will not run at all if STDIN contains no arguments (eg, is '/dev/null')
+	// MacOS: BSD `xargs` - will not execute the TARGET at all if STDIN contains no arguments (eg, is '/dev/null') or only ''; only recognizes the short form of the `-o` option
+	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
@@ -648,18 +649,19 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 		43 123
 		```
 		*/
-		.then(
-			(text) =>
-				text
-					?.split(/\s+/)
-					.filter((s) => s.length > 0)
-					.reverse() ?? [],
-		)
-		.then((values) =>
-			values.length === 2
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined,
-		);
+		.then((text) => text?.split(/\s+/).slice(0, 2).reverse())
+		.then((values) => {
+			const [cols, lines] = values != null && values.length === 2 ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
