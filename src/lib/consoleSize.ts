@@ -448,18 +448,24 @@ export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
 		export COLUMNS LINES;
 		```
 		*/
-		.then(
-			(text) =>
-				text
-					?.split(/\r|\r?\n/)
-					?.slice(0, 2)
-					?.map((s) => s.match(/\d+/)?.[0]) ?? [],
+		.then((text) =>
+			text
+				?.split(/\r|\r?\n/)
+				?.slice(0, 2)
+				?.map((s) => s.match(/\d+/)?.[0]),
 		)
-		.then((values) =>
-			values.length > 0
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined,
-		);
+		.then((values) => {
+			const [cols, lines] = values != null && values.length === 2 ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
