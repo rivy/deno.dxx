@@ -321,14 +321,13 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 	//     Code page:      65001
 	// ```
 	const promise = output
-		.then(
-			(text) =>
-				text
-					?.split(/\r?\n/)
-					.filter((s) => s.length > 0)
-					.slice(2, 4)
-					.map((s) => s.match(/(\d+)\s*$/)?.[1])
-					.filter((s) => s && s.length > 0) ?? [],
+		.then((text) =>
+			text
+				?.split(/\r?\n/)
+				.filter((s) => s.length > 0)
+				.slice(2, 4)
+				.map((s) => s.match(/(\d+)\s*$/)?.[1])
+				.reverse(),
 		)
 		.then((values) =>
 			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined,
