@@ -343,13 +343,10 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
  * ```ts
  * const { columns, rows } = await consoleSizeViaPowerShell();
  * ```
- *
- * @tags winos-only
  */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
-	// MacOS: requires STDOUT to be a TTY o/w returns default 80x24
-	if (!isWinOS) return Promise.resolve(undefined); // no `mode con ...` on non-WinOS platforms
+	// MacOS: fails when STDERR/STDOUT is redirected, falling back to 80x24 (width x height); notably, with absent TTY, '$Host.UI.RawUI.KeyAvailable' is undefined (instead of 'True'/'False')
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
@@ -361,7 +358,7 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 					'-executionPolicy',
 					'unrestricted',
 					'-command',
-					'$Host.UI.RawUI.WindowSize.Width;$Host.UI.RawUI.WindowSize.Height',
+					'$Host.UI.RawUI.WindowSize.Width;$Host.UI.RawUI.WindowSize.Height;$Host.UI.RawUI.KeyAvailable',
 				],
 				stdin: 'null',
 				stderr: 'piped',
@@ -380,12 +377,24 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	})();
 
 	const promise = output
-		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0) ?? [])
-		.then((values) =>
-			values.length > 0
-				? { columns: Number(values.shift()), rows: Number(values.shift()) }
-				: undefined,
-		);
+		.then((text) => text?.split(/\s+/).filter((s) => s.length > 0))
+		.then((values) => {
+			const haveExpectedValues = values != null && values.length === 3;
+			const [cols, lines, available] = haveExpectedValues ? values : [];
+			if ((available?.length ?? 0) == 0) {
+				// non-boolean/empty available for missing TTY => return undefined
+				return undefined;
+			}
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
