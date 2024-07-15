@@ -329,9 +329,19 @@ export function consoleSizeViaMode(): Promise<ConsoleSize | undefined> {
 				.map((s) => s.match(/(\d+)\s*$/)?.[1])
 				.reverse(),
 		)
-		.then((values) =>
-			values.length > 0 ? { columns: Number(values[1]), rows: Number(values[0]) } : undefined,
-		);
+		.then((values) => {
+			const haveExpectedValues = values != null && values.length === 2;
+			const [cols, lines] = haveExpectedValues ? values : [];
+			if ((cols?.length ?? 0) > 0 && (lines?.length ?? 0) > 0) {
+				const columns = Number(cols);
+				const rows = Number(lines);
+				if (columns === 0 || rows === 0) return undefined;
+				if (!isNaN(columns) && !isNaN(rows)) {
+					return { columns, rows };
+				}
+			}
+			return undefined;
+		});
 	return promise;
 }
 
