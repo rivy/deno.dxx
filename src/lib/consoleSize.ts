@@ -265,6 +265,11 @@ export function consoleSizeAsync(
 				consoleSizeViaResize().then((size) => (size != null ? size : Promise.reject(undefined))),
 				consoleSizeViaSTTY().then((size) => (size != null ? size : Promise.reject(undefined))),
 				consoleSizeViaTPUT().then((size) => (size != null ? size : Promise.reject(undefined))),
+				consoleSizeViaXargsSTTY().then((size) => (size != null ? size : Promise.reject(undefined))),
+				consoleSizeViaXargsTPUT().then((size) => (size != null ? size : Promise.reject(undefined))),
+				consoleSizeViaShXargsTPUT().then((size) =>
+					size != null ? size : Promise.reject(undefined),
+				),
 			])
 				.then((size) => {
 					consoleSizeCache.set(JSON.stringify({ rid, options }), size);
