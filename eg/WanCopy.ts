@@ -462,13 +462,13 @@ async function copy(
 	target: URL | Deno.Writer | (URL | Deno.Writer)[],
 	options?: { bufSize?: number; preventTargetClose?: boolean | boolean[]; protectTarget?: boolean },
 ) {
-	target = Array.isArray(target) ? target : [target];
+	const targets = Array.isArray(target) ? target : [target];
 	const preventTargetClose =
 		options?.preventTargetClose != null && Array.isArray(options?.preventTargetClose)
 			? options?.preventTargetClose
 			: options?.preventTargetClose != null
-				? (Array(target.length) as boolean[]).fill(options?.preventTargetClose)
-				: (Array(target.length) as boolean[]).fill(false);
+				? (Array(targets.length) as boolean[]).fill(options?.preventTargetClose)
+				: (Array(targets.length) as boolean[]).fill(false);
 	const protectTarget = options?.protectTarget ?? false;
 	const readableStream = await (async () => {
 		if (source instanceof URL) {
@@ -494,7 +494,7 @@ async function copy(
 	})();
 
 	await Promise.all(
-		target.map(async (t, index) => {
+		targets.map(async (t, index) => {
 			const writableStream = await (async () => {
 				if (t instanceof URL) {
 					const file = await Deno.open(ensureAsPath(traversal(t)), {
