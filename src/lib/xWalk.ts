@@ -70,7 +70,7 @@ function include(path: string, exts?: string[], match?: RegExp[], skip?: RegExp[
 	if (match && !match.some((pattern): boolean => !!path.match(pattern))) {
 		return false;
 	}
-	if (skip && skip.some((pattern): boolean => !!path.match(pattern))) {
+	if (skip?.some((pattern): boolean => !!path.match(pattern))) {
 		return false;
 	}
 	return true;
