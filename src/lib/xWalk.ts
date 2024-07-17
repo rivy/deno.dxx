@@ -13,8 +13,8 @@ const { basename, join, normalize } = $path;
 export function _createWalkEntrySync(path: string): WalkEntry {
 	path = normalize(path);
 	const name = basename(path);
-	let error;
-	let info;
+	let error: Error | undefined;
+	let info: Deno.FileInfo | undefined;
 	try {
 		info = Deno.statSync(path);
 	} catch (e) {
@@ -35,8 +35,8 @@ export function _createWalkEntrySync(path: string): WalkEntry {
 export async function _createWalkEntry(path: string): Promise<WalkEntry> {
 	path = normalize(path);
 	const name = basename(path);
-	let info;
-	let error;
+	let error: Error | undefined;
+	let info: Deno.FileInfo | undefined;
 	try {
 		info = await Deno.stat(path);
 	} catch (e) {
