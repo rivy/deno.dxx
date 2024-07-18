@@ -17,8 +17,7 @@ await new Command()
 	// .option('-~ --~', 'command line expansion stop signal', { hidden: true })
 	.option('-+ --+', 'command line expansion stop signal', { hidden: true })
 	.arguments('[script:string] [...args:string]')
-	// deno-lint-ignore no-explicit-any
-	.action((options: any, script?: string, args?: string[]) => {
+	.action((options: unknown, script?: string, args?: string[]) => {
 		console.log('options:', options);
 		console.log('script:', script);
 		console.log('args:', args);
