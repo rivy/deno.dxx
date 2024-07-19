@@ -36,7 +36,8 @@
 		"rules": {
 			"recommended": true,
 			"style": {
-				"useNodejsImportProtocol": "off" /* "node:..." imports would o/w force Deno-v1.16.0+, NodeJS-v14.18.0+ */
+				"useNodejsImportProtocol": "off" /* "node:..." imports would o/w force Deno-v1.16.0+, NodeJS-v14.18.0+ */,
+				"useNumberNamespace": "off" /* not needed for ES5+ as globals are also read-only; see <https://stackoverflow.com/questions/8522400/infinity-vs-number-positive-infinity> @@ <https://archive.is/X7q3B> */
 			}
 		}
 	},
