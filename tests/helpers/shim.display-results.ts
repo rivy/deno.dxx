@@ -52,7 +52,8 @@ for (let i = 0; i < Deno.args.length; i++) {
 	const stream = await (async () => {
 		if (filename === '-') {
 			return Deno.stdin;
-		} else return await Deno.open(filename, { read: true });
+		}
+		return await Deno.open(filename, { read: true });
 	})();
 	const data = decoder.decode(
 		isWinOS ? await Deno.readAll(stream) : await readAllIfShebangFile(stream),
