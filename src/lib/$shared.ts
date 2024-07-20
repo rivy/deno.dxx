@@ -95,7 +95,7 @@ export function callersFromStackTrace() {
 		.map((s) => {
 			const match = s.match(/^.*\s[(]?(.*?)[)]?$/m);
 			if (!match) return undefined;
-			else return match[1];
+			return match[1];
 		})
 		.filter(Boolean);
 	return callers;
@@ -716,7 +716,8 @@ export function durationText(tag: string): string | undefined {
 	const duration = performanceDuration(tag);
 	if (duration != null) {
 		return `${tag} done (duration: ${formatDuration(duration, { maximumFractionDigits: 3 })})`;
-	} else return undefined;
+	}
+	return undefined;
 }
 
 //===
