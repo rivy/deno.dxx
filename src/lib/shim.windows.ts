@@ -65,7 +65,7 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @if EXIST "%SHIM_PIPE%" @goto :prep
 @if DEFINED SHIM_PIPE @> "%SHIM_PIPE%" echo % \`<%=shimBinName%>\` shell pipe %
 @if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo # SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
-const cmdShimPrepNoPipe = `@:pipeDisabled`;
+const cmdShimPrepNoPipe = '@:pipeDisabled';
 
 export function cmdShimTemplate(enablePipe: boolean) {
 	return cmdShimBase.replace('@:...prep...', enablePipe ? cmdShimPrepPipe : cmdShimPrepNoPipe);
