@@ -244,7 +244,7 @@ const projectNonBinaryFiles = projectFiles.filter(
 	if (!haveCommand) {
 		test.skip(description + `...skipped (\`${command}\` not found)`);
 	} else if (!commitLintFrom) {
-		test.skip(description + `...skipped (unable to determine a \`--from\` commit)`);
+		test.skip(description + '...skipped (unable to determine a `--from` commit)');
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
