@@ -34,7 +34,8 @@ function toSpecFormat(specifier: string, value: unknown): string {
 	if (specifier === '%s') {
 		if (typeof value === 'string' || value instanceof String) {
 			return value as string;
-		} else return inspect(value, { depth: 2 });
+		}
+		return inspect(value, { depth: 2 });
 	}
 	if (specifier === '%d') {
 		if (typeof value === 'bigint') {
@@ -59,7 +60,8 @@ function toSpecFormat(specifier: string, value: unknown): string {
 			// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
 			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) {
 				return '[Circular]';
-			} else throw e;
+			}
+			throw e;
 		}
 	}
 	if (specifier === '%o') {
