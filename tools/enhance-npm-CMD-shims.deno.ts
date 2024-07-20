@@ -40,7 +40,7 @@ await abortIfMissingPermits(
 //===
 
 const log = logger;
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 $me.warnIfImpaired((s) => log.warn(s));
 log.trace({ $me });
@@ -147,7 +147,7 @@ Usage:\n  ${runAsName} [OPTION..]`)
 	// * (boilerplate) logging options
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: logLevelOptionChoices, // required for help display of choices
 	})
