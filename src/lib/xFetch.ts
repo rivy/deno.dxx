@@ -35,9 +35,8 @@ async function fetch(input: string | Request | URL, init?: RequestInit): Promise
 		const file = await Deno.open(url, { read: true }).catch((err) => {
 			if (err instanceof Deno.errors.NotFound) {
 				return undefined;
-			} else {
-				throw err;
 			}
+			throw err;
 		});
 		if (!file) {
 			return new Response('404 not found', { status: 404 });
@@ -79,7 +78,8 @@ async function fetch(input: string | Request | URL, init?: RequestInit): Promise
 			enumerable: true,
 		});
 		return response;
-	} else if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+	}
+	if (url.protocol !== 'http:' && url.protocol !== 'https:') {
 		// ToDO: determine if there is stdout output (vs an error) before piping
 		// * ref: <https://stackoverflow.com/questions/31844316/node-js-check-if-stream-has-error-before-piping-response>
 		// ref: <https://medium.com/deno-the-complete-reference/a-beginners-guide-to-streams-in-deno-760d51750763>
