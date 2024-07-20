@@ -77,7 +77,7 @@ await abortIfMissingPermitsSync(
 
 //===
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 // $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me, $version });
@@ -145,7 +145,7 @@ Usage:\n  ${runAsName} [OPTION..] [[--] [RUN_OPTION..]] [--] SCRIPT [SCRIPT_ARG.
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // *hack* use backspaces to fake an option argument description (ref: <https://github.com/yargs/yargs/issues/833>)
 		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 	})
 	.option('silent', {
@@ -287,7 +287,7 @@ await log.trace({ delegatedArgs, args });
 //===
 
 if (args.length < 1) {
-	await log.error(`SCRIPT argument is required`);
+	await log.error('SCRIPT argument is required');
 	const yargsHelp = await app.getHelp();
 	const usage = ((await restyleYargsHelp(yargsHelp)) as string).match(
 		/\n(.*?usage.*?\n)\n/ims,
