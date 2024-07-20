@@ -10,19 +10,19 @@ await panicIfMissingPermits(['read']);
 
 //===
 
-test(`project contains non-empty CHANGELOG`, () => {
+test('project contains non-empty CHANGELOG', () => {
 	const fileSize = Deno.readTextFileSync(projectLocations.changelog).length;
 	assert(fileSize > 0);
 });
 
-test(`project contains non-empty LICENSE`, () => {
+test('project contains non-empty LICENSE', () => {
 	projectLocations.licenses.forEach((license) => {
 		const fileSize = Deno.readTextFileSync(license).length;
 		assert(fileSize > 0);
 	});
 });
 
-test(`project contains non-empty README`, () => {
+test('project contains non-empty README', () => {
 	const fileSize = Deno.readTextFileSync(projectLocations.readme).length;
 	assert(fileSize > 0);
 });
