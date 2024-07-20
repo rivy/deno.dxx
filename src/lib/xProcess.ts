@@ -358,11 +358,11 @@ export const impaired = isWinOS
 
 export const impairedWarningMessage = () => {
 	return impaired
-		? `degraded capacity (faulty ` +
+		? 'degraded capacity (faulty ' +
 				[!haveSuppliedArgv0 ? '"$0"' : '', !haveEnhancedArgs ? 'argument' : '']
 					.filter(Boolean)
 					.join(' and ') +
-				` resolution); full/correct function requires an enhanced runner or shim (use \`dxr\` or install with \`dxi\`)`
+				' resolution); full/correct function requires an enhanced runner or shim (use `dxr` or install with `dxi`)'
 		: undefined;
 };
 
