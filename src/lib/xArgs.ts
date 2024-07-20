@@ -158,7 +158,7 @@ const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as Re
 // const sep = $path.sep;
 // const sepReS = $path.SEP_PATTERN;
 /** Regex character set matching the path separator character set */
-const pathSepReS: RegexString = `[\\\\\\/]` as RegexString;
+const pathSepReS: RegexString = '[\\\\\\/]' as RegexString;
 
 /** Regex pattern for double quote character */
 const DQReS: RegexString = `[${DQ}]` as RegexString;
