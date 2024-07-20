@@ -35,43 +35,9 @@
 		"ignore": [".vscode", "node_modules", "vendor"],
 		"rules": {
 			"recommended": true,
-			"complexity": {
-				"noForEach": "off",
-				"useArrowFunction": "off",
-				"useLiteralKeys": "off",
-				"useOptionalChain": "off",
-				"useRegexLiterals": "off"
-			},
-			"correctness": {
-				"noEmptyCharacterClassInRegex": "off",
-				"noUnnecessaryContinue": "off",
-				"noUnsafeOptionalChaining": "off"
-			},
 			"style": {
 				"useNodejsImportProtocol": "off" /* "node:..." imports would o/w force Deno-v1.16.0+, NodeJS-v14.18.0+ */,
-				//
-				"useNumberNamespace": "off" /* not needed for ES5+ as globals are also read-only; see <https://stackoverflow.com/questions/8522400/infinity-vs-number-positive-infinity> @@ <https://archive.is/X7q3B> */,
-				//
-				"noParameterAssign": "off", // "to "warn"
-				//
-				"noInferrableTypes": "off",
-				"noUnusedTemplateLiteral": "off",
-				"noUselessElse": "off",
-				"useExponentiationOperator": "off",
-				"useImportType": "off",
-				"useShorthandFunctionType": "off",
-				"useSingleVarDeclarator": "off",
-				"useTemplate": "off"
-			},
-			"suspicious": {
-				"noAssignInExpressions": "off",
-				"noDoubleEquals": "off",
-				"noExplicitAny": "off",
-				"noGlobalIsFinite": "off",
-				"noGlobalIsNan": "off",
-				"noImplicitAnyLet": "off",
-				"noRedeclare": "off",
-				"noShadowRestrictedNames": "off"
+				"useNumberNamespace": "off" /* not needed for ES5+ as globals are also read-only; see <https://stackoverflow.com/questions/8522400/infinity-vs-number-positive-infinity> @@ <https://archive.is/X7q3B> */
 			}
 		}
 	},
