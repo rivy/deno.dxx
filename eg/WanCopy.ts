@@ -490,7 +490,8 @@ async function copy(
 				throw new Deno.errors.NotFound(`'${source}' content not found`);
 			}
 			return fileResponse.body;
-		} else return readableStreamFromReader(source);
+		}
+		return readableStreamFromReader(source);
 	})();
 
 	await Promise.all(
@@ -505,7 +506,8 @@ async function copy(
 						write: true,
 					});
 					return writableStreamFromWriter(file);
-				} else return writableStreamFromWriter(t);
+				}
+				return writableStreamFromWriter(t);
 			})();
 			return readableStream.pipeTo(writableStream, {
 				preventClose: preventTargetClose[index] || false,
@@ -524,7 +526,8 @@ async function _remoteCopyUsingCopy(
 			const fileResponse = await fetch(src);
 			if (!fileResponse.body) throw 'ToDO-ERROR-type';
 			return readerFromStreamReader(fileResponse.body.getReader());
-		} else return src;
+		}
+		return src;
 	})();
 	const writeableStream = await (async () => {
 		if (dst instanceof URL) {
@@ -536,7 +539,8 @@ async function _remoteCopyUsingCopy(
 				write: true,
 			});
 			return writerFromStreamWriter(file.writable.getWriter());
-		} else return dst;
+		}
+		return dst;
 	})();
 
 	await streamCopy(readableStream, writeableStream);
