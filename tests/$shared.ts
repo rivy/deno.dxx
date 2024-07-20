@@ -208,7 +208,7 @@ export function createTestFn(testFilePath?: string | URL) {
 					);
 					if (logText.length > 0) {
 						logText.unshift($colors.dim('# ---- test log:begin > ----'));
-						logText.push($colors.dim(`# ---- test log:end . ------`));
+						logText.push($colors.dim('# ---- test log:end . ------'));
 						// logText.unshift($colors.dim('# ---- test log:begin > ----') + ` ${testName}`);
 						// logText.push($colors.dim(`# ---- test log:end . ------`) + ` ${testName}`);
 					}
