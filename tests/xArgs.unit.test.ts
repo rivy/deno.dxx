@@ -48,11 +48,10 @@ async function shellExpandDuel(args: string | string[], options?: Parse.ArgsOpti
 	const sync = Parse.shellExpandSync(args, options);
 	const async = await Parse.shellExpand(args, options);
 	if (deepEqual(async, sync)) return async;
-	else {
-		shellExpandDuelWarnings += 1;
-		console.warn('WARNING/shellExpandDuel: shellExpand() async != sync', { async, sync });
-		return undefined;
-	}
+
+	shellExpandDuelWarnings += 1;
+	console.warn('WARNING/shellExpandDuel: shellExpand() async != sync', { async, sync });
+	return undefined;
 }
 
 test('`shellExpand()` basics', () => {
