@@ -19,7 +19,8 @@ function toSpecFormat(
 		// string
 		if (typeof value === 'string' || value instanceof String) {
 			return value as string;
-		} else return inspect(value, inspectOptions);
+		}
+		return inspect(value, inspectOptions);
 	}
 	if (specifier === '%d') {
 		// number
@@ -48,7 +49,8 @@ function toSpecFormat(
 			// ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
 			if (e instanceof TypeError && e.message.match(/cyclic|circular/)) {
 				return '[Circular]';
-			} else throw e;
+			}
+			throw e;
 		}
 	}
 	if (specifier === '%o') {

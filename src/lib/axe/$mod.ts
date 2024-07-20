@@ -516,7 +516,8 @@ class LoggerContext {
 			throw new Error(
 				`Logger: '${defaultLevel}' as the default log level was not found in the configured levels`,
 			);
-		} else this.defaultLevelInfo = levelInfo;
+		}
+		this.defaultLevelInfo = levelInfo;
 	}
 }
 
