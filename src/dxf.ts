@@ -50,7 +50,7 @@ await abortIfMissingPermitsSync(
 // console.warn($me.name, { Me });
 
 // const log = logger;
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 $me.warnIfImpaired((msg) => log.warn(msg)); // WARN if executing with impaired command line capability
 log.trace({ $me, $version });
@@ -124,7 +124,7 @@ Usage:\n  ${runAsName} [OPTION..] [-- [FORMAT_OPTION..]] [FILE..]`)
 	.positional('OPTION', { describe: 'OPTION(s) as listed here (below)' })
 	.positional('FORMAT_OPTION', { describe: 'FORMAT_OPTION(s) delegated to the formatter command' })
 	.positional('FILE', {
-		describe: `FILE(s) to format (when missing, format all project files [formatter-defined])`,
+		describe: 'FILE(s) to format (when missing, format all project files [formatter-defined])',
 	})
 	.fail((msg: string, err: Error, _: ReturnType<typeof $yargs>) => {
 		if (err) throw err;
@@ -148,7 +148,7 @@ Usage:\n  ${runAsName} [OPTION..] [-- [FORMAT_OPTION..]] [FILE..]`)
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // *hack* use backspaces to fake an option argument description (ref: <https://github.com/yargs/yargs/issues/833>)
 		choices: ['error', 'warning', 'warn', 'notice', 'info', 'debug', 'trace'],
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 	})
 	.option('silent', {

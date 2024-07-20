@@ -55,7 +55,7 @@ await abortIfMissingPermitsSync(
 
 //===
 
-log.debug(`logging to *STDERR*`);
+log.debug('logging to *STDERR*');
 
 // $me.warnIfImpaired((msg) => log.warn(msg)); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution when used from installation via `deno install ...`
 log.trace({ $me, $version });
@@ -131,7 +131,7 @@ Usage:\n  ${appRunAs} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGU
 	// * (boilerplate) logging options
 	.option('log-level', {
 		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
-		describe: `Set logging level to LOG_LEVEL (overrides any prior setting)`,
+		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace'], // required for help display of choices
 	})
@@ -288,7 +288,7 @@ await log.trace({ allArgs, delegatedDenoArgs, args });
 //===
 
 if (args.length < 1) {
-	await log.error(`COMMAND argument is required`);
+	await log.error('COMMAND argument is required');
 	const yargsHelp = await app.getHelp();
 	const usage = ((await restyleYargsHelp(yargsHelp)) as string).match(
 		/\n(.*?usage.*?\n)\n/ims,
