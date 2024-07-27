@@ -311,10 +311,10 @@ export function deQuote(s?: string) {
 
 // `env()`
 /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
- * - will *not panic*
- * - will *not prompt* for permission if `options.guard` is `true`
+* - will *not panic*
+* - will *not prompt* for permission if `options.guard` is `true`
 @param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
- */
+*/
 export function env(varName: string, options?: { guard: boolean }) {
 	const guard = options != null ? options.guard : true;
 	const useDenoGet = !guard || atImportPermissions.env.state === 'granted';
@@ -327,8 +327,8 @@ export function env(varName: string, options?: { guard: boolean }) {
 
 // `envAsync()`
 /** Return the current value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
- * - will *not panic*
- * - will *not prompt* for permission if `options.guard` is `true`
+* - will *not panic*
+* - will *not prompt* for permission if `options.guard` is `true`
 @param `options``.guard` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 */
 export async function envAsync(varName: string, options?: { guard: boolean }) {
