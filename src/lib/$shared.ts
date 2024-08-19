@@ -836,7 +836,7 @@ import { fetch } from './xFetch.ts'; // 'file://'-compatible `fetch()`
 // import { intoURL, projectLocations, projectURL } from '../../tests/$shared.ts';
 // import { logger } from '../../tests/$shared.ts';
 
-const EOL = /\r?\n|\n/;
+const EOL = /\n|\r\n?/;
 const versionURL = projectLocations.version;
 
 // logger.trace({ projectURL, projectLocations, versionURL });
