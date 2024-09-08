@@ -1,4 +1,4 @@
-// spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
+// spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr defaultCDNforNPM gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
 import { Deprecated } from '../src/lib/$deprecated.ts';
 
@@ -74,6 +74,10 @@ const logLevelOptionChoices = stableSort(
 log.trace('logLevelChoices', logLevelOptionChoices);
 
 performance.mark('setup:log:stop');
+
+//===
+
+const defaultCDNforNPM = 'https://cdn.jsdelivr.net/npm/'; // CDN for source URLs with NPM protocol (eg, 'npm:...')
 
 //===
 
@@ -364,7 +368,7 @@ const source = sourceIsSTDIN
 		TARGET.length < 2
 		? Deno.stdin
 		: await readAll(Deno.stdin)
-	: intoURL(SOURCE);
+	: intoURL(SOURCE.replace(/^npm:/, defaultCDNforNPM));
 if (source == null) {
 	await log.error(`'${SOURCE}' is an invalid source`);
 	Deno.exit(1);
