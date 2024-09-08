@@ -39,7 +39,7 @@ import * as $spin from './lib/xWait/$mod.ts';
 
 //===
 
-import { $yargs, YargsArguments } from './lib/$deps.cli.ts';
+import { $yargs, type YargsArguments } from './lib/$deps.cli.ts';
 
 //===
 
