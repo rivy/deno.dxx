@@ -30,7 +30,7 @@ export class PQueue extends Queue {
 
 import { default as DeepMergeM } from 'https://esm.sh/v135/deepmerge@4.3.1?no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
 // import type DeepMergeT from '../../../vendor/@types/deepmerge@4.3.1/index.d.ts'; // use locally vendored types
-import * as DeepMergeT from 'https://esm.sh/v135/deepmerge@4.3.1/index.d.ts'; // directly use type info file
+import type * as DeepMergeT from 'https://esm.sh/v135/deepmerge@4.3.1/index.d.ts'; // directly use type info file
 const deepMerge = DeepMergeM as typeof DeepMergeT;
 export { deepMerge };
 
