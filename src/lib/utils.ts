@@ -88,7 +88,7 @@ export function stringToCWSTR(s: string): CWString {
 // console.log({i_SAFE, u32, i32, u64, i64})
 // ```
 
-const pow2To32 = Math.pow(2, 32);
+const pow2To32 = 2 ** 32;
 /** Returns `a mod b`.
  *
  * @param a ~ a numeric expression
