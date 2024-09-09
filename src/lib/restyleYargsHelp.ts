@@ -51,7 +51,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 		if (match) {
 			const l = helpItems.length;
 			if (l > 0) {
-				helpItems[l - 1] += '\n' + match[1];
+				helpItems[l - 1] += `\n${match[1]}`;
 			}
 		} else helpItems.push(line);
 	}

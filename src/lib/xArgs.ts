@@ -152,7 +152,7 @@ const ANSICStringReS: RegexString = `[$]${SQStringReS}` as RegexString;
 
 const globChars = ['?', '*', '[', ']'];
 /** Regex pattern matching any glob character */
-const globCharsReS: RegexString = globChars.map((c) => '\\' + c).join('|') as RegexString;
+const globCharsReS: RegexString = globChars.map((c) => `\\${c}`).join('|') as RegexString;
 
 // const pathSepRe = /[\\/]/;
 // const sep = $path.sep;
@@ -373,7 +373,7 @@ ANSICDecodeTable['v'] = '\v';
 	const baseCharCode = '@'.charCodeAt(0);
 	for (i = 0; i <= 0x1f; i++) {
 		const iToChar = String.fromCharCode(baseCharCode + i);
-		ANSICDecodeTable['c' + iToChar.toLowerCase()] = ANSICDecodeTable['c' + iToChar.toUpperCase()] =
+		ANSICDecodeTable[`c${iToChar.toLowerCase()}`] = ANSICDecodeTable[`c${iToChar.toUpperCase()}`] =
 			String.fromCharCode(i);
 	}
 	ANSICDecodeTable['c?'] = '\x7f';
@@ -435,7 +435,7 @@ export function reQuote(s: string) {
 	const hasSpecialChar = specialChars.find((c) => s.includes(c));
 	const hasWhiteSpace = s.match(/\s/msu);
 	if (hasSpecialChar || hasWhiteSpace) {
-		s = isWinOS ? `"` + s.replaceAll(`"`, `""""`) + `"` : `'` + s.replaceAll(`'`, `"'"`) + `'`;
+		s = isWinOS ? `"${s.replaceAll(`"`, `""""`)}"` : `'${s.replaceAll(`'`, `"'"`)}'`;
 	}
 	return s;
 }
@@ -517,8 +517,8 @@ export async function* globExpandIter(
 	}
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
-	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
-	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
+	const globHasTrailingSep = glob.match(new RegExp(`${$path.SEP_PATTERN.source}$`));
+	const globWithoutTrailingSep = glob.replace(new RegExp(`${$path.SEP_PATTERN.source}$`), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
 	// console.warn('xArgs.globExpandIter()', {
@@ -564,7 +564,7 @@ export async function* globExpandIter(
 			);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude+; evaluate whether 'u' is needed here
 			const re = new RegExp(
-				'^' + globEscapedPrefix + parsed.globAsReS + '$',
+				`^${globEscapedPrefix}${parsed.globAsReS}$`,
 				caseSensitive ? 'msu' : 'imsu',
 			);
 			// console.warn('xArgs.globExpandIter()', {
@@ -581,9 +581,7 @@ export async function* globExpandIter(
 					((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
 						new RegExp(
-							'^' +
-								globEscapedPrefix +
-								(!resolvedHasTrailingSep && initialGlobstar ? '[\\\\/]' : ''),
+							`^${globEscapedPrefix}${!resolvedHasTrailingSep && initialGlobstar ? '[\\\\/]' : ''}`,
 						),
 						'',
 					);
@@ -591,7 +589,7 @@ export async function* globExpandIter(
 				if (p) {
 					found = true;
 					// using string interpolation concatenation to preserve prefix path separators (avoiding `$path.join`)
-					yield `${parsed.prefix}${p}` + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2022-01-25; rivy] interpolated string concatenation is used instead of `$path.join`; b/c `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					yield `${parsed.prefix}${p}${globHasTrailingSep ? $path.SEP : ''}`; // FixME: [2022-01-25; rivy] interpolated string concatenation is used instead of `$path.join`; b/c `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}
@@ -613,8 +611,8 @@ export function* globExpandIterSync(
 	}
 	// filename (glob) expansion
 	const caseSensitive = !isWinOS;
-	const globHasTrailingSep = glob.match(new RegExp($path.SEP_PATTERN.source + '$'));
-	const globWithoutTrailingSep = glob.replace(new RegExp($path.SEP_PATTERN.source + '$'), '');
+	const globHasTrailingSep = glob.match(new RegExp(`${$path.SEP_PATTERN.source}$`));
+	const globWithoutTrailingSep = glob.replace(new RegExp(`${$path.SEP_PATTERN.source}$`), '');
 	const parsed = parseGlob(globWithoutTrailingSep);
 
 	// console.warn('xArgs.globExpandIterSync()', {
@@ -647,7 +645,7 @@ export function* globExpandIterSync(
 			);
 			// FixME: [2021-11-27; rivy] combining 'i' and 'u' flags slows regexp matching by an order of magnitude (10-20x); evaluate whether 'u' is needed here
 			const re = new RegExp(
-				'^' + globEscapedPrefix + parsed.globAsReS + '$',
+				`^${globEscapedPrefix}${parsed.globAsReS}$`,
 				caseSensitive ? 'msu' : 'imsu',
 			);
 			// console.warn('xArgs.globExpandIter()', { resolvedPrefix, maxDepth });
@@ -658,16 +656,14 @@ export function* globExpandIterSync(
 					((globHasTrailingSep && e.isDirectory) || !globHasTrailingSep) &&
 					e.path.replace(
 						new RegExp(
-							'^' +
-								globEscapedPrefix +
-								(!resolvedHasTrailingSep && initialGlobstar ? '[\\\\/]' : ''),
+							`^${globEscapedPrefix}${!resolvedHasTrailingSep && initialGlobstar ? '[\\\\/]' : ''}`,
 						),
 						'',
 					);
 				if (p) {
 					found = true;
 					// using string interpolation concatenation to preserve prefix path separators (avoiding `$path.join`)
-					yield `${parsed.prefix}${p}` + (globHasTrailingSep ? $path.SEP : ''); // FixME: [2022-01-25; rivy] interpolated string concatenation is used instead of `$path.join`; b/c `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
+					yield `${parsed.prefix}${p}${globHasTrailingSep ? $path.SEP : ''}`; // FixME: [2022-01-25; rivy] interpolated string concatenation is used instead of `$path.join`; b/c `$path.join` normalizes the path (removing '.' and '..' portions) and converts to platform-specific separators; take the reins and add options to allow user choice instead
 				}
 			}
 		}

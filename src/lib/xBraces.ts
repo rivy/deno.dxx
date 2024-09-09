@@ -93,7 +93,7 @@ export function expand(s: string) {
 					// * escape string contents
 					matchStr = matchStr.replace(/(.)/gmsu, `${bracesEscChar}$1`);
 					// add surrounding escaped quotes
-					matchStr = `${bracesEscChar}${qChar}` + matchStr + `${bracesEscChar}${qChar}`;
+					matchStr = `${bracesEscChar}${qChar}${matchStr}${bracesEscChar}${qChar}`;
 				} else {
 					// unquoted text => escape special characters
 					// * 1st, escape the braces escape character
