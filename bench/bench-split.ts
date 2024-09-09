@@ -76,6 +76,8 @@ function chompThenSplitJitRegExp(s: string) {
 	return arr;
 }
 
+// for the literal regex `/\n$/` to be correct, `assertEquals('\n', EOL, ...)` must be true
+assertEquals('\n', EOL, 'EOL is expected to be a newline character');
 function chompThenSplit(s: string) {
 	s = s.replace(/\n$/, '');
 	const arr = s.split(EOL);
