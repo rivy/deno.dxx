@@ -54,7 +54,8 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 //=== * stack inspection functions
 
 function getFramesFromError(error: Error): Array<string> {
-	let stack: Error['stack'] | null, frames: string[];
+	let stack: Error['stack'] | null;
+	let frames: string[];
 	// retrieve stack from `Error`
 	// ref: <https://github.com/winstonjs/winston/issues/401#issuecomment-61913086>
 	try {
