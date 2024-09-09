@@ -96,13 +96,13 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 	const description = 'syntax ~ no circular dependency found';
 	const madgeVersion = await haveMadgeVersion();
 	if (madgeVersion == null) {
-		test.skip(description + '...skipped (`madge` not found)');
+		test.skip(`${description}...skipped (\`madge\` not found)`);
 	} else if (versionCompare(madgeVersion, '7.0') >= 0) {
 		// ## maint: [2024-04-25; rivy] disable test for madge v7+ until fixed for typescript projects
 		// ## ... ref: [Update typescript support for v7](https://github.com/pahen/madge/issues/410)
-		test.skip(description + '...skipped (`madge` version >= 7)');
+		test.skip(`${description}...skipped (\`madge\` version >= 7)`);
 	} else {
-		test(description + ` (within ${projectCodeFiles.length}+ files)`, async () => {
+		test(`${description} (within ${projectCodeFiles.length}+ files)`, async () => {
 			const files = projectCodeFiles.flatMap((e) => traversal(e) || []);
 			const cmd = [
 				...(isWinOS ? ['cmd', '/x/d/c'] : []),
@@ -244,7 +244,7 @@ test(`syntax ~ all libs are *no-panic* (${projectCodeFilesByKind.libs.length} fo
 	const description = `syntax ~ all libs are *no-prompt* (${projectCodeFilesByKind.libs.length} found)`;
 	const expectVersion = await haveExpectVersion();
 	if (expectVersion == null) {
-		test.skip(description + '...skipped (`expect` not found)');
+		test.skip(`${description}...skipped (\`expect\` not found)`);
 	} else {
 		test(description, async () => {
 			const files = projectCodeFilesByKind.libs.flatMap((e) => traversal(e) || []);

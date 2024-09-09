@@ -155,7 +155,7 @@ const projectNonBinaryFiles = projectFiles.filter(
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
-		test.skip(description + `...skipped (\`${command}\` not found)`);
+		test.skip(`${description}...skipped (\`${command}\` not found)`);
 	} else {
 		// console.debug({ cmd });
 		test(description, async () => {
@@ -242,9 +242,9 @@ const projectNonBinaryFiles = projectFiles.filter(
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
-		test.skip(description + `...skipped (\`${command}\` not found)`);
+		test.skip(`${description}...skipped (\`${command}\` not found)`);
 	} else if (!commitLintFrom) {
-		test.skip(description + '...skipped (unable to determine a `--from` commit)');
+		test.skip(`${description}...skipped (unable to determine a \`--from\` commit)`);
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
@@ -279,7 +279,7 @@ const projectNonBinaryFiles = projectFiles.filter(
 	const cmd = [...(isWinOS ? ['cmd', '/x/d/c'] : []), command, ...exeArgs];
 	const description = `style ~ \`${exeCmd}\``;
 	if (!haveCommand) {
-		test.skip(description + `...skipped (\`${command}\` not found)`);
+		test.skip(`${description}...skipped (\`${command}\` not found)`);
 	} else {
 		// console.debug({ cSpellVersion, cSpellArgs, cmd });
 		test(description, async () => {
@@ -321,7 +321,7 @@ test('style ~ `deno lint`', async () => {
 {
 	const description = 'style ~ `dprint check`';
 	if (!(await haveDPrint())) {
-		test.skip(description + '...skipped (`dprint` not found)');
+		test.skip(`${description}...skipped (\`dprint\` not found)`);
 	} else {
 		test(description, async () => {
 			const p = Deprecated.Deno.run({

@@ -111,7 +111,7 @@ const args = (() => {
 const description = `xArgs/CLI argument expansion ~ \`${cliCmd}\``;
 // console.debug({ runner, args });
 if (!haveCommand) {
-	test.skip(description + `...skipped (\`${command}\` not found)`);
+	test.skip(`${description}...skipped (\`${command}\` not found)`);
 } else {
 	test(description, async () => {
 		// note: `Deno.Command(...)` requires Deno >= 1.28.0

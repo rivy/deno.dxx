@@ -155,7 +155,7 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 			return undefined;
 		}
 	})();
-	console.log('$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI\n****\n' + _vt + '\n****');
+	console.log(`$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI\n****\n${_vt}\n****`);
 	const cmd = 'deno';
 	const args = ['run', '--allow-all', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
