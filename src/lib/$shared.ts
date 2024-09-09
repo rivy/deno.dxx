@@ -210,7 +210,7 @@ function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 	const plural = flagNames.length > 1;
 	const msg = `Missing required permission${plural ? 's' : ''}; re-run with required permission${
 		plural ? 's' : ''
-	} (${flagNames.map((name) => $colors.green('`--allow-' + name + '`')).join(', ')})`;
+	} (${flagNames.map((name) => $colors.green(`\`--allow-${name}\``)).join(', ')})`;
 	return msg;
 }
 
@@ -227,7 +227,7 @@ export async function abortIfMissingPermits(
 	if (options.writer == null) {
 		options.writer = (args) =>
 			console.warn(
-				$colors.bgRed($colors.bold(` ${options?.label ? options.label + ':' : ''}ERR! `)),
+				$colors.bgRed($colors.bold(` ${options?.label ? `${options.label}:` : ''}ERR! `)),
 				$colors.red('*'),
 				args,
 			);
@@ -254,7 +254,7 @@ export function abortIfMissingPermitsSync(
 	if (options.writer == null) {
 		options.writer = (args) =>
 			console.warn(
-				$colors.bgRed($colors.bold(` ${options?.label ? options.label + ':' : ''}ERR! `)),
+				$colors.bgRed($colors.bold(` ${options?.label ? `${options.label}:` : ''}ERR! `)),
 				$colors.red('*'),
 				args,
 			);
@@ -680,7 +680,7 @@ export function formatDuration(
 ): string {
 	const [unit, n] = durationInMS > 1000 ? ['s', durationInMS / 1000] : ['ms', durationInMS];
 	const NumberFormat = new Intl.NumberFormat(undefined, options);
-	return NumberFormat.format(n) + ' ' + unit;
+	return `${NumberFormat.format(n)} ${unit}`;
 }
 export function formatN(
 	n: number,
@@ -696,10 +696,10 @@ export function performanceDuration(tag: string) {
 		const performanceEntries = (() => {
 			let entries = performance.getEntriesByName(tag, 'mark');
 			if (entries.length > 0) return entries;
-			entries = entries.concat(performance.getEntriesByName(tag + ':begin'));
-			entries = entries.concat(performance.getEntriesByName(tag + ':start'));
-			entries = entries.concat(performance.getEntriesByName(tag + ':end'));
-			entries = entries.concat(performance.getEntriesByName(tag + ':stop'));
+			entries = entries.concat(performance.getEntriesByName(`${tag}:begin`));
+			entries = entries.concat(performance.getEntriesByName(`${tag}:start`));
+			entries = entries.concat(performance.getEntriesByName(`${tag}:end`));
+			entries = entries.concat(performance.getEntriesByName(`${tag}:stop`));
 			if (entries.length > 0) return entries;
 			return undefined;
 		})();
