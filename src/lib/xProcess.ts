@@ -325,7 +325,7 @@ export const runAs =
 								...defaultRunnerArgs,
 								$args.reQuote(
 									decodeURIComponent(
-										traversal(pathURL || '')?.replace(/^-/, '.' + $path.SEP + '-') ?? '',
+										traversal(pathURL || '')?.replace(/^-/, `.${$path.SEP}-`) ?? '',
 									),
 								),
 							].join(' ')
@@ -358,11 +358,14 @@ export const impaired = isWinOS
 
 export const impairedWarningMessage = () => {
 	return impaired
-		? 'degraded capacity (faulty ' +
-				[!haveSuppliedArgv0 ? '"$0"' : '', !haveEnhancedArgs ? 'argument' : '']
-					.filter(Boolean)
-					.join(' and ') +
-				' resolution); full/correct function requires an enhanced runner or shim (use `dxr` or install with `dxi`)'
+		? `degraded capacity (faulty ${[
+				!haveSuppliedArgv0 ? '"$0"' : '',
+				!haveEnhancedArgs ? 'argument' : '',
+			]
+				.filter(Boolean)
+				.join(
+					' and ',
+				)} resolution); full/correct function requires an enhanced runner or shim (use \`dxr\` or install with \`dxi\`)`
 		: undefined;
 };
 
