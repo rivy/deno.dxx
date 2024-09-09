@@ -25,14 +25,14 @@ function toSpecFormat(
 	if (specifier === '%d') {
 		// number
 		if (typeof value === 'bigint') {
-			return value + 'n';
+			return `${value}n`;
 		}
 		return inspect(Number(value), inspectOptions);
 	}
 	if (specifier === '%i') {
 		// integer
 		if (typeof value === 'bigint') {
-			return value + 'n';
+			return `${value}n`;
 		}
 		return inspect(parseInt(value as string), inspectOptions);
 	}

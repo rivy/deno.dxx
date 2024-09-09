@@ -1121,7 +1121,7 @@ export class Humane extends TransformWriter<LogEntry, string> {
 		const prefix = prefixFormatFn(
 			[
 				showSymbol ? `${symbol}` : '',
-				showLabel ? `${label}${authority ? '/[' + authority + ']' : ''}:` : '',
+				showLabel ? `${label}${authority ? `/[${authority}]` : ''}:` : '',
 			]
 				.filter(Boolean)
 				.join(showSymbol !== 'unicodeDoubleWidth' ? ' ' : ''),
