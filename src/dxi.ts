@@ -470,7 +470,7 @@ const runOptions: Deno.RunOptions = {
 };
 await log.debug({ runOptions });
 
-const spinnerText = '$ ' + runOptions.cmd.join(' ');
+const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
 spinnerForInstall.clear();
 spinnerForInstall.text = spinnerText;
 spinnerForInstall.render();
@@ -503,9 +503,9 @@ const status = (
 				let newlineIndex;
 				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
 					const line = buffer.slice(0, newlineIndex);
-					out += line + '\n';
+					out += `${line}\n`;
 					const s = line?.trimEnd().replace(/^/gmsu, '* ');
-					spinnerForInstall.text = spinnerText + '\n' + s + '\n';
+					spinnerForInstall.text = `${spinnerText}\n${s}\n`;
 					spinnerForInstall.render();
 					buffer = buffer.slice(newlineIndex + 1);
 				}
@@ -517,21 +517,18 @@ const status = (
 
 spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
-writeAllSync(Deno.stdout, encoder.encode(prefixChar + ' ' + spinnerText + '\n'));
+writeAllSync(Deno.stdout, encoder.encode(`${prefixChar} ${spinnerText}\n`));
 
-writeAllSync(Deno.stdout, encoder.encode(out?.trimEnd().replace(/^/gmsu, '│ ') + '\n'));
+writeAllSync(Deno.stdout, encoder.encode(`${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`));
 
 const installDuration = performanceDuration('install.deno-install');
 
 writeAllSync(
 	Deno.stdout,
 	encoder.encode(
-		'└─ ' + //(fmt:add-break)
-			(status.success ? $colors.green('Done') : $colors.red('Failed')) +
-			(installDuration
-				? ' in ' + formatDuration(installDuration, { maximumFractionDigits: 3 })
-				: '') +
-			'\n',
+		`└─ ${status.success ? $colors.green('Done') : $colors.red('Failed')}${
+			installDuration ? ` in ${formatDuration(installDuration, { maximumFractionDigits: 3 })}` : ''
+		}\n`,
 	),
 );
 if (!status.success) await log.error('`deno install ...` failed');
@@ -578,7 +575,7 @@ if (status.success && isWinOS) {
 		shimBinName,
 		addQuietOption,
 	});
-	const appNameVersion = '`' + $me.name + '` ' + appVersion;
+	const appNameVersion = `\`${$me.name}\` ${appVersion}`;
 	const contentsUpdated = eol.CRLF(
 		$lodash.template(cmdShimTemplate(enablePipe))({
 			denoRunOptions: denoRunOptions?.concat(addQuietOption ? ' "--quiet"' : '').trim(),
