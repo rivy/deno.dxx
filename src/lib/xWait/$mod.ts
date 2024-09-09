@@ -207,8 +207,8 @@ export class Spinner {
 
 		this.#frameIndex = ++this.#frameIndex % frames.length;
 		const fullPrefixText =
-			typeof this.prefix === 'string' && this.prefix !== '' ? this.prefix + ' ' : '';
-		const fullText = typeof this.text === 'string' ? ' ' + this.text : '';
+			typeof this.prefix === 'string' && this.prefix !== '' ? `${this.prefix} ` : '';
+		const fullText = typeof this.text === 'string' ? ` ${this.text}` : '';
 
 		return fullPrefixText + frame + fullText;
 	}
@@ -227,9 +227,9 @@ export class Spinner {
 
 	updateLines(): void {
 		const columns = $consoleSize.consoleSizeSync(this.#stream.rid)?.columns || 80;
-		const fullPrefixText = typeof this.prefix === 'string' ? this.prefix + '-' : '';
+		const fullPrefixText = typeof this.prefix === 'string' ? `${this.prefix}-` : '';
 		this.#linesCount = $colors
-			.stripColor(fullPrefixText + '--' + this.text)
+			.stripColor(`${fullPrefixText}--${this.text}`)
 			.split('\n')
 			.reduce((count, line) => {
 				return count + Math.max(1, Math.ceil($tty.wcswidth(line) / columns));
@@ -249,9 +249,9 @@ export class Spinner {
 
 	stopAndPersist(options: PersistOptions = {}) {
 		const prefix = options.prefix || this.prefix;
-		const fullPrefix = typeof prefix === 'string' && prefix !== '' ? prefix + ' ' : '';
+		const fullPrefix = typeof prefix === 'string' && prefix !== '' ? `${prefix} ` : '';
 		const text = options.text || this.text;
-		const fullText = typeof text === 'string' ? ' ' + text : '';
+		const fullText = typeof text === 'string' ? ` ${text}` : '';
 
 		this.stop();
 		// https://github.com/denoland/deno/issues/6001
