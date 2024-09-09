@@ -52,16 +52,16 @@
 				//
 				"useNumberNamespace": "off" /* not needed for ES5+ as globals are also read-only; see <https://stackoverflow.com/questions/8522400/infinity-vs-number-positive-infinity> @@ <https://archive.is/X7q3B> */,
 				//
-				"noParameterAssign": "off", // "to "warn"
+				"noParameterAssign": "off" /* disable; used for reassignment to fallback defaults for null/undefined function parameters */,
 				//
 				"noInferrableTypes": "off",
-				"noUnusedTemplateLiteral": "off",
-				"noUselessElse": "off",
-				"useExponentiationOperator": "off",
-				"useImportType": "off",
-				"useShorthandFunctionType": "off",
-				"useSingleVarDeclarator": "off",
-				"useTemplate": "off"
+				// "noUnusedTemplateLiteral": "off",
+				// "noUselessElse": "off",
+				// "useExponentiationOperator": "off",
+				// "useImportType": "off",
+				"useShorthandFunctionType": "off"
+				// "useSingleVarDeclarator": "off",
+				// "useTemplate": "off"
 			},
 			"suspicious": {
 				"noAssignInExpressions": "off",
