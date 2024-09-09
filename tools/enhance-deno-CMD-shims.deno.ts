@@ -319,7 +319,7 @@ const fileEntries = await collect(
 	filter(
 		// 	// (walkEntry) => walkEntry.path !== denoInstallRoot,
 		() => true,
-		$xWalk.walkSync(denoInstallRoot + '/.', {
+		$xWalk.walkSync(`${denoInstallRoot}/.`, {
 			maxDepth: 1,
 			match: res,
 			// skip: [/[.]/],
@@ -348,7 +348,7 @@ const updates = await collect(
 		const shimBinName = $path.parse(shimPath).name;
 		const info = shimInfo(contentsOriginal);
 		const { denoRunOptions, denoRunTarget, denoRunTargetArgs } = info;
-		const appNameVersion = '`' + appName + '` ' + version;
+		const appNameVersion = `\`${appName}\` ${version}`;
 		const contentsUpdated = $eol.CRLF(
 			$lodash.template(cmdShimTemplate(enablePipe))({
 				denoRunOptions,
@@ -376,7 +376,7 @@ for await (const update of updates) {
 	} else if (!update.isEnhanced || forceUpdate) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
 		Deno.writeFile(update.shimPath, encoder.encode(update.contentsUpdated));
-		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
+		Deno.stdout.writeSync(encoder.encode(`${$colors.green('updated')}\n`));
 	} else if (update.isEnhanced) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...${$colors.blue('up-to-date')}\n`));
 	}

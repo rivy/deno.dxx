@@ -366,7 +366,7 @@ const updates = await collect(
 				.LF(contentsOriginal)
 				.match(/^[^\n]*?(?:\x22%_prog%\x22|node)\s+\x22([^\x22]*)\x22.*$/m) || [])[1] || undefined;
 		const targetBinName = targetBinPath ? $path.parse(targetBinPath).name : undefined;
-		const appNameVersion = '`' + appName + '` ' + version;
+		const appNameVersion = `\`${appName}\` ${version}`;
 		const contentsUpdated = $eol.CRLF(
 			$lodash.template(cmdShimTemplate)({ targetBinName, targetBinPath, appNameVersion }),
 		);
@@ -384,7 +384,7 @@ for await (const update of updates) {
 	} else if (update.contentsUpdated != update.contentsOriginal) {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...`));
 		Deno.writeFile(update.name, encoder.encode(update.contentsUpdated));
-		Deno.stdout.writeSync(encoder.encode($colors.green('updated') + '\n'));
+		Deno.stdout.writeSync(encoder.encode(`${$colors.green('updated')}\n`));
 	} else {
 		Deno.stdout.writeSync(encoder.encode(`'${name}'...${$colors.blue('up-to-date')}\n`));
 	}
