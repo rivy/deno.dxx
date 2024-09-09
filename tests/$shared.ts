@@ -39,13 +39,13 @@ function toSpecFormat(specifier: string, value: unknown): string {
 	}
 	if (specifier === '%d') {
 		if (typeof value === 'bigint') {
-			return value + 'n';
+			return `${value}n`;
 		}
 		return Number(value).toString();
 	}
 	if (specifier === '%i') {
 		if (typeof value === 'bigint') {
-			return value + 'n';
+			return `${value}n`;
 		}
 		return parseInt(value as string).toString();
 	}
@@ -157,7 +157,7 @@ function composeTestName(
 			: 0;
 	})();
 	const filePathText = tag
-		? $colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)) + ' '
+		? `${$colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s))} `
 		: '';
 	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
 }
@@ -521,7 +521,7 @@ export function formatDuration(
 ): string {
 	const [unit, n] = durationInMS > 1000 ? ['s', durationInMS / 1000] : ['ms', durationInMS];
 	const NumberFormat = new Intl.NumberFormat(undefined, options);
-	return NumberFormat.format(n) + ' ' + unit;
+	return `${NumberFormat.format(n)} ${unit}`;
 }
 export function formatN(
 	n: number,

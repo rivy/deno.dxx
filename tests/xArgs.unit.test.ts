@@ -195,7 +195,7 @@ test('brace/bracket combined expansions', async () => {
 const mayBeRootPath = 'c:/windows';
 if ($fs.existsSync(mayBeRootPath)) {
 	test('globs at root level', async () => {
-		const results = await shellExpandDuel(mayBeRootPath + '*');
+		const results = await shellExpandDuel(`${mayBeRootPath}*`);
 		console.log({ results, mayBeRootPath });
 		assert(
 			results?.find(
