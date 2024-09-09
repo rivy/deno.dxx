@@ -552,7 +552,7 @@ export function stdDevPopulation(arr: number[], mean_?: number): number | undefi
 	if (arr.length === 1) return arr[0];
 	const m = mean_ != null ? mean_ : mean(arr);
 	if (m == null) return undefined;
-	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / arr.length);
+	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + (v - m) ** 2, 0) / arr.length);
 	return stdDev;
 }
 export function stdDevSample(arr: number[], mean_?: number): number | undefined {
@@ -560,7 +560,7 @@ export function stdDevSample(arr: number[], mean_?: number): number | undefined 
 	if (arr.length === 1) return arr[0];
 	const m = mean_ != null ? mean_ : mean(arr);
 	if (m == null) return undefined;
-	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / (arr.length - 1));
+	const stdDev = Math.sqrt(arr.reduce((acc, v) => acc + (v - m) ** 2, 0) / (arr.length - 1));
 	return stdDev;
 }
 
