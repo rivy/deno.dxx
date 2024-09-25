@@ -7,7 +7,7 @@
 /* @prettier */
 // note: (dprint) {.dprint.json}.prettier.associations should contain the name of this file
 
-// deno-lint-ignore-file no-node-globals -- allow use of NodeJS global `process` (CommitLint expects NodeJS-flavor JS)
+// deno-lint-ignore-file ban-unknown-rule-code ban-unused-ignore no-node-globals no-process-globals -- allow use of NodeJS global `process` (CommitLint expects NodeJS-flavor JS)
 
 const isNPMTestDist = !!process.env.npm_config_test_dist;
 const isTestDist = !!process.env.test_dist;

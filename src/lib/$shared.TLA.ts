@@ -4,6 +4,17 @@
 // ... discussions related to TLA issues can be found at <https://github.com/denoland/deno/discussions/15356> , <https://github.com/denoland/deno_std/issues/2446> , <https://github.com/denoland/deno/issues/13730>
 // ... see <https://github.com/denoland/deno/issues/13730#issuecomment-1207325451> for notes about less rigorous module load/execution order
 
+const isDenoPreV2 = Deno.version.deno.split('.').map(Number)[0] < 2;
+const DenoPermissionNames: Deno.PermissionName[] = [
+	'env',
+	'ffi',
+	'net',
+	'read',
+	'run',
+	'write',
+	isDenoPreV2 ? 'hrtime' : undefined,
+].filter((e) => e != null) as Deno.PermissionName[];
+
 //===
 
 export const atImportPermissions = await permitsAsync();
@@ -16,9 +27,9 @@ function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	return c;
 }
 
-export async function permitsAsync(
-	names: Deno.PermissionName[] = ['env', 'ffi', 'hrtime', 'net', 'read', 'run', 'write'],
-) {
+export async function permitsAsync(names?: Deno.PermissionName[] | null | undefined) {
+	names = names ?? DenoPermissionNames;
+	if (names?.length === 0) return {} as Record<Deno.PermissionName, Deno.PermissionStatus>;
 	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
 		names,
 		(await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map(
