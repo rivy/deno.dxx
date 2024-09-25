@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr defaultCDNforNPM gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { DenoVx } from '../src/lib/$deprecated.ts';
+import { DenoVx, Deprecated } from '../src/lib/$deprecated.ts';
 
 import {
 	copy as streamCopy,
@@ -214,7 +214,8 @@ const argv =
 		try {
 			return app.parse($me.args()) as YargsArguments;
 		} catch (e) {
-			log.error(e.message);
+			if (e instanceof Error) log.error(e.message);
+			else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 			return;
 		}
 	})() || ({} as YargsArguments);
@@ -462,8 +463,8 @@ Deno.exit(appState.exitValue);
 // https://www.digitalocean.com/community/tutorials/how-to-work-with-files-using-streams-in-node-js
 // https://github.com/denoland/deno/issues/3756
 async function copy(
-	source: URL | Deno.Reader,
-	target: URL | Deno.Writer | (URL | Deno.Writer)[],
+	source: URL | Deprecated.Deno.Reader,
+	target: URL | Deprecated.Deno.Writer | (URL | Deprecated.Deno.Writer)[],
 	options?: { bufSize?: number; preventTargetClose?: boolean | boolean[]; protectTarget?: boolean },
 ) {
 	const targets = Array.isArray(target) ? target : [target];
@@ -521,8 +522,8 @@ async function copy(
 }
 
 async function _remoteCopyUsingCopy(
-	src: URL | Deno.Reader,
-	dst: URL | Deno.Writer,
+	src: URL | Deprecated.Deno.Reader,
+	dst: URL | Deprecated.Deno.Writer,
 	_options?: { bufSize?: number },
 ) {
 	const readableStream = await (async () => {
