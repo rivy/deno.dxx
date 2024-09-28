@@ -11,8 +11,26 @@
 // Warning Implicitly using latest version (0.207.0) for https://deno.land/std/path/mod.ts
 // Warning Implicitly using latest version (0.207.0) for https://deno.land/std/fmt/printf.ts
 // ```
-export { default as $yargs } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@6be59a7fda/deno.ts'; // v17.7.2-deno-rivy
+// * revise URL to use 'esm.sh' instead of 'cdn.jsdelivr.net' for compatibility with Deno-2.0 "import" permission defaults
+// export { default as $yargs } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@6be59a7fda/deno.ts'; // v17.7.2-deno-rivy
+export { default as $yargs } from 'https://esm.sh/gh/rivy-js/yargs@f4b8034a75/deno.ts'; // v17.7.2-deno-rivy
 
 //==== types
 
-export type { Arguments as YargsArguments } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@6be59a7fda/deno-types.ts'; // v17.7.2-deno-rivy
+// export type { Arguments as YargsArguments } from 'https://esm.sh/gh/rivy-js/yargs@f4b8034a75/deno-types.ts'; // v17.7.2-deno-rivy
+
+declare type ArgsOutput = (string | number)[];
+
+// spell-checker:ignore () bcoe
+// TODO(bcoe): attempt to get the types for YargsInstance working again.
+export interface Arguments {
+	/** Non-option arguments */
+	_: ArgsOutput;
+	/** Arguments after the end-of-options flag `--` */
+	'--'?: ArgsOutput;
+	/** All remaining options */
+	// deno-lint-ignore no-explicit-any
+	[argName: string]: any;
+}
+
+export type { Arguments as YargsArguments };
