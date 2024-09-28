@@ -15,10 +15,13 @@ import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
 // ToDO: evaluate [`zod`](https://github.com/colinhacks/zod) as a possible replacement for `computed-types`
 // ToDO: evaluate `chai` and `sinon`; egs, <https://deno.land/std@0.111.0/testing/chai_example.ts> and <https://deno.land/std@0.111.0/testing/sinon_example.ts>
 
-import chai from 'https://cdn.skypack.dev/chai@4.3.4?dts';
-// import sinon from 'https://cdn.skypack.dev/sinon@11.1.2?dts';
-// import mocha from 'https://unpkg.com/mocha@7.2.0/mocha.js';
-import { z } from 'https://cdn.skypack.dev/zod@3.9.8?dts';
+// import chai from 'https://cdn.skypack.dev/chai@4.3.4?dts';
+// // import sinon from 'https://cdn.skypack.dev/sinon@11.1.2?dts';
+// // import mocha from 'https://unpkg.com/mocha@7.2.0/mocha.js';
+// import { z } from 'https://cdn.skypack.dev/zod@3.9.8?dts';
+
+import chai from 'https://esm.sh/chai@4.3.4';
+import { z } from 'https://esm.sh/zod@3.9.8';
 
 import { test } from './$shared.ts';
 
