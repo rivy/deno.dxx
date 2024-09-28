@@ -19,7 +19,7 @@
 
 //===
 
-import { Deprecated } from './$deprecated.ts';
+import { DenoVx, Deprecated } from './$deprecated.ts';
 
 //===
 
@@ -205,7 +205,7 @@ export function consoleSizeViaDenoAPI(
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
 		size = file && denoConsoleSizeNT(file.rid);
 		// note: Deno.FsFile added (with close()) in Deno v1.19.0
-		file && Deprecated.Deno.close(file.rid);
+		file && DenoVx.close(file);
 	}
 
 	return size;
