@@ -31,7 +31,7 @@ await abortIfMissingPermits(
 	([] as Deno.PermissionName[]).concat(
 		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
 		['read'], // required for shim targeting of argument expansion and 'yargs'
-		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// ['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
 		// * script specific requirements
 		['read', 'write'],
 	),
