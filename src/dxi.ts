@@ -55,6 +55,10 @@ await abortIfMissingPermitsSync(
 
 //===
 
+const denoVersion = $semver.coerce(Deno.version.deno) ?? Deno.version.deno;
+
+//===
+
 log.debug('logging to *STDERR*');
 
 // $me.warnIfImpaired((msg) => log.warn(msg)); // non-essential, so avoid for `dxi`; allows normal (non-warning) execution when used from installation via `deno install ...`
@@ -433,7 +437,7 @@ const hasDenoGlobalOption =
 	}) != null;
 
 // suppress deno behaviors change warning about `--global` option (for Deno v1.42.0+)
-if (!hasDenoGlobalOption && $semver.satisfies(Deno.version.deno, '>=1.42.0')) {
+if (!hasDenoGlobalOption && $semver.satisfies(denoVersion, '>=1.42.0')) {
 	const _ = filteredDelegatedDenoArgs.unshift('--global');
 }
 
