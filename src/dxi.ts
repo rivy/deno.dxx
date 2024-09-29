@@ -478,8 +478,8 @@ spinnerForInstall.render();
 
 const process = Deprecated.Deno.run(runOptions);
 const mergedOutput = mergeReadableStreams(
-	process.stderr?.readable || new ReadableStream(),
-	process.stdout?.readable || new ReadableStream(),
+	process.stderr?.readable || new ReadableStream<Uint8Array>(),
+	process.stdout?.readable || new ReadableStream<Uint8Array>(),
 );
 const outputReader = mergedOutput.getReader();
 
@@ -500,7 +500,7 @@ const status = (
 			while (true) {
 				const { value, done } = await outputReader.read();
 				if (done) break;
-				buffer += decoder.decode(value);
+				buffer += decoder.decode(value as Uint8Array | undefined);
 				let newlineIndex;
 				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
 					const line = buffer.slice(0, newlineIndex);

@@ -349,9 +349,11 @@ function haveDprintVersion() {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return process
-			.output()
-			.then((output) => decode(output).match(/^dprint\s+(\d+([.]\d+)*)/im)?.[1])
+		return (process.output() as Promise<Uint8Array>) // workaround for Deno-v2.0.0-rc bug?; o/w "error: TS7006 [ERROR]: Parameter 'output' implicitly has an 'any' type."
+			.then((output) => {
+				const o = output as Uint8Array;
+				return decode(o).match(/^dprint\s+(\d+([.]\d+)*)/im)?.[1];
+			})
 			.finally(() => process.close());
 	} catch (_) {
 		return Promise.resolve(undefined);
@@ -366,8 +368,7 @@ function haveDenoVersion() {
 			stderr: 'null',
 			stdout: 'piped',
 		});
-		return process
-			.output()
+		return (process.output() as Promise<Uint8Array>) // workaround for Deno-v2.0.0-rc bug?; o/w "error: TS7006 [ERROR]: Parameter 'output' implicitly has an 'any' type."
 			.then((output) => decode(output).match(/^deno\s+(\d+([.]\d+)*)/im)?.[1])
 			.finally(() => process.close());
 	} catch (_) {
