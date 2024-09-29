@@ -90,7 +90,7 @@ export const DenoVx = {
 	 * @category I/O
 	 */
 	isatty: (
-		id:
+		id?:
 			| globalThis.Deno.FsFile
 			| DenoV1NS.Deno.FsFile
 			| { isTerminal: () => boolean }
