@@ -10,7 +10,7 @@
 // * [ora](https://www.npmjs.com/package/ora) ; [repo](https://github.com/sindresorhus/ora); MIT
 // further ideas from [progress](https://deno.land/x/progress@v1.2.4); [repo](https://github.com/deno-library/progress); MIT
 
-import { Deprecated } from '../$deprecated.ts';
+import { DenoVx, Deprecated } from '../$deprecated.ts';
 import { $colors, $tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
 
@@ -44,7 +44,7 @@ export interface SpinnerOptions {
 	hideCursor?: boolean;
 	indent?: number;
 	interval?: number;
-	stream?: Deprecated.Deno.WriterSync & { rid: number };
+	stream?: Deprecated.Deno.WriterSync & { rid?: number };
 	enabled?: boolean;
 	discardStdin?: boolean;
 	symbols?: typeof Symbols;
@@ -58,7 +58,7 @@ export interface PersistOptions {
 
 export function wait(opts: string | SpinnerOptions) {
 	if (typeof opts === 'string') {
-		opts = { text: opts };
+		opts = { text: opts } as SpinnerOptions;
 	}
 	return new Spinner({
 		text: opts.text,
@@ -80,7 +80,7 @@ export class Spinner {
 
 	isSpinning: boolean;
 
-	#stream: Deprecated.Deno.WriterSync & { rid: number };
+	#stream: Deprecated.Deno.WriterSync & { rid?: number };
 	indent: number;
 	interval: number;
 
@@ -111,7 +111,7 @@ export class Spinner {
 		this.#linesCount = 1;
 
 		this.#enabled =
-			typeof opts.enabled === 'boolean' ? opts.enabled : $tty.isInteractive(this.#stream);
+			typeof opts.enabled === 'boolean' ? opts.enabled : DenoVx.isatty(this.#stream.rid);
 
 		if (opts.hideCursor) {
 			addEventListener('unload', () => {
