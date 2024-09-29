@@ -55,7 +55,7 @@ function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
 export const DenoV1 = isDenoV1(Deno) ? (Deno as unknown as typeof DenoV1NS.Deno) : undefined;
 // export const DenoAsVx = DenoAsV1 ?? globalThis.Deno;
 
-import { readAll } from 'jsr:@std/io/read-all';
+import { readAll } from 'jsr:@std/io@0.224.3/read-all';
 
 export const DenoVx = {
 	/** Close the given resource ID (`rid`) which has been previously opened, such
@@ -128,9 +128,9 @@ export const DenoVx = {
 // import _denoV1 = denoV1T.Deno;
 // import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
 
-import type { Reader as DenoReader } from 'jsr:@std/io/types';
-import type { Writer as DenoWriter } from 'jsr:@std/io/types';
-import type { WriterSync as DenoWriterSync } from 'jsr:@std/io/types';
+import type { Reader as DenoReader } from 'jsr:@std/io@0.224.3/types';
+import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.3/types';
+import type { WriterSync as DenoWriterSync } from 'jsr:@std/io@0.224.3/types';
 
 export namespace Deprecated {
 	export namespace Deno {
