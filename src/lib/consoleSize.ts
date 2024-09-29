@@ -150,7 +150,7 @@ export const consoleSize = consoleSizeAsync; // default to fully functional `con
  * @tags unstable
  */
 export function consoleSizeSync(
-	rid: number = Deprecated.Deno.stdout.rid,
+	rid: number | undefined = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): ConsoleSize | undefined {
 	// ~ 0.75ms for WinOS
@@ -181,7 +181,7 @@ export function consoleSizeSync(
  * @tags unstable
  */
 export function consoleSizeViaDenoAPI(
-	rid: number = Deprecated.Deno.stdout.rid,
+	rid: number | undefined = Deprecated.Deno.stdout.rid,
 	options_: Partial<Omit<ConsoleSizeOptions, 'useCache'>> = {},
 ): ConsoleSize | undefined {
 	const options = {
