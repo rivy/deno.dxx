@@ -80,7 +80,9 @@ export const DenoVx = {
 	 * @category I/O
 	 */
 	close: (
-		id?: globalThis.Deno.FsFile | DenoV1NS.Deno.FsFile | { rid: DenoV1RID } | DenoV1RID,
+		// id?: globalThis.Deno.FsFile | DenoV1NS.Deno.FsFile | { rid: DenoV1RID } | DenoV1RID,
+		// id?: DenoV1NS.Deno.Closer | { rid: DenoV1RID } | DenoV1RID,
+		id?: { close(): void } | { rid: DenoV1RID } | DenoV1RID,
 	): void => {
 		if (id == null) return;
 		try {
@@ -107,12 +109,9 @@ export const DenoVx = {
 	 * @category I/O
 	 */
 	isatty: (
-		id?:
-			| globalThis.Deno.FsFile
-			| DenoV1NS.Deno.FsFile
-			| { isTerminal: () => boolean }
-			| { rid: DenoV1RID }
-			| DenoV1RID,
+		id?: // | globalThis.Deno.FsFile
+		// | DenoV1NS.Deno.FsFile
+		{ isTerminal: () => boolean } | { rid: DenoV1RID } | DenoV1RID,
 	): boolean => {
 		if (id == null) return false;
 		if (hasIsTerminalMethod(id)) {
