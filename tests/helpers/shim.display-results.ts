@@ -4,11 +4,13 @@ import * as M from '../../src/lib/shim.windows.ts';
 
 import { $path } from '../$deps.ts';
 
+import { DenoVx, Deprecated } from '../../src/lib/$deprecated.ts';
+
 const args = Deno.args;
 
 if (args.length === 0) {
-	if (Deno.isatty(Deno.stdin.rid)) {
-		console.error('Usage: deno run -A tests/helpers/shim.display-results.ts [<filename>..]');
+	if (DenoVx.isatty(Deno.stdin)) {
+		console.error('Usage: `deno run -A tests/helpers/shim.display-results.ts <SHIM_PATH>..`');
 		Deno.exit(1);
 	}
 	args.push('-');
@@ -35,7 +37,9 @@ function concatTypedArrays<T extends TypedArray>(a: T, b: T): T {
 	return result;
 }
 
-async function readAllIfShebangFile(stream: Deno.Reader): Promise<Uint8Array | undefined> {
+async function readAllIfShebangFile(
+	stream: Deprecated.Deno.Reader,
+): Promise<Uint8Array | undefined> {
 	const headerBuf = new Uint8Array(2);
 	const bytesRead = await stream.read(headerBuf);
 	if (bytesRead === null) return undefined;
@@ -43,7 +47,7 @@ async function readAllIfShebangFile(stream: Deno.Reader): Promise<Uint8Array | u
 		/* headerBuf !== '#!' */
 		return undefined;
 	}
-	return concatTypedArrays(headerBuf, await Deno.readAll(stream));
+	return concatTypedArrays(headerBuf, await DenoVx.readAll(stream));
 }
 
 for (let i = 0; i < Deno.args.length; i++) {
@@ -56,9 +60,9 @@ for (let i = 0; i < Deno.args.length; i++) {
 		return await Deno.open(filename, { read: true });
 	})();
 	const data = decoder.decode(
-		isWinOS ? await Deno.readAll(stream) : await readAllIfShebangFile(stream),
+		isWinOS ? await DenoVx.readAll(stream) : await readAllIfShebangFile(stream),
 	);
-	Deno.close(stream.rid);
+	DenoVx.close(stream);
 
 	// const result = (data != '') ? M.shimInfo(data) : undefined;
 	const result = M.shimInfo(data);
