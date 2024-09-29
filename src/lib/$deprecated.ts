@@ -33,6 +33,13 @@ export function isDenoV1RID(id: unknown): id is DenoV1NS.RID {
 	return typeof id === 'number';
 }
 
+function hasCloseMethod(x: unknown): x is { close: () => void } {
+	return (
+		typeof x === 'object' && x != null && 'close' in x && typeof x?.close === 'function'
+		// && typeof x.close() === 'undefined'
+	);
+}
+
 function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
 	return (
 		typeof x === 'object' &&
@@ -47,6 +54,8 @@ function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
 
 export const DenoV1 = isDenoV1(Deno) ? (Deno as unknown as typeof DenoV1NS.Deno) : undefined;
 // export const DenoAsVx = DenoAsV1 ?? globalThis.Deno;
+
+import { readAll } from 'jsr:@std/io/read-all';
 
 export const DenoVx = {
 	/** Close the given resource ID (`rid`) which has been previously opened, such
@@ -70,11 +79,19 @@ export const DenoVx = {
 	 *
 	 * @category I/O
 	 */
-	close: (file: DenoV1NS.Deno.FsFile | globalThis.Deno.FsFile): void => {
-		if (file instanceof DenoV1NS.Deno.FsFile) {
-			return DenoV1?.close(file.rid);
+	close: (
+		id?: globalThis.Deno.FsFile | DenoV1NS.Deno.FsFile | { rid: DenoV1RID } | DenoV1RID,
+	): void => {
+		if (id == null) return;
+		try {
+			if (hasCloseMethod(id)) {
+				return id.close();
+			}
+			const rid = typeof id === 'number' ? id : id.rid;
+			return DenoV1?.close(rid);
+		} catch (_) {
+			// ignore errors
 		}
-		return file.close();
 	},
 	/**
 	 *  Check if a given resource id (`rid`) is a TTY (a terminal).
@@ -104,6 +121,7 @@ export const DenoVx = {
 		const rid = typeof id === 'number' ? id : id.rid;
 		return DenoV1?.isatty(rid) ?? false;
 	},
+	readAll: DenoV1?.readAll ?? readAll,
 };
 
 // FixME: [2024-09-25; rivy] -- import { Deno as denoV1 } from 'https://github.com/denoland/deno/blob/e27a19c02c537626d7874f7521f4e39d6dfad0af/cli/tsc/dts/lib.deno.unstable.d.ts';
