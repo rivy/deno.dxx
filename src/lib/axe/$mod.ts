@@ -46,7 +46,7 @@ export function env(varName: string, options?: { guard: boolean }) {
 
 //===
 
-import type { Writer as DenoWriter } from 'jsr:@std/io/types';
+import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.3/types';
 
 async function writeAll(writer: DenoWriter, data: Uint8Array): Promise<number> {
 	let bytesWritten = 0;
