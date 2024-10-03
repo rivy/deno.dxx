@@ -8,7 +8,7 @@
 // spell-checker:ignore (modules) stringz
 // spell-checker:ignore (yargs) positionals
 
-import { Deprecated } from './$deprecated.ts';
+import { DenoVx, Deprecated } from './$deprecated.ts';
 import { $colors, $fs, $path } from './$deps.ts';
 import { atImportPermissions } from './$shared.TLA.ts';
 
@@ -110,16 +110,7 @@ function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	return c;
 }
 
-const isDenoPreV2 = Deno.version.deno.split('.').map(Number)[0] < 2;
-const DenoPermissionNames: Deno.PermissionName[] = [
-	'env',
-	'ffi',
-	'net',
-	'read',
-	'run',
-	'write',
-	isDenoPreV2 ? 'hrtime' : undefined,
-].filter((e) => e != null) as Deno.PermissionName[];
+const DenoPermissionNames: Deno.PermissionName[] = DenoVx.DenoPermissionNames();
 
 // FixME: [2024-09-25; rivy] revise permits functions to allow for optional configuration parameters for each permission
 
