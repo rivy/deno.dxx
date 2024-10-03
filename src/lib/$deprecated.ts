@@ -58,6 +58,13 @@ export const DenoV1 = isDenoV1(Deno) ? (Deno as unknown as typeof DenoV1NS.Deno)
 import { readAll } from 'jsr:@std/io@0.224.3/read-all';
 
 export const DenoVx = {
+	DenoPermissionNames: (): Deno.PermissionName[] => {
+		const names: Deno.PermissionName[] = ['env', 'ffi', 'net', 'read', 'run', 'sys', 'write'];
+		const isDenoPreV2 = Deno.version.deno.split('.').map(Number)[0] < 2;
+		// @ts-ignore -- add `hrtime` permission for Deno-v1 (removed in Deno-v2+)
+		if (isDenoPreV2) names.push('hrtime');
+		return names;
+	},
 	/** Close the given resource ID (`rid`) which has been previously opened, such
 	 * as via opening or creating a file. Closing a file when you are finished
 	 * with it is important to avoid leaking resources.
