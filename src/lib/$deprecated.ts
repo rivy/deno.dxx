@@ -14,10 +14,14 @@
 // 	Deno: { run: Deno.run, RunOptions: Deno.RunOptions },
 // };
 
-// const deno = Deno;
+// import ... 'jsr:...' requires a Deno-v1.40.0+
+import { readAll } from 'jsr:@std/io@0.224.3/read-all';
 
-// export const isDenoV1 = Deno.version.deno.startsWith('1.');
+import type { Reader as DenoReader } from 'jsr:@std/io@0.224.3/types';
+import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.3/types';
+import type { WriterSync as DenoWriterSync } from 'jsr:@std/io@0.224.3/types';
 
+// vendored Deno-v1 types
 import * as _DenoV1NS from '../../vendor/@types/lib.deno.ns@v1.46.3.d.ts';
 
 export type DenoV1RID = DenoV1NS.RID;
@@ -50,15 +54,27 @@ function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
 	);
 }
 
+// utility functions
+
+function tryFnOr<T>(fn: () => T, fallback: T) {
+	try {
+		return fn();
+	} catch (_) {
+		return fallback;
+	}
+}
+
+function tryFn<T>(fn: () => T) {
+	return tryFnOr(fn, undefined);
+}
+
 //
 
 export const DenoV1 = isDenoV1(Deno) ? (Deno as unknown as typeof DenoV1NS.Deno) : undefined;
 // export const DenoAsVx = DenoAsV1 ?? globalThis.Deno;
 
-import { readAll } from 'jsr:@std/io@0.224.3/read-all';
-
 export const DenoVx = {
-	DenoPermissionNames: (): Deno.PermissionName[] => {
+	PermissionNames: (): Deno.PermissionName[] => {
 		const names: Deno.PermissionName[] = ['env', 'ffi', 'net', 'read', 'run', 'sys', 'write'];
 		const isDenoPreV2 = Deno.version.deno.split('.').map(Number)[0] < 2;
 		// @ts-ignore -- add `hrtime` permission for Deno-v1 (removed in Deno-v2+)
@@ -84,7 +100,9 @@ export const DenoVx = {
 	 * // do work with "file" object
 	 * ```
 	 *
-	 * @category I/O
+	 @param `id` • a resource id or object containing `close() => void` and/or `rid: number` (eg, `FsFile`)
+	 @category I/O
+	 @tags `no-panic`, `no-throw`
 	 */
 	close: (
 		// id?: globalThis.Deno.FsFile | DenoV1NS.Deno.FsFile | { rid: DenoV1RID } | DenoV1RID,
@@ -99,21 +117,25 @@ export const DenoVx = {
 			const rid = typeof id === 'number' ? id : id.rid;
 			return DenoV1?.close(rid);
 		} catch (_) {
-			// ignore errors
+			// ignore errors/panics
 		}
 	},
 	/**
-	 *  Check if a given resource id (`rid`) is a TTY (a terminal).
+	 *  Check if a given resource is a TTY (a terminal).
 	 *
 	 * ```ts
 	 * // This example is system and context specific
-	 * const nonTTYRid = Deno.openSync("my_file.txt").rid;
-	 * const ttyRid = Deno.openSync("/dev/tty6").rid;
-	 * console.log(Deno.isatty(nonTTYRid)); // false
-	 * console.log(Deno.isatty(ttyRid)); // true
+	 * const nonTTY = Deno.openSync("my_file.txt").rid;
+	 * const nonTtyRID = nonTTY.rid;
+	 * const tty = Deno.openSync("/dev/tty6");
+	 * console.log(Deno.isatty(nonTTY)); // false
+	 * console.log(Deno.isatty(nonTtyRID)); // false
+	 * console.log(Deno.isatty(tty)); // true
 	 * ```
 	 *
-	 * @category I/O
+	 @param `id` • a resource id or object containing `isTerminal() => boolean` and/or `rid: number` (eg, `FsFile`)
+	 @category I/O
+	 @tags `no-panic`, `no-throw`
 	 */
 	isatty: (
 		id?: // | globalThis.Deno.FsFile
@@ -122,11 +144,17 @@ export const DenoVx = {
 	): boolean => {
 		if (id == null) return false;
 		if (hasIsTerminalMethod(id)) {
-			return id.isTerminal();
+			return tryFn(() => id.isTerminal()) ?? false;
 		}
 		const rid = typeof id === 'number' ? id : id.rid;
-		return DenoV1?.isatty(rid) ?? false;
+		return tryFn(() => DenoV1?.isatty(rid)) ?? false;
 	},
+
+	/**
+	 * Read Reader `r` until EOF (`null`) and resolve to the content as `Uint8Array`.
+	 *
+	 @category I/O
+	 */
 	readAll: DenoV1?.readAll ?? readAll,
 };
 
@@ -135,16 +163,13 @@ export const DenoVx = {
 // import _denoV1 = denoV1T.Deno;
 // import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
 
-import type { Reader as DenoReader } from 'jsr:@std/io@0.224.3/types';
-import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.3/types';
-import type { WriterSync as DenoWriterSync } from 'jsr:@std/io@0.224.3/types';
-
 export namespace Deprecated {
 	export namespace Deno {
 		// deprecated since: ...
 		// use instead: ...
 		// remove with: Deno v2.0.0
 
+		// NOTE: Deno-v1.40.x may produce warnings when accessing `rid` here (which may be suppressed with `DENO_NO_DEPRECATION_WARNINGS=1`)
 		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2
 		export const stderr = { rid: globalThis.Deno.stderr.rid };
 		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2

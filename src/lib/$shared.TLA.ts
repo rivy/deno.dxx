@@ -18,6 +18,22 @@ const DenoPermissionNames: Deno.PermissionName[] = [
 //===
 
 export const atImportPermissions = await permitsAsync();
+export const atImportPermitCWD =
+	(await Deno.permissions?.query({ name: 'read', path: '.' })).state === 'granted';
+
+//===
+
+export const atImportCWD = await (async () => {
+	const permission = await Deno.permissions?.query({ name: 'read', path: '.' });
+	if (permission.state === 'granted') {
+		try {
+			return Deno.cwd();
+		} catch {
+			// no-throw; ignore any panic
+		}
+	}
+	return undefined;
+})();
 
 //===
 

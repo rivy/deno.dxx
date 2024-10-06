@@ -75,6 +75,8 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 	if (!isWinOS) return undefined; // WinOS-only FFI implementation
 	if (!atImportAllowFFI) return undefined;
 
+	const ttyDevicePath = '//./CONOUT$';
+
 	const unstable = (() => {
 		const u = {
 			dlopen: Deno.dlopen,
@@ -128,7 +130,9 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 	const GENERIC_WRITE = 0x40000000;
 	// ref: [Correct use of `CreateFileW()`](https://stackoverflow.com/questions/49145316/why-no-text-colors-after-using-createfileconout-to-redirect-the-console)
 	const h = dllKernel?.symbols.CreateFileW(
-		unstable.UnsafePointer.of(stringToCWSTR('CONOUT$')) /* lpFileName (a NUL-terminated CWSTR) */,
+		unstable.UnsafePointer.of(
+			stringToCWSTR(ttyDevicePath),
+		) /* lpFileName (a NUL-terminated CWSTR) */,
 		ToUint32(GENERIC_WRITE | GENERIC_READ) /* dwDesiredAccess */,
 		ToUint32(FILE_SHARE_WRITE) /* dwShareMode */,
 		null /* lpSecurityAttributes (optional) */,
@@ -164,7 +168,6 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 	const FALSE = 0;
 	const INVALID_HANDLE = -1;
 
-	// ref: <https://learn.microsoft.com/en-us/windows/console/console-screen-buffer-info-str> @@ <https://archive.is/WYQxW>
 	// ref: <https://learn.microsoft.com/en-us/windows/console/console-screen-buffer-info-str> @@ <https://archive.is/WYQxW>
 	// ref: [MSDN ~ SHORT](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/47b1e7d6-b5a1-48c3-986e-b5e5eb3f06d2) @@ <https://archive.is/fKKKq>)
 	// ref: [MSDN ~ WORD](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/f8573df3-a44a-4a50-b070-ac4c3aa78e3c) @@ <https://archive.is/Llj9A>)
@@ -223,6 +226,9 @@ export function consoleSizeViaFFI(): ConsoleSize | undefined {
 			: null;
 	// console.warn('FFI', { buffer, info });
 	if (info != null) {
+		// JS/TS ~ Number can safely contain 53-bit integers (i53) or [-2^53 + 1, 2^53 - 1]
+		// srWindow values are all i16 (16-bit signed integers); ref: <https://learn.microsoft.com/en-us/windows/console/console-screen-buffer-info-str> @@ <https://archive.is/WYQxW>
+		// over/under-flow is not possible since `i16 +/- i16 + 1` => safely fits within i17
 		const columns = info.srWindow.Right - info.srWindow.Left + 1;
 		const rows = info.srWindow.Bottom - info.srWindow.Top + 1;
 		size = { columns, rows };

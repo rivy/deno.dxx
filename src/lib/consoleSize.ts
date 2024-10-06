@@ -38,34 +38,12 @@ const decode = (input?: Uint8Array): string => decoder.decode(input);
 const isMacOS = Deno.build.os === 'darwin';
 const isWinOS = Deno.build.os === 'windows';
 
-const atImportAllowRead =
-	((await Deno.permissions?.query({ name: 'read' }))?.state ?? 'granted') === 'granted';
-const atImportAllowRun = true; // FixME: [rivy; 2024-09-25] revise this to use synchronous permission checks as needed in each function below
-// const atImportAllowRun =
-// 	((await Deno.permissions?.query({ name: 'run', command: 'deno' }))?.state ?? 'granted') ===
-// 	'granted';
+// `Deno.permissions.querySync()` requires Deno-v1.30.0+ (ref: <https://github.com/denoland/deno/releases/tag/v1.30.0>)
+const atImportAllowRead = Deno?.permissions?.querySync?.({ name: 'read' })?.state === 'granted';
+const atImportAllowRun = Deno?.permissions?.querySync?.({ name: 'run' })?.state === 'granted';
 
 type ConsoleSizeMemoKey = string;
 const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
-
-//===
-
-// export async function havePermit(name: Deno.PermissionName) {
-// 	const names = [name];
-// 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
-// 		e,
-// 	) => e ?? { state: 'granted', onchange: null });
-// 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
-// 	return allGranted;
-// }
-
-// export async function haveAllPermits(names: Deno.PermissionName[]) {
-// 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map((
-// 		e,
-// 	) => e ?? { state: 'granted', onchange: null });
-// 	const allGranted = !(permits.find((permit) => permit.state !== 'granted'));
-// 	return allGranted;
-// }
 
 //===
 
@@ -85,15 +63,15 @@ export type ConsoleSizeOptions = {
 //===
 
 /** Get the size of the console used by `rid` as columns/rows.
- * * _`no-throw`_ function (returns `undefined` upon any error [or missing `Deno.consoleSize()`])
- *
- * ```ts
- * const { columns, rows } = denoConsoleSizeNT(Deno.stdout.rid);
- * ```
- *
- * @param rid ~ resource ID
- * @tags no-throw
- */
+* * _`no-throw`_ function (returns `undefined` upon any error [or missing `Deno.consoleSize()`])
+*
+* ```ts
+* const { columns, rows } = denoConsoleSizeNT(Deno.stdout.rid);
+* ```
+*
+@param rid ~ resource ID
+@tags no-throw
+*/
 function denoConsoleSizeNT(rid?: number) {
 	// no-throw `Deno.consoleSize(..)`
 	// [2020-07] `Deno.consoleSize()` is unstable API (as of v1.2+) => deno-lint-ignore no-explicit-any
@@ -109,10 +87,13 @@ function denoConsoleSizeNT(rid?: number) {
 
 /** Open a file specified by `path`, using `options`.
  * * _`no-throw`_ function (returns `undefined` upon any error)
- * @returns an instance of `Deno.FsFile`
+ @returns an instance of `Deno.FsFile`
+ @category I/O
+ @tags `no-panic`, `no-throw`, `no-prompt`
  */
 function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions) {
 	// no-throw `Deno.openSync(..)`
+	// console.warn('denoOpenSyncNT', { path, options });
 	try {
 		return Deno.openSync(path, options);
 	} catch {
@@ -123,14 +104,14 @@ function denoOpenSyncNT(path: string | URL, options?: Deno.OpenOptions) {
 //===
 
 /** Get the size of the console used by `rid` as columns/rows, using `options`.
- * * _async_
- *
- * ```ts
- * const { columns, rows } = await consoleSize(Deno.stdout.rid, {...});
- * ```
- *
- * @param rid ~ resource ID
- */
+* * _async_
+*
+* ```ts
+* const { columns, rows } = await consoleSize(Deno.stdout.rid, {...});
+* ```
+*
+@param rid ~ resource ID
+*/
 export const consoleSize = consoleSizeAsync; // default to fully functional `consoleSizeAsync()`
 
 //=== * sync
@@ -139,16 +120,16 @@ export const consoleSize = consoleSizeAsync; // default to fully functional `con
 
 // consoleSizeSync(rid, options)
 /** Get the size of the console used by `rid` as columns/rows, using `options`.
- * * _unstable_ ~ requires the Deno `--unstable` flag for successful resolution (b/c the used `Deno.consoleSize()` function is unstable API [as of Deno v1.19.0, 2022-02-17])
- * * results are cached; cached entries will be ignored/skipped when using the `{ useCache: false }` option
- *
- * ```ts
- * const { columns, rows } = consoleSizeSync(Deno.stdout.rid, {...});
- * ```
- *
- * @param rid ~ resource ID
- * @tags unstable
- */
+* * _unstable_ ~ requires the Deno `--unstable` flag for successful resolution (b/c the used `Deno.consoleSize()` function is unstable API [as of Deno v1.19.0, 2022-02-17])
+* * results are cached; cached entries will be ignored/skipped when using the `{ useCache: false }` option
+*
+* ```ts
+* const { columns, rows } = consoleSizeSync(Deno.stdout.rid, {...});
+* ```
+*
+@param rid ~ resource ID
+@tags unstable
+*/
 export function consoleSizeSync(
 	rid: number | undefined = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
@@ -199,12 +180,16 @@ export function consoleSizeViaDenoAPI(
 		size = denoConsoleSizeNT(fallbackRID);
 	}
 
+	// console.warn({ rid, options, atImportAllowRead, size });
+
 	if (size == null && atImportAllowRead && options.consoleFileFallback) {
 		// fallback to size determination from special "console" files
 		// ref: https://unix.stackexchange.com/questions/60641/linux-difference-between-dev-console-dev-tty-and-dev-tty0
-		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
-		const file = denoOpenSyncNT(fallbackFileName);
-		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
+		const fallbackFileName = isWinOS ? '\\\\.\\CONOUT$' : '/dev/tty';
+		const file = denoOpenSyncNT(fallbackFileName, { read: true, write: true });
+		// console.warn(
+		// 	`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`,
+		// );
 		size = file && denoConsoleSizeNT((file as { rid?: number }).rid);
 		// note: Deno.FsFile added (with close()) in Deno v1.19.0
 		file && DenoVx.close(file);
@@ -289,11 +274,14 @@ export function consoleSizeAsync(
  * ```ts
  * const { columns, rows } = await consoleSizeViaPowerShell();
  * ```
+ @tags allow-read=powershell
  */
 export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
 	// ~ 150 ms (for WinOS)
 	// MacOS: fails when STDERR/STDOUT is redirected, falling back to 80x24 (width x height); notably, with absent TTY, '$Host.UI.RawUI.KeyAvailable' is undefined (instead of 'True'/'False')
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const permitRunPowershell =
+		Deno?.permissions?.querySync?.({ name: 'run', command: 'powershell' })?.state === 'granted';
+	if (!(atImportAllowRun || permitRunPowershell)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
@@ -351,12 +339,15 @@ export function consoleSizeViaPowerShell(): Promise<ConsoleSize | undefined> {
  * const { columns, rows } = await consoleSizeViaResize();
  * ```
  *
- * @tags non-winos-only
+ @tags non-winos-only
+ @tags allow-read=resize
  */
 export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
 	// * note: `resize` is available from `sudo apt install xterm`
 	if (isWinOS) return Promise.resolve(undefined);
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const permitRunResize =
+		Deno?.permissions?.querySync?.({ name: 'run', command: 'resize' })?.state === 'granted';
+	if (!(atImportAllowRun || permitRunResize)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	// * `resize -u` => output consists of shell command text to set COLUMNS and LINES environment variables; will be `bash`-compatible, regardless of the in-use shell
 	const output = (() => {
 		try {
@@ -414,7 +405,8 @@ export function consoleSizeViaResize(): Promise<ConsoleSize | undefined> {
  * const { columns, rows } = await consoleSizeViaSTTY();
  * ```
  *
- * @tags non-winos-only
+ @tags non-winos-only
+ @tags allow-read=stty
  */
 export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
@@ -424,8 +416,10 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
 	// MacOS: `--file=/dev/tty` isn't recognized as a valid option, must use `-f /dev/tty` and use it prior to stty commands
 	// WinOS: `stty size` causes odd and persistent end of line word wrap abnormalities for lines containing ANSI escapes => avoid for WinOS
 	if (isWinOS) return Promise.resolve(undefined);
+	const permitRunSTTY =
+		Deno?.permissions?.querySync?.({ name: 'run', command: 'stty' })?.state === 'granted';
 	const fileOption = isMacOS ? ['-f', '/dev/tty'] : ['--file=/dev/tty'];
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	if (!(atImportAllowRun || permitRunSTTY)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
@@ -475,7 +469,8 @@ export function consoleSizeViaSTTY(): Promise<ConsoleSize | undefined> {
  * const { columns, rows } = await consoleSizeViaTPUT();
  * ```
  *
- * @tags non-winos-only
+ @tags non-winos-only
+ @tags allow-run=tput
  */
 export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
@@ -484,7 +479,9 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	// MacOS: `tput ...` requires either STDOUT or STDERR to be a TTY for correct results, making suppression of unexpected output impossible
 	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const permitRunTPUT =
+		Deno?.permissions?.querySync?.({ name: 'run', command: 'tput' })?.state === 'granted';
+	if (!(atImportAllowRun || permitRunTPUT)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	if (!atImportAllowRead) return Promise.resolve(undefined); // requires 'read' permission; note: avoids any 'read' permission prompts
 	const devTtyPath = isWinOS ? '//./CONIN$' : '/dev/tty';
 	// open TTY devices with read and write permissions to avoid mis-categorization of TTYs; ref: [🐛(WinOS) Deno.isatty() sometimes returns incorrect false result for 'CONOUT$'](https://github.com/denoland/deno/issues/18168)
@@ -575,7 +572,8 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
  * const { columns, rows } = await consoleSizeViaSTTY();
  * ```
  *
- * @tags non-winos-only
+ @tags non-winos-only
+ @tags allow-run=xargs
  */
 export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 	// * note: `stty size` depends on a TTY connected to STDIN; ie, `stty size </dev/null` will fail
@@ -585,7 +583,9 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
 	// MacOS: BSD `xargs` - will not execute the TARGET at all if STDIN contains no arguments (eg, is '/dev/null') or only ''; only recognizes the short form of the `-o` option
 	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const permitRunXargs =
+		Deno?.permissions?.querySync?.({ name: 'run', command: 'xargs' })?.state === 'granted';
+	if (!(atImportAllowRun || permitRunXargs)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const output = (() => {
 		try {
 			const process = Deprecated.Deno.run({
@@ -635,7 +635,8 @@ export function consoleSizeViaXargsSTTY(): Promise<ConsoleSize | undefined> {
  * const { columns, rows } = await consoleSizeViaTPUT();
  * ```
  *
- * @tags non-winos-only
+ @tags non-winos-only
+ @tags allow-run=xargs
  */
 export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
@@ -644,7 +645,9 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
 	// MacOS: BSD `xargs` - will not execute the TARGET at all if STDIN contains no arguments (eg, is '/dev/null') or only ''; only recognizes the short form of the `-o` option
 	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const permitRunXargs =
+		Deno?.permissions?.querySync?.({ name: 'run', command: 'xargs' })?.state === 'granted';
+	if (!(atImportAllowRun || permitRunXargs)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const colsOutput = (() => {
 		try {
 			const process = Deprecated.Deno.run({
@@ -727,7 +730,8 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
  * const { columns, rows } = await consoleSizeViaTPUT();
  * ```
  *
- * @tags non-winos-only
+ @tags non-winos-only
+ @tags allow-run=/usr/bin/env
  */
 export function consoleSizeViaXargsTPUTbyShEnv(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
@@ -737,7 +741,9 @@ export function consoleSizeViaXargsTPUTbyShEnv(): Promise<ConsoleSize | undefine
 	// MacOS: fails when STDERR/STDOUT are redirected, falling back to 80x24 (width x height)
 	if (isMacOS) return Promise.resolve(undefined);
 	if (isWinOS) return Promise.resolve(undefined);
-	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
+	const permitRunEnv =
+		Deno?.permissions?.querySync?.({ name: 'run', command: '/usr/bin/env' })?.state === 'granted';
+	if (!(atImportAllowRun || permitRunEnv)) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	const colsOutput = (() => {
 		try {
 			const process = Deprecated.Deno.run({
