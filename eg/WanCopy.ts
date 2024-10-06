@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr defaultCDNforNPM gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { DenoVx, Deprecated } from '../src/lib/$deprecated.ts';
+import { DenoVx, type Deprecated } from '../src/lib/$deprecated.ts';
 
 import {
 	copy as streamCopy,
