@@ -10,7 +10,7 @@
 // * [ora](https://www.npmjs.com/package/ora) ; [repo](https://github.com/sindresorhus/ora); MIT
 // further ideas from [progress](https://deno.land/x/progress@v1.2.4); [repo](https://github.com/deno-library/progress); MIT
 
-import { DenoVx, Deprecated } from '../$deprecated.ts';
+import { DenoVx, type Deprecated } from '../$deprecated.ts';
 import { $colors, $tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
 
