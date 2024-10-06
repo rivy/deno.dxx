@@ -4,7 +4,7 @@ import * as M from '../../src/lib/shim.windows.ts';
 
 import { $path } from '../$deps.ts';
 
-import { DenoVx, Deprecated } from '../../src/lib/$deprecated.ts';
+import { DenoVx, type Deprecated } from '../../src/lib/$deprecated.ts';
 
 const args = Deno.args;
 
