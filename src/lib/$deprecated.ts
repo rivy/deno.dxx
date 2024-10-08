@@ -73,6 +73,9 @@ function tryFn<T>(fn: () => T) {
 export const DenoV1 = isDenoV1(Deno) ? (Deno as unknown as typeof DenoV1NS.Deno) : undefined;
 // export const DenoAsVx = DenoAsV1 ?? globalThis.Deno;
 
+// ToDO: add CLI permissions options generator for various Deno versions; `generatePermissionOptions(version: string): string[]`
+//   ... eg, `--unstable --allow-ffi` for Deno-v1.30.0+; to `--unstable-ffi` for Deno-v1.40.0+; to `--allow-ffi` for Deno-v2.0.0+
+
 export const DenoVx = {
 	PermissionNames: (): Deno.PermissionName[] => {
 		const names: Deno.PermissionName[] = ['env', 'ffi', 'net', 'read', 'run', 'sys', 'write'];
