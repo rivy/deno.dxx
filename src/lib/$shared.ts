@@ -565,6 +565,8 @@ export function intoURL(path?: string, ...args: unknown[]) {
 				const cwd = ifThen(finalDrive != null, atImportCWD);
 				const cwdDrive = cwd?.match(/^[A-Za-z]:/)?.[0];
 				// console.warn({ base, basePath, baseDrive, pathDrive, finalDrive, cwd, cwdDrive });
+				// ToDO: [2024-10-07; rivy] attempt to use (undocumented) environment variable `%=X:%` to peek at the current drive letter path instead of using `chdir('X:')`; using `Deno.env.toObject()['=X:']`
+				//   ... ref: <https://superuser.com/questions/1655266/a-complete-list-of-relative-paths-variables-in-windows-explorer-in-windows> @@ <https://archive.is/3hzVa>
 				const chdirNeeded =
 					cwd != null &&
 					finalDrive != null &&
