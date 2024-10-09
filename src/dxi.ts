@@ -518,9 +518,9 @@ const status = (
 				}
 			}
 		})(),
-		delay(200),
+		delay(200), // 200 ms minimum display time to avoid visible spinner flash
 	])
-)[0]; // await completion status with simultaneous output display (and `delay(100)` to avoid visible spinner flash)
+)[0]; // await completion status with simultaneous output display
 
 spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
