@@ -1,5 +1,7 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr gmsu ; (text) positionals
 
+// ToDO: [2024-10-09; rivy] change from internal `xWait` spinner to `rivy/deno.progress` (or update xWait to similar capabilities)
+
 import { Deprecated } from './lib/$deprecated.ts';
 import {
 	$colors,
