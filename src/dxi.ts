@@ -570,7 +570,7 @@ const enablePipe = true;
 // enhance shim for successful installs on the Windows platform
 if (status.success && isWinOS) {
 	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimBinPath)));
-	const shimBinName = $path.parse(shimBinPath).name;
+	const shimName = $path.parse(shimBinPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget, denoRunTargetArgs } = info;
 	const addQuietOption = quietShim && !denoRunOptions?.match(/(^|\s|'|")--quiet("|'|\s|$)/);
@@ -579,7 +579,7 @@ if (status.success && isWinOS) {
 		denoRunOptions,
 		denoRunTarget,
 		denoRunTargetArgs,
-		shimBinName,
+		shimName,
 		addQuietOption,
 	});
 	const appNameVersion = `\`${$me.name}\` ${appVersion}`;
@@ -592,17 +592,17 @@ if (status.success && isWinOS) {
 				/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/,
 				'$1',
 			),
-			shimBinName,
+			shimName,
 			appNameVersion,
 		}),
 	);
-	Deno.writeFileSync(shimBinPath, encoder.encode(contentsUpdated));
+	Deno.writeFileSync(shimPath, encoder.encode(contentsUpdated));
 	performance.mark('install.enhance-shim:stop');
 	const enhanceShimDuration = performanceDuration('install.enhance-shim');
 	writeAllSync(
 		Deno.stdout,
 		encoder.encode(
-			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimBinName}\` (in ${
+			`${$spin.symbolStrings.emoji.success} Successfully enhanced installation of \`${shimName}\` (in ${
 				enhanceShimDuration ? formatDuration(enhanceShimDuration) : 'unknown time'
 			})
 			\n`,

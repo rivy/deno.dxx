@@ -345,7 +345,7 @@ const updates = await collect(
 	map(async function (fileEntry) {
 		const shimPath = fileEntry.path;
 		const contentsOriginal = $eol.LF(decoder.decode(await Deno.readFile(shimPath)));
-		const shimBinName = $path.parse(shimPath).name;
+		const shimName = $path.parse(shimPath).name;
 		const info = shimInfo(contentsOriginal);
 		const { denoRunOptions, denoRunTarget, denoRunTargetArgs } = info;
 		const appNameVersion = `\`${appName}\` ${version}`;
@@ -354,7 +354,7 @@ const updates = await collect(
 				denoRunOptions,
 				denoRunTarget,
 				denoRunTargetArgs,
-				shimBinName,
+				shimName,
 				appNameVersion,
 			}),
 		);
