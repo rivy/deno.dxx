@@ -6,6 +6,7 @@ import { Deprecated } from './lib/$deprecated.ts';
 import {
 	$colors,
 	$lodash,
+	$fs,
 	$path,
 	$semver,
 	mergeReadableStreams,
@@ -542,23 +543,33 @@ if (!status.success) await log.error('`deno install ...` failed');
 
 performance.mark('install.enhance-shim:start');
 
-const shimBinPath = (() => {
+const shimPath = (() => {
+	// `deno install ...` output format (for Deno-v1 and Deno-v2):
+	// ```shell
+	// ...
+	// Download ...
+	// ...
+	// ✅ Successfully installed <name>
+	// <shimPath>
+	// <WinOS-only: shShimPath>
+	// <possible additional empty line(s)>
+	// ```
 	if (!status.success) return '';
-	const m = out.match(/^\s*(.*[.](?:bat|cmd))\s*$/mu);
-	if (m) return m[1];
-	return '';
+	const anyNewline = /\r?\n|\r/;
+	const outLines = out.split(anyNewline).filter(Boolean);
+	return outLines.length > 2 ? outLines.slice(isWinOS ? -2 : -1)[0] : undefined;
 })();
 
 await log.trace({ status, process, out });
-await log.trace({ count: out.split('\n').length, lines: out.split('\n').slice(-30) });
-await log.debug({ shimBinPath });
+await log.trace({ count: out.split('\n').length, outTail30: out.split('\n').slice(-30) });
+await log.debug({ shimPath });
 
 if (status.success && hasDenoHelpOption) {
 	Deno.exit(0);
 }
 
-if (status.success && shimBinPath === '') {
-	await log.error('Could not find shim path');
+if (status.success && !(shimPath && $fs.existsSync(shimPath))) {
+	await log.error('Could not find shim path' + (shimPath ? ` ('${shimPath}')` : ''));
 	Deno.exit(1);
 }
 
@@ -568,9 +579,9 @@ import { cmdShimTemplate, shimInfo } from './lib/shim.windows.ts';
 const enablePipe = true;
 
 // enhance shim for successful installs on the Windows platform
-if (status.success && isWinOS) {
-	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimBinPath)));
-	const shimName = $path.parse(shimBinPath).name;
+if (status.success && isWinOS && shimPath) {
+	const contentsOriginal = eol.LF(decoder.decode(await Deno.readFile(shimPath)));
+	const shimName = $path.parse(shimPath).name;
 	const info = shimInfo(contentsOriginal);
 	const { denoRunOptions, denoRunTarget, denoRunTargetArgs } = info;
 	const addQuietOption = quietShim && !denoRunOptions?.match(/(^|\s|'|")--quiet("|'|\s|$)/);
