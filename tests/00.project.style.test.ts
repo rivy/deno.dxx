@@ -19,6 +19,7 @@ import {
 	decode,
 	haveDPrint,
 	haveGit,
+	intoPlatformPath,
 	isWinOS,
 	projectLocations,
 	projectPath as maybeProjectPath,
@@ -125,17 +126,19 @@ const _tabbedFilesRxs = '[.](bat|cmd)';
 
 const projectPotentialPaths = args(
 	$path.join(projectPath, `!(${excludeDirsRxs.join('|')}){*,*/**/*}`),
-).filter(
-	(path) =>
-		!$path
-			.relative(projectPath, path)
-			.match(
-				new RegExp(
-					`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
-					isWinOS ? 'i' : '',
+)
+	.filter(
+		(path) =>
+			!$path
+				.relative(projectPath, path)
+				.match(
+					new RegExp(
+						`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
+						isWinOS ? 'i' : '',
+					),
 				),
-			),
-);
+	)
+	.flatMap((path) => intoPlatformPath(path) ?? []);
 
 const projectFiles = projectPotentialPaths.filter((path) => Deno.lstatSync(path).isFile);
 const projectNonBinaryFiles = projectFiles.filter(
