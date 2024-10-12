@@ -229,7 +229,7 @@ export async function abortIfMissingPermits(
 	// const name = $path.parse(url ?? '').name;
 	if (options.writer == null) {
 		options.writer = (args) =>
-			console.warn(
+			console.error(
 				$colors.bgRed($colors.bold(` ${options?.label ? `${options.label}:` : ''}ERR! `)),
 				$colors.red('*'),
 				args,
@@ -256,7 +256,7 @@ export function abortIfMissingPermitsSync(
 	// const name = $path.parse(url ?? '').name;
 	if (options.writer == null) {
 		options.writer = (args) =>
-			console.warn(
+			console.error(
 				$colors.bgRed($colors.bold(` ${options?.label ? `${options.label}:` : ''}ERR! `)),
 				$colors.red('*'),
 				args,
