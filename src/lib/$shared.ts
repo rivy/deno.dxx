@@ -325,13 +325,46 @@ export const atImportCWD = (() => {
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
 @param options `{ guard }` • verify unrestricted CWD access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
-@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read=.`
 */
 export function cwd(options?: { guard: boolean }) {
-	const guard = options != null ? options.guard : true;
+	const guard = options?.guard ?? true;
 	const useDenoCWD =
 		!guard || Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
 	return tryFn(() => (useDenoCWD ? Deno.cwd() : undefined));
+}
+
+// `cwdOfDrive()`
+/** Return the value of the current working directory for `drive` (or `undefined` for errors or not allowed access).
+* - will *not panic*
+* - will *not prompt* for permission if `options.guard` is `true`
+@param drive • target drive letter (eg, `'C'`)
+@param options `{ guard }` • verify unrestricted CWD access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env` or `allow-read=.,DRIVE:`
+*/
+export function cwdOfDrive(drive?: string | null, options?: { guard: boolean }) {
+	drive = drive?.slice(0, 1);
+	const guard = options?.guard ?? true;
+	const useDenoEnv =
+		drive != null &&
+		(!guard ||
+			Deno?.permissions?.querySync?.({ name: 'env', variable: `=${drive}:` })?.state === 'granted');
+	if (useDenoEnv) {
+		// console.warn('cwdOfDrive()', { drive, useDenoEnv });
+		return Deno.env.toObject()[`=${drive?.toLocaleUpperCase()}:`] ?? `${drive}:\\`;
+	}
+	const CWD = cwd(options);
+	if (CWD == null) return undefined;
+	if (drive == null) return CWD;
+	// console.warn('cwdOfDrive()', { drive, guard, useDenoEnv, CWD });
+	return tryFn(() => {
+		// console.warn('cwdOfDrive()', { drive, CWD });
+		if (!chdir(`${drive}:`)) return undefined;
+		const targetCWD = Deno.cwd();
+		// console.warn('cwdOfDrive()', { drive, CWD, targetCWD });
+		chdir(CWD);
+		return targetCWD;
+	});
 }
 
 // `chdir()`
@@ -339,15 +372,15 @@ export function cwd(options?: { guard: boolean }) {
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
 @param options `{ guard }` • verify unrestricted CWD access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
-@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read=TARGET_DIRECTORY`
 */
 export function chdir(directory?: string | URL, options?: { guard: boolean }) {
-	directory = intoPath(directory);
 	if (directory == null || directory === '') return false;
 	const guard = options != null ? options.guard : true;
 	const permit =
 		!guard ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: directory })?.state === 'granted';
+	// console.warn('chdir()', { directory, guard, permit });
 	return tryFnOr(() => {
 		if (!permit) return false;
 		Deno.chdir(directory);
@@ -536,22 +569,32 @@ export function pathIsRelativeWithDrive(path: string) {
 // `resolvePath()`
 export function resolvePath(...pathSegments: string[]) {
 	if (pathSegments.length === 0) return undefined;
-	// let cwd: string | undefined = undefined;
-	// let currentDrive: string | undefined = undefined;
-	// let cwdByDrive: Record<string, string> = {};
+	let currentPath: string | undefined = undefined;
+	let currentDrive: string | undefined = undefined;
 
-	// for (const segment of pathSegments) {
-	// 	if (pathIsAbsoluteWithDrive(segment)) {
-	// 		const [prefix, drive, path] =
-	// 			segment?.match(/^([/\\][/\\][.?][/\\])?([A-Za-z]:)?(.*)$/) ?? [];
-	// 		if (!$path.isAbsolute(path)) {
-	// 		}
+	for (const segment of pathSegments) {
+		if (segment == null || segment === '') continue;
+		const [_match, _prefix, drive, path] =
+			segment?.match(/^([/\\][/\\][.?][/\\])?(?:([A-Za-z]):)?(.*)$/) ?? [];
+		// console.warn('resolvePath', { segment, abs: $path.isAbsolute(segment), prefix, drive, path });
+		if ($path.isAbsolute(segment)) {
+			currentPath = segment;
+			currentDrive = drive;
+		} else {
+			const currentChanging = currentPath == null || (drive && currentDrive !== drive);
+			if (currentChanging) {
+				currentPath = cwdOfDrive(drive ?? currentDrive);
+				if (currentPath == null) return undefined;
+				currentDrive = currentPath?.match(/^([/\\][/\\][.?][/\\])?(?:([A-Za-z]):)?(.*)$/)?.[2];
+			}
+			// console.warn('resolvePath', { currentPath, currentDrive, segment, prefix, drive, path });
+			currentPath = $path.join(currentPath ?? '', path ?? '');
+		}
+		// console.warn('resolvePath', { currentPath, currentDrive });
+	}
 
-	// 		cwdByDrive[currentDrive] = segment;
-	// 	}
-	// }
-
-	return $path.resolve(...pathSegments);
+	// return $path.resolve(...pathSegments);
+	return currentPath;
 }
 
 // `intoPath()`
@@ -672,35 +715,40 @@ export function pathFromURL(url?: URL) {
 			return undefined;
 		}
 	}
-	return intoSanePath(path);
+	return intoPlatformPath(path);
 }
 
 // `isWinOsDeviceName()`
-export function isWinOsDeviceName(path: string, options?: { strict?: boolean }) {
+export function isWinOsDeviceName(path: string, options?: { fileStemMayMatch?: boolean }) {
 	// ref: [WinOS Paths](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
 	if (path.length === 0) return false;
 	if (Deno.build.os !== 'windows') return false; // WinOS-only
 	// if (path.match(/^[/\\][/\\][.?][/\\]/)) return false;
 
-	options = options ?? { strict: false }; // default: non-strict matching
-	// * options.strict == true ~ strict matching == complete file name matches any of `specialDevicePrefixes` (more sensible [least surprise] Win11-style [or later] compatible matching)
-	// * options.strict == false ~ non-strict matching == file prefix/stem matches any of `specialDevicePrefixes` (Win10-style [or earlier] compatible matching)
+	options = options ?? { fileStemMayMatch: true }; // default: full file basename or file prefix/stem may match [Win10-style]
+	// * options.fileStemMayMatch == true ~ inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
+	// * options.fileStemMayMatch == false ~ strict matching == only complete file name may match any of `specialDeviceStemNames` (Win11-style [or later] compatible matching)
 
 	const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
-	const specialDevicePrefixes = ([] as string[]).concat(
+	const specialDeviceStemNames = ([] as string[]).concat(
 		['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
 		['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
 		['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
 	);
 	const fileBaseName = $path.basename(path).toLocaleUpperCase(); // include any extension
-	const filePrefix = fileBaseName.replace(/[.].*$/, '').trimEnd();
-	const prelimMatch =
-		specialDeviceBaseNames.includes(fileBaseName) || specialDevicePrefixes.includes(filePrefix);
-	return prelimMatch && (!options.strict || path === filePrefix);
+	const fileStem = fileBaseName.replace(/[.].*$/, '').trimEnd();
+	const match =
+		specialDeviceBaseNames.includes(fileBaseName) ||
+		specialDeviceStemNames.includes(fileBaseName) ||
+		(options.fileStemMayMatch && specialDeviceStemNames.includes(fileStem));
+	// console.warn('isWinOsDeviceName:', { path, fileBaseName, filePrefix, match });
+	return match;
 }
 
-// `sanitizePath()`
-export function intoSanePath(path: string) {
+// `intoPlatformPath()`
+export function intoPlatformPath(path?: string) {
+	if (path == null) return undefined;
+
 	const isWinOS = Deno.build.os === 'windows';
 	if (!isWinOS) return path; // only WinOS paths require special handling/sanitization
 
@@ -711,34 +759,26 @@ export function intoSanePath(path: string) {
 
 	// ref: [File path formats](https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/0shPL>
 	// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/mQOTg>
+	// ref: [WinOS Paths](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
 
-	// * no further processing for paths with device prefixes (eg, '\\.\', '\\?\')
+	// * no further processing for paths with device prefixes (eg, '\\.\', '\\?\' [and equivalent slash variants])
 	if (!path.match(/^[/\\][/\\][.?][/\\]/)) {
-		// * note: this translation is explicitly equivalent to the more sensible (and least surprise) Win11 version, keeping the full file name in the path
-		//     ... Win10 (surprisingly) ignores text past the filePrefix for legacy device names; eg Win10 sees 'CON.txt' as '\\.\CON'
-		const fileBaseName = $path.basename(path).toLocaleUpperCase();
-		const filePrefix = fileBaseName.replace(/[.].*$/, '').trimEnd();
-		// const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
-		// const specialDevicePrefixes = ([] as string[]).concat(
-		// 	['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
-		// 	['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
-		// 	['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
-		// );
-		// if (
-		// 	specialDeviceBaseNames.includes(fileBaseName) ||
-		// 	specialDevicePrefixes.includes(filePrefix)
-		// ) {
-		// 	path = `\\\\?\\${path}`;
-		// }
-		if (isWinOsDeviceName(fileBaseName, { strict: false })) {
-			if (filePrefix === path) {
-				path = `${$path.SEP}${$path.SEP}?${$path.SEP}\\${path}`;
-			}
+		// * convert paths which contain device names into 'verbatim' file paths
+		// * note: to generate the most compatible resultant paths, Win10-style prefix/stem matching is used
+		//     ... this will result in some unneeded conversions to 'verbatim'-type paths for Win-11+ platforms, but they remain compatible
+		if (isWinOsDeviceName(path, { fileStemMayMatch: true })) {
+			const resolvedPath = resolvePath(path); // 'verbatim' paths must be in absolute/resolved form
+			path = `${$path.SEP}${$path.SEP}?${$path.SEP}${resolvedPath}`;
 		}
 	}
 	// `\\?\...` is likely the more "correct" prefix as it skips further Windows normalization via `GetFullPathName()`; but Deno and the standard URL class do not support it
 	// * instead use the usually equivalent `\\.\` prefix for better compatibility with Deno and the standard URL class
-	path = path.replace(/^[/\\][/\\][?][/\\]/, `${$path.SEP}${$path.SEP}.${$path.SEP}`);
+	// path = path.replace(/^[/\\][/\\][?][/\\]/, `${$path.SEP}${$path.SEP}.${$path.SEP}`);
+	// * additionally, Deno does not support '//./' as a prefix, so always replace it with the equivalent '\\.\' instead
+	// path = path.replace(/^[/\\][/\\][.][/\\]/, `${$path.SEP}${$path.SEP}.${$path.SEP}`);
+	// * combine into one regex replacement
+	path = path.replace(/^[/\\][/\\][.?][/\\]/, `${$path.SEP}${$path.SEP}.${$path.SEP}`);
+	// console.warn('intoPlatformPath:', { path });
 	return path;
 }
 
@@ -1203,3 +1243,12 @@ export const logger = $logger.logger; // export logger (note: in the *suspended 
 // console.warn({ url_rel_drive: intoURL('c:relative_dir/file.foo') });
 // console.warn({ url_rel_drive_alt: intoURL('d:relative_dir/file.foo') });
 // Deno.openSync('//hoard/vault', { read: true, write: true });
+
+// console.warn({
+// 	cwd: cwd(),
+// 	cwdOf: cwdOfDrive(),
+// 	cwdOfC: cwdOfDrive('C'),
+// 	cwdOfD: cwdOfDrive('d:/'),
+// });
+
+// console.error(intoPlatformPath(resolvePath('CON')));
