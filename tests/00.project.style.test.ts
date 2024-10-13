@@ -76,7 +76,7 @@ const args = $args.argsSync;
 // import * as EditorConfig from 'https://esm.sh/editorconfig@0.15.3?deno-std=0.134.0';
 import * as EditorConfig from 'https://esm.sh/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0&pin=v90';
 
-const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
+// const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
 
 function xSplit(s: string, sep: RegExp | string, options?: { trailing: boolean }) {
 	const opts = { trailing: false, ...options };
@@ -146,8 +146,7 @@ const projectNonBinaryFiles = projectFiles.filter(
 );
 // const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
 
-// console.warn({ projectFiles, projectDirs });
-// console.warn({ projectPath, projectDirs });
+// console.warn({ projectPath, projectPotentialPaths, projectFiles, projectNonBinaryFiles });
 
 {
 	// ToDO: [2023-10-10; rivy] deal with CWD != projectPath
