@@ -566,8 +566,8 @@ export function pathIsRelativeWithDrive(path: string) {
 	return path.match(/^[A-Za-z]:/) && !pathIsAbsolute(path);
 }
 
-// `resolvePath()`
-export function resolvePath(...pathSegments: string[]) {
+// `absolutePath()`
+export function absolutePath(...pathSegments: string[]) {
 	if (pathSegments.length === 0) return undefined;
 	let currentPath: string | undefined = undefined;
 	let currentDrive: string | undefined = undefined;
@@ -576,7 +576,7 @@ export function resolvePath(...pathSegments: string[]) {
 		if (segment == null || segment === '') continue;
 		const [_match, _prefix, drive, path] =
 			segment?.match(/^([/\\][/\\][.?][/\\])?(?:([A-Za-z]):)?(.*)$/) ?? [];
-		// console.warn('resolvePath', { segment, abs: $path.isAbsolute(segment), prefix, drive, path });
+		// console.warn('absolutePath', { segment, abs: $path.isAbsolute(segment), prefix, drive, path });
 		if ($path.isAbsolute(segment)) {
 			currentPath = segment;
 			currentDrive = drive;
@@ -587,10 +587,10 @@ export function resolvePath(...pathSegments: string[]) {
 				if (currentPath == null) return undefined;
 				currentDrive = currentPath?.match(/^([/\\][/\\][.?][/\\])?(?:([A-Za-z]):)?(.*)$/)?.[2];
 			}
-			// console.warn('resolvePath', { currentPath, currentDrive, segment, prefix, drive, path });
+			// console.warn('absolutePath', { currentPath, currentDrive, segment, prefix, drive, path });
 			currentPath = $path.join(currentPath ?? '', path ?? '');
 		}
-		// console.warn('resolvePath', { currentPath, currentDrive });
+		// console.warn('absolutePath', { currentPath, currentDrive });
 	}
 
 	// return $path.resolve(...pathSegments);
@@ -767,7 +767,7 @@ export function intoPlatformPath(path?: string) {
 		// * note: to generate the most compatible resultant paths, Win10-style prefix/stem matching is used
 		//     ... this will result in some unneeded conversions to 'verbatim'-type paths for Win-11+ platforms, but they remain compatible
 		if (isWinOsDeviceName(path, { fileStemMayMatch: true })) {
-			const resolvedPath = resolvePath(path); // 'verbatim' paths must be in absolute/resolved form
+			const resolvedPath = absolutePath(path); // 'verbatim' paths must be in absolute/resolved form
 			path = `${$path.SEP}${$path.SEP}?${$path.SEP}${resolvedPath}`;
 		}
 	}
@@ -1251,4 +1251,4 @@ export const logger = $logger.logger; // export logger (note: in the *suspended 
 // 	cwdOfD: cwdOfDrive('d:/'),
 // });
 
-// console.error(intoPlatformPath(resolvePath('CON')));
+// console.error(intoPlatformPath(absolutePath('CON')));
