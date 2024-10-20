@@ -479,16 +479,29 @@ const runOptions: Deprecated.Deno.RunOptions = {
 await log.debug({ runOptions });
 
 const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
-spinnerForInstall.clear();
+// spinnerForInstall.clearAllLines();
 spinnerForInstall.text = spinnerText;
-spinnerForInstall.render();
+// spinnerForInstall.render();
 
 const process = Deprecated.Deno.run(runOptions);
+const cmd = new Deno.Command('deno', {
+	args: [...denoArgs, '--', ...args],
+	stdin: 'null',
+	stderr: 'piped',
+	stdout: 'piped',
+});
+const child = cmd.spawn();
+// const z = y.stderr
+// const mergedOutput = mergeReadableStreams(
+// 	process.stderr?.readable || new ReadableStream<Uint8Array>(),
+// 	process.stdout?.readable || new ReadableStream<Uint8Array>(),
+// );
 const mergedOutput = mergeReadableStreams(
-	process.stderr?.readable || new ReadableStream<Uint8Array>(),
-	process.stdout?.readable || new ReadableStream<Uint8Array>(),
+	child.stderr || new ReadableStream<Uint8Array>(),
+	child.stdout || new ReadableStream<Uint8Array>(),
 );
 const outputReader = mergedOutput.getReader();
+// const z = child.status;
 
 // const out = await readAll(readerFromStreamReader(outputReader)).then((arr) =>
 // 	decoder.decode(arr)
@@ -499,7 +512,8 @@ const outputReader = mergedOutput.getReader();
 let out = '';
 const status = (
 	await Promise.all([
-		(() => process.status())().finally(() => {
+		// (() => process.status())().finally(() => {
+		child.status.finally(() => {
 			performance.mark('install.deno-install:end');
 		}),
 		(async () => {
@@ -523,28 +537,34 @@ const status = (
 	])
 )[0]; // await completion status with simultaneous output display
 
-spinnerForInstall.stop();
+// spinnerForInstall.stop();
 const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
-writeAllSync(Deno.stdout, encoder.encode(`${prefixChar} ${spinnerText}\n`));
+// writeAllSync(Deno.stdout, encoder.encode(`${prefixChar} ${spinnerText}\n`));
+let msg = `${prefixChar} ${spinnerText}\n`;
 
-writeAllSync(Deno.stdout, encoder.encode(`${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`));
+// writeAllSync(Deno.stdout, encoder.encode(`${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`));
+msg += `${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`;
 
 const installDuration = performanceDuration('install.deno-install');
 
-writeAllSync(
-	Deno.stdout,
-	encoder.encode(
-		`└─ ${status.success ? $colors.green('Done') : $colors.red('Failed')}${
-			installDuration ? ` in ${formatDuration(installDuration, { maximumFractionDigits: 3 })}` : ''
-		}\n`,
-	),
-);
+// writeAllSync(
+// 	Deno.stdout,
+// 	encoder.encode(
+// 		`└─ ${status.success ? $colors.green('Done') : $colors.red('Failed')}${
+// 			installDuration ? ` in ${formatDuration(installDuration, { maximumFractionDigits: 3 })}` : ''
+// 		}\n`,
+// 	),
+// );
+msg += `└─ ${status.success ? $colors.green('Done') : $colors.red('Failed')}${
+	installDuration ? ` in ${formatDuration(installDuration, { maximumFractionDigits: 3 })}` : ''
+}`;
+spinnerForInstall.stopAndPersist({ text: msg });
 if (!status.success) await log.error('`deno install ...` failed');
 
 performance.mark('install.enhance-shim:start');
 
 const shimPath = (() => {
-	// `deno install ...` output format (for Deno-v1 and Deno-v2):
+	// `deno install ...` output format (for Deno-v1 and Deno-v2; with both STDERR and STDOUT piped/redirected):
 	// ```shell
 	// ...
 	// Download ...
@@ -552,12 +572,14 @@ const shimPath = (() => {
 	// ✅ Successfully installed <name>
 	// <shimPath>
 	// <WinOS-only: shShimPath>
-	// <possible additional empty line(s)>
+	// <possible additional, maybe empty, line(s)>
 	// ```
 	if (!status.success) return '';
 	const anyNewline = /\r?\n|\r/;
-	const outLines = out.split(anyNewline).filter(Boolean);
-	return outLines.length > 2 ? outLines.slice(isWinOS ? -2 : -1)[0] : undefined;
+	const outLines = out.split(anyNewline).filter(Boolean); // split output and remove empty lines
+	const successLineIndex = outLines.findIndex((line) => /^.+\s+Successfully installed/i.test(line));
+	// return outLines.length > 2 ? outLines.slice(isWinOS ? -2 : -1)[0] : undefined;
+	return outLines.length > successLineIndex ? outLines.slice(successLineIndex + 1)[0] : undefined;
 })();
 
 await log.trace({ status, process, out });
