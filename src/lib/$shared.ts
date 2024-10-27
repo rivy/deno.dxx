@@ -1036,10 +1036,16 @@ export function durationText(tag: string): string | undefined {
 // ref: [CLI and emojis](https://news.ycombinator.com/item?id=25311114) @@ <https://archive.is/xL2BL>
 
 // `isWSL()`
-/** Determine if OS platform is 'Windows Subsystem for Linux'. */
-export function isWSL() {
+/** Determine if OS platform is 'Windows Subsystem for Linux'.
+@param options `{ allowFsFallback }` • allow fallback to file system read if needed; defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt`
+@tags [`allow-read=/proc/sys/kernel/osrelease`]
+*/
+/* spell-checker:ignore (env) OSID (path) osrelease */
+export function isWSL(options?: { allowFsFallback?: boolean }) {
+	// * POSIX-like and contains one of the WSL signal environment variables or a known WSL version (via *osrelease*)
+	options = options ?? { allowFsFallback: true };
 	// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain> @@ <https://archive.is/KWV5a>
-	// * POSIX-like and contains one of the WSL signal environment variables
 	// FixME!: environment variables are *not* preserved across side-logins (ie, `sudo -i` causes them to disappear)
 	// ** likely need to test uname, version, and/or files ... ref: <https://github.com/microsoft/WSL/issues/4555>
 	// ** shortcut without touching the file system if the environment variable(s) are present
@@ -1047,7 +1053,38 @@ export function isWSL() {
 	// * add `sudo echo 'Default:%sudo env_keep+="IS_WSL WSLENV WSL_*"' > /etc/sudoers.d/WSL-env_keep` for WSL
 	// * add `sudo echo 'Default:%sudo env_keep+="WT_*"' > /etc/sudoers.d/WT-env_keep` for MS Windows Terminal variables
 	// * (as an aside...) add `sudo echo 'Default:%sudo env_keep+="LANG LC_*"' > /etc/sudoers.d/SSH-env_keep` for SSH
-	return !isWinOS && (Boolean(env('IS_WSL')) || Boolean(env('WSL_DISTRO_NAME')));
+	if (isWinOS) return false;
+	const hasWslEnvVar = ['IS_WSL', 'WSL_DISTRO_NAME'].some((envVar) => Boolean(env(envVar)));
+	if (hasWslEnvVar) return true;
+	const hasWslOsIdTag = `;${env('OSID_tags')};`.toLocaleLowerCase().includes(';wsl;');
+	if (hasWslOsIdTag) return true;
+	return wslVersion(options) != null ? true : undefined;
+}
+
+// `wslVersion()`
+/** Determine the WSL version; undefined if not WSL or version not determinable.
+@param options `{ allowFsFallback }` • allow fallback to file system read if needed for version determination; defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read=/proc/sys/kernel/osrelease`
+*/
+/* spell-checker:ignore (path) osrelease */
+export function wslVersion(options?: { allowFsFallback?: boolean }) {
+	options = options ?? { allowFsFallback: true };
+	const osIdTags = `;${env('OSID_tags')};`.toLocaleLowerCase();
+	if (osIdTags.includes(';wsl1;')) return 1;
+	if (osIdTags.includes(';wsl2;')) return 2;
+	if (!options.allowFsFallback) return undefined;
+	const osReleaseTextPath = '/proc/sys/kernel/osrelease';
+	const osReleaseTextReadGranted =
+		Deno.permissions?.querySync({
+			name: 'read',
+			path: osReleaseTextPath,
+		})?.state === 'granted';
+	const osReleaseText = osReleaseTextReadGranted
+		? Deno.readTextFileSync(osReleaseTextPath).trim().toLocaleLowerCase()
+		: undefined;
+	if (osReleaseText?.endsWith('-wsl2')) return 2;
+	if (osReleaseText?.match(/-microsoft(-|$)/)) return 1;
+	return undefined;
 }
 
 // `canDisplayUnicode()`
@@ -1058,7 +1095,7 @@ export function canDisplayUnicode() {
 		// ref: <https://stackoverflow.com/questions/3104410/identify-cygwin-linux-windows-using-environment-variables> , <https://stackoverflow.com/questions/714100/os-detecting-makefile>
 		// ref: <https://stackoverflow.com/questions/38086185/how-to-check-if-a-program-is-run-in-bash-on-ubuntu-on-windows-and-not-just-plain>
 		const isOldTerminal = ['cygwin', 'linux'].includes(env('TERM') ?? '');
-		const isWSL_ = isWSL();
+		const isWSL_ = isWSL() ?? false;
 		return (
 			!isOldTerminal && // fail for old terminals
 			// * not isWSL
