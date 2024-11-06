@@ -15,13 +15,13 @@ export * as $colors from 'https://deno.land/std@0.134.0/fmt/colors.ts';
 // export * as TTY from 'https://deno.land/x/tty@0.1.4/mod.ts';
 // export { default as Yargs } from 'https://deno.land/x/yargs@v17.0.1-deno/deno.ts';
 
-import { Queue } from 'https://deno.land/x/queue@1.2.0/mod.ts';
-export class PQueue extends Queue {
-	add: typeof this.push = (fn, ...args) => this.push(fn, ...args);
-	onIdle = () => this.push(() => {});
-	pause: typeof this.stop = () => this.stop();
-}
-// export PQueue from 'https://deno.land/x/p_queue@1.0.1/mod.ts'; // larger module (with Event support)
+// import { Queue } from 'https://deno.land/x/queue@1.2.0/mod.ts';
+// export class PQueue extends Queue {
+// 	add: typeof this.push = (fn, ...args) => this.push(fn, ...args);
+// 	onIdle = () => this.push(() => {});
+// 	pause: typeof this.stop = () => this.stop();
+// }
+export { default as PQueue } from 'https://deno.land/x/p_queue@1.0.1/mod.ts'; // larger module (with Event support)
 
 //===
 
