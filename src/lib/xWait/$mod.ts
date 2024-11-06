@@ -36,6 +36,8 @@ const colorMap: { [key: string]: ColorFunction } = {
 	gray: $colors.gray,
 };
 
+type SpinnerStream = Deprecated.Deno.WriterSync & { rid?: number };
+
 export interface SpinnerOptions {
 	text: string;
 	prefix?: string;
@@ -44,7 +46,7 @@ export interface SpinnerOptions {
 	hideCursor?: boolean | 'hideDuringRender';
 	indent?: number;
 	interval?: number;
-	stream?: Deprecated.Deno.WriterSync & { rid?: number };
+	stream?: SpinnerStream;
 	enabled?: boolean;
 	discardStdin?: boolean;
 	symbols?: typeof Symbols;
@@ -131,9 +133,15 @@ export class Spinner {
 		if (typeof spin === 'string') this.#spinner = spinners[spin];
 		else this.#spinner = spin;
 	}
-
 	get spinner() {
 		return this.#spinner;
+	}
+
+	set stream(s: SpinnerStream) {
+		this.#stream = s;
+	}
+	get stream() {
+		return this.#stream;
 	}
 
 	set symbols(s: typeof Symbols) {
@@ -147,7 +155,6 @@ export class Spinner {
 		if (typeof color === 'string') this.#color = colorMap[color];
 		else this.#color = color;
 	}
-
 	get color() {
 		return this.#color;
 	}
@@ -156,7 +163,6 @@ export class Spinner {
 		this.#text = value;
 		this.updateLineDisplayCount();
 	}
-
 	get text() {
 		return this.#text;
 	}
@@ -165,7 +171,6 @@ export class Spinner {
 		this.#prefix = value;
 		this.updateLineDisplayCount();
 	}
-
 	get prefix() {
 		return this.#prefix;
 	}
