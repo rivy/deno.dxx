@@ -218,7 +218,7 @@ export class Spinner {
 	render(): void {
 		// this.clearAllLines();
 		this.positionToOrigin();
-		const text = `${this.frame()}\n`.replaceAll('\n', $tty.ESC + $tty.CLEAR_RIGHT + '\n');
+		const text = `${this.frame()}\n`.replaceAll('\n', `${$tty.ESC + $tty.CLEAR_RIGHT}\n`);
 		this.write(text);
 		this.updateLineDisplayCount(text);
 		this.#linePosition = this.#lineDisplayCount - 1;
