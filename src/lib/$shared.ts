@@ -740,7 +740,9 @@ export function isWinOsDeviceName(path: string, options?: { fileStemMayMatch?: b
 	const specialDeviceStemNames = ([] as string[]).concat(
 		['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
 		['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
+		['COM¹', 'COM²', 'COM³'], // legacy COM device names (with ISO/IEC 8859-1 superscript digits)
 		['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
+		['LPT¹', 'LPT²', 'LPT³'], // legacy LPT device names (with ISO/IEC 8859-1 superscript digits)
 	);
 	const fileBaseName = $path.basename(path).toLocaleUpperCase(); // include any extension
 	const fileStem = fileBaseName.replace(/[.].*$/, '').trimEnd();
