@@ -594,7 +594,7 @@ if (status.success && hasDenoHelpOption) {
 }
 
 if (status.success && !(shimPath && $fs.existsSync(shimPath))) {
-	await log.error('Could not find shim path' + (shimPath ? ` ('${shimPath}')` : ''));
+	await log.error(`Could not find shim path${shimPath ? ` ('${shimPath}')` : ''}`);
 	Deno.exit(1);
 }
 
