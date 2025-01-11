@@ -720,7 +720,8 @@ export function pathFromURL(url?: URL) {
 
 // `isWinOsDeviceName()`
 export function isWinOsDeviceName(path: string, options?: { fileStemMayMatch?: boolean }) {
-	// ref: [WinOS Paths](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
+	// ref: [WinOS Paths (includes Win10-style vs Win11-style info)](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
+	// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/TtpI2>
 	if (path.length === 0) return false;
 	if (Deno.build.os !== 'windows') return false; // WinOS-only
 	// if (path.match(/^[/\\][/\\][.?][/\\]/)) return false;
@@ -758,8 +759,8 @@ export function intoPlatformPath(path?: string) {
 	// WinOS ~ handle special device paths
 
 	// ref: [File path formats](https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/0shPL>
-	// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/mQOTg>
-	// ref: [WinOS Paths](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
+	// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/TtpI2>
+	// ref: [WinOS Paths (includes Win10-style vs Win11-style)](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
 
 	// * no further processing for paths with device prefixes (eg, '\\.\', '\\?\' [and equivalent slash variants])
 	if (!path.match(/^[/\\][/\\][.?][/\\]/)) {
