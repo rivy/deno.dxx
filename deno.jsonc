@@ -9,5 +9,6 @@
 		"proseWrap": "never"
 	},
 	"lock": false
+	// "nodeModulesDir": "none" // not needed; default for Deno-2 with no *package.json* file
 	// , "importMap": "./vendor/import_map.json"
 }
