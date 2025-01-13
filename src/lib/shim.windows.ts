@@ -67,6 +67,19 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @if DEFINED SHIM_PIPE @if DEFINED SHIM_DEBUG @echo # SHIM_PIPE='%SHIM_PIPE%' 1>&2`;
 const cmdShimPrepNoPipe = '@:pipeDisabled';
 
+export const PosixShimTemplate = `#!/bin/sh
+# % \`<%=shimName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
+SHIM_ARG0="$0"
+SHIM_TARGET="<%=denoRunTarget%>"
+# @REM @rem:: suppress default [ugly UI/UX] prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice [use \`--no-prompt\` instead]
+# @REM export "DENO_NO_PROMPT=1"
+# @rem:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
+set "DENO_NO_UPDATE_CHECK=1"
+# @rem:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
+set "DENO_NO_DEPRECATION_WARNINGS=1"
+<%=denoCommandPrefix%><%=denoCommand%> "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>
+`;
+
 export function cmdShimTemplate(enablePipe: boolean) {
 	return cmdShimBase.replace('@:...prep...', enablePipe ? cmdShimPrepPipe : cmdShimPrepNoPipe);
 }

@@ -2,9 +2,12 @@
 
 import * as M from '../../src/lib/shim.windows.ts';
 
-import { $path } from '../$deps.ts';
+import { $lodash, $path } from '../$deps.ts';
 
 import { DenoVx, type Deprecated } from '../../src/lib/$deprecated.ts';
+
+import { eol } from '../../src/lib/eol.ts';
+import { cmdShimTemplate, PosixShimTemplate } from '../../src/lib/shim.windows.ts';
 
 const args = Deno.args;
 
@@ -52,7 +55,7 @@ async function readAllIfShebangFile(
 
 for (let i = 0; i < Deno.args.length; i++) {
 	const filename = Deno.args[i];
-	if (isWinOS && !['.bat', '.cmd'].includes($path.extname(filename))) continue;
+	// if (isWinOS && !['.bat', '.cmd'].includes($path.extname(filename))) continue;
 	const stream = await (async () => {
 		if (filename === '-') {
 			return Deno.stdin;
@@ -67,5 +70,52 @@ for (let i = 0; i < Deno.args.length; i++) {
 	// const result = (data != '') ? M.shimInfo(data) : undefined;
 	const result = M.shimInfo(data);
 
-	console.log({ filename, result });
+	const addQuietOption = false;
+	const enablePipe = false;
+
+	const shimName = $path.basename(
+		result.denoRunTarget ?? '',
+		$path.extname(result.denoRunTarget ?? ''),
+	);
+	const appNameVersion = 'shim-helper 1.0';
+
+	const contentsUpdated = ((contents) => {
+		if (contents === undefined) return;
+		if (contents.slice(0, 2) === '#!') {
+			// matches POSIX-style shebang shim
+			return eol.LF(
+				$lodash.template(PosixShimTemplate)({
+					denoCommandPrefix: result.denoCommandPrefix,
+					denoCommand: result.denoCommand,
+					denoRunOptions: result.denoRunOptions?.concat(addQuietOption ? ' "--quiet"' : '').trim(),
+					denoRunTarget: result.denoRunTarget,
+					// remove leading '--' (only the first, quoted or not) from target args for compatibility with `deno install` functionality
+					denoRunTargetArgs: result.denoRunTargetArgs?.replace(
+						/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/,
+						'$1',
+					),
+					shimName,
+					appNameVersion,
+				}),
+			);
+		}
+		// default/fallback to Windows-style shim
+		return eol.CRLF(
+			$lodash.template(cmdShimTemplate(enablePipe))({
+				denoCommandPrefix: result.denoCommandPrefix,
+				denoCommand: result.denoCommand,
+				denoRunOptions: result.denoRunOptions?.concat(addQuietOption ? ' "--quiet"' : '').trim(),
+				denoRunTarget: result.denoRunTarget,
+				// remove leading '--' (only the first, quoted or not) from target args for compatibility with `deno install` functionality
+				denoRunTargetArgs: result.denoRunTargetArgs?.replace(
+					/^\s*(?:--|[\x22]--[\x22]|[\x27]--[\x27])\s*(.*)$/,
+					'$1',
+				),
+				shimName,
+				appNameVersion,
+			}),
+		);
+	})(data);
+
+	console.log({ filename, result, contentsUpdated });
 }
