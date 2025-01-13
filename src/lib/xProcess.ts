@@ -287,6 +287,7 @@ export const name =
 // simplify shim.runner when possible (heuristic for POSIX-like executables)
 if (!isWinOS && name != null && permittedRun && shim.runner === (await commandVOf(name))) {
 	// console.warn({ name, commandVOf: await commandVOf(name), shim });
+	// `command -v NAME` maps the short `name` back to `shim.runner` => replace `shim.runner` with `name`
 	shim.runner = name;
 }
 // console.warn({
