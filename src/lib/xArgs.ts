@@ -177,12 +177,14 @@ const nonGlobQSepReS: RegexString = `(?:(?!${globCharsReS}|${QReS}|${pathSepReS}
 
 /** Regex pattern matching a non-double-quote character. */
 const cNonDQReS = `(?:(?!${DQReS}).)`;
-/** Regex pattern matching a non-double-quote, non-whitespace character. */
-const cNonDQNonWSReS = `(?:(?!${DQReS}|\\s).)`;
+// /** Regex pattern matching a non-double-quote, non-whitespace character. */
+// const cNonDQNonWSReS = `(?:(?!${DQReS}|\\s).)`;
 // /** Regex pattern matching a non-(double or single)-quote character. */
 // const cNonQReS = `(?:(?!${QReS}).)`;
 /** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
 const cNonQNonWSReS = `(?:(?!${QReS}|\\s).)`;
+/** Regex pattern matching a non-ANSIC-string, non-(double or single)-quote, non-whitespace character. */
+const cNonANonQNonWSReS = `(?:(?![$]'|${QReS}|\\s).)`;
 
 export function splitByBareWSo(s: string): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
@@ -217,7 +219,7 @@ const WordRxs = {
 	/** RegExp matching any single token fragment up to bare (non-quoted) white space.
 	- `(tokenFragment)(bareWS)?(restOfString)` */
 	nonBareWS: new RegExp(
-		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonDQNonWSReS}+))(\\s+)?(.*?$)`,
+		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonANonQNonWSReS}+))(\\s+)?(.*?$)`,
 		'msu',
 	),
 	/** RegExp matching a (single or double) quoted portion of a word.
@@ -225,7 +227,10 @@ const WordRxs = {
 	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringStrictReS}))(.*?$)`, 'msu'),
 	/** RegExp matching a (single or double *or __ANSI-C__*) quoted portion of a word.
 	- `(tokenFragment)(restOfString)` */
-	quote: new RegExp(`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}))(.*?$)`, 'msu'),
+	quote: new RegExp(
+		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonANonQNonWSReS}+))(.*?$)`,
+		'msu',
+	),
 };
 
 export function shiftCLTextWord(
@@ -449,9 +454,9 @@ export function shellDeQuote(s: string) {
 	// * supports both single and double quotes
 	// * supports decoding ANSI-C quotes (ie, $'...')
 	// * no character escape sequences are recognized
-	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
+	// * unbalanced double quotes are allowed (parsed as if EOL is a completing quote)
 	// console.warn('xArgs.shellDeQuote()', { s });
-	const tokenRe = WordRxs.quote; // == (ANSIC/DQ/SQ/non-Q-tokenFragment)(tailOfString)
+	const tokenRe = WordRxs.quote; // == (ANSIC/DQ/SQ/non-A-non-Q-tokenFragment)(tailOfString)
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
