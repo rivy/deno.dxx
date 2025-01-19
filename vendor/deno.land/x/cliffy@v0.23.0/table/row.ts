@@ -26,7 +26,7 @@ export class Row<T extends ICell = ICell> extends Array<T> {
   public static from<T extends ICell = ICell>(cells: IRow<T>): Row<T> {
     const row = new this(...cells);
     if (cells instanceof Row) {
-      row.options = { ...cells.options };
+      row.options = { ...(cells as Row<T>).options };
     }
     return row;
   }
