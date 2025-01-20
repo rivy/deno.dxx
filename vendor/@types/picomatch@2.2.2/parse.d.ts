@@ -18,4 +18,4 @@ interface State {
 }
 
 declare function parse(input: string, options: { maxLength: number }): State;
-export = parse;
+export default parse;

@@ -4,8 +4,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // Minimum TypeScript Version: 3.0
 
-import parse = require('./parse.d.ts');
-import constants = require('./constants.d.ts');
+import parse from './parse.d.ts';
+import constants from './constants.d.ts';
 
 interface PicomatchOptions {
     ignore?: string;
@@ -88,4 +88,4 @@ interface Picomatch {
 }
 
 declare const picomatch: Picomatch;
-export = picomatch;
+export default picomatch;
