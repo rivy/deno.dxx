@@ -126,13 +126,15 @@ if (!haveCommand) {
 		const { code, stdout, stderr } = await c.output();
 		// console.debug(decode(stdout));
 		// console.debug('stderr:', decode(stderr));
+		const EOL = /\n|\r\n?/ms;
+		const aFinalEOL = new RegExp(`(?:${EOL.source})$`);
 		if (code != 0) {
 			console.warn(`\`${command}\` status`, code);
-			console.warn(decode(stdout).replace(/\r?\n$/ms, ''));
-			console.warn(decode(stderr).replace(/\r?\n$/ms, ''));
+			console.warn(decode(stdout).replace(aFinalEOL, ''));
+			console.warn(decode(stderr).replace(aFinalEOL, ''));
 		}
 		assert(code == 0, `\`${command}\` check succeeds`);
-		const actual = decode(stdout).trimEnd().split(/\r?\n/ms);
+		const actual = decode(stdout).replace(aFinalEOL, '').split(EOL);
 		const expected = [
 			env('HOME'),
 			'test this',
@@ -163,7 +165,7 @@ if (!haveCommand) {
 			':this that:',
 			`:'this that':`,
 			`that's`,
-			`'that'`,
+			`'that' `,
 			// '``', // ToDO [2023-11-04; rivy] add testing for backticks
 		];
 		assertEquals(actual, expected);
