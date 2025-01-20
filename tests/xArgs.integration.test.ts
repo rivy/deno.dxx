@@ -49,10 +49,10 @@ import {
 	// equal
 } from './$deps.ts';
 import {
-	haveDeno,
-	// haveDenoVersion,
+	// haveDeno,
+	haveDenoVersion,
 	panicIfMissingPermits,
-	// versionCompare,
+	versionCompare,
 } from './$shared.ts';
 import {
 	decode,
@@ -81,10 +81,25 @@ setEnvFromArgs(Deno.args);
 // ToDO: add skip logic for Deno versions < 1.28.0 (which do not support `Deno.Command()`)
 // ToDO: [2023-10-10; rivy] deal with CWD != projectPath
 
-const haveCommand = await haveDeno();
+const denoVersion = await haveDenoVersion();
 // const command = 'deno';
-const command = Deno.execPath(); // use `Deno.execPath()` instead of `deno` to avoid any `deno` shim (with possible shimmed environment changes)
-const commandArgs: string[] = ['run', '-A', 'eg/args.ts'];
+const dumbDenoRunner = Deno.execPath(); // use `Deno.execPath()` instead of `deno` to avoid any interposed enhanced shim (with possible associated shimmed environment changes)
+const command = dumbDenoRunner;
+// - for Deno-v2.0+, use one of `--allow-ffi` or `--allow-all`
+// - for Deno-v1.38.0 to Deno-v1.46.3, use *both* `--unstable-ffi` plus `--allow-ffi` and/or `--allow-all`
+// - for Deno-v1.13.0 to Deno-v1.38.0, use `--unstable` plus `--allow-ffi` and/or `--allow-all`
+const ffiArgs =
+	versionCompare(denoVersion, '2.0') >= 0
+		? ['--allow-ffi']
+		: versionCompare(denoVersion, '1.38.0') >= 0
+			? ['--allow-ffi', '--unstable-ffi']
+			: versionCompare(denoVersion, '1.13.0') >= 0
+				? ['--allow-ffi', '--unstable']
+				: [];
+let commandArgs: string[] = ['run', '--allow-all', ...ffiArgs, 'eg/args.ts'];
+if (versionCompare(denoVersion, '2.0') >= 0 && commandArgs.includes('--allow-all')) {
+	commandArgs = commandArgs.filter((arg) => !arg.startsWith('--allow-ffi'));
+}
 const exeArgs = [
 	'-l',
 	'~',
@@ -111,7 +126,7 @@ const args = (() => {
 
 const description = `xArgs/CLI argument expansion ~ \`${cliCmd}\``;
 // console.debug({ runner, args });
-if (!haveCommand) {
+if (!haveDenoVersion) {
 	test.skip(`${description}...skipped (\`${command}\` not found)`);
 } else {
 	test(description, async () => {
