@@ -131,4 +131,4 @@ declare const constants: {
     globChars<T extends boolean>(win32: T): T extends true ? typeof WINDOWS_CHARS : typeof POSIX_CHARS;
 };
 
-export = constants;
+export default constants;
