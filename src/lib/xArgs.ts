@@ -149,7 +149,7 @@ const SQStringReS: RegexString = `${SQ}[^${SQ}]*(?:${SQ}|$)` as RegexString;
 // /** double-quoted string (quote balance is required) */
 // const DQStringStrictReS = '"[^"]*"';
 /** single-quoted string (quote balance is required) */
-const SQStringStrictReS = "'[^']*'" as RegexString;
+const SQStringStrictReS: RegexString = "'[^']*'" as RegexString;
 
 /** ANSIC-style string (eg, `$'...'`) */
 const ANSICStringReS: RegexString = `[$]${SQStringReS}` as RegexString;
@@ -176,15 +176,15 @@ const QReS: RegexString = `[${DQ}${SQ}]` as RegexString;
 const nonGlobQSepReS: RegexString = `(?:(?!${globCharsReS}|${QReS}|${pathSepReS}).)` as RegexString;
 
 /** Regex pattern matching a non-double-quote character. */
-const cNonDQReS = `(?:(?!${DQReS}).)`;
+const cNonDQReS: RegexString = `(?:(?!${DQReS}).)` as RegexString;
 // /** Regex pattern matching a non-double-quote, non-whitespace character. */
 // const cNonDQNonWSReS = `(?:(?!${DQReS}|\\s).)`;
 // /** Regex pattern matching a non-(double or single)-quote character. */
 // const cNonQReS = `(?:(?!${QReS}).)`;
 /** Regex pattern matching a non-(double or single)-quote, non-whitespace character. */
-const cNonQNonWSReS = `(?:(?!${QReS}|\\s).)`;
+const cNonQNonWSReS: RegexString = `(?:(?!${QReS}|\\s).)` as RegexString;
 /** Regex pattern matching a non-ANSIC-string, non-(double or single)-quote, non-whitespace character. */
-const cNonANonQNonWSReS = `(?:(?![$]'|${QReS}|\\s).)`;
+const cNonANonQNonWSReS: RegexString = `(?:(?![$]'|${QReS}|\\s).)` as RegexString;
 
 export function splitByBareWSo(s: string): Array<string> {
 	// parse string into tokens separated by unquoted-whitespace
