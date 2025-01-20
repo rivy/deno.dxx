@@ -63,7 +63,7 @@ for (let i = 0; i < size; i++) {
 
 await log.debug({ arrEg: arr.slice(0, 10) });
 
-const finalEolRx = new RegExp(`${EOL}\$`);
+const finalEolRx = new RegExp(`${EOL}$`);
 function chompThenSplitPrebuiltRegExp(s: string) {
 	s = s.replace(finalEolRx, '');
 	const arr = s.split(EOL);
@@ -71,7 +71,7 @@ function chompThenSplitPrebuiltRegExp(s: string) {
 }
 
 function chompThenSplitJitRegExp(s: string) {
-	s = s.replace(new RegExp(`${EOL}\$`), '');
+	s = s.replace(new RegExp(`${EOL}$`), '');
 	const arr = s.split(EOL);
 	return arr;
 }
