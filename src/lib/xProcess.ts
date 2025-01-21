@@ -253,9 +253,14 @@ export const commandLineParts = (() => {
 		// * so, find *third* non-option
 		let idx = 0;
 		let nonOptionN = 0;
+		let foundEndOfOptions = false;
 		for (const word of words) {
 			idx++;
-			if (!deQuote(word)?.startsWith('-')) nonOptionN++;
+			if (deQuote(word) === '--') {
+				foundEndOfOptions = true;
+				continue;
+			}
+			if (foundEndOfOptions || !deQuote(word)?.startsWith('-')) nonOptionN++;
 			if (nonOptionN > 2) {
 				parts.runner = words.slice(0, 1)[0];
 				parts.runnerArgs = words.slice(1, idx - 1);
