@@ -14,6 +14,8 @@ import {
 	isWinOS,
 	/* mightUseFileSystemCase, */
 	pathEquivalent,
+	pathFromURL,
+	projectURL,
 	permitsSync,
 	toCommonCase,
 	traversal,
@@ -48,7 +50,10 @@ const execPathExtensions = isWinOS
 // * These are assumptions (of varying _fragility_) based on current (2021-12-28) practice of the Deno executable.
 // * If the runner (ie, `deno`) would supply `argv0`, the raw args, and the args supplied to itself, much of this fragility would evaporate
 // * and compatibility with other runners (such as NodeJS) should be more achievable.
-const runnerNameReS = '^deno(?:[.]exe)?$'; // *note*: using a runner with a different, unexpected name will cause failures at multiple points
+// *note*: any non-standalone process is considered a "deno-like" runner (eg, in the form `<runner> <options..> eval/run <options..> script_name <script_options..>`)
+// *note*: using a runner with a different, unexpected name may still lead to unexpected argument parsing results
+const denoRunnerNameReS = '^deno(?:[.]exe)?$';
+const possibleDenoRunnerNameReS = '^deno(?:[.-].*)*(?:[.]com|com)?$';
 const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]js$`;
 const enhancedShellRx = new RegExp('[\\/][^\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
 const removableExtensions = (execPathExtensions ?? []).concat(
@@ -75,10 +80,22 @@ const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIP
 
 //===
 
+/** * process appears to have been invoked from a compiled standalone binary executable (note: moderately fragile) */
+// ... seems correct up to Deno-v2.1.6 (2025-01-21 ~ ToDO: verify)
+// ref: [deno ~ Runtime API for 'standalone'](https://github.com/denoland/deno/issues/15996) @@ <https://archive.is/Sooka>
+// ref: [SO ~ [deno] Determine if compiled](https://stackoverflow.com/questions/76647896/determine-if-running-uncompiled-ts-script-or-compiled-deno-executa> @@ <https://archive.is/g7xws>
+// ref: [deno ~ PR - add `Deno.standalone` API](https://github.com/denoland/deno/pull/18402) @@ <https://archive.is/SX4ZM>
+export const likelyIsStandalone =
+	$path.basename(pathFromURL(projectURL) ?? '') ===
+	`deno-compile-${$path.basename(denoExecPath ?? '')}`;
+
+export const likelyIsDenoRunner = !!$path.basename(denoExecPath ?? '').match(denoRunnerNameReS);
+export const possibleDenoRunner =
+	likelyIsDenoRunner || !!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
+
 /** * process was invoked by direct execution */
-export const isDirectExecution = denoExecPath
-	? !$path.basename(denoExecPath).match(runnerNameReS)
-	: undefined;
+export const isDirectExecution =
+	likelyIsStandalone /* || (denoExecPath ? !$path.basename(denoExecPath).match(runnerNameReS) : undefined) */;
 /** * process was invoked as an eval script (eg, `deno eval ...`) */
 export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : undefined;
 
