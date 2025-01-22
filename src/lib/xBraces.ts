@@ -23,9 +23,12 @@
 
 // esm.sh
 // * use deno/std@0.134.0 to avoid permission prompts (deno/std@0.135.0+ causes permission prompts; see <https://github.com/denoland/deno_std/issues/2097>)
-import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0';
+// import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0';
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&dev';
+import BracesM from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&no-dts';
+import type BracesT from '../../vendor/@types/braces@3.0.5/index.d.ts'; // use locally vendored (and modified) types
+const Braces = BracesM as typeof BracesT;
 
 // jspm.dev
 // import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
