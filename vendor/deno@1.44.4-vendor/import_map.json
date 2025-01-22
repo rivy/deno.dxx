@@ -1,0 +1,44 @@
+{
+  "imports": {
+    "https://esm.sh/v135/deepmerge@4.3.1?no-dts": "./esm.sh/v135/deepmerge@4.3.1.js",
+    "https://esm.sh/v135/get-current-line@6.6.0": "./esm.sh/v135/get-current-line@6.6.0.js",
+    "https://esm.sh/v135/rfc-log-levels@3.17.0": "./esm.sh/v135/rfc-log-levels@3.17.0.js",
+    "https://esm.sh/v135/ts-essentials@9.4.2": "./esm.sh/v135/ts-essentials@9.4.2.js",
+    "https://esm.sh/v135/picomatch@2.2.1?deno-std=0.134.0&no-dts": "./esm.sh/v135/picomatch@2.2.1.js",
+    "https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&no-dts": "./esm.sh/v135/braces@3.0.2.js",
+    "https://esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0": "./esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist.js",
+    "https://esm.sh/v45/computed-types@1.6.0": "./esm.sh/v45/computed-types@1.6.0.js",
+    "https://esm.sh/v135/chai@4.3.4": "./esm.sh/v135/chai@4.3.4.js",
+    "https://esm.sh/v135/zod@3.9.8": "./esm.sh/v135/zod@3.9.8.js",
+    "https://cdn.jsdelivr.net/": "./cdn.jsdelivr.net/",
+    "https://deno.land/": "./deno.land/",
+    "https://esm.sh/": "./esm.sh/"
+  },
+  "scopes": {
+    "./esm.sh/": {
+      "/v135/fill-range@7.0.1/denonext/fill-range.mjs": "./esm.sh/v135/fill-range@7.0.1/denonext/fill-range.mjs",
+      "/v135/fill-range@7.1.1/denonext/fill-range.mjs": "./esm.sh/v135/fill-range@7.1.1/denonext/fill-range.mjs",
+      "/v135/braces@3.0.2/denonext/braces.mjs": "./esm.sh/v135/braces@3.0.2/denonext/braces.mjs",
+      "/v135/assertion-error@1.1.0/denonext/assertion-error.mjs": "./esm.sh/v135/assertion-error@1.1.0/denonext/assertion-error.mjs",
+      "/v135/pathval@1.1.1/denonext/pathval.mjs": "./esm.sh/v135/pathval@1.1.1/denonext/pathval.mjs",
+      "/v135/type-detect@4.1.0/denonext/type-detect.mjs": "./esm.sh/v135/type-detect@4.1.0/denonext/type-detect.mjs",
+      "/v135/deep-eql@3.0.1/denonext/deep-eql.mjs": "./esm.sh/v135/deep-eql@3.0.1/denonext/deep-eql.mjs",
+      "/v135/get-func-name@2.0.2/denonext/get-func-name.mjs": "./esm.sh/v135/get-func-name@2.0.2/denonext/get-func-name.mjs",
+      "/v135/check-error@1.0.3/denonext/check-error.mjs": "./esm.sh/v135/check-error@1.0.3/denonext/check-error.mjs",
+      "/v135/chai@4.3.4/denonext/chai.mjs": "./esm.sh/v135/chai@4.3.4/denonext/chai.mjs",
+      "/v135/type-detect@4.0.8/denonext/type-detect.mjs": "./esm.sh/v135/type-detect@4.0.8/denonext/type-detect.mjs",
+      "/v135/deepmerge@4.3.1/denonext/deepmerge.mjs": "./esm.sh/v135/deepmerge@4.3.1/denonext/deepmerge.mjs",
+      "/v135/to-regex-range@5.0.1/denonext/to-regex-range.mjs": "./esm.sh/v135/to-regex-range@5.0.1/denonext/to-regex-range.mjs",
+      "/v135/get-current-line@6.6.0/es2022/get-current-line.mjs": "./esm.sh/v135/get-current-line@6.6.0/es2022/get-current-line.mjs",
+      "/v135/picomatch@2.2.1/denonext/picomatch.mjs": "./esm.sh/v135/picomatch@2.2.1/denonext/picomatch.mjs",
+      "/v135/rfc-log-levels@3.17.0/denonext/rfc-log-levels.mjs": "./esm.sh/v135/rfc-log-levels@3.17.0/denonext/rfc-log-levels.mjs",
+      "/v135/is-number@7.0.0/denonext/is-number.mjs": "./esm.sh/v135/is-number@7.0.0/denonext/is-number.mjs",
+      "/v135/ts-essentials@9.4.2/denonext/ts-essentials.mjs": "./esm.sh/v135/ts-essentials@9.4.2/denonext/ts-essentials.mjs",
+      "/v135/zod@3.9.8/denonext/zod.mjs": "./esm.sh/v135/zod@3.9.8/denonext/zod.mjs",
+      "/v45/computed-types@1.6.0/denonext/computed-types.mjs": "./esm.sh/v45/computed-types@1.6.0/denonext/computed-types.mjs",
+      "/v90/sigmund@1.0.1/denonext/sigmund.mjs": "./esm.sh/v90/sigmund@1.0.1/denonext/sigmund.mjs",
+      "/v90/lru-cache@7.18.3/denonext/lru-cache.mjs": "./esm.sh/v90/lru-cache@7.18.3/denonext/lru-cache.mjs",
+      "/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/denonext/dist.js": "./esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/denonext/dist.js"
+    }
+  }
+}
