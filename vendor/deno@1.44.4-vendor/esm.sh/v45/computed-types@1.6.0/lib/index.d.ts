@@ -1,0 +1,16 @@
+import unknown from './unknown.d.ts';
+import object from './object.d.ts';
+import array from './array.d.ts';
+import string from './string.d.ts';
+import number from './number.d.ts';
+import boolean from './boolean.d.ts';
+import Schema from './Schema.d.ts';
+import DateType from './DateType.d.ts';
+import { SchemaResolveType, SchemaParameters, MergeSchemaParameters, SchemaReturnType, SchemaValidatorFunction, SchemaInput } from './schema/io.d.ts';
+import { ValidationError, PathError } from './schema/errors.d.ts';
+import { isPromiseLike, ResolvedValue } from './schema/utils.d.ts';
+export declare type Type<S> = SchemaResolveType<S>;
+export type { ValidationError, PathError, SchemaInput, SchemaParameters, MergeSchemaParameters, SchemaReturnType, SchemaValidatorFunction, ResolvedValue, };
+export default Schema;
+export { unknown, object, array, string, number, boolean, DateType };
+export { isPromiseLike };
