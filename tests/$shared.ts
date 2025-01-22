@@ -239,10 +239,11 @@ export const test = createTestFn();
 
 // [`bmp`](https://deno.land/x/bmp@v0.0.7); install (for Deno-v1.11+/std@0.98.0) <br> `dxi --allow-read=. --allow-write=. --allow-run=git -qf https://deno.land/x/bmp@v0.0.7/cli.ts`
 
-export const haveBmpVersion = () => {
+export const haveBmpVersion = (commandPath?: string) => {
+	commandPath = commandPath ?? 'bmp';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'bmp', '--version'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
@@ -260,16 +261,17 @@ export const haveBmpVersion = () => {
 	}
 };
 
-export const haveBmp = () => {
-	return haveBmpVersion().then((version) => version != null);
+export const haveBmp = (commandPath?: string) => {
+	return haveBmpVersion(commandPath).then((version) => version != null);
 };
 
 // [`commitlint`](https://commitlint.js.org); install (for NodeJS v12+): `npm -g install @commitlint/cli@16 @commitlint/config-conventional@16`
 
-export const haveCommitLintVersion = () => {
+export const haveCommitLintVersion = (commandPath?: string) => {
+	commandPath = commandPath ?? 'commitlint';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'commitlint', '--version'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
@@ -287,16 +289,17 @@ export const haveCommitLintVersion = () => {
 	}
 };
 
-export const haveCommitLint = () => {
-	return haveCommitLintVersion().then((version) => version != null);
+export const haveCommitLint = (commandPath?: string) => {
+	return haveCommitLintVersion(commandPath).then((version) => version != null);
 };
 
 // [`cspell`](http://cspell.org); install: (NodeJS v10+) `npm -g install cspell@4`; (NodeJS v12+) `npm -g install cspell@5`
 
-export const haveCSpellVersion = () => {
+export const haveCSpellVersion = (commandPath?: string) => {
+	commandPath = commandPath ?? 'cspell';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'cspell', '--version'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
@@ -314,16 +317,17 @@ export const haveCSpellVersion = () => {
 	}
 };
 
-export const haveCSpell = () => {
-	return haveCSpellVersion().then((version) => version != null);
+export const haveCSpell = (commandPath?: string) => {
+	return haveCSpellVersion(commandPath).then((version) => version != null);
 };
 
 // [`deno`](https://deno.land); install: [MacOS/Linux] `curl -fsSL https://deno.land/x/install/install.sh | sh` , [WinOS] `scoop install deno`
 
-export const haveDenoVersion = () => {
+export const haveDenoVersion = (commandPath?: string) => {
+	commandPath = commandPath ?? 'deno';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'deno', '--version'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
@@ -341,16 +345,17 @@ export const haveDenoVersion = () => {
 	}
 };
 
-export const haveDeno = () => {
-	return haveDenoVersion().then((version) => version != null);
+export const haveDeno = (commandPath?: string) => {
+	return haveDenoVersion(commandPath).then((version) => version != null);
 };
 
 // [`dprint`](https://dprint.dev); install: `cargo +stable-x86_64 install -i dprint`
 
-export const haveDPrint = () => {
+export const haveDPrint = (commandPath?: string) => {
+	commandPath = commandPath ?? 'dprint';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: ['dprint', '--version'],
+			cmd: [commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'null',
@@ -368,10 +373,11 @@ export const haveDPrint = () => {
 
 //
 
-export const haveExpectVersion = () => {
+export const haveExpectVersion = (commandPath?: string) => {
+	commandPath = commandPath ?? 'expect';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'expect', '-v'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), commandPath, '-v'],
 			stdin: 'null',
 			stderr: 'piped',
 			stdout: 'piped',
@@ -387,16 +393,17 @@ export const haveExpectVersion = () => {
 	}
 };
 
-export const haveExpect = () => {
-	return haveExpectVersion().then((version) => version != null);
+export const haveExpect = (commandPath?: string) => {
+	return haveExpectVersion(commandPath).then((version) => version != null);
 };
 
 // [`git`](https://git-scm.com); install: (POSIX) `apt install git`, (WinOS) `scoop install git`
 
-export const haveGit = () => {
+export const haveGit = (commandPath?: string) => {
+	commandPath = commandPath ?? 'git';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: ['git', '--version'],
+			cmd: [commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'null',
@@ -414,10 +421,11 @@ export const haveGit = () => {
 
 // [`madge`](https://github.com/pahen/madge); install (for NodeJS v12+): `npm -g install madge@5`
 
-export const haveMadgeVersion = () => {
+export const haveMadgeVersion = (commandPath?: string) => {
+	commandPath = commandPath ?? 'madge';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), 'madge', '--version'],
+			cmd: [...(isWinOS ? ['cmd', '/x/d/c'] : []), commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
@@ -433,16 +441,17 @@ export const haveMadgeVersion = () => {
 	}
 };
 
-export const haveMadge = () => {
-	return haveMadgeVersion().then((version) => version != null);
+export const haveMadge = (commandPath?: string) => {
+	return haveMadgeVersion(commandPath).then((version) => version != null);
 };
 
 export const isGitRepo = async (path = projectPath) => {
-	const haveGit_ = await haveGit();
+	const commandPath = 'git';
+	const haveGit_ = await haveGit(commandPath);
 	if (haveGit_) {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['git', 'status', '--short'],
+				cmd: [commandPath, 'status', '--short'],
 				cwd: path,
 				stdin: 'null',
 				stderr: 'null',
@@ -461,11 +470,12 @@ export const isGitRepo = async (path = projectPath) => {
 };
 
 export const gitProjectFilesWithEolDetail = async (path = projectPath, _options = {}) => {
-	const haveGit_ = await haveGit();
+	const commandPath = 'git';
+	const haveGit_ = await haveGit(commandPath);
 	if (haveGit_) {
 		try {
 			const process = Deprecated.Deno.run({
-				cmd: ['git', 'ls-files', '--eol', '--full-name'],
+				cmd: [commandPath, 'ls-files', '--eol', '--full-name'],
 				cwd: path,
 				stdin: 'null',
 				stderr: 'null',
