@@ -341,10 +341,11 @@ Deno.exit(0);
 
 //===
 
-function haveDprintVersion() {
+function haveDprintVersion(commandPath?: string) {
+	commandPath = commandPath ?? 'dprint';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: ['dprint', '--version'],
+			cmd: [commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
@@ -360,10 +361,11 @@ function haveDprintVersion() {
 	}
 }
 
-function haveDenoVersion() {
+function haveDenoVersion(commandPath?: string) {
+	commandPath = commandPath ?? 'deno';
 	try {
 		const process = Deprecated.Deno.run({
-			cmd: ['deno', '--version'],
+			cmd: [commandPath, '--version'],
 			stdin: 'null',
 			stderr: 'null',
 			stdout: 'piped',
