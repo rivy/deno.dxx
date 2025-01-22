@@ -22,6 +22,7 @@ const isWinOS = Deno.build.os == 'windows';
 const shell = isWinOS ? 'cmd' : 'sh';
 const shellOptions = isWinOS ? ['/d/c'] : ['-c'];
 
+const denoCommand = Deno.execPath();
 const denoVersion = $semver.coerce(Deno.version.deno) ?? Deno.version.deno;
 const denoAtLeastV2 = $semver.satisfies(denoVersion, '>= 2.0.0');
 const denoOptionsFFI = denoAtLeastV2
@@ -33,7 +34,7 @@ const denoOptionsFFI = denoAtLeastV2
 const TERM = (env('TERM') !== 'dumb' ? env('TERM') : undefined) ?? 'xterm'; // use non-'dumb' env(TERM) with 'xterm' fallback
 
 test('consoleSize ~ fully redirected, no permissions', () => {
-	const cmd = 'deno';
+	const cmd = denoCommand;
 	const args = ['run', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, {
 		args,
@@ -64,7 +65,7 @@ test('consoleSize ~ fully redirected, no permissions', () => {
 });
 
 test('consoleSize ~ fully redirected, run permission', () => {
-	const cmd = 'deno';
+	const cmd = denoCommand;
 	const args = ['run', '--allow-run', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, {
 		args,
@@ -98,7 +99,7 @@ test('consoleSize ~ fully redirected, FFI permission', () => {
 	const options = ['--allow-all', ...denoOptionsFFI].filter(
 		(v) => !denoAtLeastV2 && v !== '--allow-all',
 	);
-	const cmd = 'deno';
+	const cmd = denoCommand;
 	const args = ['run', ...options, './tests/helpers/consoleSize.display-results.ts'];
 	console.log({ cmd, args, denoOptionsFFI });
 	const process = new Deno.Command(cmd, {
@@ -159,7 +160,7 @@ test('consoleSize ~ fully redirected, full permissions', () => {
 		}
 	})();
 	console.log(`$Host.UI.SupportsVirtualTerminal;$Host.UI.RawUI\n****\n${_vt}\n****`);
-	const cmd = 'deno';
+	const cmd = denoCommand;
 	const args = ['run', '--allow-all', './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, { args, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 	const { code, stdout, stderr } = process.outputSync();
@@ -221,7 +222,7 @@ test('consoleSize ~ fully redirected, full permissions + FFI', () => {
 	const options = ['--allow-all', ...denoOptionsFFI].filter(
 		(v) => !denoAtLeastV2 && v !== '--allow-all',
 	);
-	const cmd = 'deno';
+	const cmd = denoCommand;
 	const args = ['run', ...options, './tests/helpers/consoleSize.display-results.ts'];
 	const process = new Deno.Command(cmd, {
 		args,

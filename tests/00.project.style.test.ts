@@ -304,7 +304,7 @@ const projectNonBinaryFiles = projectFiles.filter(
 
 test('style ~ `deno lint`', async () => {
 	const p = Deprecated.Deno.run({
-		cmd: ['deno', 'lint'],
+		cmd: [Deno.execPath(), 'lint'],
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',

@@ -81,13 +81,13 @@ setEnvFromArgs(Deno.args);
 // ToDO: add skip logic for Deno versions < 1.28.0 (which do not support `Deno.Command()`)
 // ToDO: [2023-10-10; rivy] deal with CWD != projectPath
 
-const denoVersion = await haveDenoVersion();
-// const command = 'deno';
 const dumbDenoRunner = Deno.execPath(); // use `Deno.execPath()` instead of `deno` to avoid any interposed enhanced shim (with possible associated shimmed environment changes)
+const denoVersion = await haveDenoVersion(dumbDenoRunner);
 const command = dumbDenoRunner;
-// - for Deno-v2.0+, use one of `--allow-ffi` or `--allow-all`
-// - for Deno-v1.38.0 to Deno-v1.46.3, use *both* `--unstable-ffi` plus `--allow-ffi` and/or `--allow-all`
-// - for Deno-v1.13.0 to Deno-v1.38.0, use `--unstable` plus `--allow-ffi` and/or `--allow-all`
+// - for Deno-v2.0+, use one, but *not* both of `--allow-ffi` or `--allow-all`
+// - for Deno-v1.40.0 to Deno-v1.46.3, use `--unstable-ffi` plus `--allow-ffi` and/or `--allow-all`
+// - for Deno-v1.38.0 to Deno-v1.39.4, use `--unstable` and/or `--unstable-ffi` plus `--allow-ffi` and/or `--allow-all`
+// - for Deno-v1.13.0 to Deno-v1.37.2, use `--unstable` plus `--allow-ffi` and/or `--allow-all`
 const ffiArgs =
 	versionCompare(denoVersion, '2.0') >= 0
 		? ['--allow-ffi']
