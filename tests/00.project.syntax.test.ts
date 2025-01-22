@@ -32,6 +32,8 @@ const projectPath = maybeProjectPath;
 
 //===
 
+const denoCommand = Deno.execPath();
+
 const expand = $args.shellExpandSync;
 
 const projectCodeFilesByKind: Record<string, string[]> = {
@@ -75,7 +77,7 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 	console.log({ files });
 
 	const p = Deprecated.Deno.run({
-		cmd: ['deno', 'test', '--reload', '--no-run'].concat(files),
+		cmd: [denoCommand, 'test', '--reload', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -134,7 +136,7 @@ test(`syntax ~ examples compile correctly (${projectCodeFilesByKind.examples.len
 	console.log({ files });
 
 	const p = Deprecated.Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat(files),
+		cmd: [denoCommand, 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -155,7 +157,7 @@ test(`syntax ~ source files (plus imports) compile correctly (${projectCodeFiles
 	console.log({ files });
 
 	const p = Deprecated.Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat(files),
+		cmd: [denoCommand, 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -176,7 +178,7 @@ test(`syntax ~ test and benchmark files (plus imports) compile correctly (${proj
 	console.log({ files });
 
 	const p = Deprecated.Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat(files),
+		cmd: [denoCommand, 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -197,7 +199,7 @@ test(`syntax ~ tools compile correctly (${projectCodeFilesByKind.tools.length} f
 	console.log({ files });
 
 	const p = Deprecated.Deno.run({
-		cmd: ['deno', 'test', '--no-run'].concat(files),
+		cmd: [denoCommand, 'test', '--no-run'].concat(files),
 		stdin: 'null',
 		stdout: 'piped',
 		stderr: 'piped',
@@ -220,7 +222,7 @@ test(`syntax ~ all libs are *no-panic* (${projectCodeFilesByKind.libs.length} fo
 	console.log({ files });
 
 	const flawedFilesPromises = files.map(async (file) => {
-		const cmd = ['deno', 'run', '--no-prompt', '--', file];
+		const cmd = [denoCommand, 'run', '--no-prompt', '--', file];
 		// console.debug({ cmd });
 		const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 		const [status, out, err] = await Promise.all([
