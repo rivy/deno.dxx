@@ -15,11 +15,15 @@
 // };
 
 // import ... 'jsr:...' requires a Deno-v1.40.0+
-import { readAll } from 'jsr:@std/io@0.224.0/read-all';
+// import { readAll } from 'jsr:@std/io@0.224.0/read-all';
+import { readAll } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/read_all.ts';
 
-import type { Reader as DenoReader } from 'jsr:@std/io@0.224.0/types';
-import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.0/types';
-import type { WriterSync as DenoWriterSync } from 'jsr:@std/io@0.224.0/types';
+// import type { Reader as DenoReader } from 'jsr:@std/io@0.224.0/types';
+// import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.0/types';
+// import type { WriterSync as DenoWriterSync } from 'jsr:@std/io@0.224.0/types';
+import type { Reader as DenoReader } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
+import type { Writer as DenoWriter } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
+import type { WriterSync as DenoWriterSync } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
 
 // vendored Deno-v1 types
 import * as _DenoV1NS from '../../vendor/@types/deno@1.46.3/lib.deno.ns.d.ts';
