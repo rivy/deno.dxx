@@ -23,7 +23,7 @@ export class Row<T extends ICell = ICell> extends Array<T> {
    * be copied to the new row.
    * @param cells Cells or row.
    */
-  public static from<T extends ICell = ICell>(cells: IRow<T>): Row<T> {
+  public static override from<T extends ICell = ICell>(cells: IRow<T>): Row<T> {
     const row = new this(...cells);
     if (cells instanceof Row) {
       row.options = { ...(cells as Row<T>).options };

@@ -44,7 +44,7 @@ export class Table<T extends IRow = IRow> extends Array<T> {
    * will be copied to the new table.
    * @param rows
    */
-  public static from<T extends IRow>(rows: ITable<T>): Table<T> {
+  public static override from<T extends IRow>(rows: ITable<T>): Table<T> {
     const table = new this(...rows);
     if (rows instanceof Table) {
       table.options = { ...(rows as Table<T>).options };
@@ -122,7 +122,7 @@ export class Table<T extends IRow = IRow> extends Array<T> {
   }
 
   /** Generate table string. */
-  public toString(): string {
+  public override toString(): string {
     return new TableLayout(this, this.options).toString();
   }
 
