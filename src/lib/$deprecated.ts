@@ -14,14 +14,16 @@
 // 	Deno: { run: Deno.run, RunOptions: Deno.RunOptions },
 // };
 
-// import ... 'jsr:...' requires a Deno-v1.40.0+
+// import ... 'jsr:...' requires a Deno-v1.40.0+ (early use in Deno-v1.39.1+)
 // import { readAll } from 'jsr:@std/io@0.224.0/read-all';
 import { readAll } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/read_all.ts';
 
 // import type { Reader as DenoReader } from 'jsr:@std/io@0.224.0/types';
 // import type { Writer as DenoWriter } from 'jsr:@std/io@0.224.0/types';
 // import type { WriterSync as DenoWriterSync } from 'jsr:@std/io@0.224.0/types';
+import type { Closer as DenoCloser } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
 import type { Reader as DenoReader } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
+import type { ReaderSync as DenoReaderSync } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
 import type { Writer as DenoWriter } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
 import type { WriterSync as DenoWriterSync } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
 
@@ -41,14 +43,14 @@ export function isDenoV1RID(id: unknown): id is DenoV1NS.RID {
 	return typeof id === 'number';
 }
 
-function hasCloseMethod(x: unknown): x is { close: () => void } {
+export function hasCloseMethod(x: unknown): x is { close: () => void } {
 	return (
 		typeof x === 'object' && x != null && 'close' in x && typeof x?.close === 'function'
 		// && typeof x.close() === 'undefined'
 	);
 }
 
-function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
+export function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
 	return (
 		typeof x === 'object' &&
 		x != null &&
@@ -190,7 +192,9 @@ export namespace Deprecated {
 		export type RunOptions = DenoV1NS.Deno.RunOptions;
 		export type ProcessStatus = DenoV1NS.Deno.ProcessStatus;
 
+		export type Closer = DenoCloser;
 		export type Reader = DenoReader;
+		export type ReaderSync = DenoReaderSync;
 		export type Writer = DenoWriter;
 		export type WriterSync = DenoWriterSync;
 	}

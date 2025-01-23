@@ -10,7 +10,7 @@
 // * [ora](https://www.npmjs.com/package/ora) ; [repo](https://github.com/sindresorhus/ora); MIT
 // further ideas from [progress](https://deno.land/x/progress@v1.2.4); [repo](https://github.com/deno-library/progress); MIT
 
-import { DenoVx, type Deprecated } from '../$deprecated.ts';
+import { DenoV1, DenoVx, /* type Deprecated, */ hasIsTerminalMethod } from '../$deprecated.ts';
 import { $colors, $tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
 
@@ -36,7 +36,19 @@ const colorMap: { [key: string]: ColorFunction } = {
 	gray: $colors.gray,
 };
 
-type SpinnerStream = Deprecated.Deno.WriterSync & { rid?: number };
+// type SpinnerStream = Deprecated.Deno.WriterSync & { rid?: number; isTerminal(): boolean };
+type SpinnerStream = typeof Deno.stdout & { rid?: number; isTerminal(): boolean };
+
+function streamToSpinnerStream(stream: SpinnerStream | typeof Deno.stdout): SpinnerStream {
+	const s = stream;
+	// add `isTerminal() => bool` method to stream if it doesn't already have one (eg, Deno-v1 stdout)
+	if (!hasIsTerminalMethod(s)) {
+		(s as SpinnerStream).isTerminal = function () {
+			return this.rid !== undefined ? DenoV1?.isatty(this.rid) ?? false : false;
+		};
+	}
+	return s as SpinnerStream;
+}
 
 export interface SpinnerOptions {
 	text: string;
@@ -46,7 +58,7 @@ export interface SpinnerOptions {
 	hideCursor?: boolean | 'hideDuringRender';
 	indent?: number;
 	interval?: number;
-	stream?: SpinnerStream;
+	stream?: SpinnerStream | typeof Deno.stdout;
 	enabled?: boolean;
 	discardStdin?: boolean;
 	symbols?: typeof Symbols;
@@ -62,6 +74,7 @@ export function wait(opts: string | SpinnerOptions) {
 	if (typeof opts === 'string') {
 		opts = { text: opts } as SpinnerOptions;
 	}
+	const stream = streamToSpinnerStream(opts.stream ?? Deno.stdout);
 	return new Spinner({
 		text: opts.text,
 		prefix: opts.prefix ?? '',
@@ -70,7 +83,7 @@ export function wait(opts: string | SpinnerOptions) {
 		hideCursor: opts.hideCursor ?? true,
 		indent: opts.indent ?? 0,
 		interval: opts.interval ?? 100,
-		stream: opts.stream ?? Deno.stdout,
+		stream,
 		enabled: true,
 		discardStdin: true,
 		symbols: opts.symbols ?? Symbols,
@@ -82,7 +95,7 @@ export class Spinner {
 
 	isSpinning: boolean;
 
-	#stream: Deprecated.Deno.WriterSync & { rid?: number };
+	#stream: SpinnerStream;
 	indent: number;
 	interval: number;
 
@@ -96,7 +109,7 @@ export class Spinner {
 	constructor(opts: Required<SpinnerOptions>) {
 		this.#opts = opts;
 
-		this.#stream = this.#opts.stream;
+		this.#stream = streamToSpinnerStream(this.#opts.stream);
 
 		this.text = this.#opts.text;
 		this.prefix = this.#opts.prefix;
