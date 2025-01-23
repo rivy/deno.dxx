@@ -75,7 +75,7 @@ export type ConsoleSizeOptions = {
 function denoConsoleSizeNT(rid?: number) {
 	// no-throw `Deno.consoleSize(..)`
 	// [2020-07] `Deno.consoleSize()` is unstable API (as of v1.2+) => deno-lint-ignore no-explicit-any
-	// [2022-11] `Deno.consoleSize()` (now stabilized in v1.27.0+) ignores rid (only testing stdin, stdout, and stderr rid's)
+	// [2022-11] `Deno.consoleSize()` (now stabilized in v1.27.0+) ignores rid (internally, tests stdin, stdout, and stderr)
 	const fn = Deno.consoleSize as (rid?: number) => ConsoleSize | undefined;
 	try {
 		// * `Deno.consoleSize()` throws if rid is non-TTY (including redirected streams)
