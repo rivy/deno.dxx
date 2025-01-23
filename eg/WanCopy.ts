@@ -10,7 +10,7 @@ import {
 	readerFromStreamReader,
 	writableStreamFromWriter,
 	writerFromStreamWriter,
-} from 'https://deno.land/std@0.134.0/streams/conversion.ts';
+} from 'https://deno.land/std@0.172.0/streams/conversion.ts';
 
 import { $version, durationText, env, isEmpty, stableSort } from '../src/lib/$shared.ts';
 
