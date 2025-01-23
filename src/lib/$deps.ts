@@ -7,7 +7,7 @@ export {
 	readAll,
 	readerFromStreamReader,
 	writeAllSync,
-} from 'https://deno.land/std@0.134.0/streams/conversion.ts';
+} from 'https://deno.land/std@0.172.0/streams/conversion.ts';
 export { mergeReadableStreams } from 'https://deno.land/std@0.134.0/streams/merge.ts';
 
 // * import needed stable portions of `std/fs`
