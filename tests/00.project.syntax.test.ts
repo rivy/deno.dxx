@@ -262,7 +262,13 @@ test(`syntax ~ all libs are *no-panic* (${projectCodeFilesByKind.libs.length} fo
 						'\\$',
 					)}" 2>&1 ; expect -regexp ".+" { exit 1 } ;`,
 				];
-				const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
+				const p = Deprecated.Deno.run({
+					cmd,
+					stdin: 'null',
+					stdout: 'piped',
+					stderr: 'piped',
+					env: { DENO_NO_UPDATE_CHECK: '1' /* avoid false failures for update prompts */ },
+				});
 				const [status, out, err] = await Promise.all([
 					p.status(),
 					p.output(),
