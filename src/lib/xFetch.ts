@@ -4,10 +4,11 @@
 
 import { Deprecated } from './$deprecated.ts';
 
-import { iter } from 'https://deno.land/std@0.134.0/io/util.ts';
+// import { iter } from 'https://deno.land/std@0.134.0/io/util.ts';
 import { lookup } from 'https://deno.land/x/media_types@v2.8.4/mod.ts';
 
-import { readableStreamFromIterable } from 'https://deno.land/std@0.134.0/streams/conversion.ts';
+import { iterateReader as iter } from 'https://deno.land/std@0.196.0/streams/iterate_reader.ts';
+import { readableStreamFromIterable } from 'https://deno.land/std@0.196.0/streams/readable_stream_from_iterable.ts';
 
 const originalFetch = globalThis.fetch;
 
