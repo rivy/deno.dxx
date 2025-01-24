@@ -72,9 +72,9 @@ const args = $args.argsSync;
 // * `deno-std=0.134.0` pins polyfills to deno::std-v0.134.0 (prior to try...catch [prompting] behavior)
 // * `pin=v90` == use specific esm.sh (for immutability)
 // esm.sh => `Invalid package name '-x-e34b1a4b-ab58-4d84-9787-309e53006932'`
-// import * as EditorConfig from 'https://esm.sh/@rivy-labs/-x-e34b1a4b-ab58-4d84-9787-309e53006932@0.16.3?deno-std=0.134.0&pin=v90';
-// import * as EditorConfig from 'https://esm.sh/editorconfig@0.15.3?deno-std=0.134.0';
-import * as EditorConfig from 'https://esm.sh/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0&pin=v90';
+// import * as EditorConfig from 'https://esm.sh/v135/@rivy-labs/-x-e34b1a4b-ab58-4d84-9787-309e53006932@0.16.3?deno-std=0.134.0&pin=v90';
+// import * as EditorConfig from 'https://esm.sh/v135/editorconfig@0.15.3?deno-std=0.134.0';
+import * as EditorConfig from 'https://esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0';
 
 // const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
 
