@@ -14,6 +14,7 @@
 // * revise URL to use 'esm.sh' instead of 'cdn.jsdelivr.net' for compatibility with Deno-2.0 "import" permission defaults
 // export { default as $yargs } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@6be59a7fda/deno.ts'; // v17.7.2-deno-rivy
 export { default as $yargs } from 'https://esm.sh/gh/rivy-js/yargs@f4b8034a75/deno.ts'; // v17.7.2-deno-rivy
+// export { default as $yargs } from 'https://cdn.jsdelivr.net/gh/rivy-js/yargs@f4b8034a75/deno.ts'; // v17.7.2-deno-rivy
 
 //==== types
 

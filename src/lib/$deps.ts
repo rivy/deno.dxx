@@ -26,8 +26,8 @@ export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v8.2.
 // export * as $lodash from 'https://cdn.skypack.dev/pin/lodash@v4.17.20-4NISnx5Etf8JOo22u9rw/lodash.js';
 // export * as $lodash from 'https://cdn.skypack.dev/lodash@4.17.20';
 // * revise URL to use 'esm.sh' instead of 'cdn.skypack.dev' for compatibility with Deno-2.0 "import" permission defaults
-// export { default as $lodash } from 'https://esm.sh/lodash@4.17.20';
-// export { _ as $lodash } from 'https://esm.sh/lodash@4.17.20';
+// export { default as $lodash } from 'https://esm.sh/v135/lodash@4.17.20';
+// export { _ as $lodash } from 'https://esm.sh/v135/lodash@4.17.20';
 // export * as $lodash from 'https://deno.land/x/lodash@4.17.19/dist/lodash.js';
 export { default as $lodash } from 'npm:lodash@4.17.20'; // requires deno-v1.25.0+; recommend deno-v1.30.0+ for better results
 

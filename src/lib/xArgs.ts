@@ -53,24 +53,28 @@ export { expand as braceExpand } from './xBraces.ts';
 
 // esm.sh
 // * use deno/std@0.134.0 to avoid permission prompts (deno/std@0.135.0+ causes permission prompts; see <https://github.com/denoland/deno_std/issues/2097>)
-// import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0';
-// import Micromatch from 'https://esm.sh/micromatch@4.0.2?deno-std=0.134.0';
-import type PicomatchT from 'https://esm.sh/@types/picomatch@2.2.1';
-import PicomatchM from 'https://esm.sh/picomatch@2.2.1?deno-std=0.134.0&no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
+// import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0';
+// import Micromatch from 'https://esm.sh/v135/micromatch@4.0.2?deno-std=0.134.0';
+// import type PicomatchT from 'https://esm.sh/v135/@types/picomatch@2.2.1';
+// import type PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
+import type PicomatchT from '../../vendor/@types/picomatch@2.2.2/index.d.ts';
+import PicomatchM from 'https://esm.sh/v135/picomatch@2.2.1?deno-std=0.134.0&no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
 const Picomatch = PicomatchM as typeof PicomatchT;
 // esm.sh (un-minimized, readable source)
-// import Braces from 'https://esm.sh/braces@3.0.2?deno-std=0.134.0&dev';
-// import Micromatch from 'https://esm.sh/micromatch@4.0.2?deno-std=0.134.0&dev';
-// import Picomatch from 'https://esm.sh/picomatch@2.2.2?deno-std=0.134.0&dev';
+// import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&dev';
+// import Micromatch from 'https://esm.sh/v135/micromatch@4.0.2?deno-std=0.134.0&dev';
+// import Picomatch from 'https://esm.sh/v135/picomatch@2.2.2?deno-std=0.134.0&dev';
+
+// // cdn.jsdelivr.net
+// import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
+// import * as MicromatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/micromatch/index.d.ts';
+// import * as PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
 
 // // jspm.io
 // import BracesM from 'https://ga.jspm.io/npm:braces@3.0.2/index.js';
 // import MicromatchM from 'https://ga.jspm.io/npm:micromatch@4.0.2/index.js';
 // import PicomatchM from 'https://ga.jspm.io/npm:picomatch@2.2.2/index.js';
 // jspm.dev
-// import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
-// import * as MicromatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/micromatch/index.d.ts';
-// import * as PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
 // import BracesM from 'https://jspm.dev/npm:braces@3.0.2';
 // import MicromatchM from 'https://jspm.dev/npm:micromatch@4.0.2';
 // import PicomatchM from 'https://jspm.dev/npm:picomatch@2.3.0';

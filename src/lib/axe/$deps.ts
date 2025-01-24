@@ -38,10 +38,10 @@ export * as $symbols from '../xWait/log_symbols.ts';
 
 export { format } from './format.ts';
 
-export { default as getCurrentLine } from 'https://esm.sh/get-current-line@6.6.0';
-export { default as rfcGetLogLevel } from 'https://esm.sh/rfc-log-levels@3.17.0';
-export * as $levels from 'https://esm.sh/rfc-log-levels@3.17.0';
+export { default as getCurrentLine } from 'https://esm.sh/v135/get-current-line@6.6.0';
+export { default as rfcGetLogLevel } from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+export * as $levels from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
 
-export type { Location, Offset } from 'https://esm.sh/get-current-line@6.6.0';
-export type { LevelInfo, LevelsMap as LevelMap } from 'https://esm.sh/rfc-log-levels@3.17.0';
-export type { DeepReadonly } from 'https://esm.sh/ts-essentials@9.4.2';
+export type { Location, Offset } from 'https://esm.sh/v135/get-current-line@6.6.0';
+export type { LevelInfo, LevelsMap as LevelMap } from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+export type { DeepReadonly } from 'https://esm.sh/v135/ts-essentials@9.4.2';
