@@ -20,8 +20,8 @@ import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
 // // import mocha from 'https://unpkg.com/mocha@7.2.0/mocha.js';
 // import { z } from 'https://cdn.skypack.dev/zod@3.9.8?dts';
 
-import chai from 'https://esm.sh/chai@4.3.4';
-import { z } from 'https://esm.sh/zod@3.9.8';
+import chai from 'https://esm.sh/v135/chai@4.3.4';
+import { z } from 'https://esm.sh/v135/zod@3.9.8';
 
 import { test } from './$shared.ts';
 
