@@ -93,6 +93,7 @@ const exeArgs = [
 	`"^" '' "" [ ] { } : , . ? ! @ $ % "!x" %this% %%o/w-that%% "%%%the other"`,
 	`"^ & | < >"`, // special characters which are interpreted by WinOS very early must be always be *double-quoted*
 	`"; # ( )"`, // special characters (for POSIX shells) should also be double-quoted (though single-quotes will also work when using an advanced shim runner)
+	`'' 'this that' :'this that': ":'this that':" that"'"s "'that' "`, // single-quoted args and args containing single-quotes
 	// "``", // ToDO [2023-11-04; rivy] add testing for backticks
 ];
 const cliArgs = [...commandArgs, ...exeArgs];
@@ -156,6 +157,13 @@ if (!haveCommand) {
 			'%%%the other',
 			'^ & | < >',
 			'; # ( )',
+			// args containing single-quotes
+			'',
+			'this that',
+			':this that:',
+			`:'this that':`,
+			`that's`,
+			`'that'`,
 			// '``', // ToDO [2023-11-04; rivy] add testing for backticks
 		];
 		assertEquals(actual, expected);
