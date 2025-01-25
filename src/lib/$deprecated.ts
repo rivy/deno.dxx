@@ -178,8 +178,9 @@ export namespace Deprecated {
 		// use instead: ...
 		// remove with: Deno v2.0.0
 
-		// NOTE: Deno-v1.40.x may produce warnings when accessing `rid` here (which can be suppressed with `DENO_NO_DEPRECATION_WARNINGS=1`)
+		// NOTE: Deno-v1.40.x (specifically v1.40.0 through v1.40.2) may produce warnings when accessing `Deno.run` and/or `rid` here (which can be suppressed with `DENO_NO_DEPRECATION_WARNINGS=1`)
 		// * ref: <https://github.com/denoland/deno/commit/c62615bfe5a070c2517f3af3208d4308c72eb054>
+
 		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2
 		export const stderr = { rid: globalThis.Deno.stderr.rid };
 		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2
