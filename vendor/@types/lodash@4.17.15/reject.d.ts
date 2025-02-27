@@ -1,2 +1,2 @@
-import { reject } from "./index";
+import { reject } from "./index.d.ts";
 export = reject;

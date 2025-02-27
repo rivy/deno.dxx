@@ -1,2 +1,2 @@
-import { clamp } from "./index";
+import { clamp } from "./index.d.ts";
 export = clamp;

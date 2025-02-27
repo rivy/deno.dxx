@@ -1,2 +1,2 @@
-import { extend } from "./index";
+import { extend } from "./index.d.ts";
 export = extend;

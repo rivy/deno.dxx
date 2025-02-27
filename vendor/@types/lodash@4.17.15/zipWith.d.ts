@@ -1,2 +1,2 @@
-import { zipWith } from "./index";
+import { zipWith } from "./index.d.ts";
 export = zipWith;

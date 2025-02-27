@@ -1,2 +1,2 @@
-import { forIn } from "./index";
+import { forIn } from "./index.d.ts";
 export = forIn;

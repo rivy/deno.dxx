@@ -1,2 +1,2 @@
-import { omitBy } from "./index";
+import { omitBy } from "./index.d.ts";
 export = omitBy;

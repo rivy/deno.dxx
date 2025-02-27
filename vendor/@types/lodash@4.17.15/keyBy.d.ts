@@ -1,2 +1,2 @@
-import { keyBy } from "./index";
+import { keyBy } from "./index.d.ts";
 export = keyBy;

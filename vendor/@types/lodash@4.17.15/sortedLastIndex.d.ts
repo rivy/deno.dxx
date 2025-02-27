@@ -1,2 +1,2 @@
-import { sortedLastIndex } from "./index";
+import { sortedLastIndex } from "./index.d.ts";
 export = sortedLastIndex;

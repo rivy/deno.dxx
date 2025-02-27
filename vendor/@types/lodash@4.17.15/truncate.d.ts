@@ -1,2 +1,2 @@
-import { truncate } from "./index";
+import { truncate } from "./index.d.ts";
 export = truncate;

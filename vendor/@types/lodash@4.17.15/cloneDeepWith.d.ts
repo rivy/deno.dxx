@@ -1,2 +1,2 @@
-import { cloneDeepWith } from "./index";
+import { cloneDeepWith } from "./index.d.ts";
 export = cloneDeepWith;

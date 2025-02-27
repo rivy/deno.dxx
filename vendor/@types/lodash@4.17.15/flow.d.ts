@@ -1,2 +1,2 @@
-import { flow } from "./index";
+import { flow } from "./index.d.ts";
 export = flow;

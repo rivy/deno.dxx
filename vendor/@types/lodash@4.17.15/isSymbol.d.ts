@@ -1,2 +1,2 @@
-import { isSymbol } from "./index";
+import { isSymbol } from "./index.d.ts";
 export = isSymbol;

@@ -1,5 +1,5 @@
-import _ = require("../index");
-declare module "../index" {
+import _ = require("../index.d.ts");
+declare module "../index.d.ts" {
     interface LoDashStatic {
         /**
          * Attempts to invoke func, returning either the result or the caught error object. Any additional arguments

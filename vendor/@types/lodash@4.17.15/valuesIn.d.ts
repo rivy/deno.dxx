@@ -1,2 +1,2 @@
-import { valuesIn } from "./index";
+import { valuesIn } from "./index.d.ts";
 export = valuesIn;

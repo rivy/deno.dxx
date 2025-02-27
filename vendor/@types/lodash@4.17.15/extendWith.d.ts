@@ -1,2 +1,2 @@
-import { extendWith } from "./index";
+import { extendWith } from "./index.d.ts";
 export = extendWith;

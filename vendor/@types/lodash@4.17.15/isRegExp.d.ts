@@ -1,2 +1,2 @@
-import { isRegExp } from "./index";
+import { isRegExp } from "./index.d.ts";
 export = isRegExp;

@@ -1,2 +1,2 @@
-import { isElement } from "./index";
+import { isElement } from "./index.d.ts";
 export = isElement;

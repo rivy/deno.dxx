@@ -1,2 +1,2 @@
-import { invertBy } from "./index";
+import { invertBy } from "./index.d.ts";
 export = invertBy;

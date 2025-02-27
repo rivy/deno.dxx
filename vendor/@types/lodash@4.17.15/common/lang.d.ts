@@ -1,7 +1,7 @@
-import _ = require("../index");
+import _ = require("../index.d.ts");
 // eslint-disable-next-line @definitelytyped/strict-export-declare-modifiers, @typescript-eslint/no-unsafe-function-type
 type GlobalFunction = Function;
-declare module "../index" {
+declare module "../index.d.ts" {
     type FunctionBase = GlobalFunction;
     interface LoDashStatic {
         /**

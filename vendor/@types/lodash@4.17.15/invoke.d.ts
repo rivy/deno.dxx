@@ -1,2 +1,2 @@
-import { invoke } from "./index";
+import { invoke } from "./index.d.ts";
 export = invoke;

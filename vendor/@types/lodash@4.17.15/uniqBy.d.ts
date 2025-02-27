@@ -1,2 +1,2 @@
-import { uniqBy } from "./index";
+import { uniqBy } from "./index.d.ts";
 export = uniqBy;
