@@ -1,2 +1,2 @@
-import { assignAllWith } from "../fp";
+import { assignAllWith } from "../fp.d.ts";
 export = assignAllWith;

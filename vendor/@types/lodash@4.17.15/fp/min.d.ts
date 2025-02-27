@@ -1,2 +1,2 @@
-import { min } from "../fp";
+import { min } from "../fp.d.ts";
 export = min;

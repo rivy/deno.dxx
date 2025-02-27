@@ -1,2 +1,2 @@
-import { padStart } from "../fp";
+import { padStart } from "../fp.d.ts";
 export = padStart;

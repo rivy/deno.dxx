@@ -1,2 +1,2 @@
-import { gte } from "../fp";
+import { gte } from "../fp.d.ts";
 export = gte;

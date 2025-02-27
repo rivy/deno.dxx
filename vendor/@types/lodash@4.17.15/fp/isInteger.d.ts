@@ -1,2 +1,2 @@
-import { isInteger } from "../fp";
+import { isInteger } from "../fp.d.ts";
 export = isInteger;

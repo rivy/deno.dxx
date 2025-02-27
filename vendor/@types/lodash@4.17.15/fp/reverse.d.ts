@@ -1,2 +1,2 @@
-import { reverse } from "../fp";
+import { reverse } from "../fp.d.ts";
 export = reverse;

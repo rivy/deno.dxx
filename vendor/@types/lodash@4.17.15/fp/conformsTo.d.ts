@@ -1,2 +1,2 @@
-import { conformsTo } from "../fp";
+import { conformsTo } from "../fp.d.ts";
 export = conformsTo;

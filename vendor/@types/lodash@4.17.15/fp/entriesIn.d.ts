@@ -1,2 +1,2 @@
-import { entriesIn } from "../fp";
+import { entriesIn } from "../fp.d.ts";
 export = entriesIn;

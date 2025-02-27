@@ -1,2 +1,2 @@
-import { noConflict } from "../fp";
+import { noConflict } from "../fp.d.ts";
 export = noConflict;

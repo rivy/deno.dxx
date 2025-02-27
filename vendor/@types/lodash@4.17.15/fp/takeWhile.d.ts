@@ -1,2 +1,2 @@
-import { takeWhile } from "../fp";
+import { takeWhile } from "../fp.d.ts";
 export = takeWhile;

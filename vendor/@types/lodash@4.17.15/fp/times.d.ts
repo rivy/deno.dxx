@@ -1,2 +1,2 @@
-import { times } from "../fp";
+import { times } from "../fp.d.ts";
 export = times;

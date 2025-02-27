@@ -1,2 +1,2 @@
-import { pick } from "../fp";
+import { pick } from "../fp.d.ts";
 export = pick;

@@ -1,2 +1,2 @@
-import { wrap } from "../fp";
+import { wrap } from "../fp.d.ts";
 export = wrap;

@@ -1,2 +1,2 @@
-import { cloneDeepWith } from "../fp";
+import { cloneDeepWith } from "../fp.d.ts";
 export = cloneDeepWith;

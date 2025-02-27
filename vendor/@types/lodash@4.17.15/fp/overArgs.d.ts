@@ -1,2 +1,2 @@
-import { overArgs } from "../fp";
+import { overArgs } from "../fp.d.ts";
 export = overArgs;

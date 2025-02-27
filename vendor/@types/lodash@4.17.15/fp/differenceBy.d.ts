@@ -1,2 +1,2 @@
-import { differenceBy } from "../fp";
+import { differenceBy } from "../fp.d.ts";
 export = differenceBy;

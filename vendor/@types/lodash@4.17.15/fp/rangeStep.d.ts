@@ -1,2 +1,2 @@
-import { rangeStep } from "../fp";
+import { rangeStep } from "../fp.d.ts";
 export = rangeStep;

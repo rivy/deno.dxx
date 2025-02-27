@@ -1,2 +1,2 @@
-import { intersection } from "../fp";
+import { intersection } from "../fp.d.ts";
 export = intersection;

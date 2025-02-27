@@ -1,2 +1,2 @@
-import { remove } from "../fp";
+import { remove } from "../fp.d.ts";
 export = remove;

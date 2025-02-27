@@ -1,2 +1,2 @@
-import { isMatchWith } from "../fp";
+import { isMatchWith } from "../fp.d.ts";
 export = isMatchWith;

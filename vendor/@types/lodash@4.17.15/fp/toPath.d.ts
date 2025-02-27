@@ -1,2 +1,2 @@
-import { toPath } from "../fp";
+import { toPath } from "../fp.d.ts";
 export = toPath;

@@ -1,2 +1,2 @@
-import { without } from "../fp";
+import { without } from "../fp.d.ts";
 export = without;

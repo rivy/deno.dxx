@@ -1,2 +1,2 @@
-import { compose } from "../fp";
+import { compose } from "../fp.d.ts";
 export = compose;

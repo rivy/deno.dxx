@@ -1,2 +1,2 @@
-import { pullAll } from "../fp";
+import { pullAll } from "../fp.d.ts";
 export = pullAll;

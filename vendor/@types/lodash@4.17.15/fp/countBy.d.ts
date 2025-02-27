@@ -1,2 +1,2 @@
-import { countBy } from "../fp";
+import { countBy } from "../fp.d.ts";
 export = countBy;

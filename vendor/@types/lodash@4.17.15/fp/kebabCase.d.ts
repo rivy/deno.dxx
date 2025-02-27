@@ -1,2 +1,2 @@
-import { kebabCase } from "../fp";
+import { kebabCase } from "../fp.d.ts";
 export = kebabCase;
