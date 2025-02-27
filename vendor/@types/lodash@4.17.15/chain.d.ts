@@ -1,2 +1,2 @@
-import { chain } from "./index";
+import { chain } from "./index.d.ts";
 export = chain;

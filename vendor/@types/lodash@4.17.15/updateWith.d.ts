@@ -1,2 +1,2 @@
-import { updateWith } from "./index";
+import { updateWith } from "./index.d.ts";
 export = updateWith;

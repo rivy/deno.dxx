@@ -1,2 +1,2 @@
-import { isTypedArray } from "./index";
+import { isTypedArray } from "./index.d.ts";
 export = isTypedArray;

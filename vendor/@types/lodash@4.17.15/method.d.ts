@@ -1,2 +1,2 @@
-import { method } from "./index";
+import { method } from "./index.d.ts";
 export = method;

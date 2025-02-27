@@ -1,2 +1,2 @@
-import { unset } from "./index";
+import { unset } from "./index.d.ts";
 export = unset;

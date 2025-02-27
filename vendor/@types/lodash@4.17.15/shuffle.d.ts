@@ -1,2 +1,2 @@
-import { shuffle } from "./index";
+import { shuffle } from "./index.d.ts";
 export = shuffle;

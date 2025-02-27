@@ -2,7 +2,7 @@
 // If you need to make changes, modify generate-fp.ts (if necessary), then open a terminal in types/lodash/scripts, and do:
 // npm install && npm run generate
 
-import lodash = require("./index");
+import lodash = require("./index.d.ts");
 
 export = _;
 

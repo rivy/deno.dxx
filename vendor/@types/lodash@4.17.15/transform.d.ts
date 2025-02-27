@@ -1,2 +1,2 @@
-import { transform } from "./index";
+import { transform } from "./index.d.ts";
 export = transform;

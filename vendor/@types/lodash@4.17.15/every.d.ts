@@ -1,2 +1,2 @@
-import { every } from "./index";
+import { every } from "./index.d.ts";
 export = every;

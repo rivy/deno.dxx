@@ -1,2 +1,2 @@
-import { unzip } from "./index";
+import { unzip } from "./index.d.ts";
 export = unzip;

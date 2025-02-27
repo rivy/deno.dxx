@@ -1,2 +1,2 @@
-import { uniqueId } from "./index";
+import { uniqueId } from "./index.d.ts";
 export = uniqueId;

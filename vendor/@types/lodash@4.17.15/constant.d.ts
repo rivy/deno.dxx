@@ -1,2 +1,2 @@
-import { constant } from "./index";
+import { constant } from "./index.d.ts";
 export = constant;

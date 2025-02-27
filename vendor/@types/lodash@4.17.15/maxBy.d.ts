@@ -1,2 +1,2 @@
-import { maxBy } from "./index";
+import { maxBy } from "./index.d.ts";
 export = maxBy;

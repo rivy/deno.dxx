@@ -1,6 +1,6 @@
-import _ = require("../index");
+import _ = require("../index.d.ts");
 import { uniqueSymbol } from "./common";
-declare module "../index" {
+declare module "../index.d.ts" {
     interface LoDashStatic {
         /**
          * Assigns own enumerable properties of source objects to the destination

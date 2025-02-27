@@ -1,2 +1,2 @@
-import { set } from "./index";
+import { set } from "./index.d.ts";
 export = set;

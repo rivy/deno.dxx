@@ -1,2 +1,2 @@
-import { eachRight } from "./index";
+import { eachRight } from "./index.d.ts";
 export = eachRight;

@@ -1,2 +1,2 @@
-import { sum } from "./index";
+import { sum } from "./index.d.ts";
 export = sum;

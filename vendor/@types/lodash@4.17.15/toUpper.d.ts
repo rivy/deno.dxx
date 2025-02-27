@@ -1,2 +1,2 @@
-import { toUpper } from "./index";
+import { toUpper } from "./index.d.ts";
 export = toUpper;

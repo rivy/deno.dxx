@@ -1,2 +1,2 @@
-import { functionsIn } from "./index";
+import { functionsIn } from "./index.d.ts";
 export = functionsIn;

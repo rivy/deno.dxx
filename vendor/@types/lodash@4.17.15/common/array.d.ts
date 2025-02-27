@@ -1,5 +1,5 @@
-import _ = require("../index");
-declare module "../index" {
+import _ = require("../index.d.ts");
+declare module "../index.d.ts" {
     interface LoDashStatic {
         /**
          * Creates an array of elements split into groups the length of size. If collection can’t be split evenly, the

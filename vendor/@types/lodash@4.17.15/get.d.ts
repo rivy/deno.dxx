@@ -1,2 +1,2 @@
-import { get } from "./index";
+import { get } from "./index.d.ts";
 export = get;

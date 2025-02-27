@@ -1,2 +1,2 @@
-import { join } from "./index";
+import { join } from "./index.d.ts";
 export = join;

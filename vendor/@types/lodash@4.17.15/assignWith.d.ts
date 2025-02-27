@@ -1,2 +1,2 @@
-import { assignWith } from "./index";
+import { assignWith } from "./index.d.ts";
 export = assignWith;

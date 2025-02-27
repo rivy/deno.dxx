@@ -1,2 +1,2 @@
-import { ceil } from "./index";
+import { ceil } from "./index.d.ts";
 export = ceil;

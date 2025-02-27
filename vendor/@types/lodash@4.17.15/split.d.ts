@@ -1,2 +1,2 @@
-import { split } from "./index";
+import { split } from "./index.d.ts";
 export = split;

@@ -1,2 +1,2 @@
-import { toPairs } from "./index";
+import { toPairs } from "./index.d.ts";
 export = toPairs;

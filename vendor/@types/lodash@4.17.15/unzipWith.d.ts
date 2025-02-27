@@ -1,2 +1,2 @@
-import { unzipWith } from "./index";
+import { unzipWith } from "./index.d.ts";
 export = unzipWith;

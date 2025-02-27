@@ -1,2 +1,2 @@
-import { attempt } from "./index";
+import { attempt } from "./index.d.ts";
 export = attempt;

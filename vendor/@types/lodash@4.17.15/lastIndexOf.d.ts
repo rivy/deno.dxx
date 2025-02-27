@@ -1,2 +1,2 @@
-import { lastIndexOf } from "./index";
+import { lastIndexOf } from "./index.d.ts";
 export = lastIndexOf;
