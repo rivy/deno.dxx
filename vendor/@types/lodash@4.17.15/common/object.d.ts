@@ -1,5 +1,5 @@
 import _ = require("../index.d.ts");
-import { uniqueSymbol } from "./common";
+import { uniqueSymbol } from "./common.d.ts";
 declare module "../index.d.ts" {
     interface LoDashStatic {
         /**
