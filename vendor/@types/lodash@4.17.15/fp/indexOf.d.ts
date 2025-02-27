@@ -1,2 +1,2 @@
-import { indexOf } from "../fp";
+import { indexOf } from "../fp.d.ts";
 export = indexOf;

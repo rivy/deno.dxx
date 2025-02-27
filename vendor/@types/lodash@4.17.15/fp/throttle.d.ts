@@ -1,2 +1,2 @@
-import { throttle } from "../fp";
+import { throttle } from "../fp.d.ts";
 export = throttle;

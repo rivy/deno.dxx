@@ -1,2 +1,2 @@
-import { dissocPath } from "../fp";
+import { dissocPath } from "../fp.d.ts";
 export = dissocPath;

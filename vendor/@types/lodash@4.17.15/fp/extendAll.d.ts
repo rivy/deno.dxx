@@ -1,2 +1,2 @@
-import { extendAll } from "../fp";
+import { extendAll } from "../fp.d.ts";
 export = extendAll;

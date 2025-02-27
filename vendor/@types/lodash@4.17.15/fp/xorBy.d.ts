@@ -1,2 +1,2 @@
-import { xorBy } from "../fp";
+import { xorBy } from "../fp.d.ts";
 export = xorBy;

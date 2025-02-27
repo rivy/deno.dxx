@@ -1,2 +1,2 @@
-import { words } from "../fp";
+import { words } from "../fp.d.ts";
 export = words;

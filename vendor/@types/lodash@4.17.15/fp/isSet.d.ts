@@ -1,2 +1,2 @@
-import { isSet } from "../fp";
+import { isSet } from "../fp.d.ts";
 export = isSet;

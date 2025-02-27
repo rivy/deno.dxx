@@ -1,2 +1,2 @@
-import { unionBy } from "../fp";
+import { unionBy } from "../fp.d.ts";
 export = unionBy;

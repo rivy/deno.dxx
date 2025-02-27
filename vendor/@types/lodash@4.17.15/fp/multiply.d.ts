@@ -1,2 +1,2 @@
-import { multiply } from "../fp";
+import { multiply } from "../fp.d.ts";
 export = multiply;

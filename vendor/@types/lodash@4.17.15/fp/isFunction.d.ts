@@ -1,2 +1,2 @@
-import { isFunction } from "../fp";
+import { isFunction } from "../fp.d.ts";
 export = isFunction;

@@ -1,2 +1,2 @@
-import { pathEq } from "../fp";
+import { pathEq } from "../fp.d.ts";
 export = pathEq;

@@ -1,2 +1,2 @@
-import { stubArray } from "../fp";
+import { stubArray } from "../fp.d.ts";
 export = stubArray;

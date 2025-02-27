@@ -1,2 +1,2 @@
-import { property } from "../fp";
+import { property } from "../fp.d.ts";
 export = property;

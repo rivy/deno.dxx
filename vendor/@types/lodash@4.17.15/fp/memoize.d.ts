@@ -1,2 +1,2 @@
-import { memoize } from "../fp";
+import { memoize } from "../fp.d.ts";
 export = memoize;

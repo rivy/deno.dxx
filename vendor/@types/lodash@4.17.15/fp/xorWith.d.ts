@@ -1,2 +1,2 @@
-import { xorWith } from "../fp";
+import { xorWith } from "../fp.d.ts";
 export = xorWith;

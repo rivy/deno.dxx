@@ -1,2 +1,2 @@
-import { forEach } from "../fp";
+import { forEach } from "../fp.d.ts";
 export = forEach;

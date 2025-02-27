@@ -1,2 +1,2 @@
-import { truncate } from "../fp";
+import { truncate } from "../fp.d.ts";
 export = truncate;

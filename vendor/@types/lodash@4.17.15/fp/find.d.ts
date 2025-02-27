@@ -1,2 +1,2 @@
-import { find } from "../fp";
+import { find } from "../fp.d.ts";
 export = find;

@@ -1,2 +1,2 @@
-import { isArrayLikeObject } from "../fp";
+import { isArrayLikeObject } from "../fp.d.ts";
 export = isArrayLikeObject;

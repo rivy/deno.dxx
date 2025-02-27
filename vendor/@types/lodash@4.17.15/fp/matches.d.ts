@@ -1,2 +1,2 @@
-import { matches } from "../fp";
+import { matches } from "../fp.d.ts";
 export = matches;

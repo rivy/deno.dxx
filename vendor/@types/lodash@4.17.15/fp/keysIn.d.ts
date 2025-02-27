@@ -1,2 +1,2 @@
-import { keysIn } from "../fp";
+import { keysIn } from "../fp.d.ts";
 export = keysIn;
