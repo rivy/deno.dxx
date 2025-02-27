@@ -1,2 +1,2 @@
-import { pluck } from "../fp";
+import { pluck } from "../fp.d.ts";
 export = pluck;

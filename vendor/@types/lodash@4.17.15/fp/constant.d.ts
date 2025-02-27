@@ -1,2 +1,2 @@
-import { constant } from "../fp";
+import { constant } from "../fp.d.ts";
 export = constant;

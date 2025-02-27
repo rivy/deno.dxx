@@ -1,2 +1,2 @@
-import { forInRight } from "../fp";
+import { forInRight } from "../fp.d.ts";
 export = forInRight;

@@ -1,2 +1,2 @@
-import { toPlainObject } from "../fp";
+import { toPlainObject } from "../fp.d.ts";
 export = toPlainObject;

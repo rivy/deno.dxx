@@ -1,2 +1,2 @@
-import { transform } from "../fp";
+import { transform } from "../fp.d.ts";
 export = transform;

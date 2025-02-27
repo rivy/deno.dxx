@@ -1,2 +1,2 @@
-import { eq } from "../fp";
+import { eq } from "../fp.d.ts";
 export = eq;

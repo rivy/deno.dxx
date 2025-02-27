@@ -1,2 +1,2 @@
-import { groupBy } from "../fp";
+import { groupBy } from "../fp.d.ts";
 export = groupBy;

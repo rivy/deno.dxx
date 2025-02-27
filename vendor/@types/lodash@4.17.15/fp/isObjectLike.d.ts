@@ -1,2 +1,2 @@
-import { isObjectLike } from "../fp";
+import { isObjectLike } from "../fp.d.ts";
 export = isObjectLike;

@@ -1,2 +1,2 @@
-import { rearg } from "../fp";
+import { rearg } from "../fp.d.ts";
 export = rearg;

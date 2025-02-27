@@ -1,2 +1,2 @@
-import { fromPairs } from "../fp";
+import { fromPairs } from "../fp.d.ts";
 export = fromPairs;

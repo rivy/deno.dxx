@@ -1,2 +1,2 @@
-import { cloneDeep } from "../fp";
+import { cloneDeep } from "../fp.d.ts";
 export = cloneDeep;

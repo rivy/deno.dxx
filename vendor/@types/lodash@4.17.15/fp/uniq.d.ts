@@ -1,2 +1,2 @@
-import { uniq } from "../fp";
+import { uniq } from "../fp.d.ts";
 export = uniq;

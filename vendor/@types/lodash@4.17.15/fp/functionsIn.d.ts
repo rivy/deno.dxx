@@ -1,2 +1,2 @@
-import { functionsIn } from "../fp";
+import { functionsIn } from "../fp.d.ts";
 export = functionsIn;

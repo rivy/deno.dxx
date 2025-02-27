@@ -1,2 +1,2 @@
-import { stubObject } from "../fp";
+import { stubObject } from "../fp.d.ts";
 export = stubObject;

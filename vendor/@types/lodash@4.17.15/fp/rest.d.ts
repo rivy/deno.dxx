@@ -1,2 +1,2 @@
-import { rest } from "../fp";
+import { rest } from "../fp.d.ts";
 export = rest;

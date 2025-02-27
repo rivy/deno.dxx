@@ -1,2 +1,2 @@
-import { omitAll } from "../fp";
+import { omitAll } from "../fp.d.ts";
 export = omitAll;

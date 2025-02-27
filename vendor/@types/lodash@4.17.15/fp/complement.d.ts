@@ -1,2 +1,2 @@
-import { complement } from "../fp";
+import { complement } from "../fp.d.ts";
 export = complement;

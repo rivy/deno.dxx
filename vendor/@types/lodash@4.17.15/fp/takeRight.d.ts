@@ -1,2 +1,2 @@
-import { takeRight } from "../fp";
+import { takeRight } from "../fp.d.ts";
 export = takeRight;

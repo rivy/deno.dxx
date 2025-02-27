@@ -1,2 +1,2 @@
-import { initial } from "../fp";
+import { initial } from "../fp.d.ts";
 export = initial;

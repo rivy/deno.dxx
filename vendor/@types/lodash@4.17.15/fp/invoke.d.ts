@@ -1,2 +1,2 @@
-import { invoke } from "../fp";
+import { invoke } from "../fp.d.ts";
 export = invoke;

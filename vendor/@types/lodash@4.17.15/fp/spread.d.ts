@@ -1,2 +1,2 @@
-import { spread } from "../fp";
+import { spread } from "../fp.d.ts";
 export = spread;

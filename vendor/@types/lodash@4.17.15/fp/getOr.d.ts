@@ -1,2 +1,2 @@
-import { getOr } from "../fp";
+import { getOr } from "../fp.d.ts";
 export = getOr;

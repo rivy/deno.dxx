@@ -1,2 +1,2 @@
-import { propOr } from "../fp";
+import { propOr } from "../fp.d.ts";
 export = propOr;

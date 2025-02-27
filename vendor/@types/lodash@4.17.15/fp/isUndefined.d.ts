@@ -1,2 +1,2 @@
-import { isUndefined } from "../fp";
+import { isUndefined } from "../fp.d.ts";
 export = isUndefined;

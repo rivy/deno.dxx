@@ -1,2 +1,2 @@
-import { isLength } from "../fp";
+import { isLength } from "../fp.d.ts";
 export = isLength;

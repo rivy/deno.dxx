@@ -1,2 +1,2 @@
-import { clamp } from "../fp";
+import { clamp } from "../fp.d.ts";
 export = clamp;

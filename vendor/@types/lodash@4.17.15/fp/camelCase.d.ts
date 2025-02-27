@@ -1,2 +1,2 @@
-import { camelCase } from "../fp";
+import { camelCase } from "../fp.d.ts";
 export = camelCase;

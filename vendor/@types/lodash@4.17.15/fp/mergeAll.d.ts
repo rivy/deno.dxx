@@ -1,2 +1,2 @@
-import { mergeAll } from "../fp";
+import { mergeAll } from "../fp.d.ts";
 export = mergeAll;

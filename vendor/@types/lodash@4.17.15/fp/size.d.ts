@@ -1,2 +1,2 @@
-import { size } from "../fp";
+import { size } from "../fp.d.ts";
 export = size;

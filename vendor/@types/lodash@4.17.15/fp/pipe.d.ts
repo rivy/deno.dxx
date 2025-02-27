@@ -1,2 +1,2 @@
-import { pipe } from "../fp";
+import { pipe } from "../fp.d.ts";
 export = pipe;

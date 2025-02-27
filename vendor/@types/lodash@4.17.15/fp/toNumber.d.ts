@@ -1,2 +1,2 @@
-import { toNumber } from "../fp";
+import { toNumber } from "../fp.d.ts";
 export = toNumber;

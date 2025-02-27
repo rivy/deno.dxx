@@ -1,2 +1,2 @@
-import { range } from "../fp";
+import { range } from "../fp.d.ts";
 export = range;

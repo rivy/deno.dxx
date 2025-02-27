@@ -1,2 +1,2 @@
-import { matchesProperty } from "../fp";
+import { matchesProperty } from "../fp.d.ts";
 export = matchesProperty;

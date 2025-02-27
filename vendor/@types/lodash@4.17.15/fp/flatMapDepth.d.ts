@@ -1,2 +1,2 @@
-import { flatMapDepth } from "../fp";
+import { flatMapDepth } from "../fp.d.ts";
 export = flatMapDepth;

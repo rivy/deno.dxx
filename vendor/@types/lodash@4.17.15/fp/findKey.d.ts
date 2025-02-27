@@ -1,2 +1,2 @@
-import { findKey } from "../fp";
+import { findKey } from "../fp.d.ts";
 export = findKey;

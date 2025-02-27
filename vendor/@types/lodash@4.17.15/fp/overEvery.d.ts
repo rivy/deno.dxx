@@ -1,2 +1,2 @@
-import { overEvery } from "../fp";
+import { overEvery } from "../fp.d.ts";
 export = overEvery;

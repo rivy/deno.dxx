@@ -1,2 +1,2 @@
-import { indexBy } from "../fp";
+import { indexBy } from "../fp.d.ts";
 export = indexBy;

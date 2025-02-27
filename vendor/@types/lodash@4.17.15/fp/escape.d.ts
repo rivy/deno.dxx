@@ -1,2 +1,2 @@
-import { escape } from "../fp";
+import { escape } from "../fp.d.ts";
 export = escape;

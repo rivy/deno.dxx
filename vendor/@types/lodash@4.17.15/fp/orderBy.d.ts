@@ -1,2 +1,2 @@
-import { orderBy } from "../fp";
+import { orderBy } from "../fp.d.ts";
 export = orderBy;

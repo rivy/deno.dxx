@@ -1,2 +1,2 @@
-import { union } from "../fp";
+import { union } from "../fp.d.ts";
 export = union;

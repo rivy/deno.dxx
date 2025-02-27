@@ -1,2 +1,2 @@
-import { mapKeys } from "../fp";
+import { mapKeys } from "../fp.d.ts";
 export = mapKeys;

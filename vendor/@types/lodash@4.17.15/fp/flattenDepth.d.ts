@@ -1,2 +1,2 @@
-import { flattenDepth } from "../fp";
+import { flattenDepth } from "../fp.d.ts";
 export = flattenDepth;

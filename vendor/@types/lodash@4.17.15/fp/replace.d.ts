@@ -1,2 +1,2 @@
-import { replace } from "../fp";
+import { replace } from "../fp.d.ts";
 export = replace;

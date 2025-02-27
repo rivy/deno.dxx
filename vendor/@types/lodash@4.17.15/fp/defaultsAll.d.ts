@@ -1,2 +1,2 @@
-import { defaultsAll } from "../fp";
+import { defaultsAll } from "../fp.d.ts";
 export = defaultsAll;

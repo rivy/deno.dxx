@@ -1,2 +1,2 @@
-import { isMap } from "../fp";
+import { isMap } from "../fp.d.ts";
 export = isMap;

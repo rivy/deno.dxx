@@ -1,2 +1,2 @@
-import { assignAll } from "../fp";
+import { assignAll } from "../fp.d.ts";
 export = assignAll;
