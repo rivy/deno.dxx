@@ -1,2 +1,2 @@
-import { forEach } from "./index";
+import { forEach } from "./index.d.ts";
 export = forEach;

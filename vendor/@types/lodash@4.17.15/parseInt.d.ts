@@ -1,2 +1,2 @@
-import { parseInt } from "./index";
+import { parseInt } from "./index.d.ts";
 export = parseInt;

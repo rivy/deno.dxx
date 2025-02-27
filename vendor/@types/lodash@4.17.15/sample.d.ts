@@ -1,2 +1,2 @@
-import { sample } from "./index";
+import { sample } from "./index.d.ts";
 export = sample;

@@ -1,2 +1,2 @@
-import { toArray } from "./index";
+import { toArray } from "./index.d.ts";
 export = toArray;

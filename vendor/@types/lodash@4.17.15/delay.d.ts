@@ -1,2 +1,2 @@
-import { delay } from "./index";
+import { delay } from "./index.d.ts";
 export = delay;

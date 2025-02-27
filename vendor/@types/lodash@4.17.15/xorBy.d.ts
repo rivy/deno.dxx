@@ -1,2 +1,2 @@
-import { xorBy } from "./index";
+import { xorBy } from "./index.d.ts";
 export = xorBy;

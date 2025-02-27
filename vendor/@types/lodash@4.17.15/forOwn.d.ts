@@ -1,2 +1,2 @@
-import { forOwn } from "./index";
+import { forOwn } from "./index.d.ts";
 export = forOwn;

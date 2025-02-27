@@ -1,2 +1,2 @@
-import { isObject } from "./index";
+import { isObject } from "./index.d.ts";
 export = isObject;

@@ -1,2 +1,2 @@
-import { unary } from "./index";
+import { unary } from "./index.d.ts";
 export = unary;

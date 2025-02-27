@@ -1,2 +1,2 @@
-import { keys } from "./index";
+import { keys } from "./index.d.ts";
 export = keys;

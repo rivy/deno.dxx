@@ -1,2 +1,2 @@
-import { lowerFirst } from "./index";
+import { lowerFirst } from "./index.d.ts";
 export = lowerFirst;

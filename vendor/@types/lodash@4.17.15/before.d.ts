@@ -1,2 +1,2 @@
-import { before } from "./index";
+import { before } from "./index.d.ts";
 export = before;

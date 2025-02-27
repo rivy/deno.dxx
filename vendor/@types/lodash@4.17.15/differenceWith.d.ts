@@ -1,2 +1,2 @@
-import { differenceWith } from "./index";
+import { differenceWith } from "./index.d.ts";
 export = differenceWith;

@@ -1,2 +1,2 @@
-import { isBoolean } from "./index";
+import { isBoolean } from "./index.d.ts";
 export = isBoolean;

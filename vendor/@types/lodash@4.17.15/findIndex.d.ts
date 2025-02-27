@@ -1,2 +1,2 @@
-import { findIndex } from "./index";
+import { findIndex } from "./index.d.ts";
 export = findIndex;

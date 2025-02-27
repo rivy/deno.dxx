@@ -1,2 +1,2 @@
-import { camelCase } from "./index";
+import { camelCase } from "./index.d.ts";
 export = camelCase;
