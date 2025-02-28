@@ -58,8 +58,9 @@ export { expand as braceExpand } from './xBraces.ts';
 // import type PicomatchT from 'https://esm.sh/v135/@types/picomatch@2.2.1';
 // import type PicomatchT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/picomatch/index.d.ts';
 import type PicomatchT from '../../vendor/@types/picomatch@2.2.2/index.d.ts';
-import PicomatchM from 'https://esm.sh/v135/picomatch@2.2.1?deno-std=0.134.0&no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
-const Picomatch = PicomatchM as typeof PicomatchT;
+// import PicomatchM from 'https://esm.sh/v135/picomatch@2.2.1?deno-std=0.134.0&no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'picomatch'
+import PicomatchM from 'https://cdn.jsdelivr.net/npm/picomatch@2.2.1/+esm';
+export const Picomatch = PicomatchM as typeof PicomatchT;
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&dev';
 // import Micromatch from 'https://esm.sh/v135/micromatch@4.0.2?deno-std=0.134.0&dev';

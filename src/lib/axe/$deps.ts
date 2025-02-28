@@ -28,8 +28,10 @@ export { default as PQueue } from 'https://deno.land/x/p_queue@1.0.1/mod.ts'; //
 // spell-checker:ignore (names) DeepMerge
 // spell-checker:ignore (people) * balupton
 
-import { default as DeepMergeM } from 'https://esm.sh/v135/deepmerge@4.3.1?no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
-import type DeepMergeT from '../../../vendor/@types/deepmerge@4.3.1/index.d.ts'; // use locally vendored (and modified) types
+// import { default as DeepMergeM } from 'https://esm.sh/v135/deepmerge@4.3.1?no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
+import { default as DeepMergeM } from 'https://cdn.jsdelivr.net/npm/deepmerge@4.3.1/+esm'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
+// import type DeepMergeT from '../../../vendor/@types/deepmerge@4.3.1/index.d.ts'; // use locally vendored (and modified) types
+import type DeepMergeT from 'https://cdn.jsdelivr.net/npm/deepmerge@4.3.1/index.d.ts'; // use locally vendored (and modified) types
 // import type * as DeepMergeT from 'https://esm.sh/v135/deepmerge@4.3.1/index.d.ts'; // directly use type info file
 const deepMerge = DeepMergeM as typeof DeepMergeT;
 export { deepMerge };
@@ -38,10 +40,22 @@ export * as $symbols from '../xWait/log_symbols.ts';
 
 export { format } from './format.ts';
 
-export { default as getCurrentLine } from 'https://esm.sh/v135/get-current-line@6.6.0';
-export { default as rfcGetLogLevel } from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
-export * as $levels from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+// export { default as getCurrentLine } from 'https://esm.sh/v135/get-current-line@6.6.0';
+export { default as getCurrentLine } from 'https://cdn.jsdelivr.net/npm/get-current-line@7.4.0/edition-deno/index.ts';
+// export { default as rfcGetLogLevel } from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+// export * as $levels from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+export { default as rfcGetLogLevel } from 'https://cdn.jsdelivr.net/npm/rfc-log-levels@4.3.0/edition-deno/index.ts';
+export * as $levels from 'https://cdn.jsdelivr.net/npm/rfc-log-levels@4.3.0/edition-deno/index.ts';
 
-export type { Location, Offset } from 'https://esm.sh/v135/get-current-line@6.6.0';
-export type { LevelInfo, LevelsMap as LevelMap } from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+// export type { Location, Offset } from 'https://esm.sh/v135/get-current-line@6.6.0';
+export type {
+	Location,
+	Offset,
+} from 'https://cdn.jsdelivr.net/npm/get-current-line@7.4.0/edition-deno/index.ts';
+// export type { LevelInfo, LevelsMap as LevelMap } from 'https://esm.sh/v135/rfc-log-levels@3.17.0';
+export type {
+	LevelInfo,
+	LevelsMap as LevelMap,
+} from 'https://cdn.jsdelivr.net/npm/rfc-log-levels@4.3.0/edition-deno/index.ts';
 export type { DeepReadonly } from 'https://esm.sh/v135/ts-essentials@9.4.2';
+// export type { DeepReadonly } from 'https://cdn.jsdelivr.net/npm/ts-essentials@10.0.4/dist/deep-readonly/index.d.ts/+esm';

@@ -29,7 +29,10 @@ export { default as $xdgAppPaths } from 'https://deno.land/x/xdg_app_paths@v8.2.
 // export { default as $lodash } from 'https://esm.sh/v135/lodash@4.17.20';
 // export { _ as $lodash } from 'https://esm.sh/v135/lodash@4.17.20';
 // export * as $lodash from 'https://deno.land/x/lodash@4.17.19/dist/lodash.js';
-export { default as $lodash } from 'npm:lodash@4.17.20'; // requires deno-v1.25.0+; recommend deno-v1.30.0+ for better results
+// export { default as $lodash } from 'npm:lodash@4.17.20'; // requires deno-v1.25.0+; recommend deno-v1.30.0+ for better results
+import { default as LodashM } from 'https://cdn.jsdelivr.net/npm/lodash-es@4.17.15/+esm';
+import { type LoDashStatic as LodashT } from '../../vendor/@types/lodash@4.17.15/index.d.ts'; // use locally vendored (and modified) types
+export const $lodash = LodashM as unknown as Omit<LodashT, 'noConflict' | 'runInContext'>; // JSDelivr ESM module is missing `noConflict` and `runInContext` methods
 
 // export { default as $yargs } from 'https://deno.land/x/yargs@v17.3.0-deno/deno.ts';
 
