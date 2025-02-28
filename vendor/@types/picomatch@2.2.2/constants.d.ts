@@ -126,7 +126,7 @@ declare const constants: {
 
     SEP: string;
 
-    extGlobChars(chars: { STAR: string }): Record<string, { type: string; open: string; close: string }>;
+    extglobChars(chars: { STAR: string }): Record<string, { type: string; open: string; close: string }>;
 
     globChars<T extends boolean>(win32: T): T extends true ? typeof WINDOWS_CHARS : typeof POSIX_CHARS;
 };
