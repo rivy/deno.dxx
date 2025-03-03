@@ -57,5 +57,6 @@ export type {
 	LevelInfo,
 	LevelsMap as LevelMap,
 } from 'https://cdn.jsdelivr.net/npm/rfc-log-levels@4.3.0/edition-deno/index.ts';
-export type { DeepReadonly } from 'https://esm.sh/v135/ts-essentials@9.4.2';
+// export type { DeepReadonly } from 'https://esm.sh/v135/ts-essentials@9.4.2';
+export type { DeepReadonly } from '../../../vendor/deno@1.44.4-vendor/esm.sh/v135/ts-essentials@9.4.2.js'; // from <https://esm.sh/v135/ts-essentials@9.4.2>
 // export type { DeepReadonly } from 'https://cdn.jsdelivr.net/npm/ts-essentials@10.0.4/dist/deep-readonly/index.d.ts/+esm';
