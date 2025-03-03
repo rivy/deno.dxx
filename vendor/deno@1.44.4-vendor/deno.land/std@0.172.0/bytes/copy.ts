@@ -1,6 +1,5 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /** Copy bytes from the `src` array to the `dst` array. Returns the number of
  * bytes copied.
  *
@@ -28,11 +27,11 @@
  * ```
  */
 export function copy(src: Uint8Array, dst: Uint8Array, off = 0): number {
-  off = Math.max(0, Math.min(off, dst.byteLength));
-  const dstBytesAvailable = dst.byteLength - off;
-  if (src.byteLength > dstBytesAvailable) {
-    src = src.subarray(0, dstBytesAvailable);
-  }
-  dst.set(src, off);
-  return src.byteLength;
+    off = Math.max(0, Math.min(off, dst.byteLength));
+    const dstBytesAvailable = dst.byteLength - off;
+    if (src.byteLength > dstBytesAvailable) {
+        src = src.subarray(0, dstBytesAvailable);
+    }
+    dst.set(src, off);
+    return src.byteLength;
 }

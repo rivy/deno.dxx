@@ -1,7 +1,5 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import type { Writer } from "../types.d.ts";
-
 /** Create a `Writer` from a `WritableStreamDefaultWriter`.
  *
  * @example
@@ -21,14 +19,12 @@ import type { Writer } from "../types.d.ts";
  * file.close();
  * ```
  */
-export function writerFromStreamWriter(
-  streamWriter: WritableStreamDefaultWriter<Uint8Array>,
-): Writer {
-  return {
-    async write(p: Uint8Array): Promise<number> {
-      await streamWriter.ready;
-      await streamWriter.write(p);
-      return p.length;
-    },
-  };
+export function writerFromStreamWriter(streamWriter: WritableStreamDefaultWriter<Uint8Array>): Writer {
+    return {
+        async write(p: Uint8Array): Promise<number> {
+            await streamWriter.ready;
+            await streamWriter.write(p);
+            return p.length;
+        },
+    };
 }

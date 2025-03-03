@@ -1,13 +1,11 @@
 // Copyright the Browserify authors. MIT License.
 // Ported from https://github.com/browserify/path-browserify/
 // This module is browser compatible.
-
 // Alphabet chars.
 export const CHAR_UPPERCASE_A = 65; /* A */
 export const CHAR_LOWERCASE_A = 97; /* a */
 export const CHAR_UPPERCASE_Z = 90; /* Z */
 export const CHAR_LOWERCASE_Z = 122; /* z */
-
 // Non-alphabetic chars.
 export const CHAR_DOT = 46; /* . */
 export const CHAR_FORWARD_SLASH = 47; /* / */
@@ -42,7 +40,6 @@ export const CHAR_GRAVE_ACCENT = 96; /* ` */
 export const CHAR_AT = 64; /* @ */
 export const CHAR_AMPERSAND = 38; /* & */
 export const CHAR_EQUAL = 61; /* = */
-
 // Digits
 export const CHAR_0 = 48; /* 0 */
 export const CHAR_9 = 57; /* 9 */

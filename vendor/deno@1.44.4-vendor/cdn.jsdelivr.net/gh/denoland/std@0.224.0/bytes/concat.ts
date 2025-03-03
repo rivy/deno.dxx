@@ -1,6 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /**
  * Concatenate an array of byte slices into a single slice.
  *
@@ -18,16 +17,15 @@
  * ```
  */
 export function concat(buffers: Uint8Array[]): Uint8Array {
-  let length = 0;
-  for (const buffer of buffers) {
-    length += buffer.length;
-  }
-  const output = new Uint8Array(length);
-  let index = 0;
-  for (const buffer of buffers) {
-    output.set(buffer, index);
-    index += buffer.length;
-  }
-
-  return output;
+    let length = 0;
+    for (const buffer of buffers) {
+        length += buffer.length;
+    }
+    const output = new Uint8Array(length);
+    let index = 0;
+    for (const buffer of buffers) {
+        output.set(buffer, index);
+        index += buffer.length;
+    }
+    return output;
 }

@@ -9,8 +9,6 @@ interface OSPaths {
     /** Returns the path string of the system's default directory for temporary files. */
     temp(): string;
 }
-
 declare const _: OSPaths;
-
 export default _;
 export { OSPaths };

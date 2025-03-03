@@ -50,7 +50,5 @@ interface XDGAppPaths {
     /** Default isolation mode used by the particular `XDGAppPaths` instance. */
     $isolated(): boolean;
 }
-
 declare const _: XDGAppPaths;
-
 export { DirOptions, Options, XDGAppPaths, _ as default };

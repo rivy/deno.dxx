@@ -1,9 +1,7 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { DEFAULT_BUFFER_SIZE } from "./_common.ts";
 import type { Reader, ReaderSync } from "../types.d.ts";
-
 /** Turns a Reader, `r`, into an async iterator.
  *
  * ```ts
@@ -32,24 +30,19 @@ import type { Reader, ReaderSync } from "../types.d.ts";
  * f.close();
  * ```
  */
-export async function* iterateReader(
-  r: Reader,
-  options?: {
+export async function* iterateReader(r: Reader, options?: {
     bufSize?: number;
-  },
-): AsyncIterableIterator<Uint8Array> {
-  const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
-  const b = new Uint8Array(bufSize);
-  while (true) {
-    const result = await r.read(b);
-    if (result === null) {
-      break;
+}): AsyncIterableIterator<Uint8Array> {
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
+    const b = new Uint8Array(bufSize);
+    while (true) {
+        const result = await r.read(b);
+        if (result === null) {
+            break;
+        }
+        yield b.slice(0, result);
     }
-
-    yield b.slice(0, result);
-  }
 }
-
 /** Turns a ReaderSync, `r`, into an iterator.
  *
  * ```ts
@@ -83,20 +76,16 @@ export async function* iterateReader(
  * responsibility to copy contents of the buffer if needed; otherwise the
  * next iteration will overwrite contents of previously returned chunk.
  */
-export function* iterateReaderSync(
-  r: ReaderSync,
-  options?: {
+export function* iterateReaderSync(r: ReaderSync, options?: {
     bufSize?: number;
-  },
-): IterableIterator<Uint8Array> {
-  const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
-  const b = new Uint8Array(bufSize);
-  while (true) {
-    const result = r.readSync(b);
-    if (result === null) {
-      break;
+}): IterableIterator<Uint8Array> {
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
+    const b = new Uint8Array(bufSize);
+    while (true) {
+        const result = r.readSync(b);
+        if (result === null) {
+            break;
+        }
+        yield b.slice(0, result);
     }
-
-    yield b.slice(0, result);
-  }
 }

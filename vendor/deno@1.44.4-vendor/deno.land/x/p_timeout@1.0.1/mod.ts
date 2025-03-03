@@ -1,27 +1,24 @@
 export class TimeoutError extends Error {
-    override readonly name: string
+    override readonly name: string;
     constructor(message?: string) {
-        super(message)
-        this.name = "TimeoutError"
+        super(message);
+        this.name = "TimeoutError";
     }
 }
-
 /**
 Custom implementations for the `setTimeout` and `clearTimeout` functions.
 Useful for testing purposes
 */
 export interface customTimerOptions {
-    setTimeout: typeof setTimeout
-    clearTimeout: typeof clearTimeout
+    setTimeout: typeof setTimeout;
+    clearTimeout: typeof clearTimeout;
 }
-
 export interface ClearablePromise<T> extends Promise<T> {
     /**
     Clear the timeout.
     */
-    clear: () => void
+    clear: () => void;
 }
-
 /**
 Timeout a promise after a specified amount of time.
 
@@ -48,64 +45,57 @@ await pTimeout({
 ```
 */
 export default function pTimeout<T>(options: {
-    promise: Promise<T>,
-    milliseconds: number,
-    fallbackFn?: () => Promise<T>,
-    failMessage?: string,
-    failError?: Error,
-    customTimers?: customTimerOptions
+    promise: Promise<T>;
+    milliseconds: number;
+    fallbackFn?: () => Promise<T>;
+    failMessage?: string;
+    failError?: Error;
+    customTimers?: customTimerOptions;
 }) {
-    let { promise, milliseconds, fallbackFn, failMessage, failError, customTimers } = options
-    let timer: number | undefined
+    let { promise, milliseconds, fallbackFn, failMessage, failError, customTimers } = options;
+    let timer: number | undefined;
     const cancelablePromise = new Promise((resolve, reject) => {
         if (milliseconds < 0) {
-            throw new TypeError('Expected `milliseconds` to be a positive number')
+            throw new TypeError('Expected `milliseconds` to be a positive number');
         }
-
         if (milliseconds === Infinity) {
-            resolve(promise)
-            return
+            resolve(promise);
+            return;
         }
-
         const timers = {
             ...{ setTimeout, clearTimeout },
             ...customTimers
-        }
-
+        };
         timer = timers.setTimeout.call(undefined, () => {
             if (fallbackFn) {
                 try {
-                    resolve(fallbackFn())
-                } catch (error) {
-                    reject(error)
+                    resolve(fallbackFn());
                 }
-
-                return
+                catch (error) {
+                    reject(error);
+                }
+                return;
             }
-
-            const message = failMessage ?? `Promise timed out after ${milliseconds} milliseconds`
-            const timeoutError = failError ?? new TimeoutError(message)
-
-            reject(timeoutError)
-        }, milliseconds)
-
+            const message = failMessage ?? `Promise timed out after ${milliseconds} milliseconds`;
+            const timeoutError = failError ?? new TimeoutError(message);
+            reject(timeoutError);
+        }, milliseconds);
         async function run() {
             try {
-                resolve(await promise)
-            } catch (error) {
-                reject(error)
-            } finally {
-                timers.clearTimeout.call(undefined, timer)
+                resolve(await promise);
+            }
+            catch (error) {
+                reject(error);
+            }
+            finally {
+                timers.clearTimeout.call(undefined, timer);
             }
         }
-
-        run()
-    }) as ClearablePromise<T>
-
+        run();
+    }) as ClearablePromise<T>;
     cancelablePromise.clear = () => {
-        clearTimeout(timer)
-        timer = undefined
-    }
-
-    return cancelablePromise
+        clearTimeout(timer);
+        timer = undefined;
+    };
+    return cancelablePromise;
 }
