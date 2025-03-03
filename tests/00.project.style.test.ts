@@ -74,7 +74,8 @@ const args = $args.argsSync;
 // esm.sh => `Invalid package name '-x-e34b1a4b-ab58-4d84-9787-309e53006932'`
 // import * as EditorConfig from 'https://esm.sh/v135/@rivy-labs/-x-e34b1a4b-ab58-4d84-9787-309e53006932@0.16.3?deno-std=0.134.0&pin=v90';
 // import * as EditorConfig from 'https://esm.sh/v135/editorconfig@0.15.3?deno-std=0.134.0';
-import * as EditorConfig from 'https://esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0';
+// import * as EditorConfig from 'https://esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0';
+import * as EditorConfig from '../vendor/deno@1.44.4-vendor/esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist.js';
 
 // const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
 
