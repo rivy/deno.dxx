@@ -1,4 +1,4 @@
-// spell-checker:ignore (names) Deno
+// spell-checker:ignore (names) Deno (vendor) denonext
 
 // !note: deno v1.23.0 has a regression which causes TS2306 errors for chai/sinon imports
 //    ... ref: [🐛TS2306 "not a module" errors](https://github.com/denoland/deno/issues/14937)
@@ -8,7 +8,21 @@
 // import { writeAllSync } from 'https://deno.land/std@0.93.0/io/mod.ts';
 
 // import Schema, { array, number, string, unknown } from 'esm.sh/v45/computed-types@1.6.0';
-import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
+// import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
+import { string, unknown } from '../vendor/deno@1.44.4-vendor/esm.sh/v45/computed-types@1.6.0.js';
+// import {
+// 	string,
+// 	unknown,
+// } from '../vendor/deno@1.44.4-vendor/esm.sh/v45/computed-types@1.6.0/denonext/computed-types.mjs';
+// import {
+// 	string,
+// 	unknown,
+// } from 'https://cdn.jsdelivr.net/npm/computed-types@1.6.0/+esm/lib/index.d.ts';
+// import type { string, unknown } from 'https://cdn./computed-types@1.6.0/lib/index.d.ts';
+// import {
+// 	string,
+// 	unknown,
+// } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/computed-types@1.6.0';
 // import type { SchemaValidatorFunction, SchemaReturnType } from 'esm.sh/v45/computed-types@1.6.0';
 // import type { ValidatorProxy as _ } from 'https://esm.sh/v45/computed-types@1.6.0/lib/Validator.d.ts';
 
@@ -20,8 +34,24 @@ import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
 // // import mocha from 'https://unpkg.com/mocha@7.2.0/mocha.js';
 // import { z } from 'https://cdn.skypack.dev/zod@3.9.8?dts';
 
-import chai from 'https://esm.sh/v135/chai@4.3.4';
-import { z } from 'https://esm.sh/v135/zod@3.9.8';
+// import chai from 'https://esm.sh/v135/chai@4.3.4';
+// import chai from 'https://esm.sh/chai@4.5.0';
+import chai from '../vendor/deno@1.44.4-vendor/esm.sh/v135/chai@4.3.4.js';
+// import { z } from 'https://esm.sh/v135/zod@3.9.8';
+import { z } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8.js';
+// import { zM } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/zod@3.24.2/+esm';
+// import type { default as zT } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/zod@3.24.2/lib/index.d.ts';
+// const z = zM as typeof zT;
+// import { z } from 'npm:zod';
+// import { default as chaiM } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/chai@4.3.4.js';
+// import { default as chaiT } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/@types/chai@4.3.20/index.d.ts';
+// const chai = chaiM as unknown as typeof chaiT;
+// const z = zM as unknown as typeof zT;
+// import { z as zM } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8/denonext/zod.mjs';
+// import { default as zT } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8/lib/index.d.ts';
+// const z = zM as unknown as typeof zT;
+
+// import $chai from 'https://cdn.jsdelivr.net/npm/chai@4.3.4/+esm';
 
 import { test } from './$shared.ts';
 
