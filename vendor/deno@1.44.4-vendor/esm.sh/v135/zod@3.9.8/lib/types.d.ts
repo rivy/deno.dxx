@@ -73,7 +73,10 @@ export declare abstract class ZodType<Output, Def extends ZodTypeDef = ZodTypeDe
     nullish(): ZodNullable<ZodOptional<this>>;
     array(): ZodArray<this>;
     promise(): ZodPromise<this>;
-    or<T extends ZodTypeAny>(option: T): ZodUnion<[this, T]>;
+    or<T extends ZodTypeAny>(option: T): ZodUnion<[
+        this,
+        T
+    ]>;
     and<T extends ZodTypeAny>(incoming: T): ZodIntersection<this, T>;
     transform<NewOut>(transform: (arg: Output) => NewOut | Promise<NewOut>): ZodEffects<this, NewOut>;
     default(def: util.noUndefined<Input>): ZodDefault<this>;
@@ -258,8 +261,14 @@ export interface ZodArrayDef<T extends ZodTypeAny = ZodTypeAny> extends ZodTypeD
     } | null;
 }
 export declare type ArrayCardinality = "many" | "atleastone";
-declare type arrayOutputType<T extends ZodTypeAny, Cardinality extends ArrayCardinality = "many"> = Cardinality extends "atleastone" ? [T["_output"], ...T["_output"][]] : T["_output"][];
-export declare class ZodArray<T extends ZodTypeAny, Cardinality extends ArrayCardinality = "many"> extends ZodType<arrayOutputType<T, Cardinality>, ZodArrayDef<T>, Cardinality extends "atleastone" ? [T["_input"], ...T["_input"][]] : T["_input"][]> {
+declare type arrayOutputType<T extends ZodTypeAny, Cardinality extends ArrayCardinality = "many"> = Cardinality extends "atleastone" ? [
+    T["_output"],
+    ...T["_output"][]
+] : T["_output"][];
+export declare class ZodArray<T extends ZodTypeAny, Cardinality extends ArrayCardinality = "many"> extends ZodType<arrayOutputType<T, Cardinality>, ZodArrayDef<T>, Cardinality extends "atleastone" ? [
+    T["_input"],
+    ...T["_input"][]
+] : T["_input"][]> {
     _parse(ctx: ParseContext, _data: any, parsedType: ZodParsedType): ParseReturnType<arrayOutputType<T, Cardinality>>;
     get element(): T;
     min(minLength: number, message?: errorUtil.ErrMessage): this;
@@ -287,7 +296,11 @@ export declare namespace objectUtil {
         [k in keyof T]: T[k];
     }>;
     export type noNeverKeys<T extends ZodRawShape> = {
-        [k in keyof T]: [T[k]] extends [never] ? never : k;
+        [k in keyof T]: [
+            T[k]
+        ] extends [
+            never
+        ] ? never : k;
     }[keyof T];
     export type noNever<T extends ZodRawShape> = identity<{
         [k in noNeverKeys<T>]: k extends keyof T ? T[k] : never;
@@ -378,20 +391,67 @@ export declare class ZodObject<T extends ZodRawShape, UnknownKeys extends Unknow
     required(): ZodObject<{
         [k in keyof T]: deoptional<T[k]>;
     }, UnknownKeys, Catchall>;
-    static create: <T_1 extends ZodRawShape>(shape: T_1, params?: RawCreateParams) => ZodObject<T_1, "strip", ZodTypeAny, { [k_1 in keyof objectUtil.addQuestionMarks<{ [k in keyof T_1]: T_1[k]["_output"]; }>]: objectUtil.addQuestionMarks<{ [k in keyof T_1]: T_1[k]["_output"]; }>[k_1]; }, { [k_3 in keyof objectUtil.addQuestionMarks<{ [k_2 in keyof T_1]: T_1[k_2]["_input"]; }>]: objectUtil.addQuestionMarks<{ [k_2 in keyof T_1]: T_1[k_2]["_input"]; }>[k_3]; }>;
-    static strictCreate: <T_1 extends ZodRawShape>(shape: T_1, params?: RawCreateParams) => ZodObject<T_1, "strict", ZodTypeAny, { [k_1 in keyof objectUtil.addQuestionMarks<{ [k in keyof T_1]: T_1[k]["_output"]; }>]: objectUtil.addQuestionMarks<{ [k in keyof T_1]: T_1[k]["_output"]; }>[k_1]; }, { [k_3 in keyof objectUtil.addQuestionMarks<{ [k_2 in keyof T_1]: T_1[k_2]["_input"]; }>]: objectUtil.addQuestionMarks<{ [k_2 in keyof T_1]: T_1[k_2]["_input"]; }>[k_3]; }>;
-    static lazycreate: <T_1 extends ZodRawShape>(shape: () => T_1, params?: RawCreateParams) => ZodObject<T_1, "strip", ZodTypeAny, { [k_1 in keyof objectUtil.addQuestionMarks<{ [k in keyof T_1]: T_1[k]["_output"]; }>]: objectUtil.addQuestionMarks<{ [k in keyof T_1]: T_1[k]["_output"]; }>[k_1]; }, { [k_3 in keyof objectUtil.addQuestionMarks<{ [k_2 in keyof T_1]: T_1[k_2]["_input"]; }>]: objectUtil.addQuestionMarks<{ [k_2 in keyof T_1]: T_1[k_2]["_input"]; }>[k_3]; }>;
+    static create: <T_1 extends ZodRawShape>(shape: T_1, params?: RawCreateParams) => ZodObject<T_1, "strip", ZodTypeAny, {
+        [k_1 in keyof objectUtil.addQuestionMarks<{
+            [k in keyof T_1]: T_1[k]["_output"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k in keyof T_1]: T_1[k]["_output"];
+        }>[k_1];
+    }, {
+        [k_3 in keyof objectUtil.addQuestionMarks<{
+            [k_2 in keyof T_1]: T_1[k_2]["_input"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k_2 in keyof T_1]: T_1[k_2]["_input"];
+        }>[k_3];
+    }>;
+    static strictCreate: <T_1 extends ZodRawShape>(shape: T_1, params?: RawCreateParams) => ZodObject<T_1, "strict", ZodTypeAny, {
+        [k_1 in keyof objectUtil.addQuestionMarks<{
+            [k in keyof T_1]: T_1[k]["_output"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k in keyof T_1]: T_1[k]["_output"];
+        }>[k_1];
+    }, {
+        [k_3 in keyof objectUtil.addQuestionMarks<{
+            [k_2 in keyof T_1]: T_1[k_2]["_input"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k_2 in keyof T_1]: T_1[k_2]["_input"];
+        }>[k_3];
+    }>;
+    static lazycreate: <T_1 extends ZodRawShape>(shape: () => T_1, params?: RawCreateParams) => ZodObject<T_1, "strip", ZodTypeAny, {
+        [k_1 in keyof objectUtil.addQuestionMarks<{
+            [k in keyof T_1]: T_1[k]["_output"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k in keyof T_1]: T_1[k]["_output"];
+        }>[k_1];
+    }, {
+        [k_3 in keyof objectUtil.addQuestionMarks<{
+            [k_2 in keyof T_1]: T_1[k_2]["_input"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k_2 in keyof T_1]: T_1[k_2]["_input"];
+        }>[k_3];
+    }>;
 }
 export declare type AnyZodObject = ZodObject<any, any, any>;
-declare type ZodUnionOptions = [ZodTypeAny, ...ZodTypeAny[]];
-export interface ZodUnionDef<T extends ZodUnionOptions = [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]> extends ZodTypeDef {
+declare type ZodUnionOptions = [
+    ZodTypeAny,
+    ...ZodTypeAny[]
+];
+export interface ZodUnionDef<T extends ZodUnionOptions = [
+    ZodTypeAny,
+    ZodTypeAny,
+    ...ZodTypeAny[]
+]> extends ZodTypeDef {
     options: T;
     typeName: ZodFirstPartyTypeKind.ZodUnion;
 }
 export declare class ZodUnion<T extends ZodUnionOptions> extends ZodType<T[number]["_output"], ZodUnionDef<T>, T[number]["_input"]> {
     _parse(ctx: ParseContext, data: any, parsedType: ZodParsedType): ParseReturnType<T[number]["_output"]>;
     get options(): T;
-    static create: <T_1 extends [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]>(types: T_1, params?: RawCreateParams) => ZodUnion<T_1>;
+    static create: <T_1 extends [
+        ZodTypeAny,
+        ZodTypeAny,
+        ...ZodTypeAny[]
+    ]>(types: T_1, params?: RawCreateParams) => ZodUnion<T_1>;
 }
 export interface ZodIntersectionDef<T extends ZodTypeAny = ZodTypeAny, U extends ZodTypeAny = ZodTypeAny> extends ZodTypeDef {
     left: T;
@@ -402,26 +462,51 @@ export declare class ZodIntersection<T extends ZodTypeAny, U extends ZodTypeAny>
     _parse(ctx: ParseContext, data: any, parsedType: ZodParsedType): ParseReturnType<T["_output"] & U["_output"]>;
     static create: <T_1 extends ZodTypeAny, U_1 extends ZodTypeAny>(left: T_1, right: U_1, params?: RawCreateParams) => ZodIntersection<T_1, U_1>;
 }
-export declare type ZodTupleItems = [ZodTypeAny, ...ZodTypeAny[]];
+export declare type ZodTupleItems = [
+    ZodTypeAny,
+    ...ZodTypeAny[]
+];
 export declare type AssertArray<T extends any> = T extends any[] ? T : never;
-export declare type OutputTypeOfTuple<T extends ZodTupleItems | []> = AssertArray<{
+export declare type OutputTypeOfTuple<T extends ZodTupleItems | [
+]> = AssertArray<{
     [k in keyof T]: T[k] extends ZodType<any, any> ? T[k]["_output"] : never;
 }>;
-export declare type OutputTypeOfTupleWithRest<T extends ZodTupleItems | [], Rest extends ZodTypeAny | null = null> = Rest extends ZodTypeAny ? [...OutputTypeOfTuple<T>, ...Rest["_output"][]] : OutputTypeOfTuple<T>;
-export declare type InputTypeOfTuple<T extends ZodTupleItems | []> = AssertArray<{
+export declare type OutputTypeOfTupleWithRest<T extends ZodTupleItems | [
+], Rest extends ZodTypeAny | null = null> = Rest extends ZodTypeAny ? [
+    ...OutputTypeOfTuple<T>,
+    ...Rest["_output"][]
+] : OutputTypeOfTuple<T>;
+export declare type InputTypeOfTuple<T extends ZodTupleItems | [
+]> = AssertArray<{
     [k in keyof T]: T[k] extends ZodType<any, any> ? T[k]["_input"] : never;
 }>;
-export declare type InputTypeOfTupleWithRest<T extends ZodTupleItems | [], Rest extends ZodTypeAny | null = null> = Rest extends ZodTypeAny ? [...InputTypeOfTuple<T>, ...Rest["_input"][]] : InputTypeOfTuple<T>;
-export interface ZodTupleDef<T extends ZodTupleItems | [] = ZodTupleItems, Rest extends ZodTypeAny | null = null> extends ZodTypeDef {
+export declare type InputTypeOfTupleWithRest<T extends ZodTupleItems | [
+], Rest extends ZodTypeAny | null = null> = Rest extends ZodTypeAny ? [
+    ...InputTypeOfTuple<T>,
+    ...Rest["_input"][]
+] : InputTypeOfTuple<T>;
+export interface ZodTupleDef<T extends ZodTupleItems | [
+] = ZodTupleItems, Rest extends ZodTypeAny | null = null> extends ZodTypeDef {
     items: T;
     rest: Rest;
     typeName: ZodFirstPartyTypeKind.ZodTuple;
 }
-export declare class ZodTuple<T extends [ZodTypeAny, ...ZodTypeAny[]] | [] = [ZodTypeAny, ...ZodTypeAny[]], Rest extends ZodTypeAny | null = null> extends ZodType<OutputTypeOfTupleWithRest<T, Rest>, ZodTupleDef<T, Rest>, InputTypeOfTupleWithRest<T, Rest>> {
+export declare class ZodTuple<T extends [
+    ZodTypeAny,
+    ...ZodTypeAny[]
+] | [
+] = [
+    ZodTypeAny,
+    ...ZodTypeAny[]
+], Rest extends ZodTypeAny | null = null> extends ZodType<OutputTypeOfTupleWithRest<T, Rest>, ZodTupleDef<T, Rest>, InputTypeOfTupleWithRest<T, Rest>> {
     _parse(ctx: ParseContext, data: any, parsedType: ZodParsedType): ParseReturnType<any>;
     get items(): T;
     rest<Rest extends ZodTypeAny>(rest: Rest): ZodTuple<T, Rest>;
-    static create: <T_1 extends [ZodTypeAny, ...ZodTypeAny[]] | []>(schemas: T_1, params?: RawCreateParams) => ZodTuple<T_1, null>;
+    static create: <T_1 extends [
+        ZodTypeAny,
+        ...ZodTypeAny[]
+    ] | [
+    ]>(schemas: T_1, params?: RawCreateParams) => ZodTuple<T_1, null>;
 }
 export interface ZodRecordDef<Key extends KeySchema = ZodString, Value extends ZodTypeAny = ZodTypeAny> extends ZodTypeDef {
     valueType: Value;
@@ -470,7 +555,8 @@ export declare class ZodFunction<Args extends ZodTuple<any, any>, Returns extend
     implement<F extends InnerTypeOfFunction<Args, Returns>>(func: F): F;
     strictImplement(func: InnerTypeOfFunction<Args, Returns>): InnerTypeOfFunction<Args, Returns>;
     validate: <F extends InnerTypeOfFunction<Args, Returns>>(func: F) => F;
-    static create: <T extends ZodTuple<any, any> = ZodTuple<[], ZodUnknown>, U extends ZodTypeAny = ZodUnknown>(args?: T | undefined, returns?: U | undefined, params?: RawCreateParams) => ZodFunction<T, U>;
+    static create: <T extends ZodTuple<any, any> = ZodTuple<[
+    ], ZodUnknown>, U extends ZodTypeAny = ZodUnknown>(args?: T | undefined, returns?: U | undefined, params?: RawCreateParams) => ZodFunction<T, U>;
 }
 export interface ZodLazyDef<T extends ZodTypeAny = ZodTypeAny> extends ZodTypeDef {
     getter: () => T;
@@ -492,7 +578,10 @@ export declare class ZodLiteral<T extends any> extends ZodType<T, ZodLiteralDef<
 }
 export declare type ArrayKeys = keyof any[];
 export declare type Indices<T> = Exclude<keyof T, ArrayKeys>;
-declare type EnumValues = [string, ...string[]];
+declare type EnumValues = [
+    string,
+    ...string[]
+];
 declare type Values<T extends EnumValues> = {
     [k in T[number]]: k;
 };
@@ -503,9 +592,18 @@ export interface ZodEnumDef<T extends EnumValues = EnumValues> extends ZodTypeDe
 declare type Writeable<T> = {
     -readonly [P in keyof T]: T[P];
 };
-declare function createZodEnum<U extends string, T extends Readonly<[U, ...U[]]>>(values: T): ZodEnum<Writeable<T>>;
-declare function createZodEnum<U extends string, T extends [U, ...U[]]>(values: T): ZodEnum<T>;
-export declare class ZodEnum<T extends [string, ...string[]]> extends ZodType<T[number], ZodEnumDef<T>> {
+declare function createZodEnum<U extends string, T extends Readonly<[
+    U,
+    ...U[]
+]>>(values: T): ZodEnum<Writeable<T>>;
+declare function createZodEnum<U extends string, T extends [
+    U,
+    ...U[]
+]>(values: T): ZodEnum<T>;
+export declare class ZodEnum<T extends [
+    string,
+    ...string[]
+]> extends ZodType<T[number], ZodEnumDef<T>> {
     _parse(ctx: ParseContext, data: any, _parsedType: ZodParsedType): ParseReturnType<T[number]>;
     get options(): T;
     get enum(): Values<T>;
@@ -593,7 +691,19 @@ export declare class ZodDefault<T extends ZodTypeAny> extends ZodType<util.noUnd
 export declare const custom: <T>(check?: ((data: unknown) => any) | undefined, params?: Parameters<ZodTypeAny["refine"]>[1]) => ZodType<T, ZodTypeDef, T>;
 export { ZodType as Schema, ZodType as ZodSchema };
 export declare const late: {
-    object: <T extends ZodRawShape>(shape: () => T, params?: RawCreateParams) => ZodObject<T, "strip", ZodTypeAny, { [k_1 in keyof objectUtil.addQuestionMarks<{ [k in keyof T]: T[k]["_output"]; }>]: objectUtil.addQuestionMarks<{ [k in keyof T]: T[k]["_output"]; }>[k_1]; }, { [k_3 in keyof objectUtil.addQuestionMarks<{ [k_2 in keyof T]: T[k_2]["_input"]; }>]: objectUtil.addQuestionMarks<{ [k_2 in keyof T]: T[k_2]["_input"]; }>[k_3]; }>;
+    object: <T extends ZodRawShape>(shape: () => T, params?: RawCreateParams) => ZodObject<T, "strip", ZodTypeAny, {
+        [k_1 in keyof objectUtil.addQuestionMarks<{
+            [k in keyof T]: T[k]["_output"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k in keyof T]: T[k]["_output"];
+        }>[k_1];
+    }, {
+        [k_3 in keyof objectUtil.addQuestionMarks<{
+            [k_2 in keyof T]: T[k_2]["_input"];
+        }>]: objectUtil.addQuestionMarks<{
+            [k_2 in keyof T]: T[k_2]["_input"];
+        }>[k_3];
+    }>;
 };
 export declare enum ZodFirstPartyTypeKind {
     ZodString = "ZodString",
@@ -640,15 +750,48 @@ declare const unknownType: (params?: RawCreateParams) => ZodUnknown;
 declare const neverType: (params?: RawCreateParams) => ZodNever;
 declare const voidType: (params?: RawCreateParams) => ZodVoid;
 declare const arrayType: <T extends ZodTypeAny>(schema: T, params?: RawCreateParams) => ZodArray<T, "many">;
-declare const objectType: <T extends ZodRawShape>(shape: T, params?: RawCreateParams) => ZodObject<T, "strip", ZodTypeAny, { [k_1 in keyof objectUtil.addQuestionMarks<{ [k in keyof T]: T[k]["_output"]; }>]: objectUtil.addQuestionMarks<{ [k in keyof T]: T[k]["_output"]; }>[k_1]; }, { [k_3 in keyof objectUtil.addQuestionMarks<{ [k_2 in keyof T]: T[k_2]["_input"]; }>]: objectUtil.addQuestionMarks<{ [k_2 in keyof T]: T[k_2]["_input"]; }>[k_3]; }>;
-declare const strictObjectType: <T extends ZodRawShape>(shape: T, params?: RawCreateParams) => ZodObject<T, "strict", ZodTypeAny, { [k_1 in keyof objectUtil.addQuestionMarks<{ [k in keyof T]: T[k]["_output"]; }>]: objectUtil.addQuestionMarks<{ [k in keyof T]: T[k]["_output"]; }>[k_1]; }, { [k_3 in keyof objectUtil.addQuestionMarks<{ [k_2 in keyof T]: T[k_2]["_input"]; }>]: objectUtil.addQuestionMarks<{ [k_2 in keyof T]: T[k_2]["_input"]; }>[k_3]; }>;
-declare const unionType: <T extends [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]>(types: T, params?: RawCreateParams) => ZodUnion<T>;
+declare const objectType: <T extends ZodRawShape>(shape: T, params?: RawCreateParams) => ZodObject<T, "strip", ZodTypeAny, {
+    [k_1 in keyof objectUtil.addQuestionMarks<{
+        [k in keyof T]: T[k]["_output"];
+    }>]: objectUtil.addQuestionMarks<{
+        [k in keyof T]: T[k]["_output"];
+    }>[k_1];
+}, {
+    [k_3 in keyof objectUtil.addQuestionMarks<{
+        [k_2 in keyof T]: T[k_2]["_input"];
+    }>]: objectUtil.addQuestionMarks<{
+        [k_2 in keyof T]: T[k_2]["_input"];
+    }>[k_3];
+}>;
+declare const strictObjectType: <T extends ZodRawShape>(shape: T, params?: RawCreateParams) => ZodObject<T, "strict", ZodTypeAny, {
+    [k_1 in keyof objectUtil.addQuestionMarks<{
+        [k in keyof T]: T[k]["_output"];
+    }>]: objectUtil.addQuestionMarks<{
+        [k in keyof T]: T[k]["_output"];
+    }>[k_1];
+}, {
+    [k_3 in keyof objectUtil.addQuestionMarks<{
+        [k_2 in keyof T]: T[k_2]["_input"];
+    }>]: objectUtil.addQuestionMarks<{
+        [k_2 in keyof T]: T[k_2]["_input"];
+    }>[k_3];
+}>;
+declare const unionType: <T extends [
+    ZodTypeAny,
+    ZodTypeAny,
+    ...ZodTypeAny[]
+]>(types: T, params?: RawCreateParams) => ZodUnion<T>;
 declare const intersectionType: <T extends ZodTypeAny, U extends ZodTypeAny>(left: T, right: U, params?: RawCreateParams) => ZodIntersection<T, U>;
-declare const tupleType: <T extends [ZodTypeAny, ...ZodTypeAny[]] | []>(schemas: T, params?: RawCreateParams) => ZodTuple<T, null>;
+declare const tupleType: <T extends [
+    ZodTypeAny,
+    ...ZodTypeAny[]
+] | [
+]>(schemas: T, params?: RawCreateParams) => ZodTuple<T, null>;
 declare const recordType: typeof ZodRecord.create;
 declare const mapType: <Key extends ZodTypeAny = ZodTypeAny, Value extends ZodTypeAny = ZodTypeAny>(keyType: Key, valueType: Value, params?: RawCreateParams) => ZodMap<Key, Value>;
 declare const setType: <Value extends ZodTypeAny = ZodTypeAny>(valueType: Value, params?: RawCreateParams) => ZodSet<Value>;
-declare const functionType: <T extends ZodTuple<any, any> = ZodTuple<[], ZodUnknown>, U extends ZodTypeAny = ZodUnknown>(args?: T | undefined, returns?: U | undefined, params?: RawCreateParams) => ZodFunction<T, U>;
+declare const functionType: <T extends ZodTuple<any, any> = ZodTuple<[
+], ZodUnknown>, U extends ZodTypeAny = ZodUnknown>(args?: T | undefined, returns?: U | undefined, params?: RawCreateParams) => ZodFunction<T, U>;
 declare const lazyType: <T extends ZodTypeAny>(getter: () => T, params?: RawCreateParams) => ZodLazy<T>;
 declare const literalType: <T extends Primitive>(value: T, params?: RawCreateParams) => ZodLiteral<T>;
 declare const enumType: typeof createZodEnum;
