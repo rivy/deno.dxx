@@ -26,14 +26,13 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 export const db: {
-  [mediaType: string]: {
-    source?: string;
-    compressible?: boolean;
-    charset?: string;
-    extensions?: string[];
-  };
+    [mediaType: string]: {
+        source?: string;
+        compressible?: boolean;
+        charset?: string;
+        extensions?: string[];
+    };
 } = JSON.parse(`{
   "application/1d-interleaved-parityfec": {
     "source": "iana"
