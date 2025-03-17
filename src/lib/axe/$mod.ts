@@ -1154,6 +1154,16 @@ export function logLevelFromEnv(options?: { vars: string[] }): string | undefine
 	return levelText;
 }
 
+export function currentLogLevel<T>(logger: Logger<T>) {
+	return logger.logLevelDetail(new Metadata(logger.getMetadata()).getProp('level', 'Filter'));
+}
+
+export function shouldDisplayLevel<T>(logger: Logger<T>, level: number | string) {
+	const levelNumber = logger.logLevelDetail(level)?.levelNumber ?? 0;
+	const loggerLevelNumber = currentLogLevel(logger)?.levelNumber ?? Infinity;
+	return levelNumber <= loggerLevelNumber;
+}
+
 //====
 
 export const logger = new Logger()
