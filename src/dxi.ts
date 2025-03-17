@@ -166,7 +166,7 @@ Usage:\n  ${appRunAs} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGU
 	.parserConfiguration({
 		// * per app configuration options
 		'boolean-negation': false, // disable automatic interpretation of `--no-...` as option negations (required when configuring options which are *only* `--no-...`)
-		'halt-at-non-option': true, // disable halting parse at first non-option/argument
+		'halt-at-non-option': false, // disable halting parse at first non-option/argument
 		'unknown-options-as-args': true, // treat unknown options as arguments
 		// * (boilerplate) usual parser options
 		'camel-case-expansion': true, // enable camelCase aliases for hyphenated options (only within generated Yargs parse result object)
