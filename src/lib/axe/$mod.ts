@@ -347,28 +347,28 @@ export class Metadata {
 	}
 
 	getProp(name: string, scopes: string | string[] = []) {
-		if (!Array.isArray(scopes)) scopes = [scopes];
-		scopes = scopes.length > 0 ? scopes : (this._data[DEFAULT_SCOPES_KEY] as string[]);
+		let scopes_ = !Array.isArray(scopes) ? [scopes] : scopes;
+		scopes_ = scopes_.length > 0 ? scopes_ : [this._data[DEFAULT_SCOPES_KEY] as string];
 		if (this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string') {
-			scopes.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
+			scopes_.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
 		}
-		for (const scope of scopes) {
+		for (const scope of scopes_) {
 			const vars = this.getScopedData(scope);
 			if (vars?.[name] != undefined) return vars?.[name]; // return first matching property (by scope-priority)
 		}
 		return undefined; // property not found
 	}
 	getProps(names: string | string[], scopes: string | string[] = []) {
-		if (!Array.isArray(names)) names = [names];
-		if (!Array.isArray(scopes)) scopes = [scopes];
-		scopes = scopes.length > 0 ? scopes : (this._data[DEFAULT_SCOPES_KEY] as string[]);
+		const names_ = !Array.isArray(names) ? [names] : names;
+		let scopes_ = !Array.isArray(scopes) ? [scopes] : scopes;
+		scopes_ = scopes_.length > 0 ? scopes_ : [this._data[DEFAULT_SCOPES_KEY] as string];
 		if (this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string') {
-			scopes.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
+			scopes_.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
 		}
 		const o: Record<string, unknown> = {};
-		for (const scope of scopes) {
+		for (const scope of scopes_) {
 			const vars = this.getScopedData(scope);
-			for (const name of names) {
+			for (const name of names_) {
 				if (o[name] == null && vars?.[name] != null) {
 					o[name] = vars?.[name]; // first matching
 				}
@@ -377,14 +377,14 @@ export class Metadata {
 		return o;
 	}
 	getAllProps(scopes: string | string[] = []) {
-		if (!Array.isArray(scopes)) scopes = [scopes];
-		scopes = scopes.length > 0 ? scopes : (this._data[DEFAULT_SCOPES_KEY] as string[]);
+		let scopes_ = !Array.isArray(scopes) ? [scopes] : scopes;
+		scopes_ = scopes_.length > 0 ? scopes_ : [this._data[DEFAULT_SCOPES_KEY] as string];
 		if (this._data[GLOBAL_SCOPE_REF_KEY] && typeof this._data[GLOBAL_SCOPE_REF_KEY] === 'string') {
-			scopes.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
+			scopes_.push(this._data[GLOBAL_SCOPE_REF_KEY] as string);
 		}
 		// console.warn('getAllProps()', { scopes, data: this._data });
 		const o: Record<string, unknown> = {};
-		for (const scope of scopes) {
+		for (const scope of scopes_) {
 			const vars = this.getScopedData(scope) || {};
 			for (const key of Object.keys(vars)) {
 				if (o[key] == null && vars[key] != null) {
