@@ -356,7 +356,7 @@ export const atImportCWD = (() => {
 })();
 
 // `cwd()`
-/** Return the value of the current working directory (or `undefined` for errors or not allowed access).
+/** Return the value of the current working directory (or `undefined` for errors or disallowed access).
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
 @param options `{ guard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
@@ -373,7 +373,7 @@ export function cwd(options?: { guard: boolean }) {
 /** Return the value of the current working directory for `drive` (or `undefined` for errors or not allowed access).
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
-@param drive • target drive letter (eg, `'C'`)
+@param drive • target drive letter (eg, `'C'`); defaults to current drive (returning result of `cwd()`) if null/undefined
 @param options `{ guard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env` or `allow-read=.,DRIVE:`
 */
