@@ -649,10 +649,12 @@ export function pathIsRelativeWithDrive(path: string, options?: PathAndUrlOption
 /** Join all path segments, returning an absolute, syntactically normalized path.
 * * Normalization is done solely syntactically, *without* considering/resolving file system symlinks.
 * * `no-throw` ~ will *not panic* (function returns `undefined` upon any error)
-@param pathSegments • path segment array
+@param pathSegments • path segment (string or string[])
+@param options • { `permitGuard` } • passed to `cwd()`
 @tags `no-panic`, `no-throw`
 */
-export function absolutePath(...pathSegments: string[]) {
+export function absolutePath(pathSegments: string | string[], options?: PermitOptions) {
+	pathSegments = Array.isArray(pathSegments) ? pathSegments : [pathSegments];
 	if (pathSegments.length === 0) return undefined;
 	let currentPath: string | undefined = undefined;
 	let currentDrive: string | undefined = undefined;
@@ -668,7 +670,7 @@ export function absolutePath(...pathSegments: string[]) {
 		} else {
 			const currentChanging = currentPath == null || (drive && currentDrive !== drive);
 			if (currentChanging) {
-				currentPath = cwdOfDrive(drive ?? currentDrive);
+				currentPath = cwdOfDrive(drive ?? currentDrive, options);
 				if (currentPath == null) return undefined;
 				currentDrive = currentPath?.match(/^([/\\][/\\][.?][/\\])?(?:([A-Za-z]):)?(.*)$/)?.[2];
 			}
