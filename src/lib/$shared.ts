@@ -381,13 +381,12 @@ export function cwdOfDrive(drive?: string | null, options?: { guard: boolean }) 
 	// when possible, use (faster, but undocumented) environment variable `%=X:%` to peek at the current drive letter path instead of using `chdir('X:')`; using `Deno.env.toObject()['=X:']`
 	// ... ref: <https://superuser.com/questions/1655266/a-complete-list-of-relative-paths-variables-in-windows-explorer-in-windows> @@ <https://archive.is/3hzVa>
 	// ... ref: <https://stackoverflow.com/a/46019856/43774> @@ <https://archive.is/ghmY3>
-	drive = drive?.slice(0, 1);
+	drive = drive?.slice(0, 1).toLocaleUpperCase(); // for consistency, always use uppercase drive letter
+	if (drive == null || drive == '') return cwd(options);
 	const guard = options?.guard ?? true;
 	const useDenoEnv =
-		drive != null &&
-		(!guard ||
-			Deno?.permissions?.querySync?.({ name: 'env', variable: `=${drive}:` })?.state === 'granted');
-	drive = drive?.toLocaleUpperCase(); // for consistency, always use uppercase drive letter
+		!guard ||
+		Deno?.permissions?.querySync?.({ name: 'env', variable: `=${drive}:` })?.state === 'granted';
 	// console.warn('cwdOfDrive()', { drive, useDenoEnv });
 	if (useDenoEnv) {
 		const env = tryFn(() => Deno.env.toObject());
@@ -402,16 +401,18 @@ export function cwdOfDrive(drive?: string | null, options?: { guard: boolean }) 
 	// * verify CWD is accessible
 	const CWD = cwd(options);
 	if (CWD == null) return undefined;
-	if (drive == null) return CWD;
 	// console.warn('cwdOfDrive()', { drive, guard, useDenoEnv, CWD });
 	return tryFn(() => {
 		// console.warn('cwdOfDrive()', { drive, CWD });
 		// * verify chdir(CWD) works
 		if (!chdir(CWD, options)) return undefined;
-		if (!chdir(`${drive}:`, options)) return undefined;
-		const targetCWD = Deno.cwd();
+		const targetCWD = tryFn(() => {
+			if (!chdir(`${drive}:`, options)) return undefined;
+			const result = cwd(options);
+			const _ = chdir(CWD, options);
+			return result;
+		});
 		// console.warn('cwdOfDrive()', { drive, CWD, targetCWD });
-		chdir(CWD);
 		return targetCWD;
 	});
 }
