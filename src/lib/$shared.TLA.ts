@@ -59,10 +59,10 @@ export async function permitsAsync(names?: Deno.PermissionName[] | null | undefi
 /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
-@param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@param options • `{ permitGuard }` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 */
-export function env(varName: string, options?: { guard: boolean }) {
-	const guard = options != null ? options.guard : true;
+export function env(varName: string, options?: { permitGuard?: boolean }) {
+	const guard = options?.permitGuard ?? true;
 	const useDenoGet = !guard || atImportPermissions.env.state === 'granted';
 	try {
 		return useDenoGet ? Deno.env.get(varName) : undefined;
