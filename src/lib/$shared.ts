@@ -30,12 +30,35 @@ export const isWinOS = fnIsWinOS();
 
 //===
 
+// `type PermitOptions`
+/** Permit/permission options
+@param permitGuard • verify permission(s) prior to use (avoids Deno prompts/panics); defaults to `true`
+*/
+export type PermitOptions = {
+	permitGuard?: boolean;
+};
+const PermitOptionsDefault: Required<PermitOptions> = {
+	permitGuard: true,
+};
+
+//===
+
 // ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
 export type PathPlatform = 'POSIX' | 'WinOS';
 export const pathPlatforms: PathPlatform[] = ['POSIX', 'WinOS'];
 
 export type ForPathPlatform = 'host' | PathPlatform;
 
+// `type PathAndUrlOptions`
+/** Options for path and URL handling
+@param enablePanicReturns • enable panic returns (ie, throw from functions for errors); defaults to `false`
+@param fileStemMayMatchDevice • allow file stem to match device name
+	- `true` == inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
+	- `false` == strict matching == only complete file name may match any of `specialDeviceStemNames` (Win11-style [or later] compatible matching)
+	- defaults to `true` (Win10-style matching)
+@param forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to 'host'
+@param singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (needed for Windows-style paths); defaults to `true`
+*/
 export type PathAndUrlOptions = {
 	enablePanicReturns?: boolean; // enable panic returns (ie, throw from functions for errors)
 	// * options.fileStemMayMatchDevice == true ~ inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
@@ -358,34 +381,37 @@ export const atImportCWD = (() => {
 // `cwd()`
 /** Return the value of the current working directory (or `undefined` for errors or disallowed access).
 * - will *not panic*
-* - will *not prompt* for permission if `options.guard` is `true`
-@param options `{ guard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+* - will *not prompt* for permission if `options.permitGuard` is `true`
+@param options • `{ permitGuard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read=.`
 */
-export function cwd(options?: { guard: boolean }) {
-	const guard = options?.guard ?? true;
+export function cwd(options?: PermitOptions) {
+	const guard = options?.permitGuard ?? PermitOptionsDefault.permitGuard;
 	const useDenoCWD =
-		!guard || Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
+		!guard ||
+		atImportPermissions.read.state === 'granted' ||
+		Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
 	return tryFn(() => (useDenoCWD ? Deno.cwd() : undefined));
 }
 
 // `cwdOfDrive()`
 /** Return the value of the current working directory for `drive` (or `undefined` for errors or not allowed access).
 * - will *not panic*
-* - will *not prompt* for permission if `options.guard` is `true`
+* - will *not prompt* for permission if `options.permitGuard` is `true`
 @param drive • target drive letter (eg, `'C'`); defaults to current drive (returning result of `cwd()`) if null/undefined
-@param options `{ guard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@param options • `{ permitGuard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env` or `allow-read=.,DRIVE:`
 */
-export function cwdOfDrive(drive?: string | null, options?: { guard: boolean }) {
+export function cwdOfDrive(drive?: string | null, options?: PermitOptions) {
 	// when possible, use (faster, but undocumented) environment variable `%=X:%` to peek at the current drive letter path instead of using `chdir('X:')`; using `Deno.env.toObject()['=X:']`
 	// ... ref: <https://superuser.com/questions/1655266/a-complete-list-of-relative-paths-variables-in-windows-explorer-in-windows> @@ <https://archive.is/3hzVa>
 	// ... ref: <https://stackoverflow.com/a/46019856/43774> @@ <https://archive.is/ghmY3>
 	drive = drive?.slice(0, 1).toLocaleUpperCase(); // for consistency, always use uppercase drive letter
 	if (drive == null || drive == '') return cwd(options);
-	const guard = options?.guard ?? true;
+	const guard = options?.permitGuard ?? PermitOptionsDefault.permitGuard;
 	const useDenoEnv =
 		!guard ||
+		atImportPermissions.env.state === 'granted' ||
 		Deno?.permissions?.querySync?.({ name: 'env', variable: `=${drive}:` })?.state === 'granted';
 	// console.warn('cwdOfDrive()', { drive, useDenoEnv });
 	if (useDenoEnv) {
@@ -420,15 +446,16 @@ export function cwdOfDrive(drive?: string | null, options?: { guard: boolean }) 
 // `chdir()`
 /** Return `true` after successful `Deno.chdir()` or `false` for errors or not allowed access.
 * - will *not panic*
-* - will *not prompt* for permission if `options.guard` is `true`
-@param options `{ guard }` • verify unrestricted CWD access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+* - will *not prompt* for permission if `options.permitGuard` is `true`
+@param options • `{ permitGuard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read=TARGET_DIRECTORY`
 */
-export function chdir(directory?: string | URL, options?: { guard: boolean }) {
+export function chdir(directory?: string | URL, options?: PermitOptions) {
 	if (directory == null || directory === '') return false;
-	const guard = options != null ? options.guard : true;
+	const guard = options?.permitGuard ?? PermitOptionsDefault.permitGuard;
 	const permit =
 		!guard ||
+		atImportPermissions.read.state === 'granted' ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: directory })?.state === 'granted';
 	// console.warn('chdir()', { directory, guard, permit });
 	return tryFnOr(() => {
@@ -445,13 +472,13 @@ let envObject: Record<string, string> | undefined = undefined;
 // `env()`
 /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not allowed access).
 * - will *not panic*
-* - will *not prompt* for permission if `options.guard` is `true`
-@param options `{ guard }` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+* - will *not prompt* for permission if `options.permitGuard` is `true`
+@param options • `{ permitGuard }` • verify unrestricted environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 @tags `allow-env[=...]`
 */
-export function env(varName: string, options?: { guard: boolean }) {
-	const guard = options != null ? options.guard : true;
+export function env(varName: string, options?: PermitOptions) {
+	const guard = options?.permitGuard ?? PermitOptionsDefault.permitGuard;
 	const permit =
 		!guard ||
 		atImportPermissions.env.state === 'granted' ||
@@ -477,13 +504,13 @@ export function env(varName: string, options?: { guard: boolean }) {
 // `envAsync()`
 /** Return the current value of the environment variable `varName` (or `undefined` if non-existent or not allowed access).
 * - will *not panic*
-* - will *not prompt* for permission if `options.guard` is `true`
-@param options `{ guard }` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+* - will *not prompt* for permission if `options.permitGuard` is `true`
+@param options • `{ permitGuard }` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 @tags `allow-env[=...]`
 */
-export async function envAsync(varName: string, options?: { guard: boolean }) {
-	const guard = options != null ? options.guard : true;
+export async function envAsync(varName: string, options?: PermitOptions) {
+	const guard = options?.permitGuard ?? PermitOptionsDefault.permitGuard;
 	const permit =
 		!guard ||
 		atImportPermissions.env.state === 'granted' ||
@@ -514,34 +541,33 @@ export async function envAsync(varName: string, options?: { guard: boolean }) {
 * `path` is normalized prior to use.
 *
 * - will *not panic*
-* - will *not prompt* for permission if `options.guard` is `true` (which is the default)
+* - will *not prompt* for permission if `options.permitGuard` is `true` (which is the default)
 *
 * * _`no-throw`_ function (returns `undefined` upon any error)
 *
 * * _NOTE_: for WinOS, the _`--allow-all`_ permission is required for access to network/UNC and device paths; [2024-10-05; rivy] refs: <https://github.com/denoland/deno/pull/25132> , <https://github.com/denoland/deno/issues/24703>.
 *
-@param options `{ guard }` • verify read/write permissions prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@param options • `{ permitGuard }` • verify read/write permissions prior to access attempt (avoids Deno prompts/panics); defaults to `true`
 @tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env`
 */
-export function denoOpenSyncNT(
-	path?: string | URL,
-	options?: Deno.OpenOptions & { guard?: boolean },
-) {
+export function denoOpenSyncNT(path?: string | URL, options?: Deno.OpenOptions & PermitOptions) {
 	// no-throw `Deno.openSync(..)`
 	path = intoPath(path);
 	options = options ?? { read: true };
-	const guard = options.guard ?? true;
+	const guard = options.permitGuard ?? PermitOptionsDefault.permitGuard;
 	if (path == null || path === '') return undefined;
 	if (
 		!guard &&
 		options.read &&
-		Deno.permissions?.querySync?.({ name: 'read', path })?.state !== 'granted'
+		(atImportPermissions.read.state === 'granted' ||
+			Deno.permissions?.querySync?.({ name: 'read', path })?.state !== 'granted')
 	)
 		return undefined;
 	if (
 		!guard &&
 		(options.write || options.append) &&
-		Deno.permissions?.querySync?.({ name: 'write', path })?.state !== 'granted'
+		(atImportPermissions.write.state === 'granted' ||
+			Deno.permissions?.querySync?.({ name: 'write', path })?.state !== 'granted')
 	)
 		return undefined;
 	// console.warn({ path, options, guard });
@@ -609,7 +635,7 @@ export function pathIsAbsolute(path: string, options?: PathAndUrlOptions) {
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 	const $platformPath = forWinOS ? $path.win32 : $path.posix;
-	path = path.replace(/^[/\\][/\\][.?][/\\]/, '');
+	if (forWinOS) path = path.replace(/^[/\\][/\\][.?][/\\]/, ''); // remove device prefix for WinOS paths
 	return $platformPath.isAbsolute(path);
 }
 export function pathIsAbsoluteWithDrive(path: string, options?: PathAndUrlOptions) {
