@@ -2,7 +2,7 @@
 
 // spell-checker:ignore (fns) chdir
 // spell-checker:ignore (env) WSL WSLENV
-// spell-checker:ignore (jargon) distro falsey truthy
+// spell-checker:ignore (jargon) CWDs distro falsey truthy
 // spell-checker:ignore (js/ts) gmsu
 // spell-checker:ignore (names) Alacritty Cmder ConEmu Deno EditorConfig JSdelivr
 // spell-checker:ignore (modules) stringz
