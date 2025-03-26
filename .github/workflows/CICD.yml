@@ -278,8 +278,8 @@ jobs:
             #   ;;
           esac
           # * generate LCOV coverage data file
-          deno coverage --lcov --exclude="test[.](js|mls|ts|jsx|tsx)$" --exclude="tests/**" .coverage > .coverage/@coverage-raw.lcov
-          cat .coverage/@coverage-raw.lcov | perl -pe 'use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;' > .coverage/@coverage.lcov
+          deno coverage --lcov --exclude="test[.](js|cjs|mls|ts|jsx|tsx)$" --exclude="tests/**" --exclude="vendor/**" .coverage > .coverage/@coverage-raw.lcov
+          cat .coverage/@coverage-raw.lcov | perl -pe "use Cwd; $cwd = getcwd(); $cwd =~ s/[\\\/]/[\\\\\\\/]/gmsu; s/^SF:${cwd}[\\\/]/SF:/gmsu;" > .coverage/@coverage.lcov
       - name: 'Push coverage to CodeCov'
         shell: bash
         env:
