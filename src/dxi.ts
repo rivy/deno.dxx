@@ -30,6 +30,8 @@ import {
 	projectURL,
 } from './lib/$shared.ts';
 
+import { consoleSizeAsync } from './lib/consoleSize.ts';
+
 import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
 
 import { $me } from './lib/$locals.ts';
@@ -55,6 +57,17 @@ await abortIfMissingPermitsSync(
 		['run'], // required to run `deno`
 	),
 );
+
+//===
+
+const consoleSize = await consoleSizeAsync();
+const consoleWidth = consoleSize?.columns ?? 80; // default to 80 if console size cannot be determined
+
+await log.debug({ consoleSize, consoleWidth });
+
+import elideText from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/cli-truncate@4.0.0.js';
+import wrapText from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/wrap-ansi@9.0.0.js';
+import stringWidth from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/string-width@7.2.0.js';
 
 //===
 
@@ -486,7 +499,12 @@ const cmdArgs: [string, Deno.CommandOptions] = [
 await spinnerForInstall.deferTo(() => log.debug({ cmdArgs }));
 
 // const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
-const spinnerText = `$ ${[cmdArgs[0], ...(cmdArgs[1].args ?? [])].join(' ')}`;
+const spinnerPrefixWidth = 2; // ToDO: [2025-03-30; rivy] calculate spinner prefix from spinner properties (add new props if necessary) .vs. add elide option(s) to the spinner
+const spinnerText = elideText(
+	`$ ${[cmdArgs[0], ...(cmdArgs[1].args ?? [])].join(' ')}`,
+	consoleWidth - spinnerPrefixWidth,
+	{ truncationCharacter: '... ' },
+);
 // spinnerForInstall.clearAllLines();
 spinnerForInstall.text = spinnerText;
 // spinnerForInstall.render();
@@ -513,6 +531,8 @@ const outputReader = mergedOutput.getReader();
 // ?.replace(/^/gmsu, '| ')
 
 let out = '';
+const outLinePrefix = '* ';
+const outLinePrefixWidth = stringWidth(outLinePrefix);
 const status = (
 	await Promise.all([
 		// (() => process.status())().finally(() => {
@@ -529,7 +549,10 @@ const status = (
 				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
 					const line = buffer.slice(0, newlineIndex);
 					out += `${line}\n`;
-					const s = line?.trimEnd().replace(/^/gmsu, '* ');
+					const s = elideText(line.trimEnd(), consoleWidth - outLinePrefixWidth).replace(
+						/^/gmsu,
+						outLinePrefix,
+					);
 					spinnerForInstall.text = `${spinnerText}\n${s}\n`;
 					spinnerForInstall.render();
 					buffer = buffer.slice(newlineIndex + 1);
@@ -545,8 +568,34 @@ const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
 // writeAllSync(Deno.stdout, encoder.encode(`${prefixChar} ${spinnerText}\n`));
 let msg = `${prefixChar} ${spinnerText}\n`;
 
+await spinnerForInstall.deferTo(() => log.debug({ out }));
 // writeAllSync(Deno.stdout, encoder.encode(`${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`));
-msg += `${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`;
+const wrappedOutput = out
+	.split('\n')
+	.filter((line) => line)
+	.map((line) => {
+		const prefix = '│ ';
+		const continuePrefix = '│' + $colors.dim('‥' /* U+2025 == 'two dot leader' */);
+		// const continuePrefix = '│' + $colors.dim('…' /* U+2026 == 'horizontal ellipsis' */);
+		const prefixWidth = stringWidth(prefix);
+
+		let wrappedLines = wrapText(line, consoleWidth - prefixWidth, {
+			hard: true,
+			wordWrap: true,
+		}).split('\n');
+		// * heuristic to avoid short initial lines within wrapped lines due to very long trailing "words" ()
+		// ToDO: [2025-03-30; rivy] add logic for minimum line length to `wrapText()`
+		if (wrappedLines.length > 1 && stringWidth(wrappedLines[0].trim()) < consoleWidth - 20) {
+			wrappedLines = wrapText(line, consoleWidth - prefixWidth, {
+				hard: true,
+				wordWrap: false,
+			}).split('\n');
+		}
+		return prefix + wrappedLines.join('\n' + continuePrefix);
+	})
+	.join('\n');
+// msg += `${wrappedOutput.trimEnd().replace(/^/gmsu, '│')}\n`;
+msg += `${wrappedOutput.trimEnd()}\n`;
 
 const installDuration = performanceDuration('install.deno-install');
 
