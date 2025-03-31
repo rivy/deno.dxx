@@ -28,7 +28,12 @@ import {
 	projectPath,
 	// mightUseColor,
 	projectURL,
+	textElide,
+	textWidth,
+	textWrap,
 } from './lib/$shared.ts';
+
+import { consoleSizeAsync } from './lib/consoleSize.ts';
 
 import { restyleYargsHelp } from './lib/restyleYargsHelp.ts';
 
@@ -55,6 +60,13 @@ await abortIfMissingPermitsSync(
 		['run'], // required to run `deno`
 	),
 );
+
+//===
+
+const consoleSize = await consoleSizeAsync();
+const consoleWidth = consoleSize?.columns ?? 80; // default to 80 if console size cannot be determined
+
+await log.debug({ consoleSize, consoleWidth });
 
 //===
 
@@ -263,6 +275,7 @@ if (argv == null) {
 // ref: <https://stackoverflow.com/questions/50565408/should-bash-scripts-called-with-help-argument-return-0-or-not-zero-exit-code>
 if (argv.help) {
 	const yargsHelp = await app.getHelp();
+	// console.log(yargsHelp);
 	const help = await restyleYargsHelp(yargsHelp);
 	console.log(help);
 	const onlyHelp =
@@ -486,7 +499,12 @@ const cmdArgs: [string, Deno.CommandOptions] = [
 await spinnerForInstall.deferTo(() => log.debug({ cmdArgs }));
 
 // const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
-const spinnerText = `$ ${[cmdArgs[0], ...(cmdArgs[1].args ?? [])].join(' ')}`;
+const spinnerPrefixWidth = 2; // ToDO: [2025-03-30; rivy] calculate spinner prefix from spinner properties (add new props if necessary) .vs. add elide option(s) to the spinner
+const spinnerText = textElide(
+	`$ ${[cmdArgs[0], ...(cmdArgs[1].args ?? [])].join(' ')}`,
+	consoleWidth - spinnerPrefixWidth,
+	{ truncationCharacter: '... ' },
+);
 // spinnerForInstall.clearAllLines();
 spinnerForInstall.text = spinnerText;
 // spinnerForInstall.render();
@@ -513,6 +531,8 @@ const outputReader = mergedOutput.getReader();
 // ?.replace(/^/gmsu, '| ')
 
 let out = '';
+const outLinePrefix = '* ';
+const outLinePrefixWidth = textWidth(outLinePrefix);
 const status = (
 	await Promise.all([
 		// (() => process.status())().finally(() => {
@@ -529,7 +549,10 @@ const status = (
 				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
 					const line = buffer.slice(0, newlineIndex);
 					out += `${line}\n`;
-					const s = line?.trimEnd().replace(/^/gmsu, '* ');
+					const s = textElide(line.trimEnd(), consoleWidth - outLinePrefixWidth).replace(
+						/^/gmsu,
+						outLinePrefix,
+					);
 					spinnerForInstall.text = `${spinnerText}\n${s}\n`;
 					spinnerForInstall.render();
 					buffer = buffer.slice(newlineIndex + 1);
@@ -545,8 +568,30 @@ const prefixChar = status.success ? $colors.green('.') : $colors.red('*');
 // writeAllSync(Deno.stdout, encoder.encode(`${prefixChar} ${spinnerText}\n`));
 let msg = `${prefixChar} ${spinnerText}\n`;
 
+await spinnerForInstall.deferTo(() => log.debug({ out }));
 // writeAllSync(Deno.stdout, encoder.encode(`${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`));
-msg += `${out?.trimEnd().replace(/^/gmsu, '│ ')}\n`;
+const wrappedOutput = out
+	.split('\n')
+	.filter((line) => line)
+	.map((line) => {
+		const prefix = '│ ';
+		const prefixWidth = textWidth(prefix);
+		const continuePrefix = '│' + $colors.dim('‥' /* U+2025 == 'two dot leader' */);
+		// const continuePrefix = '│' + $colors.dim('…' /* U+2026 == 'horizontal ellipsis' */);
+
+		const wrapWidth = consoleWidth - prefixWidth;
+		const minWidth = wrapWidth - 20;
+		const wrappedLines = textWrap(line, wrapWidth, {
+			hard: true,
+			wordWrap: true,
+			minWrappedWidth: minWidth,
+		}).split('\n');
+
+		return prefix + wrappedLines.join('\n' + continuePrefix);
+	})
+	.join('\n');
+// msg += `${wrappedOutput.trimEnd().replace(/^/gmsu, '│')}\n`;
+msg += `${wrappedOutput.trimEnd()}\n`;
 
 const installDuration = performanceDuration('install.deno-install');
 
