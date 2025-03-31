@@ -28,7 +28,7 @@ import type { Writer as DenoWriter } from 'https://cdn.jsdelivr.net/gh/denoland/
 import type { WriterSync as DenoWriterSync } from 'https://cdn.jsdelivr.net/gh/denoland/std@0.224.0/io/types.ts';
 
 // vendored Deno-v1 types
-import * as _DenoV1NS from '../../vendor/@types/deno@1.46.3/lib.deno.ns.d.ts';
+import * as _DenoV1NS from '../../vendor/@types/deno@1.46.3/deno.d.ts';
 
 export type DenoV1RID = DenoV1NS.RID;
 
