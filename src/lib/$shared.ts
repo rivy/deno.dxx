@@ -1122,6 +1122,81 @@ export function UrlEquivalent(a?: URL, b?: URL) {
 
 //===
 
+import textElide from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/cli-truncate@4.0.0.js';
+import textWidth from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/string-width@7.2.0.js';
+import wrapText from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/wrap-ansi@9.0.0.js';
+
+export { textElide, textWidth };
+
+//===
+
+// `textWrap()`
+/** Wrap text to the specified column width.
+ *
+ * Newline characters will be normalized to `\n` (LF).
+ *
+ * @param text • Text string (which may contain ANSI escape sequences) that will be wrapped
+ * @param width • Maximum column width (aka line length) for text wrapping
+ * @param options.minWrappedWidth • Minimum width of wrapped lines; enforced by rewrapping each specific violating line in hard mode without word wrap (note: < 1 is interpreted as a fraction of `width`)
+ */
+export function textWrap(
+	text: string,
+	width: number,
+	options: {
+		hard?: boolean;
+		minWrappedWidth?: number;
+		wordWrap?: boolean;
+		trimEnd?: boolean;
+	} = {},
+): string {
+	if (text.length < 1 || width < 1) return text;
+	options.minWrappedWidth = options?.minWrappedWidth ?? 0;
+	const minWrappedWidth = Math.round(
+		options.minWrappedWidth < 0
+			? 0
+			: options.minWrappedWidth < 1
+				? width * options.minWrappedWidth
+				: options.minWrappedWidth,
+	);
+	const wordWrap = options?.wordWrap ?? true;
+	text.split(/\r?\n|\r/).join('\n'); // normalize newlines (MacOS, POSIX, WinOS) to LF
+	let wrappedLines = wrapText(text, width, {
+		...options,
+		trim: options?.trimEnd,
+	}).split('\n');
+	if (wordWrap && minWrappedWidth > 0) {
+		let minIdx = 0; // force progression (helps prevent possible infinite loop for some logic errors)
+		let rewrapFromIdx = 0;
+		while (
+			minIdx < wrappedLines.length /* force completion (if ever needed) */ &&
+			(rewrapFromIdx =
+				wrappedLines.length > 1
+					? wrappedLines
+							.slice(0, -1)
+							.findIndex(
+								(line, idx) =>
+									idx >= minIdx && textWidth(line) > 0 && textWidth(line) <= minWrappedWidth,
+							)
+					: -1) >= 0
+		) {
+			// console.warn({ minIdx, rewrapFromIdx, wrappedLines });
+			minIdx = minIdx + 1;
+			wrappedLines = [
+				...wrappedLines.slice(0, rewrapFromIdx),
+				...wrapText(wrappedLines.slice(rewrapFromIdx).join(' '), width, {
+					...options,
+					trim: options?.trimEnd,
+					hard: true,
+					wordWrap: false,
+				}).split('\n'),
+			];
+		}
+	}
+	return wrappedLines.join('\n');
+}
+
+//===
+
 // ref: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat>
 export function formatDuration(
 	durationInMS: number,
