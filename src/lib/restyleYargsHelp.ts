@@ -1,6 +1,7 @@
 // spell-checker:ignore (yargs) positionals
 
 import { $cliffyTable, $colors } from './$deps.ts';
+import { textWrap } from './$shared.ts';
 
 //===
 
@@ -41,6 +42,7 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 		help.push(helpLines.shift() || '');
 	}
 	// console.warn({ helpLines, help });
+
 	// merge multi-line descriptions into single item text strings
 	// * help items within sections are generally indented by two spaces or six spaces for double-dashed options
 	// ... any line with larger indention is assumed to be a continuation of the prior line description
@@ -56,7 +58,8 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 		} else helpItems.push(line);
 	}
 	// console.warn({ helpLines, helpItems, help });
-	let state: undefined | 'arguments' | 'examples' | 'options' | 'other' = undefined;
+
+	let state: undefined | 'arguments' | 'examples' | 'options' | 'usage' | 'other' = undefined;
 	// performance.mark(`restyleYargsHelp():linesOfHelpLines:start`);
 	const lineRegExp = {
 		// :sad: ... no change to execution speed by using "precompiled" regexps
@@ -67,9 +70,11 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 		sectionArguments: new RegExp(/^(?:arguments|positionals):$/i),
 		sectionExamples: new RegExp(/^examples:$/i),
 		sectionOptions: new RegExp(/^options:$/i),
+		sectionUsage: new RegExp(/^usage:$/i),
 		sectionArgumentsLines: new RegExp(/^\s+(\S+)\s+([\S\s]*)$/u),
 		sectionExamplesLines: new RegExp(/^\s+([\S\s]*?)(?:\s\s+([\S\s]*))$/u),
 		sectionOptionsLines: new RegExp(/^\s+(-.*?)(\s\s+)([\S\s]*?)(\s+)((?:\s?\[.*?\])+)$/u),
+		sectionUsageLines: new RegExp(/^\s+(.*?)$/u),
 	};
 	for (const line of helpItems) {
 		// const initialState: typeof state = state;
@@ -145,18 +150,28 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 				state = 'examples';
 			} else if (line.match(lineRegExp.sectionOptions)) {
 				state = 'options';
+			} else if (line.match(lineRegExp.sectionUsage)) {
+				state = 'usage';
 			} else state = 'other';
 			help.push($colors.dim($colors.italic(line)));
 			continue;
 		}
 		if (state == null) {
-			help.push(line);
+			help.push(
+				textWrap(line, displayWidth, {
+					minWrappedWidth: displayWidth - 15 /* includes approx 97% of English words */,
+				}),
+			);
 			continue;
 		}
 		if (state === 'arguments') {
 			const matchOption = line.match(lineRegExp.sectionArgumentsLines);
 			if (matchOption == null) {
-				help.push(line);
+				help.push(
+					textWrap(line, displayWidth, {
+						minWrappedWidth: displayWidth - 15 /* includes approx 97% of English words */,
+					}),
+				);
 			} else {
 				const [_s, item, desc] = matchOption as RegExpMatchArray;
 				// console.warn(state, _s, item, desc);
@@ -187,7 +202,12 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 							Cell.from(line.replace(/^\s*/, '')).colSpan(5),
 						],
 					);
-				} else help.push(line);
+				} else
+					help.push(
+						textWrap(line, displayWidth, {
+							minWrappedWidth: displayWidth - 15 /* includes approx 97% of English words */,
+						}),
+					);
 			} else {
 				const [_s, item, desc] = matchOption as RegExpMatchArray;
 				// console.warn({ state, line, _s, item, desc });
@@ -202,6 +222,20 @@ export async function restyleYargsHelp(helpText: string, options?: { consoleWidt
 						Cell.from(item).colSpan(4),
 					],
 				);
+			}
+			continue;
+		}
+		if (state === 'usage') {
+			const matchOption = line.match(lineRegExp.sectionUsageLines);
+			if (matchOption == null) {
+				help.push(
+					textWrap(line, displayWidth, {
+						minWrappedWidth: displayWidth - 15 /* includes approx 97% of English words */,
+					}),
+				);
+			} else {
+				const [_s, item] = matchOption as RegExpMatchArray;
+				sectionTable.push([Cell.from(item).colSpan(6)]);
 			}
 			continue;
 		}
