@@ -91,7 +91,13 @@ export const likelyIsStandalone =
 
 export const likelyIsDenoRunner = !!$path.basename(denoExecPath ?? '').match(denoRunnerNameReS);
 export const possibleDenoRunner =
-	likelyIsDenoRunner || !!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
+	(
+		Deno?.build as
+			| { standalone?: boolean /* Deno v2.3+ (see GH/denoland/deno#15996) */ }
+			| undefined
+	)?.standalone ||
+	likelyIsDenoRunner ||
+	!!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
 
 /** * process was invoked by direct execution */
 export const isDirectExecution =
