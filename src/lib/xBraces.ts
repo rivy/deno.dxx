@@ -27,7 +27,7 @@
 // esm.sh (un-minimized, readable source)
 // import Braces from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&dev';
 // import BracesM from 'https://esm.sh/v135/braces@3.0.2?deno-std=0.134.0&no-dts';
-import BracesM from 'https://cdn.jsdelivr.net/npm/braces@3.0.2/+esm';
+import BracesM from 'https://cdn.jsdelivr.net/npm/braces@3.0.3/+esm';
 import type BracesT from '../../vendor/@types/braces@3.0.5/index.d.ts'; // use locally vendored (and modified) types
 const Braces = BracesM as typeof BracesT;
 
