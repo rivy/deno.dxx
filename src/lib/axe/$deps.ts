@@ -28,11 +28,8 @@ export { default as PQueue } from 'https://deno.land/x/p_queue@1.0.1/mod.ts'; //
 // spell-checker:ignore (names) DeepMerge
 // spell-checker:ignore (people) * balupton
 
-// import { default as DeepMergeM } from 'https://esm.sh/v135/deepmerge@4.3.1?no-dts'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
-import { default as DeepMergeM } from 'https://cdn.jsdelivr.net/npm/deepmerge@4.3.1/+esm'; // '?no-dts' is used to avoid failed attempts by esm.sh to import types for 'deepmerge'
-// import type DeepMergeT from '../../../vendor/@types/deepmerge@4.3.1/index.d.ts'; // use locally vendored (and modified) types
-import type DeepMergeT from 'https://cdn.jsdelivr.net/npm/deepmerge@4.3.1/index.d.ts'; // use locally vendored (and modified) types
-// import type * as DeepMergeT from 'https://esm.sh/v135/deepmerge@4.3.1/index.d.ts'; // directly use type info file
+import { default as DeepMergeM } from 'https://cdn.jsdelivr.net/npm/deepmerge@4.3.1/+esm';
+import type DeepMergeT from '../../../vendor/@types/deepmerge@4.3.1/index.d.ts'; // use locally vendored (and modified) types
 const deepMerge = DeepMergeM as typeof DeepMergeT;
 export { deepMerge };
 
@@ -58,5 +55,7 @@ export type {
 	LevelsMap as LevelMap,
 } from 'https://cdn.jsdelivr.net/npm/rfc-log-levels@4.3.0/edition-deno/index.ts';
 // export type { DeepReadonly } from 'https://esm.sh/v135/ts-essentials@9.4.2';
-export type { DeepReadonly } from '../../../vendor/deno@1.44.4-vendor/esm.sh/v135/ts-essentials@9.4.2.js'; // from <https://esm.sh/v135/ts-essentials@9.4.2>
+// export type { DeepReadonly } from '../../../vendor/deno@1.44.4-vendor/esm.sh/v135/ts-essentials@9.4.2.js'; // from <https://esm.sh/v135/ts-essentials@9.4.2>
+// export type { DeepReadonly } from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/v135/ts-essentials@9.4.2.js'; // from <https://esm.sh/v135/ts-essentials@9.4.2>
 // export type { DeepReadonly } from 'https://cdn.jsdelivr.net/npm/ts-essentials@10.0.4/dist/deep-readonly/index.d.ts/+esm';
+export type { DeepReadonly } from 'https://esm.sh/v135/ts-essentials@9.4.2'; // from <https://esm.sh/v135/ts-essentials@9.4.2>
