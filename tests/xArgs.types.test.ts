@@ -36,9 +36,13 @@ import { string, unknown } from '../vendor/deno@1.44.4-vendor/esm.sh/v45/compute
 
 // import chai from 'https://esm.sh/v135/chai@4.3.4';
 // import chai from 'https://esm.sh/chai@4.5.0';
-import chai from '../vendor/deno@1.44.4-vendor/esm.sh/v135/chai@4.3.4.js';
+// import chai from '../vendor/deno@1.44.4-vendor/esm.sh/v135/chai@4.3.4.js'; // *don't import directly* from deno-vendor directory as it may change; use a GH import from a stable commit if needed
+// import chaiM from 'https://cdn.jsdelivr.net/npm/chai@4.5.0/+esm';
+// import chaiT from '../vendor/@types/chai@~4.3/index.d.ts'; // use locally vendored (and modified) types
+import * as chai from 'https://cdn.jsdelivr.net/npm/chai@4.5.0/+esm';
 // import { z } from 'https://esm.sh/v135/zod@3.9.8';
-import { z } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8.js';
+// import { z } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8.js'; // *don't import directly* from deno-vendor directory as it may change; use a GH import from a stable commit if needed
+import { z } from 'https://cdn.jsdelivr.net/npm/zod@4.0.10/+esm';
 // import { zM } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/zod@3.24.2/+esm';
 // import type { default as zT } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/zod@3.24.2/lib/index.d.ts';
 // const z = zM as typeof zT;
@@ -99,6 +103,8 @@ test('parse', () => {
 
 test('parse (using chai)', () => {
 	chai.expect(Parse.wordSplitCLText('')).to.be.an('array').lengthOf(0);
+	// chai.assert.isArray(Parse.wordSplitCLText(''));
+	// chai.assert.lengthOf(Parse.wordSplitCLText(''), 0);
 	// assertType(chai.assert. ... unknown.array().of(string).max(0), Parse.wordSplitCLText(''));
 	// assertType(chai.assert. ... unknown.array().of(string), Parse.wordSplitCLText('test this'));
 });
