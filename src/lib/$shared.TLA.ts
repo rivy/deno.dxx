@@ -49,7 +49,11 @@ export async function permitsAsync(names?: Deno.PermissionName[] | null | undefi
 	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
 		names,
 		(await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map(
-			(e) => e ?? { state: 'granted', onchange: null },
+			(e) =>
+				e ??
+				(Object.assign(new EventTarget(), {
+					state: 'granted' as const,
+				}) as Deno.PermissionStatus),
 		),
 	);
 	return permits;

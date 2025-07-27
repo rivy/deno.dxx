@@ -178,7 +178,13 @@ export function permitsSync(names: Deno.PermissionName[] = DenoPermissionNames) 
 		names,
 		names
 			.map((name) => Deno.permissions?.querySync?.({ name }))
-			.map((e) => e ?? { state: 'granted', onchange: null }),
+			.map(
+				(e) =>
+					e ??
+					(Object.assign(new EventTarget(), {
+						state: 'granted' as const,
+					}) as Deno.PermissionStatus),
+			),
 	);
 	return permits;
 }
@@ -186,7 +192,11 @@ export function permitsSync(names: Deno.PermissionName[] = DenoPermissionNames) 
 export async function havePermit(permitName: Deno.PermissionName) {
 	const names = [permitName];
 	const permits = (await Promise.all(names.map((name) => Deno.permissions?.query({ name })))).map(
-		(e) => e ?? { state: 'granted', onchange: null },
+		(e) =>
+			e ??
+			(Object.assign(new EventTarget(), {
+				state: 'granted' as const,
+			}) as Deno.PermissionStatus),
 	);
 	const allGranted = !permits.find((permit) => permit.state !== 'granted');
 	return allGranted;
