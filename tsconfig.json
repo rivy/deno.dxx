@@ -5,9 +5,9 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"target": "esnext",
-		"isolatedModules": true,
-		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true
+		"isolatedModules": true
+		// "experimentalDecorators": true // * Deno v2.3+ warns with this option enabled
+		// "emitDecoratorMetadata": true // * requires `"experimentalDecorators": true`
 	},
 	"exclude": ["vendor"],
 	// * `deno fmt` options (usable for Deno v1.14+)
