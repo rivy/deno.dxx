@@ -470,10 +470,8 @@ async function copy(
 	const targets = Array.isArray(target) ? target : [target];
 	const preventTargetClose =
 		options?.preventTargetClose != null && Array.isArray(options?.preventTargetClose)
-			? options?.preventTargetClose
-			: options?.preventTargetClose != null
-				? (Array(targets.length) as boolean[]).fill(options?.preventTargetClose)
-				: (Array(targets.length) as boolean[]).fill(false);
+			? options.preventTargetClose
+			: (Array(targets.length) as boolean[]).fill(!!(options?.preventTargetClose ?? false));
 	const protectTarget = options?.protectTarget ?? false;
 	const readableStream = await (async () => {
 		if (source instanceof URL) {
