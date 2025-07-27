@@ -75,7 +75,9 @@ const args = $args.argsSync;
 // import * as EditorConfig from 'https://esm.sh/v135/@rivy-labs/-x-e34b1a4b-ab58-4d84-9787-309e53006932@0.16.3?deno-std=0.134.0&pin=v90';
 // import * as EditorConfig from 'https://esm.sh/v135/editorconfig@0.15.3?deno-std=0.134.0';
 // import * as EditorConfig from 'https://esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist?deno-std=0.134.0';
-import * as EditorConfig from '../vendor/deno@1.44.4-vendor/esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist.js';
+// import * as EditorConfig from '../vendor/deno@1.44.4-vendor/esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist.js';
+// import * as EditorConfig from '../vendor/deno@1.44.4-vendor/esm.sh/v90/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1/dist.js';
+import * as EditorConfig from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@614722de3b/vendor/deno@1.46.3-vendor/esm.sh/v135/@rivy-labs/x-e34b1a4b-ab58-4d84-9787-309e53006932@0.17.1.js';
 
 // const _haveEditorConfig = async () => (await Deno.lstat(projectLocations.editorconfig)).isFile;
 
