@@ -1,0 +1,35 @@
+{
+  "imports": {
+    "https://cdn.jsdelivr.net/npm/lodash-es@4.17.15/+esm": "./cdn.jsdelivr.net/npm/lodash-es@4.17.15/+esm.js",
+    "https://cdn.jsdelivr.net/npm/deepmerge@4.3.1/+esm": "./cdn.jsdelivr.net/npm/deepmerge@4.3.1/+esm.js",
+    "https://esm.sh/v135/ts-essentials@9.4.2": "./esm.sh/v135/ts-essentials@9.4.2.js",
+    "https://cdn.jsdelivr.net/npm/picomatch@2.2.1/+esm": "./cdn.jsdelivr.net/npm/picomatch@2.2.1/+esm.js",
+    "https://cdn.jsdelivr.net/npm/braces@3.0.3/+esm": "./cdn.jsdelivr.net/npm/braces@3.0.3/+esm.js",
+    "https://cdn.jsdelivr.net/npm/computed-types@1.6.0/+esm": "./cdn.jsdelivr.net/npm/computed-types@1.6.0/+esm.js",
+    "https://esm.sh/zod@4.0.10": "./esm.sh/zod@4.0.10.js",
+    "https://esm.sh/@types/buffer-from@~1.1.3/index.d.ts": "./esm.sh/@types/buffer-from@1.1.3/index.d.ts",
+    "https://esm.sh/@types/source-map-support@~0.5.10/index.d.ts": "./esm.sh/@types/source-map-support@0.5.10/index.d.ts",
+    "https://esm.sh/@types/chai@~4.3.20/index.d.ts": "./esm.sh/@types/chai@4.3.20/index.d.ts",
+    "https://esm.sh/@types/check-error@~1.0.3/index.d.ts": "./esm.sh/@types/check-error@1.0.3/index.d.ts",
+    "https://esm.sh/@types/deep-eql@~4.0.2/index.d.ts": "./esm.sh/@types/deep-eql@4.0.2/index.d.ts",
+    "https://esm.sh/@types/get-func-name@~2.0.4/index.d.ts": "./esm.sh/@types/get-func-name@2.0.4/index.d.ts",
+    "https://esm.sh/@types/pathval@~1.1.2/index.d.ts": "./esm.sh/@types/pathval@1.1.2/index.d.ts",
+    "https://esm.sh/@types/slice-ansi@~5.0.2/index.d.ts": "./esm.sh/@types/slice-ansi@5.0.2/index.d.ts",
+    "https://cdn.jsdelivr.net/": "./cdn.jsdelivr.net/",
+    "https://deno.land/": "./deno.land/",
+    "https://esm.sh/": "./esm.sh/"
+  },
+  "scopes": {
+    "./cdn.jsdelivr.net/": {
+      "/npm/fill-range@7.1.1/+esm": "./cdn.jsdelivr.net/npm/fill-range@7.1.1/+esm.js",
+      "/npm/to-regex-range@5.0.1/+esm": "./cdn.jsdelivr.net/npm/to-regex-range@5.0.1/+esm.js",
+      "/npm/is-number@7.0.0/+esm": "./cdn.jsdelivr.net/npm/is-number@7.0.0/+esm.js"
+    },
+    "./esm.sh/": {
+      "/v135/ts-essentials@9.4.2/denonext/ts-essentials.mjs": "./esm.sh/v135/ts-essentials@9.4.2/denonext/ts-essentials.mjs",
+      "/zod@4.0.10/denonext/v4/core.mjs": "./esm.sh/zod@4.0.10/denonext/v4/core.mjs",
+      "/zod@4.0.10/denonext/v4/locales.mjs": "./esm.sh/zod@4.0.10/denonext/v4/locales.mjs",
+      "/zod@4.0.10/denonext/zod.mjs": "./esm.sh/zod@4.0.10/denonext/zod.mjs"
+    }
+  }
+}
