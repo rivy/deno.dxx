@@ -385,7 +385,7 @@ export const atImportCWD = (() => {
 	const permit =
 		atImportPermitCWD ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
-	return tryFn(() => (permit ? Deno.cwd() : undefined));
+	return tryFnSync(() => (permit ? Deno.cwd() : undefined));
 })();
 
 // `cwd()`
@@ -401,7 +401,7 @@ export function cwd(options?: PermitOptions) {
 		!guard ||
 		atImportPermissions.read.state === 'granted' ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
-	return tryFn(() => (useDenoCWD ? Deno.cwd() : undefined));
+	return tryFnSync(() => (useDenoCWD ? Deno.cwd() : undefined));
 }
 
 // `cwdOfDrive()`
@@ -425,7 +425,7 @@ export function cwdOfDrive(drive?: string | null, options?: PermitOptions) {
 		Deno?.permissions?.querySync?.({ name: 'env', variable: `=${drive}:` })?.state === 'granted';
 	// console.warn('cwdOfDrive()', { drive, useDenoEnv });
 	if (useDenoEnv) {
-		const env = tryFn(() => Deno.env.toObject());
+		const env = tryFnSync(() => Deno.env.toObject());
 		if (env != null) {
 			const containsDriveCWDs = Object.keys(env)?.find((v) => v.match(/^[=]?[A-Z]:$/)) != null;
 			const path = containsDriveCWDs ? env[`=${drive}:`] ?? `${drive}:\\` : undefined;
@@ -438,11 +438,11 @@ export function cwdOfDrive(drive?: string | null, options?: PermitOptions) {
 	const CWD = cwd(options);
 	if (CWD == null) return undefined;
 	// console.warn('cwdOfDrive()', { drive, guard, useDenoEnv, CWD });
-	return tryFn(() => {
+	return tryFnSync(() => {
 		// console.warn('cwdOfDrive()', { drive, CWD });
 		// * verify chdir(CWD) works
 		if (!chdir(CWD, options)) return undefined;
-		const targetCWD = tryFn(() => {
+		const targetCWD = tryFnSync(() => {
 			if (!chdir(`${drive}:`, options)) return undefined;
 			const result = cwd(options);
 			const _ = chdir(CWD, options);
@@ -468,7 +468,7 @@ export function chdir(directory?: string | URL, options?: PermitOptions) {
 		atImportPermissions.read.state === 'granted' ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: directory })?.state === 'granted';
 	// console.warn('chdir()', { directory, guard, permit });
-	return tryFnOr(() => {
+	return tryFnOrSync(() => {
 		if (!permit) return false;
 		Deno.chdir(directory);
 		return true;
@@ -498,10 +498,10 @@ export function env(varName: string, options?: PermitOptions) {
 		atImportPermissions.env.state === 'granted' ||
 		Deno.permissions?.querySync?.({ name: 'env' })?.state === 'granted';
 	if (permit) {
-		return tryFnOr(
+		return tryFnOrSync(
 			() => Deno.env.get(varName),
 			permitEnvAll
-				? tryFn(() => {
+				? tryFnSync(() => {
 						if (envObject == null) envObject = Deno.env.toObject();
 						return envObject[varName];
 					})
@@ -530,10 +530,10 @@ export async function envAsync(varName: string, options?: PermitOptions) {
 		atImportPermissions.env.state === 'granted' ||
 		(await Deno.permissions?.query?.({ name: 'env' }))?.state === 'granted';
 	if (permit) {
-		return tryFnOr(
+		return tryFnOrSync(
 			() => Deno.env.get(varName),
 			permitEnvAll
-				? tryFn(() => {
+				? tryFnSync(() => {
 						if (envObject == null) envObject = Deno.env.toObject();
 						return envObject[varName];
 					})
@@ -603,7 +603,19 @@ export function ifThen<T>(condition: boolean, ifTrue: T | (() => T)) {
 	return ifThenElse(condition, ifTrue, undefined);
 }
 
-function tryFnOr<T>(fn: () => T, fallback: T) {
+export function tryFnOr<T>(fn: () => Promise<T>, fallback: T) {
+	return tryFnOrAsync(fn, fallback);
+}
+
+export async function tryFnOrAsync<T>(fn: () => Promise<T>, fallback: T) {
+	try {
+		return await fn();
+	} catch (_) {
+		return fallback;
+	}
+}
+
+export function tryFnOrSync<T>(fn: () => T, fallback: T) {
 	try {
 		return fn();
 	} catch (_) {
@@ -611,8 +623,40 @@ function tryFnOr<T>(fn: () => T, fallback: T) {
 	}
 }
 
-function tryFn<T>(fn: () => T) {
-	return tryFnOr(fn, undefined);
+export function tryFn<T>(fn: () => Promise<T>) {
+	return tryFnAsync(fn);
+}
+
+export function tryFnAsync<T>(fn: () => Promise<T>) {
+	return tryFnOrAsync(fn, undefined);
+}
+
+export function tryFnSync<T>(fn: () => T) {
+	return tryFnOrSync(fn, undefined);
+}
+
+//===
+
+import { toText as readableStreamToText } from 'https://deno.land/std@0.224.0/streams/mod.ts';
+export async function fetchText(url: URL): Promise<string> {
+	// ToDO: add support for non-['file:','http:','https:'] protocols to `fetch` by using `curl`
+	const href = url.href;
+	const response = await fetch(url).catch((e) => {
+		throw new Error(e.message);
+	});
+	// note: response status codes >= 200 < 300 should be ok
+	if (!response.ok) {
+		const msg = [response.statusText, `[status: ${response.status}]`].filter(Boolean).join(' ');
+		if (response.status === 404) {
+			throw new Deno.errors.NotFound(`'${href}' not found; ${msg}`);
+		}
+		throw new Error(`'${href}' fetch failed; ${msg}`);
+	}
+	if (response.body == null) {
+		throw new Deno.errors.NotFound(`'${href}' content not found`);
+	}
+	const readableStream = response.body;
+	return readableStreamToText(readableStream);
 }
 
 //===
