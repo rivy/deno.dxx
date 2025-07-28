@@ -1,5 +1,5 @@
-// rewrite imports for file(s), using import map aliases from remote vendored modules
-// * allows direct CDN import of vendored modules
+// resolve and rewrite imports for file(s), using import map aliases from local or remote vendored modules
+// * resolved imports allow direct CDN import of vendored modules
 // note: idempotent if/when run multiple times
 
 // spell-checker:ignore (people) rivy
@@ -63,7 +63,7 @@ import { toText } from 'https://deno.land/std@0.224.0/streams/mod.ts';
 
 import * as $lib from 'https://cdn.jsdelivr.net/gh/rivy/deno.dxx@7a17530aab/src/lib/$shared.ts';
 // $lib.intoPlatformPath();
-import { traversal } from 'https://cdn.jsdelivr.net/gh/rivy/deno.dxx@7a17530aab/src/lib/$shared.ts';
+// import { traversal } from 'https://cdn.jsdelivr.net/gh/rivy/deno.dxx@7a17530aab/src/lib/$shared.ts';
 
 //===
 
@@ -95,7 +95,15 @@ const ts = tsM.default;
 
 //===
 
-function tryFnOr<T>(fn: () => T, fallback: T) {
+async function tryFnOrAsync<T>(fn: () => Promise<T>, fallback: T) {
+	try {
+		return await fn();
+	} catch (_) {
+		return fallback;
+	}
+}
+
+function tryFnOrSync<T>(fn: () => T, fallback: T) {
 	try {
 		return fn();
 	} catch (_) {
@@ -103,8 +111,16 @@ function tryFnOr<T>(fn: () => T, fallback: T) {
 	}
 }
 
-function tryFn<T>(fn: () => T) {
-	return tryFnOr(fn, undefined);
+function tryFn<T>(fn: () => Promise<T>) {
+	return tryFnAsync(fn);
+}
+
+function tryFnAsync<T>(fn: () => Promise<T>) {
+	return tryFnOrAsync(fn, undefined);
+}
+
+function tryFnSync<T>(fn: () => T) {
+	return tryFnOrSync(fn, undefined);
 }
 
 //===
@@ -163,7 +179,7 @@ log.mergeMetadata({ authority: appName });
 const app = $yargs(/* argv */ undefined, /* cwd */ undefined)
 	// * usage, description, and epilog (ie, notes/copyright)
 	.usage(`$0 ${appVersion}\n
-Expand and rewrite module imports to enable direct loading of 'vendored' packages (without requiring *import_map.json*).\n
+Resolve and rewrite module imports to enable direct loading of 'vendored' packages (without requiring *import_map.json*).\n
 * Usual ESM export/import statements are all matched and rewritten.
 * However, only simple dynamic imports of the form \`const M = [await] import('...');\` are matched and rewritten.\n
 * NOTE: this is most useful to expand import maps in a stored 'vendor' directory which can then be loaded from a CDN, by commit/version.\n
@@ -244,14 +260,14 @@ Usage:\n  ${appRunAs} [OPTION..] FILE..`)
 	})
 	/* Options... */
 	.strictOptions(/* enable */ true)
-	.option('vendor-from', {
-		describe: 'Location of folder containing vendored packages (path or URL; required)',
+	.option('map-from', {
+		describe: 'Location of folder/file containing image map alias data (path or URL; required)',
 		type: 'string',
 		// demandOption: true,
 	})
-	.alias('vendor-from', ['v'])
+	.alias('map-from', ['m'])
 	/* Examples...*/
-	.example(`${appRunAs} --vendor-from vendor/deno@1.46.3-vendor`)
+	.example(`${appRunAs} --map-from vendor/deno@1.46.3-vendor`)
 	.example([]);
 
 const bakedArgs = $me.args();
@@ -338,7 +354,7 @@ if (yargs == null || yargs._.length === 0) {
 	appExitValue = 1;
 	Deno.exit(appExitValue);
 }
-if (yargs.vendorFrom == null) {
+if (yargs.mapFrom == null) {
 	await log.error('Missing required argument: --vendor-from');
 	appExitValue = 1;
 	Deno.exit(appExitValue);
@@ -348,16 +364,38 @@ if (yargs.vendorFrom == null) {
 
 const scriptDirURL = intoURL('./', intoURL(import.meta.url));
 
-const vendorFrom = (yargs.vendorFrom as string | undefined) ?? '';
-const vendorDirURL = intoURL(vendorFrom + (vendorFrom.endsWith('/') ? '' : '/.'));
-const importMapURL = intoURL('import_map.json', vendorDirURL);
+const importMapName = 'import_map.json';
+
+const mapFrom = (yargs.mapFrom as string | undefined) ?? '';
+const mapFromURL = intoURL(mapFrom);
+const [importMapURL, maybeImportMapText] = await (async () => {
+	if (mapFromURL == null) {
+		return [undefined, undefined];
+	}
+	if (mapFromURL.pathname.endsWith('/')) {
+		const url = intoURL(importMapName, mapFromURL);
+		return [url, undefined];
+	}
+	const text = await tryFn(() => fetchText(mapFromURL));
+	const isJSON =
+		(text != null &&
+			tryFnSync(() => {
+				JSON.parse(text);
+				return true;
+			})) ??
+		false;
+	if (isJSON) {
+		return [mapFromURL, text];
+	}
+	mapFromURL.pathname += '/'; // force mapFromURL to be a folder
+	return [intoURL(importMapName, mapFromURL), undefined];
+})();
 
 await log.debug({
 	scriptDir: pathFromURL(scriptDirURL),
-	vendorDir: pathFromURL(vendorDirURL),
 	importMap: pathFromURL(importMapURL),
 });
-await log.trace({ scriptDirURL, vendorDirURL, importMapURL });
+await log.trace({ scriptDirURL, importMapURL, maybeImportMapText });
 
 if (importMapURL == null) {
 	await log.error(`Failed to construct *import-map.json* URL`);
@@ -366,8 +404,7 @@ if (importMapURL == null) {
 }
 
 // Load the import map
-// const importMapText = await Deno.readTextFile(importMapURL);
-const importMapText = await tryFn(async () => await fetchText(importMapURL))?.catch((_) => '');
+const importMapText = maybeImportMapText ?? (await tryFn(() => fetchText(importMapURL)));
 
 if (importMapText == null || importMapText.length === 0) {
 	await log.error(`Failed to import *import-map.json* (from '${pathFromURL(importMapURL)}')`);
@@ -668,7 +705,7 @@ async function processFile(file: string | URL) {
 	}
 
 	// Compute the parent's remote URL by removing the vendor folder prefix.
-	// const relativePath = filePath.replace(new RegExp(`^${vendorDirURL.href}`), '');
+	// const relativePath = filePath.replace(new RegExp(`^${importDirURL.href}`), '');
 	// const parentUrl = "https://" + relativePath.replace(/\\/g, "/");
 	// const parentPath = resolve(relativePath.replace(/\\/g, '/'));
 
@@ -712,7 +749,7 @@ async function processArgs(args: string[]) {
 	await log.trace('processArgs():', { args });
 	for (const arg of args) {
 		const path = resolve(arg);
-		const stat = tryFn(() => Deno.lstatSync(path));
+		const stat = tryFnSync(() => Deno.lstatSync(path));
 		await log.trace('processArgs():', { path, stat });
 		if (stat == null) {
 			await log.error(`Unable to read status of file (\`${arg}\`)`);
