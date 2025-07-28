@@ -1,5 +1,4 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 /**
  * Convert the generator function into a TransformStream.
  *
@@ -29,11 +28,10 @@ export function toTransformStream<I, O>(
   writableStrategy?: QueuingStrategy<I>,
   readableStrategy?: QueuingStrategy<O>,
 ): TransformStream<I, O> {
-  const {
-    writable,
-    readable,
-  } = new TransformStream<I, I>(undefined, writableStrategy);
-
+  const { writable, readable } = new TransformStream<I, I>(
+    undefined,
+    writableStrategy,
+  );
   const iterable = transformer(readable);
   const iterator: Iterator<O> | AsyncIterator<O> =
     (iterable as AsyncIterable<O>)[Symbol.asyncIterator]?.() ??

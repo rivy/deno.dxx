@@ -2,14 +2,12 @@
 import { assert } from "../_util/asserts.ts";
 import { copy } from "../bytes/copy.ts";
 import type { Reader, ReaderSync } from "../types.d.ts";
-
 // MIN_READ is the minimum ArrayBuffer size passed to a read call by
 // buffer.ReadFrom. As long as the Buffer has at least MIN_READ bytes beyond
 // what is required to hold the contents of r, readFrom() will not grow the
 // underlying buffer.
 const MIN_READ = 32 * 1024;
 const MAX_SIZE = 2 ** 32 - 2;
-
 /** A variable-sized buffer of bytes with `read()` and `write()` methods.
  *
  * Buffer is almost always used with some I/O like files and sockets. It allows
@@ -24,15 +22,12 @@ const MAX_SIZE = 2 ** 32 - 2;
  * ArrayBuffer.
  *
  * Based on [Go Buffer](https://golang.org/pkg/bytes/#Buffer). */
-
 export class Buffer {
   #buf: Uint8Array; // contents are the bytes buf[off : len(buf)]
   #off = 0; // read at buf[off], write at buf[buf.byteLength]
-
   constructor(ab?: ArrayBufferLike | ArrayLike<number>) {
     this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
   }
-
   /** Returns a slice holding the unread portion of the buffer.
    *
    * The slice is valid for use only until the next buffer modification (that
@@ -43,26 +38,24 @@ export class Buffer {
    * @param [options={ copy: true }]
    */
   bytes(options = { copy: true }): Uint8Array {
-    if (options.copy === false) return this.#buf.subarray(this.#off);
+    if (options.copy === false) {
+      return this.#buf.subarray(this.#off);
+    }
     return this.#buf.slice(this.#off);
   }
-
   /** Returns whether the unread portion of the buffer is empty. */
   empty(): boolean {
     return this.#buf.byteLength <= this.#off;
   }
-
   /** A read only number of bytes of the unread portion of the buffer. */
   get length(): number {
     return this.#buf.byteLength - this.#off;
   }
-
   /** The read only capacity of the buffer's underlying byte slice, that is,
    * the total space allocated for the buffer's data. */
   get capacity(): number {
     return this.#buf.buffer.byteLength;
   }
-
   /** Discards all but the first `n` unread bytes from the buffer but
    * continues to use the same allocated storage. It throws if `n` is
    * negative or greater than the length of the buffer. */
@@ -76,12 +69,10 @@ export class Buffer {
     }
     this.#reslice(this.#off + n);
   }
-
   reset() {
     this.#reslice(0);
     this.#off = 0;
   }
-
   #tryGrowByReslice(n: number) {
     const l = this.#buf.byteLength;
     if (n <= this.capacity - l) {
@@ -90,12 +81,10 @@ export class Buffer {
     }
     return -1;
   }
-
   #reslice(len: number) {
     assert(len <= this.#buf.buffer.byteLength);
     this.#buf = new Uint8Array(this.#buf.buffer, 0, len);
   }
-
   /** Reads the next `p.length` bytes from the buffer or until the buffer is
    * drained. Returns the number of bytes read. If the buffer has no data to
    * return, the return is EOF (`null`). */
@@ -113,7 +102,6 @@ export class Buffer {
     this.#off += nread;
     return nread;
   }
-
   /** Reads the next `p.length` bytes from the buffer or until the buffer is
    * drained. Resolves to the number of bytes read. If the buffer has no
    * data to return, resolves to EOF (`null`).
@@ -125,19 +113,16 @@ export class Buffer {
     const rr = this.readSync(p);
     return Promise.resolve(rr);
   }
-
   writeSync(p: Uint8Array): number {
     const m = this.#grow(p.byteLength);
     return copy(p, this.#buf, m);
   }
-
   /** NOTE: This methods writes bytes synchronously; it's provided for
    * compatibility with `Writer` interface. */
   write(p: Uint8Array): Promise<number> {
     const n = this.writeSync(p);
     return Promise.resolve(n);
   }
-
   #grow(n: number) {
     const m = this.length;
     // If buffer is empty, reset to recover space.
@@ -169,7 +154,6 @@ export class Buffer {
     this.#reslice(Math.min(m + n, MAX_SIZE));
     return m;
   }
-
   /** Grows the buffer's capacity, if necessary, to guarantee space for
    * another `n` bytes. After `.grow(n)`, at least `n` bytes can be written to
    * the buffer without another allocation. If `n` is negative, `.grow()` will
@@ -184,7 +168,6 @@ export class Buffer {
     const m = this.#grow(n);
     this.#reslice(m);
   }
-
   /** Reads data from `r` until EOF (`null`) and appends it to the buffer,
    * growing the buffer as needed. It resolves to the number of bytes read.
    * If the buffer becomes too large, `.readFrom()` will reject with an error.
@@ -201,20 +184,19 @@ export class Buffer {
       const buf = shouldGrow
         ? tmp
         : new Uint8Array(this.#buf.buffer, this.length);
-
       const nread = await r.read(buf);
       if (nread === null) {
         return n;
       }
-
       // write will grow if needed
-      if (shouldGrow) this.writeSync(buf.subarray(0, nread));
-      else this.#reslice(this.length + nread);
-
+      if (shouldGrow) {
+        this.writeSync(buf.subarray(0, nread));
+      } else {
+        this.#reslice(this.length + nread);
+      }
       n += nread;
     }
   }
-
   /** Reads data from `r` until EOF (`null`) and appends it to the buffer,
    * growing the buffer as needed. It returns the number of bytes read. If the
    * buffer becomes too large, `.readFromSync()` will throw an error.
@@ -231,21 +213,20 @@ export class Buffer {
       const buf = shouldGrow
         ? tmp
         : new Uint8Array(this.#buf.buffer, this.length);
-
       const nread = r.readSync(buf);
       if (nread === null) {
         return n;
       }
-
       // write will grow if needed
-      if (shouldGrow) this.writeSync(buf.subarray(0, nread));
-      else this.#reslice(this.length + nread);
-
+      if (shouldGrow) {
+        this.writeSync(buf.subarray(0, nread));
+      } else {
+        this.#reslice(this.length + nread);
+      }
       n += nread;
     }
   }
 }
-
 export {
   /** @deprecated (will be removed after 0.172.0) Import from `std/io/buf_reader.ts` instead */
   BufferFullError,
@@ -264,7 +245,6 @@ export {
    */
   type ReadLineResult,
 } from "./buf_reader.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.172.0) Import from `std/io/buf_writer.ts` instead
@@ -289,7 +269,6 @@ export {
    */
   BufWriterSync,
 } from "./buf_writer.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.172.0) Import from `std/io/read_delim.ts` instead
@@ -297,7 +276,6 @@ export {
    * Read delimited bytes from a Reader. */
   readDelim,
 } from "./read_delim.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.172.0) Import from `std/io/read_string_delim.ts` instead
@@ -319,7 +297,6 @@ export {
    */
   readStringDelim,
 } from "./read_string_delim.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.172.0) Import from `std/io/read_lines.ts` instead

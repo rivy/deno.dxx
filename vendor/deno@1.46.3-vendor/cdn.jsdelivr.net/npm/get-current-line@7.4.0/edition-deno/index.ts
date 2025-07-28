@@ -9,7 +9,6 @@ export interface Location {
   /** the file path that was executing at the time */
   file: string;
 }
-
 /**
  * If provided, continue skipping until:
  *
@@ -45,14 +44,12 @@ export interface Offset {
    */
   immediate?: boolean;
 }
-
 /**
  * For an error instance, return its stack frames as an array.
  */
 export function getFramesFromError(error: Error): Array<string> {
   // Create an error
   let stack: Error["stack"] | null, frames: any[];
-
   // And attempt to retrieve it's stack
   // https://github.com/winstonjs/winston/issues/401#issuecomment-61913086
   try {
@@ -66,7 +63,6 @@ export function getFramesFromError(error: Error): Array<string> {
       stack = null;
     }
   }
-
   // Handle different stack formats
   if (stack) {
     if (Array.isArray(stack)) {
@@ -77,11 +73,9 @@ export function getFramesFromError(error: Error): Array<string> {
   } else {
     frames = [];
   }
-
   // Parse our frames
   return frames;
 }
-
 // Compatibility with Node.js versions <10
 let frameRegexNamedGroups: RegExp, frameRegexNumberedGroups: RegExp;
 try {
@@ -90,22 +84,20 @@ try {
 } catch (error) {
   frameRegexNumberedGroups = /\s+at\s(?:(.+?)\s\()?(.+?):(\d+):(\d+)\)?\s*$/;
 }
-
 /**
  * Get the locations from a list of error stack frames.
  */
 export function getLocationsFromFrames(frames: Array<string>): Array<Location> {
   // Prepare
   const locations: Array<Location> = [];
-
   // Cycle through the frames
   for (let frame of frames) {
     // ensure each frame is a string
     frame = (frame || "").toString();
-
     // skip empty frames
-    if (frame.length === 0) continue;
-
+    if (frame.length === 0) {
+      continue;
+    }
     // Error
     // at file:///Users/balupton/Projects/active/get-current-line/asd.js:1:13
     // at ModuleJob.run (internal/modules/esm/module_job.js:140:23)
@@ -134,10 +126,8 @@ export function getLocationsFromFrames(frames: Array<string>): Array<Location> {
       }
     }
   }
-
   return locations;
 }
-
 /**
  * If a location is not found, this is the result that is used.
  */
@@ -147,7 +137,6 @@ const failureLocation: Location = {
   method: "",
   file: "",
 };
-
 /**
  * From a list of locations, get the location that is determined by the offset.
  * If none are found, return the failure location
@@ -158,12 +147,10 @@ export function getLocationWithOffset(
 ): Location {
   // Continue
   let found: boolean = !offset.file && !offset.method;
-
   // use while loop so we can skip ahead
   let i = 0;
   while (i < locations.length) {
     const location = locations[i];
-
     // the current location matches the offset
     if (
       (offset.file &&
@@ -199,11 +186,9 @@ export function getLocationWithOffset(
       continue;
     }
   }
-
   // return failure
   return failureLocation;
 }
-
 /**
  * Get each error stack frame's location information.
  */
@@ -211,36 +196,27 @@ function getLocationsFromError(error: Error): Array<Location> {
   const frames = getFramesFromError(error);
   return getLocationsFromFrames(frames);
 }
-
 /**
  * Get the file path that appears in the stack of the passed error.
  * If no offset is provided, then the first location that has a file path will be used.
  */
-export function getFileFromError(
-  error: Error,
-  offset: Offset = {
-    file: /./,
-    immediate: true,
-  },
-): string {
+export function getFileFromError(error: Error, offset: Offset = {
+  file: /./,
+  immediate: true,
+}): string {
   const locations = getLocationsFromError(error);
   return getLocationWithOffset(locations, offset).file;
 }
-
 /**
  * Get first determined location information that appears in the stack of the error.
  * If no offset is provided, then the offset used will determine the first location information.
  */
-export function getLocationFromError(
-  error: Error,
-  offset: Offset = {
-    immediate: true,
-  },
-): Location {
+export function getLocationFromError(error: Error, offset: Offset = {
+  immediate: true,
+}): Location {
   const locations = getLocationsFromError(error);
   return getLocationWithOffset(locations, offset);
 }
-
 /**
  * Get the location information about the line that called this method.
  * If no offset is provided, then continue until the caller of the `getCurrentLine` is found.
@@ -258,12 +234,10 @@ export function getLocationFromError(
  * }
  * ```
  */
-export default function getCurrentLine(
-  offset: Offset = {
-    method: "getCurrentLine",
-    frames: 0,
-    immediate: false,
-  },
-): Location {
+export default function getCurrentLine(offset: Offset = {
+  method: "getCurrentLine",
+  frames: 0,
+  immediate: false,
+}): Location {
   return getLocationFromError(new Error(), offset);
 }

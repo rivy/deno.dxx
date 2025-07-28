@@ -7,11 +7,9 @@ export default function lowerBound<T>(
 ): number {
   let first = 0;
   let count = array.length;
-
   while (count > 0) {
     const step = Math.trunc(count / 2);
     let it = first + step;
-
     if (comparator(array[it], value) <= 0) {
       first = ++it;
       count -= step + 1;
@@ -19,6 +17,5 @@ export default function lowerBound<T>(
       count = step;
     }
   }
-
   return first;
 }

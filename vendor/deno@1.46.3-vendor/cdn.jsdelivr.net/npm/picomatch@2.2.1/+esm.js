@@ -18,7 +18,11 @@ function e(t, e) {
       ? (t.splice(o, 1), n++)
       : n && (t.splice(o, 1), n--);
   }
-  if (e) { for (; n--; n) t.unshift(".."); }
+  if (e) {
+    for (; n--; n) {
+      t.unshift("..");
+    }
+  }
   return t;
 }
 var n = /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/,
@@ -86,7 +90,9 @@ function i(t, e) {
     }
   }
   var p = [];
-  for (i = a; i < o.length; i++) p.push("..");
+  for (i = a; i < o.length; i++) {
+    p.push("..");
+  }
   return (p = p.concat(u.slice(a))).join("/");
 }
 function p(t) {
@@ -115,8 +121,12 @@ var f = {
   resolve: r,
 };
 function A(t, e) {
-  if (t.filter) return t.filter(e);
-  for (var n = [], o = 0; o < t.length; o++) e(t[o], o, t) && n.push(t[o]);
+  if (t.filter) {
+    return t.filter(e);
+  }
+  for (var n = [], o = 0; o < t.length; o++) {
+    e(t[o], o, t) && n.push(t[o]);
+  }
   return n;
 }
 var h = "b" === "ab".substr(-1)
@@ -126,22 +136,20 @@ var h = "b" === "ab".substr(-1)
     : function (t, e, n) {
       return e < 0 && (e = t.length + e), t.substr(e, n);
     },
-  R = t(
-    Object.freeze({
-      __proto__: null,
-      resolve: r,
-      normalize: u,
-      isAbsolute: s,
-      join: a,
-      relative: i,
-      sep: "/",
-      delimiter: ":",
-      dirname: p,
-      basename: l,
-      extname: c,
-      default: f,
-    }),
-  ),
+  R = t(Object.freeze({
+    __proto__: null,
+    resolve: r,
+    normalize: u,
+    isAbsolute: s,
+    join: a,
+    relative: i,
+    sep: "/",
+    delimiter: ":",
+    dirname: p,
+    basename: l,
+    extname: c,
+    default: f,
+  })),
   _ = "undefined" != typeof global
     ? global
     : "undefined" != typeof self
@@ -157,8 +165,12 @@ function E() {
 }
 var b = g, y = E;
 function v(t) {
-  if (b === setTimeout) return setTimeout(t, 0);
-  if ((b === g || !b) && setTimeout) return b = setTimeout, setTimeout(t, 0);
+  if (b === setTimeout) {
+    return setTimeout(t, 0);
+  }
+  if ((b === g || !b) && setTimeout) {
+    return b = setTimeout, setTimeout(t, 0);
+  }
   try {
     return b(t, 0);
   } catch (e) {
@@ -180,13 +192,17 @@ function T() {
     var t = v(d);
     S = !0;
     for (var e = $.length; e;) {
-      for (C = $, $ = []; ++x < e;) C && C[x].run();
+      for (C = $, $ = []; ++x < e;) {
+        C && C[x].run();
+      }
       x = -1, e = $.length;
     }
     C = null,
       S = !1,
       function (t) {
-        if (y === clearTimeout) return clearTimeout(t);
+        if (y === clearTimeout) {
+          return clearTimeout(t);
+        }
         if ((y === E || !y) && clearTimeout) {
           return y = clearTimeout, clearTimeout(t);
         }
@@ -219,7 +235,9 @@ var P = {
     nextTick: function (t) {
       var e = new Array(arguments.length - 1);
       if (arguments.length > 1) {
-        for (var n = 1; n < arguments.length; n++) e[n - 1] = arguments[n];
+        for (var n = 1; n < arguments.length; n++) {
+          e[n - 1] = arguments[n];
+        }
       }
       $.push(new H(t, e)), 1 !== $.length || S || v(T);
     },
@@ -473,25 +491,31 @@ var Et = (t, e) => {
           if (p !== ot) {
             if (p !== it) {
               if (!0 !== b && p === ut && (p = d()) === ut) {
-                if (
-                  h = S.isBrace = !0, _ = S.isGlob = !0, C = !0, !0 === r
-                ) continue;
+                if (h = S.isBrace = !0, _ = S.isGlob = !0, C = !0, !0 === r) {
+                  continue;
+                }
                 break;
               }
               if (!0 !== b && p === rt) {
-                if (
-                  h = S.isBrace = !0, _ = S.isGlob = !0, C = !0, !0 === r
-                ) continue;
+                if (h = S.isBrace = !0, _ = S.isGlob = !0, C = !0, !0 === r) {
+                  continue;
+                }
                 break;
               }
               if (p === At && ($--, 0 === $)) {
                 b = !1, h = S.isBrace = !0, C = !0;
                 break;
               }
-            } else $++;
-          } else y = S.backslashes = !0, d();
+            } else {
+              $++;
+            }
+          } else {
+            y = S.backslashes = !0, d();
+          }
         }
-        if (!0 === r) continue;
+        if (!0 === r) {
+          continue;
+        }
         break;
       }
       if (p !== at) {
@@ -507,7 +531,9 @@ var Et = (t, e) => {
                     _ = S.isGlob = !0, C = !0;
                     break;
                   }
-                } else y = S.backslashes = !0, p = d();
+                } else {
+                  y = S.backslashes = !0, p = d();
+                }
               }
               continue;
             }
@@ -520,23 +546,29 @@ var Et = (t, e) => {
               _ = S.isGlob = !0,
               C = !0,
               !0 === r
-          ) continue;
+          ) {
+            continue;
+          }
           break;
         }
         if (p === ft) {
-          if (_ = S.isGlob = !0, C = !0, !0 === r) continue;
+          if (_ = S.isGlob = !0, C = !0, !0 === r) {
+            continue;
+          }
           break;
         }
         if (p === lt) {
           for (; !0 !== x() && (t = d());) {
             if (t !== ot) {
               if (t === Rt) {
-                if (
-                  R = S.isBracket = !0, _ = S.isGlob = !0, C = !0, !0 === r
-                ) continue;
+                if (R = S.isBracket = !0, _ = S.isGlob = !0, C = !0, !0 === r) {
+                  continue;
+                }
                 break;
               }
-            } else y = S.backslashes = !0, d();
+            } else {
+              y = S.backslashes = !0, d();
+            }
           }
         }
         if (!0 === n.nonegate || p !== st || c !== f) {
@@ -544,31 +576,43 @@ var Et = (t, e) => {
             for (; !0 !== x() && (p = d());) {
               if (p !== ot) {
                 if (p === ht) {
-                  if (_ = S.isGlob = !0, C = !0, !0 === r) continue;
+                  if (_ = S.isGlob = !0, C = !0, !0 === r) {
+                    continue;
+                  }
                   break;
                 }
-              } else y = S.backslashes = !0, p = d();
+              } else {
+                y = S.backslashes = !0, p = d();
+              }
             }
           }
           if (!0 === _) {
-            if (C = !0, !0 === r) continue;
+            if (C = !0, !0 === r) {
+              continue;
+            }
             break;
           }
-        } else v = S.negated = !0, f++;
+        } else {
+          v = S.negated = !0, f++;
+        }
       } else {
         if (
           u.push(c),
             s.push(S),
             S = { value: "", depth: 0, isGlob: !1 },
             !0 === C
-        ) continue;
+        ) {
+          continue;
+        }
         if (i === ut && c === f + 1) {
           f += 2;
           continue;
         }
         A = c + 1;
       }
-    } else y = S.backslashes = !0, p = d(), p === it && (b = !0);
+    } else {
+      y = S.backslashes = !0, p = d(), p === it && (b = !0);
+    }
   }
   !0 === n.noext && (g = !1, _ = !1);
   let T = l, H = "", m = "";
@@ -634,7 +678,9 @@ const bt = J,
     REPLACEMENTS: xt,
   } = bt,
   dt = (t, e) => {
-    if ("function" == typeof e.expandRange) return e.expandRange(...t, e);
+    if ("function" == typeof e.expandRange) {
+      return e.expandRange(...t, e);
+    }
     t.sort();
     const n = `[${t.join("-")}]`;
     try {
@@ -647,7 +693,9 @@ const bt = J,
   Tt = (t, e) =>
     `Missing ${t}: "${e}" - use "\\\\${e}" to match literal characters`,
   Ht = (t, e) => {
-    if ("string" != typeof t) throw new TypeError("Expected a string");
+    if ("string" != typeof t) {
+      throw new TypeError("Expected a string");
+    }
     t = xt[t] || t;
     const n = { ...e },
       o = "number" == typeof n.maxLength ? Math.min(vt, n.maxLength) : vt;
@@ -799,11 +847,17 @@ const bt = J,
           : (T.output = yt.wrapOutput(r, T, e), T);
     }
     for (; !w();) {
-      if (O = I(), "\0" === O) continue;
+      if (O = I(), "\0" === O) {
+        continue;
+      }
       if ("\\" === O) {
         const t = N();
-        if ("/" === t && !0 !== n.bash) continue;
-        if ("." === t || ";" === t) continue;
+        if ("/" === t && !0 !== n.bash) {
+          continue;
+        }
+        if ("." === t || ";" === t) {
+          continue;
+        }
         if (!t) {
           O += "\\", U({ type: "text", value: O });
           continue;
@@ -874,8 +928,9 @@ const bt = J,
         continue;
       }
       if ("[" === O) {
-        if (!0 !== n.nobracket && B().includes("]")) P("brackets");
-        else {
+        if (!0 !== n.nobracket && B().includes("]")) {
+          P("brackets");
+        } else {
           if (!0 !== n.nobracket && !0 === n.strictBrackets) {
             throw new SyntaxError(Tt("closing", "]"));
           }
@@ -906,7 +961,9 @@ const bt = J,
             k.value += O,
             D({ value: O }),
             !1 === n.literalBrackets || yt.hasRegexChars(t)
-        ) continue;
+        ) {
+          continue;
+        }
         const e = yt.escapeRegex(k.value);
         if (
           T.output = T.output.slice(0, -k.value.length),
@@ -943,14 +1000,18 @@ const bt = J,
             let e = t.length - 1;
             e >= 0 && (s.pop(), "brace" !== t[e].type);
             e--
-          ) "dots" !== t[e].type && o.unshift(t[e].value);
+          ) {
+            "dots" !== t[e].type && o.unshift(t[e].value);
+          }
           e = dt(o, n), T.backtrack = !0;
         }
         if (!0 !== t.comma && !0 !== t.dots) {
           const n = T.output.slice(0, t.outputIndex),
             o = T.tokens.slice(t.tokensIndex);
           t.value = t.output = "\\{", O = e = "\\}", T.output = n;
-          for (const t of o) T.output += t.output || t.value;
+          for (const t of o) {
+            T.output += t.output || t.value;
+          }
         }
         U({ type: "brace", value: O, output: e }), K("braces"), m.pop();
         continue;
@@ -1102,7 +1163,9 @@ const bt = J,
         }
         for (; "/**" === e.slice(0, 3);) {
           const n = t[T.index + 4];
-          if (n && "/" !== n) break;
+          if (n && "/" !== n) {
+            break;
+          }
           e = e.slice(3), M("/**", 3);
         }
         if ("bos" === o.type && w()) {
@@ -1174,15 +1237,21 @@ const bt = J,
           U(o));
     }
     for (; T.brackets > 0;) {
-      if (!0 === n.strictBrackets) throw new SyntaxError(Tt("closing", "]"));
+      if (!0 === n.strictBrackets) {
+        throw new SyntaxError(Tt("closing", "]"));
+      }
       T.output = yt.escapeLast(T.output, "["), K("brackets");
     }
     for (; T.parens > 0;) {
-      if (!0 === n.strictBrackets) throw new SyntaxError(Tt("closing", ")"));
+      if (!0 === n.strictBrackets) {
+        throw new SyntaxError(Tt("closing", ")"));
+      }
       T.output = yt.escapeLast(T.output, "("), K("parens");
     }
     for (; T.braces > 0;) {
-      if (!0 === n.strictBrackets) throw new SyntaxError(Tt("closing", "}"));
+      if (!0 === n.strictBrackets) {
+        throw new SyntaxError(Tt("closing", "}"));
+      }
       T.output = yt.escapeLast(T.output, "{"), K("braces");
     }
     if (
@@ -1246,9 +1315,13 @@ Ht.fastpaths = (t, e) => {
           return `(?:${R}${b(n)}${a})?${s}${i}${E}`;
         default: {
           const e = /^(.*?)\.(\w+)$/.exec(t);
-          if (!e) return;
+          if (!e) {
+            return;
+          }
           const n = y(e[1]);
-          if (!n) return;
+          if (!n) {
+            return;
+          }
           return n + s + e[2];
         }
       }
@@ -1268,7 +1341,9 @@ const mt = R,
         r = (t) => {
           for (const e of o) {
             const n = e(t);
-            if (n) return n;
+            if (n) {
+              return n;
+            }
           }
           return !1;
         };
@@ -1320,7 +1395,9 @@ Nt.test = (t, e, n, { glob: o, posix: r } = {}) => {
   if ("string" != typeof t) {
     throw new TypeError("Expected input to be a string");
   }
-  if ("" === t) return { isMatch: !1, output: "" };
+  if ("" === t) {
+    return { isMatch: !1, output: "" };
+  }
   const u = n || {}, s = u.format || (r ? kt.toPosixSlashes : null);
   let a = t === o, i = a && s ? s(t) : t;
   return !1 === a && (i = s ? s(t) : t, a = i === o),
@@ -1339,7 +1416,9 @@ Nt.test = (t, e, n, { glob: o, posix: r } = {}) => {
       : Ot(t, { ...e, fastpaths: !1 }),
   Nt.scan = (t, e) => Lt(t, e),
   Nt.compileRe = (t, e, n = !1, o = !1) => {
-    if (!0 === n) return t.output;
+    if (!0 === n) {
+      return t.output;
+    }
     const r = e || {}, u = r.contains ? "" : "^", s = r.contains ? "" : "$";
     let a = `${u}(?:${t.output})${s}`;
     t && !0 === t.negated && (a = `^(?!${a}).*$`);
@@ -1365,7 +1444,9 @@ Nt.test = (t, e, n, { glob: o, posix: r } = {}) => {
       const n = e || {};
       return new RegExp(t, n.flags || (n.nocase ? "i" : ""));
     } catch (t) {
-      if (e && !0 === e.debug) throw t;
+      if (e && !0 === e.debug) {
+        throw t;
+      }
       return /$^/;
     }
   },

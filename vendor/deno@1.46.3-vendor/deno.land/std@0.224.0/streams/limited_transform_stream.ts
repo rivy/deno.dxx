@@ -1,6 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /**
  * A {@linkcode TransformStream} that will only read & enqueue `size` amount of
  * chunks.
@@ -17,9 +16,10 @@
  */
 export class LimitedTransformStream<T> extends TransformStream<T, T> {
   #read = 0;
-
   /** Constructs a new instance. */
-  constructor(size: number, options: { error?: boolean } = {}) {
+  constructor(size: number, options: {
+    error?: boolean;
+  } = {}) {
     super({
       transform: (chunk, controller) => {
         if ((this.#read + 1) > size) {

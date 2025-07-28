@@ -4,7 +4,7 @@
  *
  * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
  */
-import t from "/npm/to-regex-range@5.0.1/+esm";
+import t from "../../../cdn.jsdelivr.net/npm/to-regex-range@5.0.1/+esm.js";
 function r(t) {
   return t && Object.prototype.hasOwnProperty.call(t, "default")
     ? t.default
@@ -28,7 +28,9 @@ function f() {
       r = 0;
     r < 64;
     ++r
-  ) n[r] = t[r], i[t.charCodeAt(r)] = r;
+  ) {
+    n[r] = t[r], i[t.charCodeAt(r)] = r;
+  }
   i["-".charCodeAt(0)] = 62, i["_".charCodeAt(0)] = 63;
 }
 function s(t, r, e) {
@@ -47,7 +49,9 @@ function a(t) {
     var e = t.length, i = e % 3, o = "", a = [], h = 16383, c = 0, l = e - i;
     c < l;
     c += h
-  ) a.push(s(t, c, c + h > l ? l : c + h));
+  ) {
+    a.push(s(t, c, c + h > l ? l : c + h));
+  }
   return 1 === i
     ? (r = t[e - 1], o += n[r >> 2], o += n[r << 4 & 63], o += "==")
     : 2 === i &&
@@ -79,9 +83,12 @@ function h(t, r, e, n, i) {
     h > 0;
     u = 256 * u + t[r + c], c += l, h -= 8
   );
-  if (0 === o) o = 1 - a;
-  else {
-    if (o === s) return u ? NaN : 1 / 0 * (p ? -1 : 1);
+  if (0 === o) {
+    o = 1 - a;
+  } else {
+    if (o === s) {
+      return u ? NaN : 1 / 0 * (p ? -1 : 1);
+    }
     u += Math.pow(2, n), o -= a;
   }
   return (p ? -1 : 1) * u * Math.pow(2, o - n);
@@ -128,14 +135,18 @@ function g() {
   return d.TYPED_ARRAY_SUPPORT ? 2147483647 : 1073741823;
 }
 function y(t, r) {
-  if (g() < r) throw new RangeError("Invalid typed array length");
+  if (g() < r) {
+    throw new RangeError("Invalid typed array length");
+  }
   return d.TYPED_ARRAY_SUPPORT
     ? (t = new Uint8Array(r)).__proto__ = d.prototype
     : (null === t && (t = new d(r)), t.length = r),
     t;
 }
 function d(t, r, e) {
-  if (!(d.TYPED_ARRAY_SUPPORT || this instanceof d)) return new d(t, r, e);
+  if (!(d.TYPED_ARRAY_SUPPORT || this instanceof d)) {
+    return new d(t, r, e);
+  }
   if ("number" == typeof t) {
     if ("string" == typeof r) {
       throw new Error(
@@ -170,9 +181,7 @@ function w(t, r, e, n) {
     ? function (t, r, e) {
       "string" == typeof e && "" !== e || (e = "utf8");
       if (!d.isEncoding(e)) {
-        throw new TypeError(
-          '"encoding" must be a valid string encoding',
-        );
+        throw new TypeError('"encoding" must be a valid string encoding');
       }
       var n = 0 | R(r, e);
       t = y(t, n);
@@ -194,7 +203,9 @@ function w(t, r, e, n) {
             ? y(t, 0)
             : b(t, r);
         }
-        if ("Buffer" === r.type && p(r.data)) return b(t, r.data);
+        if ("Buffer" === r.type && p(r.data)) {
+          return b(t, r.data);
+        }
       }
       var n;
       throw new TypeError(
@@ -206,7 +217,9 @@ function v(t) {
   if ("number" != typeof t) {
     throw new TypeError('"size" argument must be a number');
   }
-  if (t < 0) throw new RangeError('"size" argument must not be negative');
+  if (t < 0) {
+    throw new RangeError('"size" argument must not be negative');
+  }
 }
 function m(t, r) {
   if (v(r), t = y(t, r < 0 ? 0 : 0 | E(r)), !d.TYPED_ARRAY_SUPPORT) {
@@ -219,7 +232,9 @@ function m(t, r) {
 function b(t, r) {
   var e = r.length < 0 ? 0 : 0 | E(r.length);
   t = y(t, e);
-  for (var n = 0; n < e; n += 1) t[n] = 255 & r[n];
+  for (var n = 0; n < e; n += 1) {
+    t[n] = 255 & r[n];
+  }
   return t;
 }
 function E(t) {
@@ -235,15 +250,21 @@ function A(t) {
   return !(null == t || !t._isBuffer);
 }
 function R(t, r) {
-  if (A(t)) return t.length;
+  if (A(t)) {
+    return t.length;
+  }
   if (
     "undefined" != typeof ArrayBuffer &&
     "function" == typeof ArrayBuffer.isView &&
     (ArrayBuffer.isView(t) || t instanceof ArrayBuffer)
-  ) return t.byteLength;
+  ) {
+    return t.byteLength;
+  }
   "string" != typeof t && (t = "" + t);
   var e = t.length;
-  if (0 === e) return 0;
+  if (0 === e) {
+    return 0;
+  }
   for (var n = !1;;) {
     switch (r) {
       case "ascii":
@@ -264,16 +285,24 @@ function R(t, r) {
       case "base64":
         return Q(t).length;
       default:
-        if (n) return K(t).length;
+        if (n) {
+          return K(t).length;
+        }
         r = ("" + r).toLowerCase(), n = !0;
     }
   }
 }
 function T(t, r, e) {
   var n = !1;
-  if ((void 0 === r || r < 0) && (r = 0), r > this.length) return "";
-  if ((void 0 === e || e > this.length) && (e = this.length), e <= 0) return "";
-  if ((e >>>= 0) <= (r >>>= 0)) return "";
+  if ((void 0 === r || r < 0) && (r = 0), r > this.length) {
+    return "";
+  }
+  if ((void 0 === e || e > this.length) && (e = this.length), e <= 0) {
+    return "";
+  }
+  if ((e >>>= 0) <= (r >>>= 0)) {
+    return "";
+  }
   for (t || (t = "utf8");;) {
     switch (t) {
       case "hex":
@@ -294,7 +323,9 @@ function T(t, r, e) {
       case "utf-16le":
         return z(this, r, e);
       default:
-        if (n) throw new TypeError("Unknown encoding: " + t);
+        if (n) {
+          throw new TypeError("Unknown encoding: " + t);
+        }
         t = (t + "").toLowerCase(), n = !0;
     }
   }
@@ -304,7 +335,9 @@ function _(t, r, e) {
   t[r] = t[e], t[e] = n;
 }
 function P(t, r, e, n, i) {
-  if (0 === t.length) return -1;
+  if (0 === t.length) {
+    return -1;
+  }
   if (
     "string" == typeof e
       ? (n = e, e = 0)
@@ -316,10 +349,14 @@ function P(t, r, e, n, i) {
       e < 0 && (e = t.length + e),
       e >= t.length
   ) {
-    if (i) return -1;
+    if (i) {
+      return -1;
+    }
     e = t.length - 1;
   } else if (e < 0) {
-    if (!i) return -1;
+    if (!i) {
+      return -1;
+    }
     e = 0;
   }
   if ("string" == typeof r && (r = d.from(r, n)), A(r)) {
@@ -342,7 +379,9 @@ function S(t, r, e, n, i) {
     ("ucs2" === (n = String(n).toLowerCase()) || "ucs-2" === n ||
       "utf16le" === n || "utf-16le" === n)
   ) {
-    if (t.length < 2 || r.length < 2) return -1;
+    if (t.length < 2 || r.length < 2) {
+      return -1;
+    }
     u = 2, f /= 2, s /= 2, e /= 2;
   }
   function a(t, r) {
@@ -355,17 +394,23 @@ function S(t, r, e, n, i) {
         if (-1 === h && (h = o), o - h + 1 === s) {
           return h * u;
         }
-      } else -1 !== h && (o -= o - h), h = -1;
+      } else {
+        -1 !== h && (o -= o - h), h = -1;
+      }
     }
-  } else {for (e + s > f && (e = f - s), o = e; o >= 0; o--) {
+  } else {
+    for (e + s > f && (e = f - s), o = e; o >= 0; o--) {
       for (var c = !0, l = 0; l < s; l++) {
         if (a(t, o + l) !== a(r, l)) {
           c = !1;
           break;
         }
       }
-      if (c) return o;
-    }}
+      if (c) {
+        return o;
+      }
+    }
+  }
   return -1;
 }
 function O(t, r, e, n) {
@@ -373,11 +418,15 @@ function O(t, r, e, n) {
   var i = t.length - e;
   n ? (n = Number(n)) > i && (n = i) : n = i;
   var o = r.length;
-  if (o % 2 != 0) throw new TypeError("Invalid hex string");
+  if (o % 2 != 0) {
+    throw new TypeError("Invalid hex string");
+  }
   n > o / 2 && (n = o / 2);
   for (var u = 0; u < n; ++u) {
     var f = parseInt(r.substr(2 * u, 2), 16);
-    if (isNaN(f)) return u;
+    if (isNaN(f)) {
+      return u;
+    }
     t[e + u] = f;
   }
   return u;
@@ -388,7 +437,9 @@ function U(t, r, e, n) {
 function B(t, r, e, n) {
   return W(
     function (t) {
-      for (var r = [], e = 0; e < t.length; ++e) r.push(255 & t.charCodeAt(e));
+      for (var r = [], e = 0; e < t.length; ++e) {
+        r.push(255 & t.charCodeAt(e));
+      }
       return r;
     }(r),
     t,
@@ -405,11 +456,9 @@ function j(t, r, e, n) {
 function I(t, r, e, n) {
   return W(
     function (t, r) {
-      for (
-        var e, n, i, o = [], u = 0;
-        u < t.length && !((r -= 2) < 0);
-        ++u
-      ) n = (e = t.charCodeAt(u)) >> 8, i = e % 256, o.push(i), o.push(n);
+      for (var e, n, i, o = [], u = 0; u < t.length && !((r -= 2) < 0); ++u) {
+        n = (e = t.charCodeAt(u)) >> 8, i = e % 256, o.push(i), o.push(n);
+      }
       return o;
     }(r, t.length - e),
     t,
@@ -463,9 +512,13 @@ function Y(t, r, e) {
   }
   return function (t) {
     var r = t.length;
-    if (r <= C) return String.fromCharCode.apply(String, t);
+    if (r <= C) {
+      return String.fromCharCode.apply(String, t);
+    }
     var e = "", n = 0;
-    for (; n < r;) e += String.fromCharCode.apply(String, t.slice(n, n += C));
+    for (; n < r;) {
+      e += String.fromCharCode.apply(String, t.slice(n, n += C));
+    }
     return e;
   }(n);
 }
@@ -506,8 +559,12 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
     }(t));
   },
   d.compare = function (t, r) {
-    if (!A(t) || !A(r)) throw new TypeError("Arguments must be Buffers");
-    if (t === r) return 0;
+    if (!A(t) || !A(r)) {
+      throw new TypeError("Arguments must be Buffers");
+    }
+    if (t === r) {
+      return 0;
+    }
     for (
       var e = t.length, n = r.length, i = 0, o = Math.min(e, n);
       i < o;
@@ -542,11 +599,15 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
     if (!p(t)) {
       throw new TypeError('"list" argument must be an Array of Buffers');
     }
-    if (0 === t.length) return d.alloc(0);
+    if (0 === t.length) {
+      return d.alloc(0);
+    }
     var e;
-    if (void 0 === r) {for (r = 0, e = 0; e < t.length; ++e) {
+    if (void 0 === r) {
+      for (r = 0, e = 0; e < t.length; ++e) {
         r += t[e].length;
-      }}
+      }
+    }
     var n = d.allocUnsafe(r), i = 0;
     for (e = 0; e < t.length; ++e) {
       var o = t[e];
@@ -564,7 +625,9 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
     if (t % 2 != 0) {
       throw new RangeError("Buffer size must be a multiple of 16-bits");
     }
-    for (var r = 0; r < t; r += 2) _(this, r, r + 1);
+    for (var r = 0; r < t; r += 2) {
+      _(this, r, r + 1);
+    }
     return this;
   },
   d.prototype.swap32 = function () {
@@ -572,7 +635,9 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
     if (t % 4 != 0) {
       throw new RangeError("Buffer size must be a multiple of 32-bits");
     }
-    for (var r = 0; r < t; r += 4) _(this, r, r + 3), _(this, r + 1, r + 2);
+    for (var r = 0; r < t; r += 4) {
+      _(this, r, r + 3), _(this, r + 1, r + 2);
+    }
     return this;
   },
   d.prototype.swap64 = function () {
@@ -597,7 +662,9 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
       : T.apply(this, arguments);
   },
   d.prototype.equals = function (t) {
-    if (!A(t)) throw new TypeError("Argument must be a Buffer");
+    if (!A(t)) {
+      throw new TypeError("Argument must be a Buffer");
+    }
     return this === t || 0 === d.compare(this, t);
   },
   d.prototype.inspect = function () {
@@ -608,18 +675,30 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
       "<Buffer " + t + ">";
   },
   d.prototype.compare = function (t, r, e, n, i) {
-    if (!A(t)) throw new TypeError("Argument must be a Buffer");
+    if (!A(t)) {
+      throw new TypeError("Argument must be a Buffer");
+    }
     if (
       void 0 === r && (r = 0),
         void 0 === e && (e = t ? t.length : 0),
         void 0 === n && (n = 0),
         void 0 === i && (i = this.length),
         r < 0 || e > t.length || n < 0 || i > this.length
-    ) throw new RangeError("out of range index");
-    if (n >= i && r >= e) return 0;
-    if (n >= i) return -1;
-    if (r >= e) return 1;
-    if (this === t) return 0;
+    ) {
+      throw new RangeError("out of range index");
+    }
+    if (n >= i && r >= e) {
+      return 0;
+    }
+    if (n >= i) {
+      return -1;
+    }
+    if (r >= e) {
+      return 1;
+    }
+    if (this === t) {
+      return 0;
+    }
     for (
       var o = (i >>>= 0) - (n >>>= 0),
         u = (e >>>= 0) - (r >>>= 0),
@@ -647,8 +726,9 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
     return P(this, t, r, e, !1);
   },
   d.prototype.write = function (t, r, e, n) {
-    if (void 0 === r) n = "utf8", e = this.length, r = 0;
-    else if (void 0 === e && "string" == typeof r) {
+    if (void 0 === r) {
+      n = "utf8", e = this.length, r = 0;
+    } else if (void 0 === e && "string" == typeof r) {
       n = r, e = this.length, r = 0;
     } else {
       if (!isFinite(r)) {
@@ -665,7 +745,9 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
     if (
       (void 0 === e || e > i) && (e = i),
         t.length > 0 && (e < 0 || r < 0) || r > this.length
-    ) throw new RangeError("Attempt to write outside buffer bounds");
+    ) {
+      throw new RangeError("Attempt to write outside buffer bounds");
+    }
     n || (n = "utf8");
     for (var o = !1;;) {
       switch (n) {
@@ -687,7 +769,9 @@ d.TYPED_ARRAY_SUPPORT = void 0 === e.TYPED_ARRAY_SUPPORT ||
         case "utf-16le":
           return I(this, t, r, e);
         default:
-          if (o) throw new TypeError("Unknown encoding: " + n);
+          if (o) {
+            throw new TypeError("Unknown encoding: " + n);
+          }
           n = ("" + n).toLowerCase(), o = !0;
       }
     }
@@ -702,19 +786,25 @@ var C = 4096;
 function M(t, r, e) {
   var n = "";
   e = Math.min(t.length, e);
-  for (var i = r; i < e; ++i) n += String.fromCharCode(127 & t[i]);
+  for (var i = r; i < e; ++i) {
+    n += String.fromCharCode(127 & t[i]);
+  }
   return n;
 }
 function N(t, r, e) {
   var n = "";
   e = Math.min(t.length, e);
-  for (var i = r; i < e; ++i) n += String.fromCharCode(t[i]);
+  for (var i = r; i < e; ++i) {
+    n += String.fromCharCode(t[i]);
+  }
   return n;
 }
 function L(t, r, e) {
   var n = t.length;
   (!r || r < 0) && (r = 0), (!e || e < 0 || e > n) && (e = n);
-  for (var i = "", o = r; o < e; ++o) i += q(t[o]);
+  for (var i = "", o = r; o < e; ++o) {
+    i += q(t[o]);
+  }
   return i;
 }
 function z(t, r, e) {
@@ -724,13 +814,23 @@ function z(t, r, e) {
   return i;
 }
 function k(t, r, e) {
-  if (t % 1 != 0 || t < 0) throw new RangeError("offset is not uint");
-  if (t + r > e) throw new RangeError("Trying to access beyond buffer length");
+  if (t % 1 != 0 || t < 0) {
+    throw new RangeError("offset is not uint");
+  }
+  if (t + r > e) {
+    throw new RangeError("Trying to access beyond buffer length");
+  }
 }
 function $(t, r, e, n, i, o) {
-  if (!A(t)) throw new TypeError('"buffer" argument must be a Buffer instance');
-  if (r > i || r < o) throw new RangeError('"value" argument is out of bounds');
-  if (e + n > t.length) throw new RangeError("Index out of range");
+  if (!A(t)) {
+    throw new TypeError('"buffer" argument must be a Buffer instance');
+  }
+  if (r > i || r < o) {
+    throw new RangeError('"value" argument is out of bounds');
+  }
+  if (e + n > t.length) {
+    throw new RangeError("Index out of range");
+  }
 }
 function F(t, r, e, n) {
   r < 0 && (r = 65535 + r + 1);
@@ -745,8 +845,12 @@ function J(t, r, e, n) {
   }
 }
 function H(t, r, e, n, i, o) {
-  if (e + n > t.length) throw new RangeError("Index out of range");
-  if (e < 0) throw new RangeError("Index out of range");
+  if (e + n > t.length) {
+    throw new RangeError("Index out of range");
+  }
+  if (e < 0) {
+    throw new RangeError("Index out of range");
+  }
 }
 function G(t, r, e, n, i) {
   return i || H(t, 0, e, 4), c(t, r, e, n, 23, 4), e + 4;
@@ -763,11 +867,14 @@ d.prototype.slice = function (t, r) {
         : r > n && (r = n),
       r < t && (r = t),
       d.TYPED_ARRAY_SUPPORT
-  ) (e = this.subarray(t, r)).__proto__ = d.prototype;
-  else {
+  ) {
+    (e = this.subarray(t, r)).__proto__ = d.prototype;
+  } else {
     var i = r - t;
     e = new d(i, void 0);
-    for (var o = 0; o < i; ++o) e[o] = this[o + t];
+    for (var o = 0; o < i; ++o) {
+      e[o] = this[o + t];
+    }
   }
   return e;
 },
@@ -853,7 +960,9 @@ d.prototype.slice = function (t, r) {
   d.prototype.writeUIntLE = function (t, r, e, n) {
     (t = +t, r |= 0, e |= 0, n) || $(this, t, r, e, Math.pow(2, 8 * e) - 1, 0);
     var i = 1, o = 0;
-    for (this[r] = 255 & t; ++o < e && (i *= 256);) this[r + o] = t / i & 255;
+    for (this[r] = 255 & t; ++o < e && (i *= 256);) {
+      this[r + o] = t / i & 255;
+    }
     return r + e;
   },
   d.prototype.writeUIntBE = function (t, r, e, n) {
@@ -1010,21 +1119,35 @@ d.prototype.slice = function (t, r) {
         r || (r = 0),
         n > 0 && n < e && (n = e),
         n === e
-    ) return 0;
-    if (0 === t.length || 0 === this.length) return 0;
-    if (r < 0) throw new RangeError("targetStart out of bounds");
+    ) {
+      return 0;
+    }
+    if (0 === t.length || 0 === this.length) {
+      return 0;
+    }
+    if (r < 0) {
+      throw new RangeError("targetStart out of bounds");
+    }
     if (e < 0 || e >= this.length) {
       throw new RangeError("sourceStart out of bounds");
     }
-    if (n < 0) throw new RangeError("sourceEnd out of bounds");
+    if (n < 0) {
+      throw new RangeError("sourceEnd out of bounds");
+    }
     n > this.length && (n = this.length),
       t.length - r < n - e && (n = t.length - r + e);
     var i, o = n - e;
     if (this === t && e < r && r < n) {
-      for (i = o - 1; i >= 0; --i) t[i + r] = this[i + e];
+      for (i = o - 1; i >= 0; --i) {
+        t[i + r] = this[i + e];
+      }
     } else if (o < 1e3 || !d.TYPED_ARRAY_SUPPORT) {
-      for (i = 0; i < o; ++i) t[i + r] = this[i + e];
-    } else Uint8Array.prototype.set.call(t, this.subarray(e, e + o), r);
+      for (i = 0; i < o; ++i) {
+        t[i + r] = this[i + e];
+      }
+    } else {
+      Uint8Array.prototype.set.call(t, this.subarray(e, e + o), r);
+    }
     return o;
   },
   d.prototype.fill = function (t, r, e, n) {
@@ -1043,20 +1166,30 @@ d.prototype.slice = function (t, r) {
       if ("string" == typeof n && !d.isEncoding(n)) {
         throw new TypeError("Unknown encoding: " + n);
       }
-    } else "number" == typeof t && (t &= 255);
+    } else {
+      "number" == typeof t && (t &= 255);
+    }
     if (r < 0 || this.length < r || this.length < e) {
       throw new RangeError("Out of range index");
     }
-    if (e <= r) return this;
+    if (e <= r) {
+      return this;
+    }
     var o;
     if (
       r >>>= 0,
         e = void 0 === e ? this.length : e >>> 0,
         t || (t = 0),
         "number" == typeof t
-    ) { for (o = r; o < e; ++o) this[o] = t; } else {
+    ) {
+      for (o = r; o < e; ++o) {
+        this[o] = t;
+      }
+    } else {
       var u = A(t) ? t : K(new d(t, n).toString()), f = u.length;
-      for (o = 0; o < e - r; ++o) this[o + r] = u[o % f];
+      for (o = 0; o < e - r; ++o) {
+        this[o + r] = u[o % f];
+      }
     }
     return this;
   };
@@ -1086,19 +1219,31 @@ function K(t, r) {
         continue;
       }
       e = 65536 + (i - 55296 << 10 | e - 56320);
-    } else i && (r -= 3) > -1 && o.push(239, 191, 189);
+    } else {
+      i && (r -= 3) > -1 && o.push(239, 191, 189);
+    }
     if (i = null, e < 128) {
-      if ((r -= 1) < 0) break;
+      if ((r -= 1) < 0) {
+        break;
+      }
       o.push(e);
     } else if (e < 2048) {
-      if ((r -= 2) < 0) break;
+      if ((r -= 2) < 0) {
+        break;
+      }
       o.push(e >> 6 | 192, 63 & e | 128);
     } else if (e < 65536) {
-      if ((r -= 3) < 0) break;
+      if ((r -= 3) < 0) {
+        break;
+      }
       o.push(e >> 12 | 224, e >> 6 & 63 | 128, 63 & e | 128);
     } else {
-      if (!(e < 1114112)) throw new Error("Invalid code point");
-      if ((r -= 4) < 0) break;
+      if (!(e < 1114112)) {
+        throw new Error("Invalid code point");
+      }
+      if ((r -= 4) < 0) {
+        break;
+      }
       o.push(
         e >> 18 | 240,
         e >> 12 & 63 | 128,
@@ -1142,8 +1287,12 @@ function Q(t) {
       (t = function (t) {
         return t.trim ? t.trim() : t.replace(/^\s+|\s+$/g, "");
       }(t).replace(V, "")).length < 2
-    ) return "";
-    for (; t.length % 4 != 0;) t += "=";
+    ) {
+      return "";
+    }
+    for (; t.length % 4 != 0;) {
+      t += "=";
+    }
     return t;
   }(t));
 }
@@ -1165,7 +1314,9 @@ function rt() {
 }
 var et = tt, nt = rt;
 function it(t) {
-  if (et === setTimeout) return setTimeout(t, 0);
+  if (et === setTimeout) {
+    return setTimeout(t, 0);
+  }
   if ((et === tt || !et) && setTimeout) {
     return et = setTimeout, setTimeout(t, 0);
   }
@@ -1191,13 +1342,17 @@ function ht() {
     var t = it(at);
     ft = !0;
     for (var r = ut.length; r;) {
-      for (ot = ut, ut = []; ++st < r;) ot && ot[st].run();
+      for (ot = ut, ut = []; ++st < r;) {
+        ot && ot[st].run();
+      }
       st = -1, r = ut.length;
     }
     ot = null,
       ft = !1,
       function (t) {
-        if (nt === clearTimeout) return clearTimeout(t);
+        if (nt === clearTimeout) {
+          return clearTimeout(t);
+        }
         if ((nt === rt || !nt) && clearTimeout) {
           return nt = clearTimeout, clearTimeout(t);
         }
@@ -1231,7 +1386,9 @@ var Rt = {
     nextTick: function (t) {
       var r = new Array(arguments.length - 1);
       if (arguments.length > 1) {
-        for (var e = 1; e < arguments.length; e++) r[e - 1] = arguments[e];
+        for (var e = 1; e < arguments.length; e++) {
+          r[e - 1] = arguments[e];
+        }
       }
       ut.push(new ct(t, r)), 1 !== ut.length || ft || it(ht);
     },
@@ -1301,7 +1458,9 @@ var Rt = {
   Pt = /%[sdj%]/g;
 function St(t) {
   if (!Ft(t)) {
-    for (var r = [], e = 0; e < arguments.length; e++) r.push(jt(arguments[e]));
+    for (var r = [], e = 0; e < arguments.length; e++) {
+      r.push(jt(arguments[e]));
+    }
     return r.join(" ");
   }
   e = 1;
@@ -1309,8 +1468,12 @@ function St(t) {
     var n = arguments,
       i = n.length,
       o = String(t).replace(Pt, function (t) {
-        if ("%%" === t) return "%";
-        if (e >= i) return t;
+        if ("%%" === t) {
+          return "%";
+        }
+        if (e >= i) {
+          return t;
+        }
         switch (t) {
           case "%s":
             return String(n[e++]);
@@ -1329,7 +1492,9 @@ function St(t) {
       u = n[e];
     e < i;
     u = n[++e]
-  ) zt(u) || !Zt(u) ? o += " " + u : o += " " + jt(u);
+  ) {
+    zt(u) || !Zt(u) ? o += " " + u : o += " " + jt(u);
+  }
   return o;
 }
 function Ot(t, r) {
@@ -1338,11 +1503,15 @@ function Ot(t, r) {
       return Ot(t, r).apply(this, arguments);
     };
   }
-  if (!0 === Rt.noDeprecation) return t;
+  if (!0 === Rt.noDeprecation) {
+    return t;
+  }
   var n = !1;
   return function () {
     if (!n) {
-      if (Rt.throwDeprecation) throw new Error(r);
+      if (Rt.throwDeprecation) {
+        throw new Error(r);
+      }
       Rt.traceDeprecation ? console.trace(r) : console.error(r), n = !0;
     }
     return t.apply(this, arguments);
@@ -1350,15 +1519,15 @@ function Ot(t, r) {
 }
 var Ut, Bt = {};
 function xt(t) {
-  if (
-    Ht(Ut) && (Ut = Rt.env.NODE_DEBUG || ""), t = t.toUpperCase(), !Bt[t]
-  ) {
+  if (Ht(Ut) && (Ut = Rt.env.NODE_DEBUG || ""), t = t.toUpperCase(), !Bt[t]) {
     if (new RegExp("\\b" + t + "\\b", "i").test(Ut)) {
       Bt[t] = function () {
         var r = St.apply(null, arguments);
         console.error("%s %d: %s", t, 0, r);
       };
-    } else Bt[t] = function () {};
+    } else {
+      Bt[t] = function () {};
+    }
   }
   return Bt[t];
 }
@@ -1392,7 +1561,9 @@ function Yt(t, r, e) {
     return Ft(n) || (n = Yt(t, n, e)), n;
   }
   var i = function (t, r) {
-    if (Ht(r)) return t.stylize("undefined", "undefined");
+    if (Ht(r)) {
+      return t.stylize("undefined", "undefined");
+    }
     if (Ft(r)) {
       var e = "'" +
         JSON.stringify(r).replace(/^"|"$/g, "").replace(/'/g, "\\'").replace(
@@ -1401,11 +1572,19 @@ function Yt(t, r, e) {
         ) + "'";
       return t.stylize(e, "string");
     }
-    if ($t(r)) return t.stylize("" + r, "number");
-    if (Lt(r)) return t.stylize("" + r, "boolean");
-    if (zt(r)) return t.stylize("null", "null");
+    if ($t(r)) {
+      return t.stylize("" + r, "number");
+    }
+    if (Lt(r)) {
+      return t.stylize("" + r, "boolean");
+    }
+    if (zt(r)) {
+      return t.stylize("null", "null");
+    }
   }(t, r);
-  if (i) return i;
+  if (i) {
+    return i;
+  }
   var o = Object.keys(r),
     u = function (t) {
       var r = {};
@@ -1417,15 +1596,23 @@ function Yt(t, r, e) {
   if (
     t.showHidden && (o = Object.getOwnPropertyNames(r)),
       qt(r) && (o.indexOf("message") >= 0 || o.indexOf("description") >= 0)
-  ) return Ct(r);
+  ) {
+    return Ct(r);
+  }
   if (0 === o.length) {
     if (Kt(r)) {
       var f = r.name ? ": " + r.name : "";
       return t.stylize("[Function" + f + "]", "special");
     }
-    if (Gt(r)) return t.stylize(RegExp.prototype.toString.call(r), "regexp");
-    if (Vt(r)) return t.stylize(Date.prototype.toString.call(r), "date");
-    if (qt(r)) return Ct(r);
+    if (Gt(r)) {
+      return t.stylize(RegExp.prototype.toString.call(r), "regexp");
+    }
+    if (Vt(r)) {
+      return t.stylize(Date.prototype.toString.call(r), "date");
+    }
+    if (qt(r)) {
+      return Ct(r);
+    }
   }
   var s, a = "", h = !1, c = ["{", "}"];
   (Nt(r) && (h = !0, c = ["[", "]"]), Kt(r)) &&
@@ -1494,7 +1681,9 @@ function Mt(t, r, e, n, i, o) {
         : f = t.stylize("[Circular]", "special")),
       Ht(u)
   ) {
-    if (o && i.match(/^\d+$/)) return f;
+    if (o && i.match(/^\d+$/)) {
+      return f;
+    }
     (u = JSON.stringify("" + i)).match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)
       ? (u = u.substr(1, u.length - 2), u = t.stylize(u, "name"))
       : (u = u.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(
@@ -1607,8 +1796,12 @@ function er() {
   );
 }
 function nr(t, r) {
-  if (!r || !Zt(r)) return t;
-  for (var e = Object.keys(r), n = e.length; n--;) t[e[n]] = r[e[n]];
+  if (!r || !Zt(r)) {
+    return t;
+  }
+  for (var e = Object.keys(r), n = e.length; n--;) {
+    t[e[n]] = r[e[n]];
+  }
   return t;
 }
 function ir(t, r) {
@@ -1647,7 +1840,9 @@ function ur(t) {
         o = 0;
       o < arguments.length;
       o++
-    ) i.push(arguments[o]);
+    ) {
+      i.push(arguments[o]);
+    }
     i.push(function (t, n) {
       t ? e(t) : r(n);
     });
@@ -1680,7 +1875,9 @@ function sr(t) {
     throw new TypeError('The "original" argument must be of type Function');
   }
   function r() {
-    for (var r = [], e = 0; e < arguments.length; e++) r.push(arguments[e]);
+    for (var r = [], e = 0; e < arguments.length; e++) {
+      r.push(arguments[e]);
+    }
     var n = r.pop();
     if ("function" != typeof n) {
       throw new TypeError("The last argument must be of type Function");
@@ -1766,7 +1963,9 @@ const hr = r(Object.freeze({
   gr = (t) => Number.isInteger(+t),
   yr = (t) => {
     let r = `${t}`, e = -1;
-    if ("-" === r[0] && (r = r.slice(1)), "0" === r) return !1;
+    if ("-" === r[0] && (r = r.slice(1)), "0" === r) {
+      return !1;
+    }
     for (; "0" === r[++e];);
     return e > 0;
   },
@@ -1779,11 +1978,15 @@ const hr = r(Object.freeze({
   },
   wr = (t, r) => {
     let e = "-" === t[0] ? "-" : "";
-    for (e && (t = t.slice(1), r--); t.length < r;) t = "0" + t;
+    for (e && (t = t.slice(1), r--); t.length < r;) {
+      t = "0" + t;
+    }
     return e ? "-" + t : t;
   },
   vr = (t, r, e, n) => {
-    if (e) return cr(t, r, { wrap: !1, ...n });
+    if (e) {
+      return cr(t, r, { wrap: !1, ...n });
+    }
     let i = String.fromCharCode(t);
     return t === r ? i : `[${i}-${String.fromCharCode(r)}]`;
   },
@@ -1796,13 +1999,17 @@ const hr = r(Object.freeze({
   },
   br = (...t) => new RangeError("Invalid range arguments: " + hr.inspect(...t)),
   Er = (t, r, e) => {
-    if (!0 === e.strictRanges) throw br([t, r]);
+    if (!0 === e.strictRanges) {
+      throw br([t, r]);
+    }
     return [];
   },
   Ar = (t, r, e = 1, n = {}) => {
     let i = Number(t), o = Number(r);
     if (!Number.isInteger(i) || !Number.isInteger(o)) {
-      if (!0 === n.strictRanges) throw br([t, r]);
+      if (!0 === n.strictRanges) {
+        throw br([t, r]);
+      }
       return [];
     }
     0 === i && (i = 0), 0 === o && (o = 0);
@@ -1819,7 +2026,9 @@ const hr = r(Object.freeze({
               n,
             ),
       p = n.transform || ((t) => (r) => !0 === t ? Number(r) : String(r))(l);
-    if (n.toRegex && 1 === e) return vr(wr(t, c), wr(r, c), !0, n);
+    if (n.toRegex && 1 === e) {
+      return vr(wr(t, c), wr(r, c), !0, n);
+    }
     let g = { negatives: [], positives: [] }, y = [], d = 0;
     for (; u ? i >= o : i <= o;) {
       !0 === n.toRegex && e > 1
@@ -1848,21 +2057,25 @@ const hr = r(Object.freeze({
       : y;
   },
   Rr = (t, r, e, n = {}) => {
-    if (null == r && pr(t)) return [t];
-    if (!pr(t) || !pr(r)) return Er(t, r, n);
-    if ("function" == typeof e) return Rr(t, r, 1, { transform: e });
-    if (lr(e)) return Rr(t, r, 0, e);
+    if (null == r && pr(t)) {
+      return [t];
+    }
+    if (!pr(t) || !pr(r)) {
+      return Er(t, r, n);
+    }
+    if ("function" == typeof e) {
+      return Rr(t, r, 1, { transform: e });
+    }
+    if (lr(e)) {
+      return Rr(t, r, 0, e);
+    }
     let i = { ...n };
     return !0 === i.capture && (i.wrap = !0),
       e = e || i.step || 1,
       gr(e)
         ? gr(t) && gr(r) ? Ar(t, r, e, i) : ((t, r, e = 1, n = {}) => {
           if (!gr(t) && t.length > 1 || !gr(r) && r.length > 1) {
-            return Er(
-              t,
-              r,
-              n,
-            );
+            return Er(t, r, n);
           }
           let i = n.transform || ((t) => String.fromCharCode(t)),
             o = `${t}`.charCodeAt(0),
@@ -1870,7 +2083,9 @@ const hr = r(Object.freeze({
             f = o > u,
             s = Math.min(o, u),
             a = Math.max(o, u);
-          if (n.toRegex && 1 === e) return vr(s, a, !1, n);
+          if (n.toRegex && 1 === e) {
+            return vr(s, a, !1, n);
+          }
           let h = [], c = 0;
           for (; f ? o >= u : o <= u;) {
             h.push(i(o, c)), o = f ? o - e : o + e, c++;

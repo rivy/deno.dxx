@@ -1,1 +1,4 @@
-export declare type Tuple<Type = any> = [Type?, ...Type[]];
+export declare type Tuple<Type = any> = [
+  Type?,
+  ...Type[],
+];

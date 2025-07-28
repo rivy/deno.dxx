@@ -2,10 +2,8 @@ import { border, IBorder } from "./border.ts";
 import { Cell, Direction } from "./cell.ts";
 import { TableLayout } from "./layout.ts";
 import { IDataRow, IRow, Row } from "./row.ts";
-
 /** Border characters settings. */
 export type IBorderOptions = Partial<IBorder>;
-
 /** Table options. */
 export interface ITableOptions {
   indent?: number;
@@ -16,16 +14,13 @@ export interface ITableOptions {
   padding?: number | number[];
   chars?: IBorderOptions;
 }
-
 /** Table settings. */
 export interface ITableSettings extends Required<Omit<ITableOptions, "align">> {
   chars: IBorder;
   align?: Direction;
 }
-
 /** Table type. */
 export type ITable<T extends IRow = IRow> = T[] | Table<T>;
-
 /** Table representation. */
 export class Table<T extends IRow = IRow> extends Array<T> {
   protected static _chars: IBorder = { ...border };
@@ -38,7 +33,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     chars: { ...Table._chars },
   };
   private headerRow?: Row;
-
   /**
    * Create a new table. If rows is a table, all rows and options of the table
    * will be copied to the new table.
@@ -52,7 +46,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return table;
   }
-
   /**
    * Create a new table from an array of json objects. An object represents a
    * row and each property a column.
@@ -61,7 +54,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
   public static fromJson(rows: IDataRow[]): Table {
     return new this().fromJson(rows);
   }
-
   /**
    * Set global default border characters.
    * @param chars Border options.
@@ -70,7 +62,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     Object.assign(this._chars, chars);
     return this;
   }
-
   /**
    * Write table or rows to stdout.
    * @param rows Table or rows.
@@ -78,7 +69,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
   public static render<T extends IRow>(rows: ITable<T>): void {
     Table.from(rows).render();
   }
-
   /**
    * Read data from an array of json objects. An object represents a
    * row and each property a column.
@@ -89,7 +79,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     this.body(rows.map((row) => Object.values(row) as T));
     return this;
   }
-
   /**
    * Set table header.
    * @param header Header row or cells.
@@ -98,7 +87,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     this.headerRow = header instanceof Row ? header : Row.from(header);
     return this;
   }
-
   /**
    * Set table body.
    * @param rows Table rows.
@@ -108,7 +96,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     this.push(...rows);
     return this;
   }
-
   /** Clone table recursively with header and options. */
   public clone(): Table {
     const table = new Table(
@@ -120,18 +107,15 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     table.headerRow = this.headerRow?.clone();
     return table;
   }
-
   /** Generate table string. */
   public override toString(): string {
     return new TableLayout(this, this.options).toString();
   }
-
   /** Write table to stdout. */
   public render(): this {
     console.log(this.toString());
     return this;
   }
-
   /**
    * Set max col with.
    * @param width     Max col width.
@@ -143,7 +127,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Set min col width.
    * @param width     Min col width.
@@ -155,7 +138,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Set table indentation.
    * @param width     Indent width.
@@ -167,7 +149,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Set cell padding.
    * @param padding   Cell padding.
@@ -179,7 +160,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Enable/disable cell border.
    * @param enable    Enable/disable cell border.
@@ -191,7 +171,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Align table content.
    * @param direction Align direction.
@@ -203,7 +182,6 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Set border characters.
    * @param chars Border options.
@@ -212,48 +190,39 @@ export class Table<T extends IRow = IRow> extends Array<T> {
     Object.assign(this.options.chars, chars);
     return this;
   }
-
   /** Get table header. */
   public getHeader(): Row | undefined {
     return this.headerRow;
   }
-
   /** Get table body. */
   public getBody(): T[] {
     return [...this];
   }
-
   /** Get mac col widrth. */
   public getMaxColWidth(): number | number[] {
     return this.options.maxColWidth;
   }
-
   /** Get min col width. */
   public getMinColWidth(): number | number[] {
     return this.options.minColWidth;
   }
-
   /** Get table indentation. */
   public getIndent(): number {
     return this.options.indent;
   }
-
   /** Get cell padding. */
   public getPadding(): number | number[] {
     return this.options.padding;
   }
-
   /** Check if table has border. */
   public getBorder(): boolean {
     return this.options.border === true;
   }
-
   /** Check if header row has border. */
   public hasHeaderBorder(): boolean {
     const hasBorder = this.headerRow?.hasBorder();
     return hasBorder === true || (this.getBorder() && hasBorder !== false);
   }
-
   /** Check if table bordy has border. */
   public hasBodyBorder(): boolean {
     return this.getBorder() ||
@@ -263,12 +232,10 @@ export class Table<T extends IRow = IRow> extends Array<T> {
           : row.some((cell) => cell instanceof Cell ? cell.getBorder : false)
       );
   }
-
   /** Check if table header or body has border. */
   public hasBorder(): boolean {
     return this.hasHeaderBorder() || this.hasBodyBorder();
   }
-
   /** Get table alignment. */
   public getAlign(): Direction {
     return this.options.align ?? "left";

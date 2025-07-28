@@ -9,13 +9,11 @@ import {
 } from "./_errors.ts";
 import { IParseOptions } from "./types.ts";
 import type { IFlagArgument, IFlagOptions } from "./types.ts";
-
 /** Flag option map. */
 interface IFlagOptionsMap {
   name: string;
   option?: IFlagOptions;
 }
-
 /**
  * Flags post validation. Validations that are not already done by the parser.
  *
@@ -32,17 +30,14 @@ export function validateFlags<T extends IFlagOptions = IFlagOptions>(
     return;
   }
   const defaultValues = setDefaultValues(opts, values, optionNameMap);
-
   const optionNames = Object.keys(values);
   if (!optionNames.length && opts.allowEmpty) {
     return;
   }
-
   const options: Array<IFlagOptionsMap> = optionNames.map((name) => ({
     name,
     option: getOption(opts.flags!, optionNameMap[name]),
   }));
-
   for (const { name, option } of options) {
     if (!option) {
       throw new UnknownOption(name, opts.flags);
@@ -56,7 +51,6 @@ export function validateFlags<T extends IFlagOptions = IFlagOptions>(
   }
   validateRequiredOptions(options, values, opts);
 }
-
 /**
  * Adds all default values on the values object and returns a new object with
  * only the default values.
@@ -74,12 +68,10 @@ function setDefaultValues<T extends IFlagOptions = IFlagOptions>(
   if (!opts.flags?.length) {
     return defaultValues;
   }
-
   // Set default value's
   for (const option of opts.flags) {
     let name: string | undefined;
     let defaultValue: unknown = undefined;
-
     // if --no-[flag] is present set --[flag] default value to true
     if (option.name.startsWith("no-")) {
       const propName = option.name.replace(/^no-/, "");
@@ -93,22 +85,17 @@ function setDefaultValues<T extends IFlagOptions = IFlagOptions>(
       name = paramCaseToCamelCase(propName);
       defaultValue = true;
     }
-
     if (!name) {
       name = paramCaseToCamelCase(option.name);
     }
-
     if (!(name in optionNameMap)) {
       optionNameMap[name] = option.name;
     }
-
     const hasDefaultValue: boolean = (!opts.ignoreDefaults ||
       typeof opts.ignoreDefaults[name] === "undefined") &&
-      typeof values[name] === "undefined" && (
-        typeof option.default !== "undefined" ||
-        typeof defaultValue !== "undefined"
-      );
-
+      typeof values[name] === "undefined" &&
+      (typeof option.default !== "undefined" ||
+        typeof defaultValue !== "undefined");
     if (hasDefaultValue) {
       values[name] = getDefaultValue(option) ?? defaultValue;
       defaultValues[option.name] = true;
@@ -117,10 +104,8 @@ function setDefaultValues<T extends IFlagOptions = IFlagOptions>(
       }
     }
   }
-
   return defaultValues;
 }
-
 function validateStandaloneOption(
   option: IFlagOptions,
   options: Array<IFlagOptionsMap>,
@@ -133,7 +118,6 @@ function validateStandaloneOption(
   if (optionNames.length === 1) {
     return true;
   }
-
   // don't throw an error if all values are coming from the default option.
   if (
     options.every((opt) =>
@@ -143,10 +127,8 @@ function validateStandaloneOption(
   ) {
     return true;
   }
-
   throw new OptionNotCombinable(option.name);
 }
-
 function validateConflictingOptions(
   option: IFlagOptions,
   values: Record<string, unknown>,
@@ -157,7 +139,6 @@ function validateConflictingOptions(
     }
   });
 }
-
 function validateDependingOptions(
   option: IFlagOptions,
   values: Record<string, unknown>,
@@ -170,7 +151,6 @@ function validateDependingOptions(
     }
   });
 }
-
 function validateRequiredValues(
   option: IFlagOptions,
   values: Record<string, unknown>,
@@ -180,17 +160,14 @@ function validateRequiredValues(
   option.args?.forEach((arg: IFlagArgument, i: number) => {
     if (
       arg.requiredValue &&
-      (
-        typeof values[name] === "undefined" ||
+      (typeof values[name] === "undefined" ||
         (isArray &&
-          typeof (values[name] as Array<unknown>)[i] === "undefined")
-      )
+          typeof (values[name] as Array<unknown>)[i] === "undefined"))
     ) {
       throw new MissingOptionValue(option.name);
     }
   });
 }
-
 function validateRequiredOptions<T extends IFlagOptions = IFlagOptions>(
   options: Array<IFlagOptionsMap>,
   values: Record<string, unknown>,
@@ -202,10 +179,8 @@ function validateRequiredOptions<T extends IFlagOptions = IFlagOptions>(
   for (const option of opts.flags) {
     if (option.required && !(paramCaseToCamelCase(option.name) in values)) {
       if (
-        (
-          !option.conflicts ||
-          !option.conflicts.find((flag: string) => !!values[flag])
-        ) &&
+        (!option.conflicts ||
+          !option.conflicts.find((flag: string) => !!values[flag])) &&
         !options.find((opt) =>
           opt.option?.conflicts?.find((flag: string) => flag === option.name)
         )
@@ -215,7 +190,6 @@ function validateRequiredOptions<T extends IFlagOptions = IFlagOptions>(
     }
   }
 }
-
 /**
  * Check if value exists for flag.
  * @param flag    Flag name.

@@ -28,8 +28,12 @@ export declare class $ZodRegistry<
   _idmap: Map<string, Schema>;
   add<S extends Schema>(
     schema: S,
-    ..._meta: undefined extends Meta ? [$replace<Meta, S>?]
-      : [$replace<Meta, S>]
+    ..._meta: undefined extends Meta ? [
+        $replace<Meta, S>?,
+      ]
+      : [
+        $replace<Meta, S>,
+      ]
   ): this;
   clear(): this;
   remove(schema: Schema): this;

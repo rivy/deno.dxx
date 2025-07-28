@@ -2,56 +2,47 @@ import { didYouMeanCommand } from "./_utils.ts";
 import type { Command } from "./command.ts";
 import { getFlag } from "../flags/_utils.ts";
 import { IEnvVar } from "./types.ts";
-
 export class CommandError extends Error {
   constructor(message: string) {
     super(message);
     Object.setPrototypeOf(this, CommandError.prototype);
   }
 }
-
 export interface ValidationErrorOptions {
   exitCode?: number;
 }
-
 export class ValidationError extends CommandError {
   public readonly exitCode: number;
-
   constructor(message: string, { exitCode }: ValidationErrorOptions = {}) {
     super(message);
     Object.setPrototypeOf(this, ValidationError.prototype);
     this.exitCode = exitCode ?? 1;
   }
 }
-
 export class DuplicateOptionName extends CommandError {
   constructor(name: string) {
     super(`Option with name "${getFlag(name)}" already exists.`);
     Object.setPrototypeOf(this, DuplicateOptionName.prototype);
   }
 }
-
 export class MissingCommandName extends CommandError {
   constructor() {
     super("Missing command name.");
     Object.setPrototypeOf(this, MissingCommandName.prototype);
   }
 }
-
 export class DuplicateCommandName extends CommandError {
   constructor(name: string) {
     super(`Duplicate command name "${name}".`);
     Object.setPrototypeOf(this, DuplicateCommandName.prototype);
   }
 }
-
 export class DuplicateCommandAlias extends CommandError {
   constructor(alias: string) {
     super(`Duplicate command alias "${alias}".`);
     Object.setPrototypeOf(this, DuplicateCommandAlias.prototype);
   }
 }
-
 export class CommandNotFound extends CommandError {
   constructor(
     name: string,
@@ -66,42 +57,36 @@ export class CommandNotFound extends CommandError {
     Object.setPrototypeOf(this, UnknownCommand.prototype);
   }
 }
-
 export class DuplicateType extends CommandError {
   constructor(name: string) {
     super(`Type with name "${name}" already exists.`);
     Object.setPrototypeOf(this, DuplicateType.prototype);
   }
 }
-
 export class DuplicateCompletion extends CommandError {
   constructor(name: string) {
     super(`Completion with name "${name}" already exists.`);
     Object.setPrototypeOf(this, DuplicateCompletion.prototype);
   }
 }
-
 export class DuplicateExample extends CommandError {
   constructor(name: string) {
     super(`Example with name "${name}" already exists.`);
     Object.setPrototypeOf(this, DuplicateExample.prototype);
   }
 }
-
 export class DuplicateEnvironmentVariable extends CommandError {
   constructor(name: string) {
     super(`Environment variable with name "${name}" already exists.`);
     Object.setPrototypeOf(this, DuplicateEnvironmentVariable.prototype);
   }
 }
-
 export class MissingRequiredEnvVar extends ValidationError {
   constructor(envVar: IEnvVar) {
     super(`Missing required environment variable "${envVar.names[0]}".`);
     Object.setPrototypeOf(this, MissingRequiredEnvVar.prototype);
   }
 }
-
 export class EnvironmentVariableSingleValue extends CommandError {
   constructor(name: string) {
     super(
@@ -110,7 +95,6 @@ export class EnvironmentVariableSingleValue extends CommandError {
     Object.setPrototypeOf(this, EnvironmentVariableSingleValue.prototype);
   }
 }
-
 export class EnvironmentVariableOptionalValue extends CommandError {
   constructor(name: string) {
     super(
@@ -119,7 +103,6 @@ export class EnvironmentVariableOptionalValue extends CommandError {
     Object.setPrototypeOf(this, EnvironmentVariableOptionalValue.prototype);
   }
 }
-
 export class EnvironmentVariableVariadicValue extends CommandError {
   constructor(name: string) {
     super(
@@ -128,7 +111,6 @@ export class EnvironmentVariableVariadicValue extends CommandError {
     Object.setPrototypeOf(this, EnvironmentVariableVariadicValue.prototype);
   }
 }
-
 export class DefaultCommandNotFound extends CommandError {
   constructor(name: string, commands: Array<Command>) {
     super(
@@ -139,16 +121,12 @@ export class DefaultCommandNotFound extends CommandError {
     Object.setPrototypeOf(this, DefaultCommandNotFound.prototype);
   }
 }
-
 export class CommandExecutableNotFound extends CommandError {
   constructor(name: string) {
-    super(
-      `Command executable not found: ${name}`,
-    );
+    super(`Command executable not found: ${name}`);
     Object.setPrototypeOf(this, CommandExecutableNotFound.prototype);
   }
 }
-
 export class UnknownCompletionCommand extends CommandError {
   constructor(name: string, commands: Array<Command>) {
     super(
@@ -159,9 +137,7 @@ export class UnknownCompletionCommand extends CommandError {
     Object.setPrototypeOf(this, UnknownCompletionCommand.prototype);
   }
 }
-
 /* Validation errors. */
-
 export class UnknownCommand extends ValidationError {
   constructor(
     name: string,
@@ -176,28 +152,24 @@ export class UnknownCommand extends ValidationError {
     Object.setPrototypeOf(this, UnknownCommand.prototype);
   }
 }
-
 export class NoArgumentsAllowed extends ValidationError {
   constructor(name: string) {
     super(`No arguments allowed for command "${name}".`);
     Object.setPrototypeOf(this, NoArgumentsAllowed.prototype);
   }
 }
-
 export class MissingArguments extends ValidationError {
   constructor(args: Array<string>) {
     super("Missing argument(s): " + args.join(", "));
     Object.setPrototypeOf(this, MissingArguments.prototype);
   }
 }
-
 export class MissingArgument extends ValidationError {
   constructor(arg: string) {
     super(`Missing argument "${arg}".`);
     Object.setPrototypeOf(this, MissingArgument.prototype);
   }
 }
-
 export class TooManyArguments extends ValidationError {
   constructor(args: Array<string>) {
     super(`Too many arguments: ${args.join(" ")}`);

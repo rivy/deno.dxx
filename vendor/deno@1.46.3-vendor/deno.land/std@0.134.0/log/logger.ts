@@ -2,17 +2,14 @@
 import { getLevelByName, getLevelName, LogLevels } from "./levels.ts";
 import type { LevelName } from "./levels.ts";
 import type { BaseHandler } from "./handlers.ts";
-
 // deno-lint-ignore no-explicit-any
 export type GenericFunction = (...args: any[]) => any;
-
 export interface LogRecordOptions {
   msg: string;
   args: unknown[];
   level: number;
   loggerName: string;
 }
-
 export class LogRecord {
   readonly msg: string;
   #args: unknown[];
@@ -20,7 +17,6 @@ export class LogRecord {
   readonly level: number;
   readonly levelName: string;
   readonly loggerName: string;
-
   constructor(options: LogRecordOptions) {
     this.msg = options.msg;
     this.#args = [...options.args];
@@ -36,16 +32,13 @@ export class LogRecord {
     return new Date(this.#datetime.getTime());
   }
 }
-
 export interface LoggerOptions {
   handlers?: BaseHandler[];
 }
-
 export class Logger {
   #level: LogLevels;
   #handlers: BaseHandler[];
   readonly #loggerName: string;
-
   constructor(
     loggerName: string,
     levelName: LevelName,
@@ -55,32 +48,27 @@ export class Logger {
     this.#level = getLevelByName(levelName);
     this.#handlers = options.handlers || [];
   }
-
   get level(): LogLevels {
     return this.#level;
   }
   set level(level: LogLevels) {
     this.#level = level;
   }
-
   get levelName(): LevelName {
     return getLevelName(this.#level);
   }
   set levelName(levelName: LevelName) {
     this.#level = getLevelByName(levelName);
   }
-
   get loggerName(): string {
     return this.#loggerName;
   }
-
   set handlers(hndls: BaseHandler[]) {
     this.#handlers = hndls;
   }
   get handlers(): BaseHandler[] {
     return this.#handlers;
   }
-
   /** If the level of the logger is greater than the level to log, then nothing
    * is logged, otherwise a log record is passed to each log handler.  `msg` data
    * passed in is returned.  If a function is passed in, it is only evaluated
@@ -96,7 +84,6 @@ export class Logger {
     if (this.level > level) {
       return msg instanceof Function ? undefined : msg;
     }
-
     let fnResult: T | undefined;
     let logMessage: string;
     if (msg instanceof Function) {
@@ -111,14 +98,11 @@ export class Logger {
       level: level,
       loggerName: this.loggerName,
     });
-
     this.#handlers.forEach((handler): void => {
       handler.handle(record);
     });
-
     return msg instanceof Function ? fnResult : msg;
   }
-
   asString(data: unknown): string {
     if (typeof data === "string") {
       return data;
@@ -138,7 +122,6 @@ export class Logger {
     }
     return "undefined";
   }
-
   debug<T>(msg: () => T, ...args: unknown[]): T | undefined;
   debug<T>(msg: T extends GenericFunction ? never : T, ...args: unknown[]): T;
   debug<T>(
@@ -147,7 +130,6 @@ export class Logger {
   ): T | undefined {
     return this._log(LogLevels.DEBUG, msg, ...args);
   }
-
   info<T>(msg: () => T, ...args: unknown[]): T | undefined;
   info<T>(msg: T extends GenericFunction ? never : T, ...args: unknown[]): T;
   info<T>(
@@ -156,7 +138,6 @@ export class Logger {
   ): T | undefined {
     return this._log(LogLevels.INFO, msg, ...args);
   }
-
   warning<T>(msg: () => T, ...args: unknown[]): T | undefined;
   warning<T>(msg: T extends GenericFunction ? never : T, ...args: unknown[]): T;
   warning<T>(
@@ -165,7 +146,6 @@ export class Logger {
   ): T | undefined {
     return this._log(LogLevels.WARNING, msg, ...args);
   }
-
   error<T>(msg: () => T, ...args: unknown[]): T | undefined;
   error<T>(msg: T extends GenericFunction ? never : T, ...args: unknown[]): T;
   error<T>(
@@ -174,7 +154,6 @@ export class Logger {
   ): T | undefined {
     return this._log(LogLevels.ERROR, msg, ...args);
   }
-
   critical<T>(msg: () => T, ...args: unknown[]): T | undefined;
   critical<T>(
     msg: T extends GenericFunction ? never : T,

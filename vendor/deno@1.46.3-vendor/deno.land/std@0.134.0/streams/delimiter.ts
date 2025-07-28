@@ -1,11 +1,8 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { BytesList } from "../bytes/bytes_list.ts";
-
 const CR = "\r".charCodeAt(0);
 const LF = "\n".charCodeAt(0);
-
 /** @deprecated Use TextLineStream instead, as it can handle empty lines.
  *
  * Transform a stream into a stream where each chunk is divided by a newline,
@@ -20,7 +17,6 @@ const LF = "\n".charCodeAt(0);
 export class LineStream extends TransformStream<Uint8Array, Uint8Array> {
   #bufs = new BytesList();
   #prevHadCR = false;
-
   constructor() {
     super({
       transform: (chunk, controller) => {
@@ -31,13 +27,11 @@ export class LineStream extends TransformStream<Uint8Array, Uint8Array> {
       },
     });
   }
-
   #handle(
     chunk: Uint8Array,
     controller: TransformStreamDefaultController<Uint8Array>,
   ) {
     const lfIndex = chunk.indexOf(LF);
-
     if (this.#prevHadCR) {
       this.#prevHadCR = false;
       if (lfIndex === 0) {
@@ -46,7 +40,6 @@ export class LineStream extends TransformStream<Uint8Array, Uint8Array> {
         return;
       }
     }
-
     if (lfIndex === -1) {
       if (chunk.at(-1) === CR) {
         this.#prevHadCR = true;
@@ -62,11 +55,9 @@ export class LineStream extends TransformStream<Uint8Array, Uint8Array> {
       this.#handle(chunk.subarray(lfIndex + 1), controller);
     }
   }
-
   #mergeBufs(prevHadCR: boolean): Uint8Array {
     const mergeBuf = this.#bufs.concat();
     this.#bufs = new BytesList();
-
     if (prevHadCR) {
       return mergeBuf.subarray(0, -1);
     } else {
@@ -74,7 +65,6 @@ export class LineStream extends TransformStream<Uint8Array, Uint8Array> {
     }
   }
 }
-
 /** Transform a stream into a stream where each chunk is divided by a newline,
  * be it `\n` or `\r\n`.
  *
@@ -89,7 +79,6 @@ export class LineStream extends TransformStream<Uint8Array, Uint8Array> {
 export class TextLineStream extends TransformStream<string, string> {
   #buf = "";
   #prevHadCR = false;
-
   constructor() {
     super({
       transform: (chunk, controller) => {
@@ -100,13 +89,8 @@ export class TextLineStream extends TransformStream<string, string> {
       },
     });
   }
-
-  #handle(
-    chunk: string,
-    controller: TransformStreamDefaultController<string>,
-  ) {
+  #handle(chunk: string, controller: TransformStreamDefaultController<string>) {
     const lfIndex = chunk.indexOf("\n");
-
     if (this.#prevHadCR) {
       this.#prevHadCR = false;
       if (lfIndex === 0) {
@@ -115,7 +99,6 @@ export class TextLineStream extends TransformStream<string, string> {
         return;
       }
     }
-
     if (lfIndex === -1) {
       if (chunk.at(-1) === "\r") {
         this.#prevHadCR = true;
@@ -131,11 +114,9 @@ export class TextLineStream extends TransformStream<string, string> {
       this.#handle(chunk.slice(lfIndex + 1), controller);
     }
   }
-
   #getBuf(prevHadCR: boolean): string {
     const buf = this.#buf;
     this.#buf = "";
-
     if (prevHadCR) {
       return buf.slice(0, -1);
     } else {
@@ -143,7 +124,6 @@ export class TextLineStream extends TransformStream<string, string> {
     }
   }
 }
-
 /** Transform a stream into a stream where each chunk is divided by a given delimiter.
  *
  * ```ts
@@ -161,7 +141,6 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
   #matchIndex = 0;
   #delimLen: number;
   #delimLPS: Uint8Array;
-
   constructor(delimiter: Uint8Array) {
     super({
       transform: (chunk, controller) => {
@@ -171,12 +150,10 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
         controller.enqueue(this.#bufs.concat());
       },
     });
-
     this.#delimiter = delimiter;
     this.#delimLen = delimiter.length;
     this.#delimLPS = createLPS(delimiter);
   }
-
   #handle(
     chunk: Uint8Array,
     controller: TransformStreamDefaultController<Uint8Array>,
@@ -209,7 +186,6 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
     }
   }
 }
-
 /** Transform a stream into a stream where each chunk is divided by a given delimiter.
  *
  * ```ts
@@ -226,7 +202,6 @@ export class TextDelimiterStream extends TransformStream<string, string> {
   #inspectIndex = 0;
   #matchIndex = 0;
   #delimLPS: Uint8Array;
-
   constructor(delimiter: string) {
     super({
       transform: (chunk, controller) => {
@@ -236,15 +211,10 @@ export class TextDelimiterStream extends TransformStream<string, string> {
         controller.enqueue(this.#buf);
       },
     });
-
     this.#delimiter = delimiter;
     this.#delimLPS = createLPS(new TextEncoder().encode(delimiter));
   }
-
-  #handle(
-    chunk: string,
-    controller: TransformStreamDefaultController<string>,
-  ) {
+  #handle(chunk: string, controller: TransformStreamDefaultController<string>) {
     this.#buf += chunk;
     let localIndex = 0;
     while (this.#inspectIndex < this.#buf.length) {
@@ -273,7 +243,6 @@ export class TextDelimiterStream extends TransformStream<string, string> {
     }
   }
 }
-
 /** Generate longest proper prefix which is also suffix array. */
 function createLPS(pat: Uint8Array): Uint8Array {
   const lps = new Uint8Array(pat.length);

@@ -1,9 +1,7 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { Buffer } from "../io/buffer.ts";
 import { writeAll } from "./write_all.ts";
 import { Reader } from "../types.d.ts";
-
 /** Create a `Reader` from an iterable of `Uint8Array`s.
  *
  * ```ts

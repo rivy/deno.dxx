@@ -1,8 +1,6 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import type { Writer, WriterSync } from "./types.ts";
-
 /**
  * Write all the content of the array buffer (`arr`) to the writer (`w`).
  *
@@ -26,7 +24,6 @@ export async function writeAll(writer: Writer, data: Uint8Array) {
     nwritten += await writer.write(data.subarray(nwritten));
   }
 }
-
 /**
  * Synchronously write all the content of the array buffer (`arr`) to the
  * writer (`w`).

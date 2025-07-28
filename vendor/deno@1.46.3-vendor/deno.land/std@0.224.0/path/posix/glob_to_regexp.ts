@@ -1,12 +1,10 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import {
   _globToRegExp,
   type GlobConstants,
   type GlobToRegExpOptions,
 } from "../_common/glob_to_reg_exp.ts";
-
 const constants: GlobConstants = {
   sep: "/+",
   sepMaybe: "/*",
@@ -15,7 +13,6 @@ const constants: GlobConstants = {
   wildcard: "[^/]*",
   escapePrefix: "\\",
 };
-
 /** Convert a glob string to a regular expression.
  *
  * Tries to match bash glob expansion as closely as possible.

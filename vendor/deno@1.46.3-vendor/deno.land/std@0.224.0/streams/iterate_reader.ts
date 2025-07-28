@@ -1,14 +1,11 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import {
   iterateReader as _iterateReader,
   iterateReaderSync as _iterateReaderSync,
 } from "../io/iterate_reader.ts";
 import type { Reader, ReaderSync } from "../io/types.ts";
-
 export type { Reader, ReaderSync };
-
 /**
  * Turns a {@linkcode Reader}, `r`, into an async iterator.
  *
@@ -40,15 +37,11 @@ export type { Reader, ReaderSync };
  *
  * @deprecated This will be removed in 1.0.0. Import from {@link https://deno.land/std/io/iterate_reader.ts} instead.
  */
-export function iterateReader(
-  r: Reader,
-  options?: {
-    bufSize?: number;
-  },
-): AsyncIterableIterator<Uint8Array> {
+export function iterateReader(r: Reader, options?: {
+  bufSize?: number;
+}): AsyncIterableIterator<Uint8Array> {
   return _iterateReader(r, options);
 }
-
 /**
  * Turns a {@linkcode ReaderSync}, `r`, into an iterator.
  *
@@ -83,11 +76,8 @@ export function iterateReader(
  *
  * @deprecated This will be removed in 1.0.0. Import from {@link https://deno.land/std/io/iterate_reader.ts} instead.
  */
-export function iterateReaderSync(
-  r: ReaderSync,
-  options?: {
-    bufSize?: number;
-  },
-): IterableIterator<Uint8Array> {
+export function iterateReaderSync(r: ReaderSync, options?: {
+  bufSize?: number;
+}): IterableIterator<Uint8Array> {
   return _iterateReaderSync(r, options);
 }

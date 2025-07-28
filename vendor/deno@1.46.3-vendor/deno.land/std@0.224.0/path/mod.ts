@@ -2,7 +2,6 @@
 // Copyright the Browserify authors. MIT License.
 // Ported mostly from https://github.com/browserify/path-browserify/
 // This module is browser compatible.
-
 /**
  * Utilities for working with OS-specific file paths.
  *
@@ -33,16 +32,12 @@
  *
  * @module
  */
-
 import * as _windows from "./windows/mod.ts";
 import * as _posix from "./posix/mod.ts";
-
 /** @deprecated This will be removed in 1.0.0. Import from {@link https://deno.land/std/path/windows/mod.ts} instead. */
 export const win32: typeof _windows = _windows;
-
 /** @deprecated This will be removed in 1.0.0. Import from {@link https://deno.land/std/path/posix/mod.ts} instead. */
 export const posix: typeof _posix = _posix;
-
 export * from "./basename.ts";
 export * from "./constants.ts";
 export * from "./dirname.ts";

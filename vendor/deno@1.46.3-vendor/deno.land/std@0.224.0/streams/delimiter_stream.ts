@@ -1,9 +1,7 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { concat } from "../bytes/concat.ts";
 import { createLPS } from "./_common.ts";
-
 /** Disposition of the delimiter for {@linkcode DelimiterStreamOptions}. */
 export type DelimiterDisposition =
   /** Include delimiter in the found chunk. */
@@ -13,13 +11,11 @@ export type DelimiterDisposition =
   /** Discard the delimiter. */
   | "discard" // delimiter discarded
 ;
-
 /** Options for {@linkcode DelimiterStream}. */
 export interface DelimiterStreamOptions {
   /** Disposition of the delimiter. */
   disposition?: DelimiterDisposition;
 }
-
 /**
  * Divide a stream into chunks delimited by a given byte sequence.
  *
@@ -54,12 +50,8 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
   #matchIndex = 0;
   #delimLPS: Uint8Array | null;
   #disp: DelimiterDisposition;
-
   /** Constructs a new instance. */
-  constructor(
-    delimiter: Uint8Array,
-    options?: DelimiterStreamOptions,
-  ) {
+  constructor(delimiter: Uint8Array, options?: DelimiterStreamOptions) {
     super({
       transform: (chunk, controller) =>
         delimiter.length === 1
@@ -67,12 +59,10 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
           : this.#handle(chunk, controller),
       flush: (controller) => this.#flush(controller),
     });
-
     this.#delimiter = delimiter;
     this.#delimLPS = delimiter.length > 1 ? createLPS(delimiter) : null;
     this.#disp = options?.disposition ?? "discard";
   }
-
   #handle(
     chunk: Uint8Array,
     controller: TransformStreamDefaultController<Uint8Array>,
@@ -186,7 +176,6 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
       bufs.push(chunk.subarray(chunkStart));
     }
   }
-
   /**
    * Optimized handler for a char delimited stream:
    *
@@ -268,7 +257,6 @@ export class DelimiterStream extends TransformStream<Uint8Array, Uint8Array> {
       bufs.push(chunk.subarray(chunkStart));
     }
   }
-
   #flush(controller: TransformStreamDefaultController<Uint8Array>) {
     const bufs = this.#bufs;
     const length = bufs.length;

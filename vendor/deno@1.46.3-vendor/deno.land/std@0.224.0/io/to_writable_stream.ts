@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { writeAll } from "./write_all.ts";
 import type { Writer } from "./types.ts";
 import { isCloser } from "./_common.ts";
-
 /** Options for {@linkcode toWritableStream}. */
 export interface toWritableStreamOptions {
   /**
@@ -15,7 +13,6 @@ export interface toWritableStreamOptions {
    */
   autoClose?: boolean;
 }
-
 /**
  * Create a {@linkcode WritableStream} from a {@linkcode Writer}.
  *

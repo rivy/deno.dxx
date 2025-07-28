@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { assertArg } from "../_common/dirname.ts";
 import { stripTrailingSeparators } from "../_common/strip_trailing_separators.ts";
 import { isPosixPathSeparator } from "./_util.ts";
-
 /**
  * Return the directory path of a `path`.
  *
@@ -20,10 +18,8 @@ import { isPosixPathSeparator } from "./_util.ts";
  */
 export function dirname(path: string): string {
   assertArg(path);
-
   let end = -1;
   let matchedNonSeparator = false;
-
   for (let i = path.length - 1; i >= 1; --i) {
     if (isPosixPathSeparator(path.charCodeAt(i))) {
       if (matchedNonSeparator) {
@@ -34,7 +30,6 @@ export function dirname(path: string): string {
       matchedNonSeparator = true;
     }
   }
-
   // No matches. Fallback based on provided path:
   //
   // - leading slashes paths
@@ -45,9 +40,5 @@ export function dirname(path: string): string {
   if (end === -1) {
     return isPosixPathSeparator(path.charCodeAt(0)) ? "/" : ".";
   }
-
-  return stripTrailingSeparators(
-    path.slice(0, end),
-    isPosixPathSeparator,
-  );
+  return stripTrailingSeparators(path.slice(0, end), isPosixPathSeparator);
 }

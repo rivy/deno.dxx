@@ -1,6 +1,8 @@
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) ||
   function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "m") {
+      throw new TypeError("Private method is not writable");
+    }
     if (kind === "a" && !f) {
       throw new TypeError("Private accessor was defined without a setter");
     }
@@ -829,9 +831,9 @@ export class YargsInstance {
     globals = [].concat(globals);
     if (global !== false) {
       __classPrivateFieldGet(this, _YargsInstance_options, "f").local =
-        __classPrivateFieldGet(this, _YargsInstance_options, "f").local.filter(
-          (l) => globals.indexOf(l) === -1,
-        );
+        __classPrivateFieldGet(this, _YargsInstance_options, "f").local.filter((
+          l,
+        ) => globals.indexOf(l) === -1);
     } else {
       globals.forEach((g) => {
         if (

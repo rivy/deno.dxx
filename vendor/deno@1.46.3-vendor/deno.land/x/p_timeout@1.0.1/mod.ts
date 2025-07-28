@@ -5,7 +5,6 @@ export class TimeoutError extends Error {
     this.name = "TimeoutError";
   }
 }
-
 /**
 Custom implementations for the `setTimeout` and `clearTimeout` functions.
 Useful for testing purposes
@@ -14,14 +13,12 @@ export interface customTimerOptions {
   setTimeout: typeof setTimeout;
   clearTimeout: typeof clearTimeout;
 }
-
 export interface ClearablePromise<T> extends Promise<T> {
   /**
-    Clear the timeout.
-    */
+      Clear the timeout.
+      */
   clear: () => void;
 }
-
 /**
 Timeout a promise after a specified amount of time.
 
@@ -68,17 +65,14 @@ export default function pTimeout<T>(options: {
     if (milliseconds < 0) {
       throw new TypeError("Expected `milliseconds` to be a positive number");
     }
-
     if (milliseconds === Infinity) {
       resolve(promise);
       return;
     }
-
     const timers = {
       ...{ setTimeout, clearTimeout },
       ...customTimers,
     };
-
     timer = timers.setTimeout.call(undefined, () => {
       if (fallbackFn) {
         try {
@@ -86,17 +80,13 @@ export default function pTimeout<T>(options: {
         } catch (error) {
           reject(error);
         }
-
         return;
       }
-
       const message = failMessage ??
         `Promise timed out after ${milliseconds} milliseconds`;
       const timeoutError = failError ?? new TimeoutError(message);
-
       reject(timeoutError);
     }, milliseconds);
-
     async function run() {
       try {
         resolve(await promise);
@@ -106,14 +96,11 @@ export default function pTimeout<T>(options: {
         timers.clearTimeout.call(undefined, timer);
       }
     }
-
     run();
   }) as ClearablePromise<T>;
-
   cancelablePromise.clear = () => {
     clearTimeout(timer);
     timer = undefined;
   };
-
   return cancelablePromise;
 }

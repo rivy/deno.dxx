@@ -4,14 +4,11 @@ import {
   getTimeColor,
   substrColored,
 } from "./common.ts";
-
 import { padEndVisible, padStartVisible, perc, rtime } from "./utils.ts";
-
 import { TableBuilder } from "./table.ts";
 import type { Colorer } from "./colorer.ts";
 import type { BenchmarkResult } from "./deps.ts";
 import type { BenchIndicator, Thresholds } from "./types.ts";
-
 /** Defines the options for card formatted results */
 export interface prettyBenchmarkCardResultOptions {
   // type: "card"; TODO when multiple options
@@ -40,34 +37,27 @@ export interface prettyBenchmarkCardResultOptions {
     options: prettyBenchmarkCardResultOptions,
   ) => string;
 }
-
 const tab = "    ";
 const indPlaceholder = "˘˘˘˘";
 let c: Colorer;
-
 export function getResultCard(
   result: BenchmarkResult,
   colorer: Colorer,
   options?: prettyBenchmarkCardResultOptions,
 ) {
   c = colorer;
-
   const defaultOptions: prettyBenchmarkCardResultOptions = {
     parts: { graph: true, graphBars: 5 },
   };
-
   // define default options and default parts
   options = options || defaultOptions;
   if (!options.parts) {
     options.parts = defaultOptions.parts;
   }
-
   const tableColor = getTableColor(result.name, options?.indicators);
   const tb = new TableBuilder(91, tableColor);
-
   const needsThreshold = options.parts!.threshold && !!options.thresholds &&
     Object.keys(options.thresholds).length != 0;
-
   prettyBenchmarkHeader(tb, result, options);
   if (result.runsCount == 1) {
     prettyBenchmarkSingleRunMetrics(tb, result, options);
@@ -81,9 +71,7 @@ export function getResultCard(
       prettyBenchmarkMultipleRunGraph(tb, result, options);
     }
   }
-
   let table = tb.build();
-
   // replace the indicator placeholder with the correct indicator
   table = table.replace(
     indPlaceholder,
@@ -93,10 +81,8 @@ export function getResultCard(
       options?.indicators,
     ) + " ",
   );
-
   return table;
 }
-
 function prettyBenchmarkHeader(
   tb: TableBuilder,
   r: BenchmarkResult,
@@ -105,19 +91,15 @@ function prettyBenchmarkHeader(
   const head = `${indPlaceholder}${`Benchmark name: ${
     c.cyan(r.name.padEnd(43))
   }`}`;
-
   if (typeof options?.infoCell === "function") {
     let infoCell = options.infoCell(r, options);
     infoCell = substrColored(infoCell, 27);
-
     tb.cellLine(head, infoCell);
   } else {
     tb.line(head);
   }
-
   tb.separator();
 }
-
 function prettyBenchmarkSingleRunMetrics(
   tb: TableBuilder,
   result: BenchmarkResult,
@@ -133,11 +115,9 @@ function prettyBenchmarkSingleRunMetrics(
   const totalMS = `Total time: ${
     padEndVisible(`${timeColor(rtime(result.totalMs, 4))} ms`, 16)
   }`;
-
   tb.cellLine(`${tab}${totalRuns}`, `  ${totalMS}`, "");
   tb.separator();
 }
-
 function prettyBenchmarkThresholdLine(
   tb: TableBuilder,
   result: BenchmarkResult,
@@ -154,7 +134,6 @@ function prettyBenchmarkThresholdLine(
     tb.separator();
   }
 }
-
 function prettyBenchmarkMultipleRunMetrics(
   tb: TableBuilder,
   result: BenchmarkResult,
@@ -166,7 +145,6 @@ function prettyBenchmarkMultipleRunMetrics(
   const totalMS = `Total time: ${
     padEndVisible(`${c.yellow(rtime(result.totalMs, 4))} ms`, 16)
   }`;
-
   const timeColor = getTimeColor(
     result.name,
     result.measuredRunsAvgMs,
@@ -176,18 +154,15 @@ function prettyBenchmarkMultipleRunMetrics(
   const avgRun = `Avg time: ${
     padEndVisible(`${timeColor(rtime(result.measuredRunsAvgMs, 4))} ms`, 8)
   }`;
-
   tb.cellLine(`${tab}${totalRuns}`, `  ${totalMS}`, `  ${avgRun}`);
   tb.separator();
 }
-
 function prettyBenchmarkMultipleRunCalcedMetrics(
   tb: TableBuilder,
   result: BenchmarkResult,
   options: prettyBenchmarkCardResultOptions,
 ) {
   const { max, min, mean, median } = calculateExtraMetrics(result);
-
   const minColor = getTimeColor(
     result.name,
     min,
@@ -212,7 +187,6 @@ function prettyBenchmarkMultipleRunCalcedMetrics(
     options.nocolor,
     options.thresholds,
   );
-
   tb.cellLine(
     `${tab}min: ${minColor(timeStr(min))} `,
     ` max: ${maxColor(timeStr(max))} `,
@@ -221,25 +195,20 @@ function prettyBenchmarkMultipleRunCalcedMetrics(
   );
   tb.separator();
 }
-
 function prettyBenchmarkMultipleRunGraph(
   tb: TableBuilder,
   result: BenchmarkResult,
   options: prettyBenchmarkCardResultOptions,
 ) {
   const barsCount = options.parts!.graphBars || 5;
-
   const max = Math.max(...result.measuredRunsMs);
   const min = Math.min(...result.measuredRunsMs);
   const unit = (max - min) / barsCount;
   const r = result.measuredRunsMs.reduce((prev, runMs, i, a) => {
     prev[Math.min(Math.floor((runMs - min) / unit), barsCount - 1)]++;
-
     return prev;
   }, new Array(barsCount).fill(0));
-
   tb.tc(c.gray).cellLine(" ".repeat(31));
-
   const rMax = Math.max(...r);
   const maxBarLength = 58;
   r.forEach((r: number, i: number) => {
@@ -248,40 +217,28 @@ function prettyBenchmarkMultipleRunGraph(
     if (rMax > maxBarLength) {
       rc = Math.ceil(rp / 100 * maxBarLength);
     }
-
     const groupHead = min + i * unit;
     const bar = Array(rc).fill("=").join("");
-
     const colorFn = getTimeColor(
       result.name,
       groupHead,
       options.nocolor,
       options.thresholds,
     );
-
     const fullBar = colorFn(bar);
-
     const count = r.toString().padStart(6);
     const percent = perc(rp).padStart(4) + "%";
-
     const barHeader = ` ${
-      padStartVisible(
-        `${rtime(groupHead)} ms`,
-        Math.max(rtime(max).length, 12),
-      )
+      padStartVisible(`${rtime(groupHead)} ms`, Math.max(rtime(max).length, 12))
     } _[${count}][${percent}] `;
-
     tb.tc(c.gray).cellLine(barHeader, fullBar);
   });
-
   tb.tc(c.gray).cellLine(" ".repeat(31));
   tb.separator();
 }
-
 function timeStr(time: number, from = 3) {
   return padEndVisible(`${rtime(time, from)} ${c.white("ms")} `, 9 + 4); // TODO gray ms?
 }
-
 function getTableColor(name: string, indicators?: BenchIndicator[]) {
   if (indicators && indicators.length > 0) {
     const indicator = indicators.find(({ benches }) => benches.test(name));
@@ -289,6 +246,5 @@ function getTableColor(name: string, indicators?: BenchIndicator[]) {
       ? indicator.color
       : c.green;
   }
-
   return c.green;
 }

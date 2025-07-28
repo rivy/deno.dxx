@@ -67,8 +67,12 @@ var p = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -199,8 +203,12 @@ var b = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -348,8 +356,12 @@ var _ = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u043B\u0456\u043A";
         case "object": {
-          if (Array.isArray(r)) return "\u043C\u0430\u0441\u0456\u045E";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u043C\u0430\u0441\u0456\u045E";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -478,8 +490,12 @@ var k = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -603,8 +619,12 @@ var j = () => {
         case "undefined":
           return "undefined";
         case "object": {
-          if (Array.isArray(r)) return "pole";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "pole";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -850,8 +870,12 @@ var O = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "Zahl";
         case "object": {
-          if (Array.isArray(r)) return "Array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "Array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -955,8 +979,12 @@ var w = (o) => {
       case "number":
         return Number.isNaN(o) ? "NaN" : "number";
       case "object": {
-        if (Array.isArray(o)) return "array";
-        if (o === null) return "null";
+        if (Array.isArray(o)) {
+          return "array";
+        }
+        if (o === null) {
+          return "null";
+        }
         if (Object.getPrototypeOf(o) !== Object.prototype && o.constructor) {
           return o.constructor.name;
         }
@@ -1068,8 +1096,12 @@ var P = (o) => {
       case "number":
         return Number.isNaN(o) ? "NaN" : "nombro";
       case "object": {
-        if (Array.isArray(o)) return "tabelo";
-        if (o === null) return "senvalora";
+        if (Array.isArray(o)) {
+          return "tabelo";
+        }
+        if (o === null) {
+          return "senvalora";
+        }
         if (Object.getPrototypeOf(o) !== Object.prototype && o.constructor) {
           return o.constructor.name;
         }
@@ -1191,8 +1223,12 @@ var V = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "n\xFAmero";
         case "object": {
-          if (Array.isArray(r)) return "arreglo";
-          if (r === null) return "nulo";
+          if (Array.isArray(r)) {
+            return "arreglo";
+          }
+          if (r === null) {
+            return "nulo";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype) {
             return r.constructor.name;
           }
@@ -1316,8 +1352,12 @@ var L = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0639\u062F\u062F";
         case "object": {
-          if (Array.isArray(r)) return "\u0622\u0631\u0627\u06CC\u0647";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u0622\u0631\u0627\u06CC\u0647";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -1443,8 +1483,12 @@ var R = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -1556,8 +1600,12 @@ var K = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "nombre";
         case "object": {
-          if (Array.isArray(r)) return "tableau";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "tableau";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -1671,8 +1719,12 @@ var X = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -1798,8 +1850,12 @@ var C = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -1922,8 +1978,12 @@ var q = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "sz\xE1m";
         case "object": {
-          if (Array.isArray(r)) return "t\xF6mb";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "t\xF6mb";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -2039,8 +2099,12 @@ var Y = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -2144,8 +2208,12 @@ var H = (o) => {
       case "number":
         return Number.isNaN(o) ? "NaN" : "n\xFAmer";
       case "object": {
-        if (Array.isArray(o)) return "fylki";
-        if (o === null) return "null";
+        if (Array.isArray(o)) {
+          return "fylki";
+        }
+        if (o === null) {
+          return "null";
+        }
         if (Object.getPrototypeOf(o) !== Object.prototype && o.constructor) {
           return o.constructor.name;
         }
@@ -2269,8 +2337,12 @@ var er = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "numero";
         case "object": {
-          if (Array.isArray(r)) return "vettore";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "vettore";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -2380,8 +2452,12 @@ var nr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u6570\u5024";
         case "object": {
-          if (Array.isArray(r)) return "\u914D\u5217";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u914D\u5217";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -2519,7 +2595,9 @@ var or = () => {
             ? "\u1798\u17B7\u1793\u1798\u17C2\u1793\u1787\u17B6\u179B\u17C1\u1781 (NaN)"
             : "\u179B\u17C1\u1781";
         case "object": {
-          if (Array.isArray(r)) return "\u17A2\u17B6\u179A\u17C1 (Array)";
+          if (Array.isArray(r)) {
+            return "\u17A2\u17B6\u179A\u17C1 (Array)";
+          }
           if (r === null) {
             return "\u1782\u17D2\u1798\u17B6\u1793\u178F\u1798\u17D2\u179B\u17C3 (null)";
           }
@@ -2653,8 +2731,12 @@ var ur = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -2796,8 +2878,12 @@ var cr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0431\u0440\u043E\u0458";
         case "object": {
-          if (Array.isArray(r)) return "\u043D\u0438\u0437\u0430";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u043D\u0438\u0437\u0430";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -2920,8 +3006,12 @@ var mr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "nombor";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3033,8 +3123,12 @@ var fr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "getal";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3146,8 +3240,12 @@ var sr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "tall";
         case "object": {
-          if (Array.isArray(r)) return "liste";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "liste";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3257,8 +3355,12 @@ var $r = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "numara";
         case "object": {
-          if (Array.isArray(r)) return "saf";
-          if (r === null) return "gayb";
+          if (Array.isArray(r)) {
+            return "saf";
+          }
+          if (r === null) {
+            return "gayb";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3381,8 +3483,12 @@ var yr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0639\u062F\u062F";
         case "object": {
-          if (Array.isArray(r)) return "\u0627\u0631\u06D0";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u0627\u0631\u06D0";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3502,8 +3608,12 @@ var Ir = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "liczba";
         case "object": {
-          if (Array.isArray(r)) return "tablica";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "tablica";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3627,8 +3737,12 @@ var hr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "n\xFAmero";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "nulo";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "nulo";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3772,8 +3886,12 @@ var Sr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0447\u0438\u0441\u043B\u043E";
         case "object": {
-          if (Array.isArray(r)) return "\u043C\u0430\u0441\u0441\u0438\u0432";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u043C\u0430\u0441\u0441\u0438\u0432";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -3903,8 +4021,12 @@ var Ur = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0161tevilo";
         case "object": {
-          if (Array.isArray(r)) return "tabela";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "tabela";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -4018,8 +4140,12 @@ var Nr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "antal";
         case "object": {
-          if (Array.isArray(r)) return "lista";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "lista";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -4154,8 +4280,12 @@ var zr = () => {
             ? "\u0B8E\u0BA3\u0BCD \u0B85\u0BB2\u0BCD\u0BB2\u0BBE\u0BA4\u0BA4\u0BC1"
             : "\u0B8E\u0BA3\u0BCD";
         case "object": {
-          if (Array.isArray(r)) return "\u0B85\u0BA3\u0BBF";
-          if (r === null) return "\u0BB5\u0BC6\u0BB1\u0BC1\u0BAE\u0BC8";
+          if (Array.isArray(r)) {
+            return "\u0B85\u0BA3\u0BBF";
+          }
+          if (r === null) {
+            return "\u0BB5\u0BC6\u0BB1\u0BC1\u0BAE\u0BC8";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -4419,8 +4549,12 @@ var Er = (o) => {
       case "number":
         return Number.isNaN(o) ? "NaN" : "number";
       case "object": {
-        if (Array.isArray(o)) return "array";
-        if (o === null) return "null";
+        if (Array.isArray(o)) {
+          return "array";
+        }
+        if (o === null) {
+          return "null";
+        }
         if (Object.getPrototypeOf(o) !== Object.prototype && o.constructor) {
           return o.constructor.name;
         }
@@ -4556,8 +4690,12 @@ var Lr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0447\u0438\u0441\u043B\u043E";
         case "object": {
-          if (Array.isArray(r)) return "\u043C\u0430\u0441\u0438\u0432";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "\u043C\u0430\u0441\u0438\u0432";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -4694,8 +4832,12 @@ var Rr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "\u0646\u0645\u0628\u0631";
         case "object": {
-          if (Array.isArray(r)) return "\u0622\u0631\u06D2";
-          if (r === null) return "\u0646\u0644";
+          if (Array.isArray(r)) {
+            return "\u0622\u0631\u06D2";
+          }
+          if (r === null) {
+            return "\u0646\u0644";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -4828,8 +4970,12 @@ var Kr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "s\u1ED1";
         case "object": {
-          if (Array.isArray(r)) return "m\u1EA3ng";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "m\u1EA3ng";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -4947,8 +5093,12 @@ var Xr = () => {
         case "number":
           return Number.isNaN(r) ? "\u975E\u6570\u5B57(NaN)" : "\u6570\u5B57";
         case "object": {
-          if (Array.isArray(r)) return "\u6570\u7EC4";
-          if (r === null) return "\u7A7A\u503C(null)";
+          if (Array.isArray(r)) {
+            return "\u6570\u7EC4";
+          }
+          if (r === null) {
+            return "\u7A7A\u503C(null)";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }
@@ -5060,8 +5210,12 @@ var Cr = () => {
         case "number":
           return Number.isNaN(r) ? "NaN" : "number";
         case "object": {
-          if (Array.isArray(r)) return "array";
-          if (r === null) return "null";
+          if (Array.isArray(r)) {
+            return "array";
+          }
+          if (r === null) {
+            return "null";
+          }
           if (Object.getPrototypeOf(r) !== Object.prototype && r.constructor) {
             return r.constructor.name;
           }

@@ -2,7 +2,7 @@
 // Main entrypoint for Deno.
 //
 // TODO: find reasonable replacement for require logic.
-import * as path from "https://deno.land/std@0.134.0/path/mod.ts";
+import * as path from "../../../../deno.land/std@0.134.0/path/mod.ts";
 import {
   camelCase,
   decamelize,
@@ -16,7 +16,6 @@ import type {
   Options,
   Parser,
 } from "./build/lib/yargs-parser-types.d.ts";
-
 const parser = new YargsParser({
   cwd: Deno.cwd,
   env: () => {
@@ -35,7 +34,6 @@ const parser = new YargsParser({
     }
   },
 });
-
 const yargsParser: Parser = function Parser(
   args: ArgsInput,
   opts?: Partial<Options>,
@@ -52,5 +50,4 @@ yargsParser.detailed = function (
 yargsParser.camelCase = camelCase;
 yargsParser.decamelize = decamelize;
 yargsParser.looksLikeNumber = looksLikeNumber;
-
 export default yargsParser;

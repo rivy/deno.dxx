@@ -2,7 +2,6 @@
 // Copyright the Browserify authors. MIT License.
 // Ported mostly from https://github.com/browserify/path-browserify/
 // This module is browser compatible.
-
 /**
  * Utilities for working with OS-specific file paths.
  *

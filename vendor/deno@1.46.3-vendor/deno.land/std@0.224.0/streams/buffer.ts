@@ -1,12 +1,9 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { assert } from "../assert/assert.ts";
 import { copy } from "../bytes/copy.ts";
-
 const MAX_SIZE = 2 ** 32 - 2;
-const DEFAULT_CHUNK_SIZE = 16_640;
-
+const DEFAULT_CHUNK_SIZE = 16640;
 /** A variable-sized buffer of bytes with `read()` and `write()` methods.
  *
  * Buffer is almost always used with some I/O like files and sockets. It allows
@@ -41,29 +38,24 @@ export class Buffer {
     },
     autoAllocateChunkSize: DEFAULT_CHUNK_SIZE,
   });
-
   /** Getter returning the instance's {@linkcode ReadableStream}. */
   get readable(): ReadableStream<Uint8Array> {
     return this.#readable;
   }
-
   #writable = new WritableStream<Uint8Array>({
     write: (chunk) => {
       const m = this.#grow(chunk.byteLength);
       copy(chunk, this.#buf, m);
     },
   });
-
   /** Getter returning the instance's {@linkcode WritableStream}. */
   get writable(): WritableStream<Uint8Array> {
     return this.#writable;
   }
-
   /** Constructs a new instance. */
   constructor(ab?: ArrayBufferLike | ArrayLike<number>) {
     this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
   }
-
   /** Returns a slice holding the unread portion of the buffer.
    *
    * The slice is valid for use only until the next buffer modification (that
@@ -73,26 +65,24 @@ export class Buffer {
    * immediate changes to the slice will affect the result of future reads.
    */
   bytes(options = { copy: true }): Uint8Array {
-    if (options.copy === false) return this.#buf.subarray(this.#off);
+    if (options.copy === false) {
+      return this.#buf.subarray(this.#off);
+    }
     return this.#buf.slice(this.#off);
   }
-
   /** Returns whether the unread portion of the buffer is empty. */
   empty(): boolean {
     return this.#buf.byteLength <= this.#off;
   }
-
   /** A read only number of bytes of the unread portion of the buffer. */
   get length(): number {
     return this.#buf.byteLength - this.#off;
   }
-
   /** The read only capacity of the buffer's underlying byte slice, that is,
    * the total space allocated for the buffer's data. */
   get capacity(): number {
     return this.#buf.buffer.byteLength;
   }
-
   /**
    * Discards all but the first `n` unread bytes from the buffer but
    * continues to use the same allocated storage. It throws if `n` is
@@ -108,13 +98,11 @@ export class Buffer {
     }
     this.#reslice(this.#off + n);
   }
-
   /** Resets to an empty buffer. */
   reset() {
     this.#reslice(0);
     this.#off = 0;
   }
-
   #tryGrowByReslice(n: number) {
     const l = this.#buf.byteLength;
     if (n <= this.capacity - l) {
@@ -123,12 +111,10 @@ export class Buffer {
     }
     return -1;
   }
-
   #reslice(len: number) {
     assert(len <= this.#buf.buffer.byteLength);
     this.#buf = new Uint8Array(this.#buf.buffer, 0, len);
   }
-
   #grow(n: number) {
     const m = this.length;
     // If buffer is empty, reset to recover space.
@@ -160,7 +146,6 @@ export class Buffer {
     this.#reslice(Math.min(m + n, MAX_SIZE));
     return m;
   }
-
   /** Grows the buffer's capacity, if necessary, to guarantee space for
    * another `n` bytes. After `.grow(n)`, at least `n` bytes can be written to
    * the buffer without another allocation. If `n` is negative, `.grow()` will

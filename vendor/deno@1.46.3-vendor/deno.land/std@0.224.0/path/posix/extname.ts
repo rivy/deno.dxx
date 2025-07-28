@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { CHAR_DOT } from "../_common/constants.ts";
 import { assertPath } from "../_common/assert_path.ts";
 import { isPosixPathSeparator } from "./_util.ts";
-
 /**
  * Return the extension of the `path` with leading period.
  *
@@ -21,7 +19,6 @@ import { isPosixPathSeparator } from "./_util.ts";
  */
 export function extname(path: string): string {
   assertPath(path);
-
   let startDot = -1;
   let startPart = 0;
   let end = -1;
@@ -48,15 +45,17 @@ export function extname(path: string): string {
     }
     if (code === CHAR_DOT) {
       // If this is our first dot, mark it as the start of our extension
-      if (startDot === -1) startDot = i;
-      else if (preDotState !== 1) preDotState = 1;
+      if (startDot === -1) {
+        startDot = i;
+      } else if (preDotState !== 1) {
+        preDotState = 1;
+      }
     } else if (startDot !== -1) {
       // We saw a non-dot and non-path separator before our dot, so we should
       // have a good chance at having a non-empty extension
       preDotState = -1;
     }
   }
-
   if (
     startDot === -1 ||
     end === -1 ||

@@ -1,10 +1,8 @@
 import combining from "./combining.ts";
-
 export type Defaults = {
   nul?: number;
   control?: number;
 };
-
 /*
  *  The following functions define the column width of an ISO 10646
  *  character as follows:
@@ -33,29 +31,33 @@ export function wcswidth(
   { nul = 0, control = 0 }: Defaults = {},
 ): number {
   const opts = { nul, control };
-  if (typeof str !== "string") return wcwidth(str, opts);
-
+  if (typeof str !== "string") {
+    return wcwidth(str, opts);
+  }
   let s = 0;
   for (let i = 0; i < str.length; i++) {
     const n = wcwidth(str.charCodeAt(i), opts);
-    if (n < 0) return -1;
+    if (n < 0) {
+      return -1;
+    }
     s += n;
   }
-
   return s;
 }
-
 function wcwidth(ucs: number, { nul = 0, control = 0 }: Defaults = {}): number {
   // test for 8-bit control characters
-  if (ucs === 0) return nul;
-  if (ucs < 32 || (ucs >= 0x7f && ucs < 0xa0)) return control;
-
+  if (ucs === 0) {
+    return nul;
+  }
+  if (ucs < 32 || (ucs >= 0x7f && ucs < 0xa0)) {
+    return control;
+  }
   // binary search in table of non-spacing characters
-  if (bisearch(ucs)) return 0;
-
+  if (bisearch(ucs)) {
+    return 0;
+  }
   // if we arrive here, ucs is not a combining or C0/C1 control character
-  return (
-    1 +
+  return (1 +
     (ucs >= 0x1100 &&
         (ucs <= 0x115f || // Hangul Jamo init. consonants
           ucs == 0x2329 ||
@@ -70,23 +72,24 @@ function wcwidth(ucs: number, { nul = 0, control = 0 }: Defaults = {}): number {
           (ucs >= 0x20000 && ucs <= 0x2fffd) ||
           (ucs >= 0x30000 && ucs <= 0x3fffd))
       ? 1
-      : 0)
-  );
+      : 0));
 }
-
 function bisearch(ucs: number): boolean {
   let min = 0;
   let max = combining.length - 1;
   let mid;
-
-  if (ucs < combining[0][0] || ucs > combining[max][1]) return false;
-
+  if (ucs < combining[0][0] || ucs > combining[max][1]) {
+    return false;
+  }
   while (max >= min) {
     mid = Math.floor((min + max) / 2);
-    if (ucs > combining[mid][1]) min = mid + 1;
-    else if (ucs < combining[mid][0]) max = mid - 1;
-    else return true;
+    if (ucs > combining[mid][1]) {
+      min = mid + 1;
+    } else if (ucs < combining[mid][0]) {
+      max = mid - 1;
+    } else {
+      return true;
+    }
   }
-
   return false;
 }

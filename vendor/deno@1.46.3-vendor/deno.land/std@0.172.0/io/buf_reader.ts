@@ -1,22 +1,18 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { assert } from "../_util/asserts.ts";
 import { copy } from "../bytes/copy.ts";
 import type { Reader } from "../types.d.ts";
-
 const DEFAULT_BUF_SIZE = 4096;
 const MIN_BUF_SIZE = 16;
 const MAX_CONSECUTIVE_EMPTY_READS = 100;
 const CR = "\r".charCodeAt(0);
 const LF = "\n".charCodeAt(0);
-
 export class BufferFullError extends Error {
   override name = "BufferFullError";
   constructor(public partial: Uint8Array) {
     super("Buffer full");
   }
 }
-
 export class PartialReadError extends Error {
   override name = "PartialReadError";
   partial?: Uint8Array;
@@ -24,13 +20,11 @@ export class PartialReadError extends Error {
     super("Encountered UnexpectedEof, data only partially read");
   }
 }
-
 /** Result type returned by of BufReader.readLine(). */
 export interface ReadLineResult {
   line: Uint8Array;
   more: boolean;
 }
-
 export class BufReader implements Reader {
   #buf!: Uint8Array;
   #rd!: Reader; // Reader provided by caller.
@@ -39,28 +33,23 @@ export class BufReader implements Reader {
   #eof = false;
   // private lastByte: number;
   // private lastCharSize: number;
-
   /** return new BufReader unless r is BufReader */
   static create(r: Reader, size: number = DEFAULT_BUF_SIZE): BufReader {
     return r instanceof BufReader ? r : new BufReader(r, size);
   }
-
   constructor(rd: Reader, size: number = DEFAULT_BUF_SIZE) {
     if (size < MIN_BUF_SIZE) {
       size = MIN_BUF_SIZE;
     }
     this.#reset(new Uint8Array(size), rd);
   }
-
   /** Returns the size of the underlying buffer in bytes. */
   size(): number {
     return this.#buf.byteLength;
   }
-
   buffered(): number {
     return this.#w - this.#r;
   }
-
   // Reads a new chunk into the buffer.
   #fill = async () => {
     // Slide existing data to beginning.
@@ -69,11 +58,9 @@ export class BufReader implements Reader {
       this.#w -= this.#r;
       this.#r = 0;
     }
-
     if (this.#w >= this.#buf.byteLength) {
       throw Error("bufio: tried to fill full buffer");
     }
-
     // Read new data: try a limited number of times.
     for (let i = MAX_CONSECUTIVE_EMPTY_READS; i > 0; i--) {
       const rr = await this.#rd.read(this.#buf.subarray(this.#w));
@@ -87,19 +74,16 @@ export class BufReader implements Reader {
         return;
       }
     }
-
     throw new Error(
       `No progress after ${MAX_CONSECUTIVE_EMPTY_READS} read() calls`,
     );
   };
-
   /** Discards any buffered data, resets all state, and switches
    * the buffered reader to read from r.
    */
   reset(r: Reader) {
     this.#reset(this.#buf, r);
   }
-
   #reset = (buf: Uint8Array, rd: Reader) => {
     this.#buf = buf;
     this.#rd = rd;
@@ -107,7 +91,6 @@ export class BufReader implements Reader {
     // this.lastByte = -1;
     // this.lastCharSize = -1;
   };
-
   /** reads data into p.
    * It returns the number of bytes read into p.
    * The bytes are taken from at most one Read on the underlying Reader,
@@ -116,8 +99,9 @@ export class BufReader implements Reader {
    */
   async read(p: Uint8Array): Promise<number | null> {
     let rr: number | null = p.byteLength;
-    if (p.byteLength === 0) return rr;
-
+    if (p.byteLength === 0) {
+      return rr;
+    }
     if (this.#r === this.#w) {
       if (p.byteLength >= this.#buf.byteLength) {
         // Large read, empty buffer.
@@ -131,17 +115,17 @@ export class BufReader implements Reader {
         // }
         return rr;
       }
-
       // One read.
       // Do not use this.fill, which will loop.
       this.#r = 0;
       this.#w = 0;
       rr = await this.#rd.read(this.#buf);
-      if (rr === 0 || rr === null) return rr;
+      if (rr === 0 || rr === null) {
+        return rr;
+      }
       assert(rr >= 0, "negative read");
       this.#w += rr;
     }
-
     // copy as much as we can
     const copied = copy(this.#buf.subarray(this.#r, this.#w), p, 0);
     this.#r += copied;
@@ -149,7 +133,6 @@ export class BufReader implements Reader {
     // this.lastCharSize = -1;
     return copied;
   }
-
   /** reads exactly `p.length` bytes into `p`.
    *
    * If successful, `p` is returned.
@@ -193,11 +176,12 @@ export class BufReader implements Reader {
     }
     return p;
   }
-
   /** Returns the next byte [0, 255] or `null`. */
   async readByte(): Promise<number | null> {
     while (this.#r === this.#w) {
-      if (this.#eof) return null;
+      if (this.#eof) {
+        return null;
+      }
       await this.#fill(); // buffer is empty.
     }
     const c = this.#buf[this.#r];
@@ -205,7 +189,6 @@ export class BufReader implements Reader {
     // this.lastByte = c;
     return c;
   }
-
   /** readString() reads until the first occurrence of delim in the input,
    * returning a string containing the data up to and including the delimiter.
    * If ReadString encounters an error before finding a delimiter,
@@ -220,10 +203,11 @@ export class BufReader implements Reader {
       throw new Error("Delimiter should be a single character");
     }
     const buffer = await this.readSlice(delim.charCodeAt(0));
-    if (buffer === null) return null;
+    if (buffer === null) {
+      return null;
+    }
     return new TextDecoder().decode(buffer);
   }
-
   /** `readLine()` is a low-level line-reading primitive. Most callers should
    * use `readString('\n')` instead or use a Scanner.
    *
@@ -248,7 +232,6 @@ export class BufReader implements Reader {
    */
   async readLine(): Promise<ReadLineResult | null> {
     let line: Uint8Array | null = null;
-
     try {
       line = await this.readSlice(LF);
     } catch (err) {
@@ -260,15 +243,12 @@ export class BufReader implements Reader {
           "bufio: caught error from `readSlice()` without `partial` property",
         );
       }
-
       // Don't throw if `readSlice()` failed with `BufferFullError`, instead we
       // just return whatever is available and set the `more` flag.
       if (!(err instanceof BufferFullError)) {
         throw err;
       }
-
       partial = err.partial;
-
       // Handle the case where "\r\n" straddles the buffer.
       if (
         !this.#eof && partial &&
@@ -281,20 +261,16 @@ export class BufReader implements Reader {
         this.#r--;
         partial = partial.subarray(0, partial.byteLength - 1);
       }
-
       if (partial) {
         return { line: partial, more: !this.#eof };
       }
     }
-
     if (line === null) {
       return null;
     }
-
     if (line.byteLength === 0) {
       return { line, more: false };
     }
-
     if (line[line.byteLength - 1] == LF) {
       let drop = 1;
       if (line.byteLength > 1 && line[line.byteLength - 2] === CR) {
@@ -304,7 +280,6 @@ export class BufReader implements Reader {
     }
     return { line, more: false };
   }
-
   /** `readSlice()` reads until the first occurrence of `delim` in the input,
    * returning a slice pointing at the bytes in the buffer. The bytes stop
    * being valid at the next read.
@@ -324,7 +299,6 @@ export class BufReader implements Reader {
   async readSlice(delim: number): Promise<Uint8Array | null> {
     let s = 0; // search start index
     let slice: Uint8Array | undefined;
-
     while (true) {
       // Search buffer.
       let i = this.#buf.subarray(this.#r + s, this.#w).indexOf(delim);
@@ -334,7 +308,6 @@ export class BufReader implements Reader {
         this.#r += i + 1;
         break;
       }
-
       // EOF?
       if (this.#eof) {
         if (this.#r === this.#w) {
@@ -344,7 +317,6 @@ export class BufReader implements Reader {
         this.#r = this.#w;
         break;
       }
-
       // Buffer full?
       if (this.buffered() >= this.#buf.byteLength) {
         this.#r = this.#w;
@@ -354,9 +326,7 @@ export class BufReader implements Reader {
         this.#buf = newbuf;
         throw new BufferFullError(oldbuf);
       }
-
       s = this.#w - this.#r; // do not rescan area we scanned before
-
       // Buffer is not full.
       try {
         await this.#fill();
@@ -374,17 +344,14 @@ export class BufReader implements Reader {
         throw err;
       }
     }
-
     // Handle last byte, if any.
     // const i = slice.byteLength - 1;
     // if (i >= 0) {
     //   this.lastByte = slice[i];
     //   this.lastCharSize = -1
     // }
-
     return slice;
   }
-
   /** `peek()` returns the next `n` bytes without advancing the reader. The
    * bytes stop being valid at the next read call.
    *
@@ -400,7 +367,6 @@ export class BufReader implements Reader {
     if (n < 0) {
       throw Error("negative count");
     }
-
     let avail = this.#w - this.#r;
     while (avail < n && avail < this.#buf.byteLength && !this.#eof) {
       try {
@@ -420,7 +386,6 @@ export class BufReader implements Reader {
       }
       avail = this.#w - this.#r;
     }
-
     if (avail === 0 && this.#eof) {
       return null;
     } else if (avail < n && this.#eof) {
@@ -428,7 +393,6 @@ export class BufReader implements Reader {
     } else if (avail < n) {
       throw new BufferFullError(this.#buf.subarray(this.#r, this.#w));
     }
-
     return this.#buf.subarray(this.#r, this.#r + n);
   }
 }

@@ -2,7 +2,6 @@
 // Copyright the Browserify authors. MIT License.
 // Ported from https://github.com/browserify/path-browserify/
 // This module is browser compatible.
-
 import type { FormatInputPathObject } from "./_interface.ts";
 import {
   CHAR_BACKWARD_SLASH,
@@ -13,7 +12,6 @@ import {
   CHAR_UPPERCASE_A,
   CHAR_UPPERCASE_Z,
 } from "./_constants.ts";
-
 export function assertPath(path: string) {
   if (typeof path !== "string") {
     throw new TypeError(
@@ -21,22 +19,16 @@ export function assertPath(path: string) {
     );
   }
 }
-
 export function isPosixPathSeparator(code: number): boolean {
   return code === CHAR_FORWARD_SLASH;
 }
-
 export function isPathSeparator(code: number): boolean {
   return isPosixPathSeparator(code) || code === CHAR_BACKWARD_SLASH;
 }
-
 export function isWindowsDeviceRoot(code: number): boolean {
-  return (
-    (code >= CHAR_LOWERCASE_A && code <= CHAR_LOWERCASE_Z) ||
-    (code >= CHAR_UPPERCASE_A && code <= CHAR_UPPERCASE_Z)
-  );
+  return ((code >= CHAR_LOWERCASE_A && code <= CHAR_LOWERCASE_Z) ||
+    (code >= CHAR_UPPERCASE_A && code <= CHAR_UPPERCASE_Z));
 }
-
 // Resolves . and .. elements in a path with directory names
 export function normalizeString(
   path: string,
@@ -50,10 +42,13 @@ export function normalizeString(
   let dots = 0;
   let code: number | undefined;
   for (let i = 0, len = path.length; i <= len; ++i) {
-    if (i < len) code = path.charCodeAt(i);
-    else if (isPathSeparator(code!)) break;
-    else code = CHAR_FORWARD_SLASH;
-
+    if (i < len) {
+      code = path.charCodeAt(i);
+    } else if (isPathSeparator(code!)) {
+      break;
+    } else {
+      code = CHAR_FORWARD_SLASH;
+    }
     if (isPathSeparator(code!)) {
       if (lastSlash === i - 1 || dots === 1) {
         // NOOP
@@ -85,13 +80,19 @@ export function normalizeString(
           }
         }
         if (allowAboveRoot) {
-          if (res.length > 0) res += `${separator}..`;
-          else res = "..";
+          if (res.length > 0) {
+            res += `${separator}..`;
+          } else {
+            res = "..";
+          }
           lastSegmentLength = 2;
         }
       } else {
-        if (res.length > 0) res += separator + path.slice(lastSlash + 1, i);
-        else res = path.slice(lastSlash + 1, i);
+        if (res.length > 0) {
+          res += separator + path.slice(lastSlash + 1, i);
+        } else {
+          res = path.slice(lastSlash + 1, i);
+        }
         lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;
@@ -104,7 +105,6 @@ export function normalizeString(
   }
   return res;
 }
-
 export function _format(
   sep: string,
   pathObject: FormatInputPathObject,
@@ -112,11 +112,14 @@ export function _format(
   const dir: string | undefined = pathObject.dir || pathObject.root;
   const base: string = pathObject.base ||
     (pathObject.name || "") + (pathObject.ext || "");
-  if (!dir) return base;
-  if (dir === pathObject.root) return dir + base;
+  if (!dir) {
+    return base;
+  }
+  if (dir === pathObject.root) {
+    return dir + base;
+  }
   return dir + sep + base;
 }
-
 const WHITESPACE_ENCODINGS: Record<string, string> = {
   "\u0009": "%09",
   "\u000A": "%0A",
@@ -125,7 +128,6 @@ const WHITESPACE_ENCODINGS: Record<string, string> = {
   "\u000D": "%0D",
   "\u0020": "%20",
 };
-
 export function encodeWhitespace(string: string): string {
   return string.replaceAll(/[\s]/g, (c) => {
     return WHITESPACE_ENCODINGS[c] ?? c;

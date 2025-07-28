@@ -1,8 +1,6 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { type Reader } from "../types.d.ts";
 import { readDelim } from "./read_delim.ts";
-
 /**
  * Read Reader chunk by chunk, splitting based on delimiter.
  *

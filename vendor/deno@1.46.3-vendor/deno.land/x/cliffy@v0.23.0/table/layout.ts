@@ -2,7 +2,6 @@ import { Cell, Direction, ICell } from "./cell.ts";
 import { IRow, Row } from "./row.ts";
 import type { IBorderOptions, ITableSettings, Table } from "./table.ts";
 import { consumeWords, longest, strLength } from "./utils.ts";
-
 /** Layout render settings. */
 interface IRenderSettings {
   padding: number[];
@@ -13,7 +12,6 @@ interface IRenderSettings {
   hasBodyBorder: boolean;
   rows: Row<Cell>[];
 }
-
 /** Table layout renderer. */
 export class TableLayout {
   /**
@@ -21,17 +19,12 @@ export class TableLayout {
    * @param table   Table instance.
    * @param options Render options.
    */
-  public constructor(
-    private table: Table,
-    private options: ITableSettings,
-  ) {}
-
+  public constructor(private table: Table, private options: ITableSettings) {}
   /** Generate table string. */
   public toString(): string {
     const opts: IRenderSettings = this.createLayout();
     return opts.rows.length ? this.renderRows(opts) : "";
   }
-
   /**
    * Generates table layout including row and col span, converts all none
    * Cell/Row values to Cell's and Row's and returns the layout rendering
@@ -43,14 +36,11 @@ export class TableLayout {
         this.options.chars[key as keyof IBorderOptions] = "";
       }
     });
-
     const hasBodyBorder: boolean = this.table.getBorder() ||
       this.table.hasBodyBorder();
     const hasHeaderBorder: boolean = this.table.hasHeaderBorder();
     const hasBorder: boolean = hasHeaderBorder || hasBodyBorder;
-
     const rows = this.#getRows();
-
     const columns: number = Math.max(...rows.map((row) => row.length));
     for (const row of rows) {
       const length: number = row.length;
@@ -61,7 +51,6 @@ export class TableLayout {
         }
       }
     }
-
     const padding: number[] = [];
     const width: number[] = [];
     for (let colIndex = 0; colIndex < columns; colIndex++) {
@@ -77,7 +66,6 @@ export class TableLayout {
         ? this.options.padding[colIndex]
         : this.options.padding;
     }
-
     return {
       padding,
       width,
@@ -88,7 +76,6 @@ export class TableLayout {
       hasHeaderBorder,
     };
   }
-
   #getRows() {
     const header: Row | undefined = this.table.getHeader();
     const rows = header ? [header, ...this.table] : this.table.slice();
@@ -97,17 +84,14 @@ export class TableLayout {
         cell instanceof Cell && (cell.getColSpan() > 1 || cell.getRowSpan() > 1)
       )
     );
-
     if (hasSpan) {
       return this.spanRows(rows);
     }
-
     return rows.map((row) => {
       const newRow = this.createRow(row);
       return newRow.map((cell) => this.createCell(cell, newRow));
     }) as Array<Row<Cell>>;
   }
-
   /**
    * Fills rows and cols by specified row/col span with a reference of the
    * original cell.
@@ -126,7 +110,6 @@ export class TableLayout {
     colSpan = 1,
   ): Row<Cell>[] {
     const rows: Row<Cell>[] = _rows as Row<Cell>[];
-
     if (rowIndex >= rows.length && rowSpan.every((span) => span === 1)) {
       return rows;
     } else if (
@@ -135,35 +118,28 @@ export class TableLayout {
     ) {
       return this.spanRows(rows, ++rowIndex, 0, rowSpan, 1);
     }
-
     if (colSpan > 1) {
       colSpan--;
       rowSpan[colIndex] = rowSpan[colIndex - 1];
       rows[rowIndex].splice(colIndex - 1, 0, rows[rowIndex][colIndex - 1]);
       return this.spanRows(rows, rowIndex, ++colIndex, rowSpan, colSpan);
     }
-
     if (colIndex === 0) {
       rows[rowIndex] = this.createRow(rows[rowIndex] || []);
     }
-
     if (rowSpan[colIndex] > 1) {
       rowSpan[colIndex]--;
       rows[rowIndex].splice(colIndex, 0, rows[rowIndex - 1][colIndex]);
       return this.spanRows(rows, rowIndex, ++colIndex, rowSpan, colSpan);
     }
-
     rows[rowIndex][colIndex] = this.createCell(
       rows[rowIndex][colIndex] || null,
       rows[rowIndex],
     );
-
     colSpan = rows[rowIndex][colIndex].getColSpan();
     rowSpan[colIndex] = rows[rowIndex][colIndex].getRowSpan();
-
     return this.spanRows(rows, rowIndex, ++colIndex, rowSpan, colSpan);
   }
-
   /**
    * Create a new row from existing row or cell array.
    * @param row Original row.
@@ -173,7 +149,6 @@ export class TableLayout {
       .border(this.table.getBorder(), false)
       .align(this.table.getAlign(), false) as Row<Cell>;
   }
-
   /**
    * Create a new cell from existing cell or cell value.
    * @param cell  Original cell.
@@ -184,7 +159,6 @@ export class TableLayout {
       .border(row.getBorder(), false)
       .align(row.getAlign(), false);
   }
-
   /**
    * Render table layout.
    * @param opts Render options.
@@ -192,14 +166,11 @@ export class TableLayout {
   protected renderRows(opts: IRenderSettings): string {
     let result = "";
     const rowSpan: number[] = new Array(opts.columns).fill(1);
-
     for (let rowIndex = 0; rowIndex < opts.rows.length; rowIndex++) {
       result += this.renderRow(rowSpan, rowIndex, opts);
     }
-
     return result.slice(0, -1);
   }
-
   /**
    * Render row.
    * @param rowSpan     Current row span.
@@ -217,27 +188,20 @@ export class TableLayout {
     const prevRow: Row<Cell> | undefined = opts.rows[rowIndex - 1];
     const nextRow: Row<Cell> | undefined = opts.rows[rowIndex + 1];
     let result = "";
-
     let colSpan = 1;
-
     // border top row
     if (!isMultiline && rowIndex === 0 && row.hasBorder()) {
       result += this.renderBorderRow(undefined, row, rowSpan, opts);
     }
-
     let isMultilineRow = false;
-
     result += " ".repeat(this.options.indent || 0);
-
     for (let colIndex = 0; colIndex < opts.columns; colIndex++) {
       if (colSpan > 1) {
         colSpan--;
         rowSpan[colIndex] = rowSpan[colIndex - 1];
         continue;
       }
-
       result += this.renderCell(colIndex, row, opts);
-
       if (rowSpan[colIndex] > 1) {
         if (!isMultiline) {
           rowSpan[colIndex]--;
@@ -245,14 +209,11 @@ export class TableLayout {
       } else if (!prevRow || prevRow[colIndex] !== row[colIndex]) {
         rowSpan[colIndex] = row[colIndex].getRowSpan();
       }
-
       colSpan = row[colIndex].getColSpan();
-
       if (rowSpan[colIndex] === 1 && row[colIndex].length) {
         isMultilineRow = true;
       }
     }
-
     if (opts.columns > 0) {
       if (row[opts.columns - 1].getBorder()) {
         result += this.options.chars.right;
@@ -260,13 +221,10 @@ export class TableLayout {
         result += " ";
       }
     }
-
     result += "\n";
-
     if (isMultilineRow) { // skip border
       return result + this.renderRow(rowSpan, rowIndex, opts, isMultilineRow);
     }
-
     // border mid row
     if (
       (rowIndex === 0 && opts.hasHeaderBorder) ||
@@ -274,15 +232,12 @@ export class TableLayout {
     ) {
       result += this.renderBorderRow(row, nextRow, rowSpan, opts);
     }
-
     // border bottom row
     if (rowIndex === opts.rows.length - 1 && row.hasBorder()) {
       result += this.renderBorderRow(row, undefined, rowSpan, opts);
     }
-
     return result;
   }
-
   /**
    * Render cell.
    * @param colIndex  Current col index.
@@ -298,9 +253,7 @@ export class TableLayout {
   ): string {
     let result = "";
     const prevCell: Cell | undefined = row[colIndex - 1];
-
     const cell: Cell = row[colIndex];
-
     if (!noBorder) {
       if (colIndex === 0) {
         if (cell.getBorder()) {
@@ -316,9 +269,7 @@ export class TableLayout {
         }
       }
     }
-
     let maxLength: number = opts.width[colIndex];
-
     const colSpan: number = cell.getColSpan();
     if (colSpan > 1) {
       for (let o = 1; o < colSpan; o++) {
@@ -330,50 +281,37 @@ export class TableLayout {
         }
       }
     }
-
     const { current, next } = this.renderCellValue(cell, maxLength);
-
     row[colIndex].setValue(next);
-
     if (opts.hasBorder) {
       result += " ".repeat(opts.padding[colIndex]);
     }
-
     result += current;
-
     if (opts.hasBorder || colIndex < opts.columns - 1) {
       result += " ".repeat(opts.padding[colIndex]);
     }
-
     return result;
   }
-
   /**
    * Render specified length of cell. Returns the rendered value and a new cell
    * with the rest value.
    * @param cell      Cell to render.
    * @param maxLength Max length of content to render.
    */
-  protected renderCellValue(
-    cell: Cell,
-    maxLength: number,
-  ): { current: string; next: Cell } {
-    const length: number = Math.min(
-      maxLength,
-      strLength(cell.toString()),
-    );
+  protected renderCellValue(cell: Cell, maxLength: number): {
+    current: string;
+    next: Cell;
+  } {
+    const length: number = Math.min(maxLength, strLength(cell.toString()));
     let words: string = consumeWords(length, cell.toString());
-
     // break word if word is longer than max length
     const breakWord = strLength(words) > length;
     if (breakWord) {
       words = words.slice(0, length);
     }
-
     // get next content and remove leading space if breakWord is not true
     const next = cell.toString().slice(words.length + (breakWord ? 0 : 1));
     const fillLength = maxLength - strLength(words);
-
     // Align content
     const align: Direction = cell.getAlign();
     let current: string;
@@ -389,13 +327,11 @@ export class TableLayout {
     } else {
       throw new Error("Unknown direction: " + align);
     }
-
     return {
       current,
       next: cell.clone(next),
     };
   }
-
   /**
    * Render border row.
    * @param prevRow Previous row.
@@ -410,7 +346,6 @@ export class TableLayout {
     opts: IRenderSettings,
   ): string {
     let result = "";
-
     let colSpan = 1;
     for (let colIndex = 0; colIndex < opts.columns; colIndex++) {
       if (rowSpan[colIndex] > 1) {
@@ -431,10 +366,8 @@ export class TableLayout {
       );
       colSpan = nextRow?.[colIndex].getColSpan() ?? 1;
     }
-
     return result.length ? " ".repeat(this.options.indent) + result + "\n" : "";
   }
-
   /**
    * Render border cell.
    * @param colIndex  Current index.
@@ -453,24 +386,19 @@ export class TableLayout {
     // a1 | b1
     // -------
     // a2 | b2
-
     const a1: Cell | undefined = prevRow?.[colIndex - 1];
     const a2: Cell | undefined = nextRow?.[colIndex - 1];
     const b1: Cell | undefined = prevRow?.[colIndex];
     const b2: Cell | undefined = nextRow?.[colIndex];
-
     const a1Border = !!a1?.getBorder();
     const a2Border = !!a2?.getBorder();
     const b1Border = !!b1?.getBorder();
     const b2Border = !!b2?.getBorder();
-
     const hasColSpan = (cell: Cell | undefined): boolean =>
       (cell?.getColSpan() ?? 1) > 1;
     const hasRowSpan = (cell: Cell | undefined): boolean =>
       (cell?.getRowSpan() ?? 1) > 1;
-
     let result = "";
-
     if (colIndex === 0) {
       if (rowSpan[colIndex] > 1) {
         if (b1Border) {
@@ -493,16 +421,13 @@ export class TableLayout {
         const a2ColSpan: boolean = hasColSpan(a2);
         const b1ColSpan: boolean = hasColSpan(b1);
         const b2ColSpan: boolean = hasColSpan(b2);
-
         const a1RowSpan: boolean = hasRowSpan(a1);
         const a2RowSpan: boolean = hasRowSpan(a2);
         const b1RowSpan: boolean = hasRowSpan(b1);
         const b2RowSpan: boolean = hasRowSpan(b2);
-
         const hasAllBorder = a1Border && b2Border && b1Border && a2Border;
         const hasAllRowSpan = a1RowSpan && b1RowSpan && a2RowSpan && b2RowSpan;
         const hasAllColSpan = a1ColSpan && b1ColSpan && a2ColSpan && b2ColSpan;
-
         if (hasAllRowSpan && hasAllBorder) {
           result += this.options.chars.middle;
         } else if (hasAllColSpan && hasAllBorder && a1 === b1 && a2 === b2) {
@@ -554,17 +479,10 @@ export class TableLayout {
         result += " ";
       }
     }
-
     const length = opts.padding[colIndex] + opts.width[colIndex] +
       opts.padding[colIndex];
-
     if (rowSpan[colIndex] > 1 && nextRow) {
-      result += this.renderCell(
-        colIndex,
-        nextRow,
-        opts,
-        true,
-      );
+      result += this.renderCell(colIndex, nextRow, opts, true);
       if (nextRow[colIndex] === nextRow[nextRow.length - 1]) {
         if (b1Border) {
           result += this.options.chars.right;
@@ -582,7 +500,6 @@ export class TableLayout {
     } else {
       result += " ".repeat(length);
     }
-
     if (colIndex === opts.columns - 1) {
       if (b1Border && b2Border) {
         result += this.options.chars.rightMid;
@@ -594,7 +511,6 @@ export class TableLayout {
         result += " ";
       }
     }
-
     return result;
   }
 }

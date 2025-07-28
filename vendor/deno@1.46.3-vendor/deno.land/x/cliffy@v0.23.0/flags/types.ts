@@ -8,7 +8,6 @@ export interface IParseOptions<T extends IFlagOptions = IFlagOptions> {
   allowEmpty?: boolean;
   ignoreDefaults?: Record<string, unknown>;
 }
-
 /** Flag options. */
 export interface IFlagOptions extends IFlagArgument {
   name: string;
@@ -22,7 +21,6 @@ export interface IFlagOptions extends IFlagArgument {
   value?: IFlagValueHandler;
   collect?: boolean;
 }
-
 /** Flag argument definition. */
 export interface IFlagArgument {
   type?: OptionType | string;
@@ -32,7 +30,6 @@ export interface IFlagArgument {
   list?: boolean;
   separator?: string;
 }
-
 /** Available build-in argument types. */
 export enum OptionType {
   STRING = "string",
@@ -40,14 +37,11 @@ export enum OptionType {
   INTEGER = "integer",
   BOOLEAN = "boolean",
 }
-
 /** Default flag value */
 export type IDefaultValue<T = unknown> = T | (() => T);
-
 /** Value handler for custom value processing. */
 // deno-lint-ignore no-explicit-any
 export type IFlagValueHandler<T = any, U = T> = (val: T, previous?: U) => U;
-
 /** Result of the parseFlags method. */
 export interface IFlagsResult<
   // deno-lint-ignore no-explicit-any
@@ -57,7 +51,6 @@ export interface IFlagsResult<
   unknown: string[];
   literal: string[];
 }
-
 /** Type details. */
 export interface ITypeInfo {
   label: string;
@@ -65,6 +58,5 @@ export interface ITypeInfo {
   name: string;
   value: string;
 }
-
 /** Custom type handler/parser. */
 export type ITypeHandler<T = unknown> = (type: ITypeInfo) => T;

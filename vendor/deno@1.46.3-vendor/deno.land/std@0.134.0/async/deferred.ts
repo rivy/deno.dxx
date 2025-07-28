@@ -1,6 +1,5 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 // TODO(ry) It'd be better to make Deferred a class that inherits from
 // Promise, rather than an interface. This is possible in ES2016, however
 // typescript produces broken code when targeting ES5 code.
@@ -12,7 +11,6 @@ export interface Deferred<T> extends Promise<T> {
   // deno-lint-ignore no-explicit-any
   reject(reason?: any): void;
 }
-
 /** Creates a Promise with the `reject` and `resolve` functions
  * placed as methods on the promise object itself. It allows you to do:
  *

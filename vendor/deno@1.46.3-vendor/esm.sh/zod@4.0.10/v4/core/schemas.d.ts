@@ -821,9 +821,10 @@ type TupleInputTypeWithOptionals<T extends util.TupleItems> = T extends
   readonly [
     ...infer Prefix extends SomeType[],
     infer Tail extends SomeType,
-  ]
-  ? Tail["_zod"]["optin"] extends "optional"
-    ? [...TupleInputTypeWithOptionals<Prefix>, core.input<Tail>?]
+  ] ? Tail["_zod"]["optin"] extends "optional" ? [
+      ...TupleInputTypeWithOptionals<Prefix>,
+      core.input<Tail>?,
+    ]
   : TupleInputTypeNoOptionals<T>
   : [];
 export type $InferTupleOutputType<
@@ -840,9 +841,10 @@ type TupleOutputTypeWithOptionals<T extends util.TupleItems> = T extends
   readonly [
     ...infer Prefix extends SomeType[],
     infer Tail extends SomeType,
-  ]
-  ? Tail["_zod"]["optout"] extends "optional"
-    ? [...TupleOutputTypeWithOptionals<Prefix>, core.output<Tail>?]
+  ] ? Tail["_zod"]["optout"] extends "optional" ? [
+      ...TupleOutputTypeWithOptionals<Prefix>,
+      core.output<Tail>?,
+    ]
   : TupleOutputTypeNoOptionals<T>
   : [];
 export interface $ZodTupleInternals<
@@ -1299,12 +1301,14 @@ export type ConvertPartsToStringTuple<Parts extends $ZodTemplateLiteralPart[]> =
 export type ToTemplateLiteral<Parts extends $ZodTemplateLiteralPart[]> =
   ConcatenateTupleOfStrings<ConvertPartsToStringTuple<Parts>>;
 export type $PartsToTemplateLiteral<Parts extends $ZodTemplateLiteralPart[]> =
-  [] extends Parts ? ``
-    : Parts extends [...infer Rest, infer Last extends $ZodTemplateLiteralPart]
-      ? Rest extends $ZodTemplateLiteralPart[]
-        ? AppendToTemplateLiteral<$PartsToTemplateLiteral<Rest>, Last>
-      : never
-    : never;
+  [] extends Parts ? `` : Parts extends [
+    ...infer Rest,
+    infer Last extends $ZodTemplateLiteralPart,
+  ]
+    ? Rest extends $ZodTemplateLiteralPart[]
+      ? AppendToTemplateLiteral<$PartsToTemplateLiteral<Rest>, Last>
+    : never
+  : never;
 export declare const $ZodTemplateLiteral: core.$constructor<
   $ZodTemplateLiteral
 >;

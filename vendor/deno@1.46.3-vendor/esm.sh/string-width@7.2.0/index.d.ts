@@ -1,22 +1,20 @@
 export type Options = {
   /**
-	Count [ambiguous width characters](https://www.unicode.org/reports/tr11/#Ambiguous) as having narrow width (count of 1) instead of wide width (count of 2).
+      Count [ambiguous width characters](https://www.unicode.org/reports/tr11/#Ambiguous) as having narrow width (count of 1) instead of wide width (count of 2).
 
-	@default true
+      @default true
 
-	> Ambiguous characters behave like wide or narrow characters depending on the context (language tag, script identification, associated font, source of data, or explicit markup; all can provide the context). __If the context cannot be established reliably, they should be treated as narrow characters by default.__
-	> - http://www.unicode.org/reports/tr11/
-	*/
+      > Ambiguous characters behave like wide or narrow characters depending on the context (language tag, script identification, associated font, source of data, or explicit markup; all can provide the context). __If the context cannot be established reliably, they should be treated as narrow characters by default.__
+      > - http://www.unicode.org/reports/tr11/
+      */
   readonly ambiguousIsNarrow?: boolean;
-
   /**
-	Whether [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) should be counted.
+      Whether [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) should be counted.
 
-	@default false
-	*/
+      @default false
+      */
   readonly countAnsiEscapeCodes?: boolean;
 };
-
 /**
 Get the visual width of a string - the number of columns required to display it.
 

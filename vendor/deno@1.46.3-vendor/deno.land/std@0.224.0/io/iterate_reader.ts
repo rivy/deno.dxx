@@ -1,11 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { DEFAULT_BUFFER_SIZE } from "./_constants.ts";
 import type { Reader, ReaderSync } from "./types.ts";
-
 export type { Reader, ReaderSync };
-
 /**
  * Turns a {@linkcode Reader} into an async iterator.
  *
@@ -35,12 +32,9 @@ export type { Reader, ReaderSync };
  * }
  * ```
  */
-export async function* iterateReader(
-  reader: Reader,
-  options?: {
-    bufSize?: number;
-  },
-): AsyncIterableIterator<Uint8Array> {
+export async function* iterateReader(reader: Reader, options?: {
+  bufSize?: number;
+}): AsyncIterableIterator<Uint8Array> {
   const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
   const b = new Uint8Array(bufSize);
   while (true) {
@@ -48,11 +42,9 @@ export async function* iterateReader(
     if (result === null) {
       break;
     }
-
     yield b.slice(0, result);
   }
 }
-
 /**
  * Turns a {@linkcode ReaderSync} into an iterator.
  *
@@ -85,12 +77,9 @@ export async function* iterateReader(
  * responsibility to copy contents of the buffer if needed; otherwise the
  * next iteration will overwrite contents of previously returned chunk.
  */
-export function* iterateReaderSync(
-  reader: ReaderSync,
-  options?: {
-    bufSize?: number;
-  },
-): IterableIterator<Uint8Array> {
+export function* iterateReaderSync(reader: ReaderSync, options?: {
+  bufSize?: number;
+}): IterableIterator<Uint8Array> {
   const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
   const b = new Uint8Array(bufSize);
   while (true) {
@@ -98,7 +87,6 @@ export function* iterateReaderSync(
     if (result === null) {
       break;
     }
-
     yield b.slice(0, result);
   }
 }

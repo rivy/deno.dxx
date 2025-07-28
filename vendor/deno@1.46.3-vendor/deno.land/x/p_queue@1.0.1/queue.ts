@@ -1,5 +1,4 @@
 export type RunFunction = () => Promise<unknown>;
-
 export interface Queue<Element, Options> {
   size: number;
   filter: (options: Partial<Options>) => Element[];

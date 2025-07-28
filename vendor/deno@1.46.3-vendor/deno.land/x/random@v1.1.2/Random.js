@@ -11,17 +11,14 @@ export class Random {
   constructor(generator = undefined) {
     this.generator = generator || Math.random;
   }
-
   int(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(this.generator() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
   }
-
   real(min, max) {
     return this.generator() * (max - min) + min;
   }
-
   string(
     /** @type {number} */ len,
     /** @type {string} */ src = Random.LOWER_ALPHA_NUMERICS,
@@ -32,7 +29,6 @@ export class Random {
     }
     return s;
   }
-
   /**
    * Random Variable Names
    */
@@ -46,7 +42,6 @@ export class Random {
     }
     return s;
   }
-
   pick(...args) {
     if (args.length == 0) {
       return undefined;
@@ -61,7 +56,6 @@ export class Random {
       return args[this.int(0, args.length)];
     }
   }
-
   /**
    * @param  {...number} args
    */
@@ -78,11 +72,8 @@ export class Random {
     throw new Error("probably a wrong weight");
   }
 }
-
 export default Random;
-
 Random.i = new Random();
-
 Random.UPPER_ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXTYZ";
 Random.LOWER_ALPHABETS = "abcdefghijklmnopqrstuvwxtyz";
 Random.ALPHABETS = Random.LOWER_ALPHABETS + Random.UPPER_ALPHABETS;

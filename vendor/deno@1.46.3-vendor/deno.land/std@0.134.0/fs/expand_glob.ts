@@ -17,13 +17,11 @@ import {
 } from "./walk.ts";
 import { assert } from "../_util/assert.ts";
 import { isWindows } from "../_util/os.ts";
-
 export interface ExpandGlobOptions extends Omit<GlobOptions, "os"> {
   root?: string;
   exclude?: string[];
   includeDirs?: boolean;
 }
-
 interface SplitPath {
   segments: string[];
   isAbsolute: boolean;
@@ -31,7 +29,6 @@ interface SplitPath {
   // Defined for any absolute Windows path.
   winRoot?: string;
 }
-
 function split(path: string): SplitPath {
   const s = SEP_PATTERN.source;
   const segments = path
@@ -45,19 +42,20 @@ function split(path: string): SplitPath {
     winRoot: isWindows && isAbsolute_ ? segments.shift() : undefined,
   };
 }
-
 function throwUnlessNotFound(error: unknown): void {
   if (!(error instanceof Deno.errors.NotFound)) {
     throw error;
   }
 }
-
 function comparePath(a: WalkEntry, b: WalkEntry): number {
-  if (a.path < b.path) return -1;
-  if (a.path > b.path) return 1;
+  if (a.path < b.path) {
+    return -1;
+  }
+  if (a.path > b.path) {
+    return 1;
+  }
   return 0;
 }
-
 /** Expand the glob string from the specified `root` directory and yield each
  * result as a `WalkEntry` object.
  *
@@ -93,7 +91,6 @@ export async function* expandGlob(
     !excludePatterns.some((p: RegExp): boolean => !!path.match(p));
   const { segments, isAbsolute: isGlobAbsolute, hasTrailingSep, winRoot } =
     split(glob);
-
   let fixedRoot = isGlobAbsolute
     ? (winRoot != undefined ? winRoot : "/")
     : absRoot;
@@ -102,14 +99,12 @@ export async function* expandGlob(
     assert(seg != null);
     fixedRoot = joinGlobs([fixedRoot, seg], globOptions);
   }
-
   let fixedRootInfo: WalkEntry;
   try {
     fixedRootInfo = await _createWalkEntry(fixedRoot);
   } catch (error) {
     return throwUnlessNotFound(error);
   }
-
   async function* advanceMatch(
     walkInfo: WalkEntry,
     globSegment: string,
@@ -143,7 +138,6 @@ export async function* expandGlob(
       }
     }
   }
-
   let currentMatches: WalkEntry[] = [fixedRootInfo];
   for (const segment of segments) {
     // Advancing the list of current matches may introduce duplicates, so we
@@ -157,18 +151,17 @@ export async function* expandGlob(
     currentMatches = [...nextMatchMap.values()].sort(comparePath);
   }
   if (hasTrailingSep) {
-    currentMatches = currentMatches.filter(
-      (entry: WalkEntry): boolean => entry.isDirectory,
+    currentMatches = currentMatches.filter((entry: WalkEntry): boolean =>
+      entry.isDirectory
     );
   }
   if (!includeDirs) {
-    currentMatches = currentMatches.filter(
-      (entry: WalkEntry): boolean => !entry.isDirectory,
+    currentMatches = currentMatches.filter((entry: WalkEntry): boolean =>
+      !entry.isDirectory
     );
   }
   yield* currentMatches;
 }
-
 /** Synchronous version of `expandGlob()`.
  *
  * Example:
@@ -201,7 +194,6 @@ export function* expandGlobSync(
     !excludePatterns.some((p: RegExp): boolean => !!path.match(p));
   const { segments, isAbsolute: isGlobAbsolute, hasTrailingSep, winRoot } =
     split(glob);
-
   let fixedRoot = isGlobAbsolute
     ? (winRoot != undefined ? winRoot : "/")
     : absRoot;
@@ -210,14 +202,12 @@ export function* expandGlobSync(
     assert(seg != null);
     fixedRoot = joinGlobs([fixedRoot, seg], globOptions);
   }
-
   let fixedRootInfo: WalkEntry;
   try {
     fixedRootInfo = _createWalkEntrySync(fixedRoot);
   } catch (error) {
     return throwUnlessNotFound(error);
   }
-
   function* advanceMatch(
     walkInfo: WalkEntry,
     globSegment: string,
@@ -251,7 +241,6 @@ export function* expandGlobSync(
       }
     }
   }
-
   let currentMatches: WalkEntry[] = [fixedRootInfo];
   for (const segment of segments) {
     // Advancing the list of current matches may introduce duplicates, so we
@@ -265,13 +254,13 @@ export function* expandGlobSync(
     currentMatches = [...nextMatchMap.values()].sort(comparePath);
   }
   if (hasTrailingSep) {
-    currentMatches = currentMatches.filter(
-      (entry: WalkEntry): boolean => entry.isDirectory,
+    currentMatches = currentMatches.filter((entry: WalkEntry): boolean =>
+      entry.isDirectory
     );
   }
   if (!includeDirs) {
-    currentMatches = currentMatches.filter(
-      (entry: WalkEntry): boolean => !entry.isDirectory,
+    currentMatches = currentMatches.filter((entry: WalkEntry): boolean =>
+      !entry.isDirectory
     );
   }
   yield* currentMatches;

@@ -1,8 +1,6 @@
 import { TableCharacters } from "./table.ts";
-
 export function initCharacters(chars: TableCharacters = {}): TableCharacters {
   const characters: TableCharacters = {};
-
   characters.middleMiddle = chars.middleMiddle || "─";
   characters.rowMiddle = chars.rowMiddle || "┼";
   characters.topRight = chars.topRight || "┐";
@@ -16,6 +14,5 @@ export function initCharacters(chars: TableCharacters = {}): TableCharacters {
   characters.left = chars.left || "│";
   characters.right = chars.right || "│";
   characters.middle = chars.middle || "│";
-
   return characters;
 }

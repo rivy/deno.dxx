@@ -1,9 +1,7 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { encodeWhitespace } from "../_common/to_file_url.ts";
 import { isAbsolute } from "./is_absolute.ts";
-
 /**
  * Converts a path string to a file URL.
  *
@@ -18,7 +16,6 @@ export function toFileUrl(path: string): URL {
   if (!isAbsolute(path)) {
     throw new TypeError("Must be an absolute path.");
   }
-
   const url = new URL("file:///");
   url.pathname = encodeWhitespace(
     path.replace(/%/g, "%25").replace(/\\/g, "%5C"),

@@ -1,7 +1,9 @@
 /* esm.sh - zod@4.0.10/v4/core */
 var tr = Object.defineProperty;
 var it = (t, e) => {
-  for (var r in e) tr(t, r, { get: e[r], enumerable: !0 });
+  for (var r in e) {
+    tr(t, r, { get: e[r], enumerable: !0 });
+  }
 };
 var Yr = Object.freeze({ status: "aborted" });
 function l(t, e, r) {
@@ -17,13 +19,16 @@ function l(t, e, r) {
     u._zod.constr = s, u._zod.def = p;
   }
   let n = r?.Parent ?? Object;
-  class i extends n {}
+  class i extends n {
+  }
   Object.defineProperty(i, "name", { value: t });
   function s(u) {
     var p;
     let m = r?.Parent ? new i() : this;
     o(m, u), (p = m._zod).deferred ?? (p.deferred = []);
-    for (let h of m._zod.deferred) h();
+    for (let h of m._zod.deferred) {
+      h();
+    }
     return m;
   }
   return Object.defineProperty(s, "init", { value: o }),
@@ -191,13 +196,17 @@ function lr(t) {
   let e = Object.keys(t), r = e.map((o) => t[o]);
   return Promise.all(r).then((o) => {
     let n = {};
-    for (let i = 0; i < e.length; i++) n[e[i]] = o[i];
+    for (let i = 0; i < e.length; i++) {
+      n[e[i]] = o[i];
+    }
     return n;
   });
 }
 function pr(t = 10) {
   let e = "abcdefghijklmnopqrstuvwxyz", r = "";
-  for (let o = 0; o < t; o++) r += e[Math.floor(Math.random() * e.length)];
+  for (let o = 0; o < t; o++) {
+    r += e[Math.floor(Math.random() * e.length)];
+  }
   return r;
 }
 function ee(t) {
@@ -219,16 +228,22 @@ var de = B(() => {
   }
 });
 function D(t) {
-  if (F(t) === !1) return !1;
+  if (F(t) === !1) {
+    return !1;
+  }
   let e = t.constructor;
-  if (e === void 0) return !0;
+  if (e === void 0) {
+    return !0;
+  }
   let r = e.prototype;
   return !(F(r) === !1 ||
     Object.prototype.hasOwnProperty.call(r, "isPrototypeOf") === !1);
 }
 function fr(t) {
   let e = 0;
-  for (let r in t) Object.prototype.hasOwnProperty.call(t, r) && e++;
+  for (let r in t) {
+    Object.prototype.hasOwnProperty.call(t, r) && e++;
+  }
   return e;
 }
 var mr = (t) => {
@@ -287,8 +302,12 @@ function j(t, e, r) {
 }
 function f(t) {
   let e = t;
-  if (!e) return {};
-  if (typeof e == "string") return { error: () => e };
+  if (!e) {
+    return {};
+  }
+  if (typeof e == "string") {
+    return { error: () => e };
+  }
   if (e?.message !== void 0) {
     if (e?.error !== void 0) {
       throw new Error("Cannot specify both `message` and `error` params");
@@ -353,7 +372,9 @@ function dr(t, e) {
       get shape() {
         let n = {};
         for (let i in e) {
-          if (!(i in r.shape)) throw new Error(`Unrecognized key: "${i}"`);
+          if (!(i in r.shape)) {
+            throw new Error(`Unrecognized key: "${i}"`);
+          }
           e[i] && (n[i] = r.shape[i]);
         }
         return C(this, "shape", n), n;
@@ -368,7 +389,9 @@ function _r(t, e) {
       get shape() {
         let n = { ...t._zod.def.shape };
         for (let i in e) {
-          if (!(i in r.shape)) throw new Error(`Unrecognized key: "${i}"`);
+          if (!(i in r.shape)) {
+            throw new Error(`Unrecognized key: "${i}"`);
+          }
           e[i] && delete n[i];
         }
         return C(this, "shape", n), n;
@@ -409,13 +432,17 @@ function zr(t, e, r) {
       let n = e._zod.def.shape, i = { ...n };
       if (r) {
         for (let s in r) {
-          if (!(s in n)) throw new Error(`Unrecognized key: "${s}"`);
+          if (!(s in n)) {
+            throw new Error(`Unrecognized key: "${s}"`);
+          }
           r[s] &&
             (i[s] = t ? new t({ type: "optional", innerType: n[s] }) : n[s]);
         }
-      } else {for (let s in n) {
+      } else {
+        for (let s in n) {
           i[s] = t ? new t({ type: "optional", innerType: n[s] }) : n[s];
-        }}
+        }
+      }
       return C(this, "shape", i), i;
     },
     checks: [],
@@ -428,12 +455,16 @@ function vr(t, e, r) {
       let n = e._zod.def.shape, i = { ...n };
       if (r) {
         for (let s in r) {
-          if (!(s in i)) throw new Error(`Unrecognized key: "${s}"`);
+          if (!(s in i)) {
+            throw new Error(`Unrecognized key: "${s}"`);
+          }
           r[s] && (i[s] = new t({ type: "nonoptional", innerType: n[s] }));
         }
-      } else {for (let s in n) {
+      } else {
+        for (let s in n) {
           i[s] = new t({ type: "nonoptional", innerType: n[s] });
-        }}
+        }
+      }
       return C(this, "shape", i), i;
     },
     checks: [],
@@ -442,7 +473,9 @@ function vr(t, e, r) {
 }
 function R(t, e = 0) {
   for (let r = e; r < t.issues.length; r++) {
-    if (t.issues[r]?.continue !== !0) return !0;
+    if (t.issues[r]?.continue !== !0) {
+      return !0;
+    }
   }
   return !1;
 }
@@ -524,10 +557,13 @@ function en(t, e) {
       for (let s of i.issues) {
         if (s.code === "invalid_union" && s.errors.length) {
           s.errors.map((u) => n({ issues: u }));
-        } else if (s.code === "invalid_key") n({ issues: s.issues });
-        else if (s.code === "invalid_element") n({ issues: s.issues });
-        else if (s.path.length === 0) o._errors.push(r(s));
-        else {
+        } else if (s.code === "invalid_key") {
+          n({ issues: s.issues });
+        } else if (s.code === "invalid_element") {
+          n({ issues: s.issues });
+        } else if (s.path.length === 0) {
+          o._errors.push(r(s));
+        } else {
           let u = o, p = 0;
           for (; p < s.path.length;) {
             let m = s.path[p];
@@ -608,7 +644,9 @@ function rn(t) {
 var wr = (t) => (e, r, o, n) => {
     let i = o ? Object.assign(o, { async: !1 }) : { async: !1 },
       s = e._zod.run({ value: r, issues: [] }, i);
-    if (s instanceof Promise) throw new O();
+    if (s instanceof Promise) {
+      throw new O();
+    }
     if (s.issues.length) {
       let u = new (n?.Err ?? t)(s.issues.map((p) => E(p, i, I())));
       throw te(u, n?.callee), u;
@@ -629,7 +667,9 @@ var wr = (t) => (e, r, o, n) => {
   Zr = (t) => (e, r, o) => {
     let n = o ? { ...o, async: !1 } : { async: !1 },
       i = e._zod.run({ value: r, issues: [] }, n);
-    if (i instanceof Promise) throw new O();
+    if (i instanceof Promise) {
+      throw new O();
+    }
     return i.issues.length
       ? { success: !1, error: new (t ?? ct)(i.issues.map((s) => E(s, n, I()))) }
       : { success: !0, data: i.value };
@@ -1001,7 +1041,9 @@ var Z = l("$ZodCheck", (t, e) => {
       }),
       t._zod.check = (o) => {
         let n = o.value, i = n.size;
-        if (i === e.size) return;
+        if (i === e.size) {
+          return;
+        }
         let s = i > e.size;
         o.issues.push({
           origin: G(n),
@@ -1029,7 +1071,9 @@ var Z = l("$ZodCheck", (t, e) => {
       }),
       t._zod.check = (o) => {
         let n = o.value;
-        if (n.length <= e.maximum) return;
+        if (n.length <= e.maximum) {
+          return;
+        }
         let s = K(n);
         o.issues.push({
           origin: s,
@@ -1055,7 +1099,9 @@ var Z = l("$ZodCheck", (t, e) => {
       }),
       t._zod.check = (o) => {
         let n = o.value;
-        if (n.length >= e.minimum) return;
+        if (n.length >= e.minimum) {
+          return;
+        }
         let s = K(n);
         o.issues.push({
           origin: s,
@@ -1081,7 +1127,9 @@ var Z = l("$ZodCheck", (t, e) => {
       }),
       t._zod.check = (o) => {
         let n = o.value, i = n.length;
-        if (i === e.length) return;
+        if (i === e.length) {
+          return;
+        }
         let s = K(n), u = i > e.length;
         o.issues.push({
           origin: s,
@@ -1219,7 +1267,9 @@ var It = l("$ZodCheckProperty", (t, e) => {
           { value: r.value[e.property], issues: [] },
           {},
         );
-        if (o instanceof Promise) return o.then((n) => mt(n, r, e.property));
+        if (o instanceof Promise) {
+          return o.then((n) => mt(n, r, e.property));
+        }
         mt(o, r, e.property);
       };
   }),
@@ -1261,7 +1311,9 @@ var oe = class {
 `).filter((s) => s),
       n = Math.min(...o.map((s) => s.length - s.trimStart().length)),
       i = o.map((s) => s.slice(n)).map((s) => " ".repeat(this.indent * 2) + s);
-    for (let s of i) this.content.push(s);
+    for (let s of i) {
+      this.content.push(s);
+    }
   }
   compile() {
     let e = Function,
@@ -1283,7 +1335,11 @@ var z = l("$ZodType", (t, e) => {
       t._zod.version = Nt;
     let o = [...t._zod.def.checks ?? []];
     t._zod.traits.has("$ZodCheck") && o.unshift(t);
-    for (let n of o) for (let i of n._zod.onattach) i(t);
+    for (let n of o) {
+      for (let i of n._zod.onattach) {
+        i(t);
+      }
+    }
     if (o.length === 0) {
       (r = t._zod).deferred ?? (r.deferred = []),
         t._zod.deferred?.push(() => {
@@ -1293,16 +1349,25 @@ var z = l("$ZodType", (t, e) => {
       let n = (i, s, u) => {
         let p = R(i), m;
         for (let h of s) {
-          if (h._zod.def.when) { if (!h._zod.def.when(i)) continue; }
-          else if (p) continue;
+          if (h._zod.def.when) {
+            if (!h._zod.def.when(i)) {
+              continue;
+            }
+          } else if (p) {
+            continue;
+          }
           let a = i.issues.length, x = h._zod.check(i);
-          if (x instanceof Promise && u?.async === !1) throw new O();
+          if (x instanceof Promise && u?.async === !1) {
+            throw new O();
+          }
           if (m || x instanceof Promise) {
             m = (m ?? Promise.resolve()).then(async () => {
               await x, i.issues.length !== a && (p || (p = R(i, a)));
             });
           } else {
-            if (i.issues.length === a) continue;
+            if (i.issues.length === a) {
+              continue;
+            }
             p || (p = R(i, a));
           }
         }
@@ -1311,7 +1376,9 @@ var z = l("$ZodType", (t, e) => {
       t._zod.run = (i, s) => {
         let u = t._zod.parse(i, s);
         if (u instanceof Promise) {
-          if (s.async === !1) throw new O();
+          if (s.async === !1) {
+            throw new O();
+          }
           return u.then((p) => n(p, o, s));
         }
         return n(u, o, s);
@@ -1361,9 +1428,13 @@ var z = l("$ZodType", (t, e) => {
     if (e.version) {
       let o =
         { v1: 1, v2: 2, v3: 3, v4: 4, v5: 5, v6: 6, v7: 7, v8: 8 }[e.version];
-      if (o === void 0) throw new Error(`Invalid UUID version: "${e.version}"`);
+      if (o === void 0) {
+        throw new Error(`Invalid UUID version: "${e.version}"`);
+      }
       e.pattern ?? (e.pattern = M(o));
-    } else e.pattern ?? (e.pattern = M());
+    } else {
+      e.pattern ?? (e.pattern = M());
+    }
     k.init(t, e);
   }),
   fn = l("$ZodEmail", (t, e) => {
@@ -1386,7 +1457,8 @@ var z = l("$ZodType", (t, e) => {
               inst: t,
               continue: !e.abort,
             })),
-            e.protocol && (e.protocol.lastIndex = 0,
+            e.protocol &&
+            (e.protocol.lastIndex = 0,
               e.protocol.test(
                 n.protocol.endsWith(":") ? n.protocol.slice(0, -1) : n.protocol,
               ) ||
@@ -1483,10 +1555,16 @@ var z = l("$ZodType", (t, e) => {
       t._zod.check = (r) => {
         let [o, n] = r.value.split("/");
         try {
-          if (!n) throw new Error();
+          if (!n) {
+            throw new Error();
+          }
           let i = Number(n);
-          if (`${i}` !== n) throw new Error();
-          if (i < 0 || i > 128) throw new Error();
+          if (`${i}` !== n) {
+            throw new Error();
+          }
+          if (i < 0 || i > 128) {
+            throw new Error();
+          }
           new URL(`http://[${o}]`);
         } catch {
           r.issues.push({
@@ -1500,8 +1578,12 @@ var z = l("$ZodType", (t, e) => {
       };
   });
 function Jt(t) {
-  if (t === "") return !0;
-  if (t.length % 4 !== 0) return !1;
+  if (t === "") {
+    return !0;
+  }
+  if (t.length % 4 !== 0) {
+    return !1;
+  }
   try {
     return atob(t), !0;
   } catch {
@@ -1526,7 +1608,9 @@ var En = l("$ZodBase64", (t, e) => {
     };
 });
 function Lr(t) {
-  if (!re.test(t)) return !1;
+  if (!re.test(t)) {
+    return !1;
+  }
   let e = t.replace(/[-_]/g, (o) => o === "-" ? "+" : "/"),
     r = e.padEnd(Math.ceil(e.length / 4) * 4, "=");
   return Jt(r);
@@ -1554,9 +1638,13 @@ var In = l("$ZodBase64URL", (t, e) => {
 function Mr(t, e = null) {
   try {
     let r = t.split(".");
-    if (r.length !== 3) return !1;
+    if (r.length !== 3) {
+      return !1;
+    }
     let [o] = r;
-    if (!o) return !1;
+    if (!o) {
+      return !1;
+    }
     let n = JSON.parse(atob(o));
     return !("typ" in n && n?.typ !== "JWT" || !n.alg ||
       e && (!("alg" in n) || n.alg !== e));
@@ -1717,10 +1805,7 @@ var On = l("$ZodJWT", (t, e) => {
   }),
   Fn = l("$ZodNever", (t, e) => {
     z.init(t, e),
-      t._zod.parse = (
-        r,
-        o,
-      ) => (r.issues.push({
+      t._zod.parse = (r, o) => (r.issues.push({
         expected: "never",
         code: "invalid_type",
         input: r.value,
@@ -1815,7 +1900,9 @@ var Vn = l("$ZodObject", (t, e) => {
       let c = a[d]._zod;
       if (c.values) {
         x[d] ?? (x[d] = new Set());
-        for (let _ of c.values) x[d].add(_);
+        for (let _ of c.values) {
+          x[d].add(_);
+        }
       }
     }
     return x;
@@ -1829,7 +1916,9 @@ var Vn = l("$ZodObject", (t, e) => {
         };
       x.write("const input = payload.value;");
       let _ = Object.create(null), g = 0;
-      for (let v of d.keys) _[v] = `key_${g++}`;
+      for (let v of d.keys) {
+        _[v] = `key_${g++}`;
+      }
       x.write("const newResult = {}");
       for (let v of d.keys) {
         let b = _[v], w = ee(v);
@@ -1886,10 +1975,14 @@ var Vn = l("$ZodObject", (t, e) => {
           : ie(le, a, w, d);
       }
     }
-    if (!m) return c.length ? Promise.all(c).then(() => a) : a;
+    if (!m) {
+      return c.length ? Promise.all(c).then(() => a) : a;
+    }
     let _ = [], g = h.keySet, y = m._zod, v = y.def.type;
     for (let b of Object.keys(d)) {
-      if (g.has(b)) continue;
+      if (g.has(b)) {
+        continue;
+      }
       if (v === "never") {
         _.push(b);
         continue;
@@ -1905,7 +1998,11 @@ var Vn = l("$ZodObject", (t, e) => {
   };
 });
 function Ct(t, e, r, o) {
-  for (let i of t) if (i.issues.length === 0) return e.value = i.value, e;
+  for (let i of t) {
+    if (i.issues.length === 0) {
+      return e.value = i.value, e;
+    }
+  }
   let n = t.filter((i) => !R(i));
   return n.length === 1 ? (e.value = n[0].value, n[0]) : (e.issues.push({
     code: "invalid_union",
@@ -1948,9 +2045,12 @@ var Ur = l("$ZodUnion", (t, e) => {
         let n = !1, i = [];
         for (let s of e.options) {
           let u = s._zod.run({ value: r.value, issues: [] }, o);
-          if (u instanceof Promise) i.push(u), n = !0;
-          else {
-            if (u.issues.length === 0) return u;
+          if (u instanceof Promise) {
+            i.push(u), n = !0;
+          } else {
+            if (u.issues.length === 0) {
+              return u;
+            }
             i.push(u);
           }
         }
@@ -1973,7 +2073,9 @@ var Ur = l("$ZodUnion", (t, e) => {
         }
         for (let [u, p] of Object.entries(s)) {
           n[u] || (n[u] = new Set());
-          for (let m of p) n[u].add(m);
+          for (let m of p) {
+            n[u].add(m);
+          }
         }
       }
       return n;
@@ -2034,7 +2136,9 @@ var Ur = l("$ZodUnion", (t, e) => {
       };
   });
 function et(t, e) {
-  if (t === e) return { valid: !0, data: t };
+  if (t === e) {
+    return { valid: !0, data: t };
+  }
   if (t instanceof Date && e instanceof Date && +t == +e) {
     return { valid: !0, data: t };
   }
@@ -2052,7 +2156,9 @@ function et(t, e) {
     return { valid: !0, data: n };
   }
   if (Array.isArray(t) && Array.isArray(e)) {
-    if (t.length !== e.length) return { valid: !1, mergeErrorPath: [] };
+    if (t.length !== e.length) {
+      return { valid: !1, mergeErrorPath: [] };
+    }
     let r = [];
     for (let o = 0; o < t.length; o++) {
       let n = t[o], i = e[o], s = et(n, i);
@@ -2070,7 +2176,9 @@ function Rt(t, e, r) {
     e.issues.length && t.issues.push(...e.issues),
       r.issues.length && t.issues.push(...r.issues),
       R(t)
-  ) return t;
+  ) {
+    return t;
+  }
   let o = et(e.value, r.value);
   if (!o.valid) {
     throw new Error(
@@ -2115,7 +2223,9 @@ var ue = l("$ZodTuple", (t, e) => {
     }
     let p = -1;
     for (let m of r) {
-      if (p++, p >= s.length && p >= o) continue;
+      if (p++, p >= s.length && p >= o) {
+        continue;
+      }
       let h = m._zod.run({ value: s[p], issues: [] }, i);
       h instanceof Promise ? u.push(h.then((a) => se(a, n, p))) : se(h, n, p);
     }
@@ -2166,7 +2276,9 @@ var Wn = l("$ZodRecord", (t, e) => {
             }
           }
           let u;
-          for (let p in n) s.has(p) || (u = u ?? [], u.push(p));
+          for (let p in n) {
+            s.has(p) || (u = u ?? [], u.push(p));
+          }
           u && u.length > 0 &&
             r.issues.push({
               code: "unrecognized_keys",
@@ -2177,7 +2289,9 @@ var Wn = l("$ZodRecord", (t, e) => {
         } else {
           r.value = {};
           for (let s of Reflect.ownKeys(n)) {
-            if (s === "__proto__") continue;
+            if (s === "__proto__") {
+              continue;
+            }
             let u = e.keyType._zod.run({ value: s, issues: [] }, o);
             if (u instanceof Promise) {
               throw new Error(
@@ -2348,11 +2462,13 @@ var qn = l("$ZodEnum", (t, e) => {
       t._zod.parse = (r, o) => {
         let n = e.transform(r.value, r);
         if (o.async) {
-          return (n instanceof Promise ? n : Promise.resolve(n)).then(
-            (s) => (r.value = s, r),
-          );
+          return (n instanceof Promise ? n : Promise.resolve(n)).then((
+            s,
+          ) => (r.value = s, r));
         }
-        if (n instanceof Promise) throw new O();
+        if (n instanceof Promise) {
+          throw new O();
+        }
         return r.value = n, r;
       };
   }),
@@ -2360,14 +2476,10 @@ var qn = l("$ZodEnum", (t, e) => {
     z.init(t, e),
       t._zod.optin = "optional",
       t._zod.optout = "optional",
-      $(
-        t._zod,
-        "values",
-        () =>
-          e.innerType._zod.values
-            ? new Set([...e.innerType._zod.values, void 0])
-            : void 0,
-      ),
+      $(t._zod, "values", () =>
+        e.innerType._zod.values
+          ? new Set([...e.innerType._zod.values, void 0])
+          : void 0),
       $(t._zod, "pattern", () => {
         let r = e.innerType._zod.pattern;
         return r ? new RegExp(`^(${J(r.source)})?$`) : void 0;
@@ -2387,14 +2499,10 @@ var qn = l("$ZodEnum", (t, e) => {
         let r = e.innerType._zod.pattern;
         return r ? new RegExp(`^(${J(r.source)}|null)$`) : void 0;
       }),
-      $(
-        t._zod,
-        "values",
-        () =>
-          e.innerType._zod.values
-            ? new Set([...e.innerType._zod.values, null])
-            : void 0,
-      ),
+      $(t._zod, "values", () =>
+        e.innerType._zod.values
+          ? new Set([...e.innerType._zod.values, null])
+          : void 0),
       t._zod.parse = (r, o) =>
         r.value === null ? r : e.innerType._zod.run(r, o);
   }),
@@ -2403,7 +2511,9 @@ var qn = l("$ZodEnum", (t, e) => {
       t._zod.optin = "optional",
       $(t._zod, "values", () => e.innerType._zod.values),
       t._zod.parse = (r, o) => {
-        if (r.value === void 0) return r.value = e.defaultValue, r;
+        if (r.value === void 0) {
+          return r.value = e.defaultValue, r;
+        }
         let n = e.innerType._zod.run(r, o);
         return n instanceof Promise ? n.then((i) => Ft(i, e)) : Ft(n, e);
       };
@@ -2459,16 +2569,15 @@ var no = l("$ZodSuccess", (t, e) => {
       t._zod.parse = (r, o) => {
         let n = e.innerType._zod.run(r, o);
         return n instanceof Promise
-          ? n.then(
-            (i) => (r.value = i.value,
-              i.issues.length &&
-              (r.value = e.catchValue({
-                ...r,
-                error: { issues: i.issues.map((s) => E(s, o, I())) },
-                input: r.value,
-              }),
-                r.issues = []),
-              r),
+          ? n.then((i) => (r.value = i.value,
+            i.issues.length &&
+            (r.value = e.catchValue({
+              ...r,
+              error: { issues: i.issues.map((s) => E(s, o, I())) },
+              input: r.value,
+            }),
+              r.issues = []),
+            r)
           )
           : (r.value = n.value,
             n.issues.length &&
@@ -2546,8 +2655,11 @@ var uo = l("$ZodTemplateLiteral", (t, e) => {
         let i = n.startsWith("^") ? 1 : 0,
           s = n.endsWith("$") ? n.length - 1 : n.length;
         r.push(n.slice(i, s));
-      } else if (o === null || _e.has(typeof o)) r.push(T(`${o}`));
-      else throw new Error(`Invalid template literal part: ${o}`);
+      } else if (o === null || _e.has(typeof o)) {
+        r.push(T(`${o}`));
+      } else {
+        throw new Error(`Invalid template literal part: ${o}`);
+      }
     }
     t._zod.pattern = new RegExp(`^${r.join("")}$`),
       t._zod.parse = (o, n) =>
@@ -2592,7 +2704,9 @@ var uo = l("$ZodTemplateLiteral", (t, e) => {
       t._zod.parse = (r, o) => r,
       t._zod.check = (r) => {
         let o = r.value, n = e.fn(o);
-        if (n instanceof Promise) return n.then((i) => Bt(i, r, o, t));
+        if (n instanceof Promise) {
+          return n.then((i) => Bt(i, r, o, t));
+        }
         Bt(n, r, o, t);
       };
   });
@@ -3358,12 +3472,14 @@ var ae = class {
     let u = { schema: {}, count: 1, cycle: void 0, path: r.path };
     this.seen.set(e, u);
     let p = e._zod.toJSONSchema?.();
-    if (p) u.schema = p;
-    else {
+    if (p) {
+      u.schema = p;
+    } else {
       let a = { ...r, schemaPath: [...r.schemaPath, e], path: r.path },
         x = e._zod.parent;
-      if (x) u.ref = x, this.process(x, a), this.seen.get(x).isParent = !0;
-      else {
+      if (x) {
+        u.ref = x, this.process(x, a), this.seen.get(x).isParent = !0;
+      } else {
         let d = u.schema;
         switch (n.type) {
           case "string": {
@@ -3602,20 +3718,22 @@ var ae = class {
                   );
                 }
                 _.push(Number(g));
-              } else _.push(g);
+              } else {
+                _.push(g);
+              }
             }
             if (_.length !== 0) {
               if (_.length === 1) {
                 let g = _[0];
                 c.type = g === null ? "null" : typeof g, c.const = g;
-              } else {_.every((g) => typeof g == "number") &&
-                  (c.type = "number"),
+              } else {
+                _.every((g) => typeof g == "number") &&
+                (c.type = "number"),
                   _.every((g) => typeof g == "string") && (c.type = "string"),
-                  _.every((g) =>
-                    typeof g == "boolean"
-                  ) && (c.type = "string"),
+                  _.every((g) => typeof g == "boolean") && (c.type = "string"),
                   _.every((g) => g === null) && (c.type = "null"),
-                  c.enum = _;}
+                  c.enum = _;
+              }
             }
             break;
           }
@@ -3692,7 +3810,9 @@ var ae = class {
           }
           case "template_literal": {
             let c = d, _ = e._zod.pattern;
-            if (!_) throw new Error("Pattern not found in template literal");
+            if (!_) {
+              throw new Error("Pattern not found in template literal");
+            }
             c.type = "string", c.pattern = _.source;
             break;
           }
@@ -3748,27 +3868,37 @@ var ae = class {
         external: r?.external ?? void 0,
       },
       n = this.seen.get(e);
-    if (!n) throw new Error("Unprocessed schema. This is a bug in Zod.");
+    if (!n) {
+      throw new Error("Unprocessed schema. This is a bug in Zod.");
+    }
     let i = (h) => {
         let a = this.target === "draft-2020-12" ? "$defs" : "definitions";
         if (o.external) {
           let _ = o.external.registry.get(h[0])?.id,
             g = o.external.uri ?? ((v) => v);
-          if (_) return { ref: g(_) };
+          if (_) {
+            return { ref: g(_) };
+          }
           let y = h[1].defId ?? h[1].schema.id ?? `schema${this.counter++}`;
           return h[1].defId = y,
             { defId: y, ref: `${g("__shared")}#/${a}/${y}` };
         }
-        if (h[1] === n) return { ref: "#" };
+        if (h[1] === n) {
+          return { ref: "#" };
+        }
         let d = `#/${a}/`, c = h[1].schema.id ?? `__schema${this.counter++}`;
         return { defId: c, ref: d + c };
       },
       s = (h) => {
-        if (h[1].schema.$ref) return;
+        if (h[1].schema.$ref) {
+          return;
+        }
         let a = h[1], { ref: x, defId: d } = i(h);
         a.def = { ...a.schema }, d && (a.defId = d);
         let c = a.schema;
-        for (let _ in c) delete c[_];
+        for (let _ in c) {
+          delete c[_];
+        }
         c.$ref = x;
       };
     if (o.cycles === "throw") {
@@ -3809,7 +3939,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     let u = (h, a) => {
       let x = this.seen.get(h), d = x.def ?? x.schema, c = { ...d };
-      if (x.ref === null) return;
+      if (x.ref === null) {
+        return;
+      }
       let _ = x.ref;
       if (x.ref = null, _) {
         u(_, a);
@@ -3833,7 +3965,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         : console.warn(`Invalid target: ${this.target}`), o.external?.uri
     ) {
       let h = o.external.registry.get(e)?.id;
-      if (!h) throw new Error("Schema is missing an `id` property");
+      if (!h) {
+        throw new Error("Schema is missing an `id` property");
+      }
       p.$id = o.external.uri(h);
     }
     Object.assign(p, n.def);
@@ -3875,7 +4009,9 @@ function _s(t, e) {
 }
 function P(t, e) {
   let r = e ?? { seen: new Set() };
-  if (r.seen.has(t)) return !1;
+  if (r.seen.has(t)) {
+    return !1;
+  }
   r.seen.add(t);
   let n = t._zod.def;
   switch (n.type) {
@@ -3900,17 +4036,29 @@ function P(t, e) {
     case "array":
       return P(n.element, r);
     case "object": {
-      for (let i in n.shape) if (P(n.shape[i], r)) return !0;
+      for (let i in n.shape) {
+        if (P(n.shape[i], r)) {
+          return !0;
+        }
+      }
       return !1;
     }
     case "union": {
-      for (let i of n.options) if (P(i, r)) return !0;
+      for (let i of n.options) {
+        if (P(i, r)) {
+          return !0;
+        }
+      }
       return !1;
     }
     case "intersection":
       return P(n.left, r) || P(n.right, r);
     case "tuple": {
-      for (let i of n.items) if (P(i, r)) return !0;
+      for (let i of n.items) {
+        if (P(i, r)) {
+          return !0;
+        }
+      }
       return !!(n.rest && P(n.rest, r));
     }
     case "record":

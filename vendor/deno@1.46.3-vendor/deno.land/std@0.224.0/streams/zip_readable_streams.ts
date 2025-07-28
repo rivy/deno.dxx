@@ -1,6 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /**
  * Merge multiple streams into a single one, taking order into account, and
  * each stream will wait for a chunk to enqueue before the next stream can

@@ -7,7 +7,6 @@ export interface LevelInfo {
   /** the log level name */
   levelName: string;
 }
-
 /**
  * Mapping of log names to log numbers
  * Aliases should come after names
@@ -15,7 +14,6 @@ export interface LevelInfo {
 export interface LevelsMap {
   [name: string]: number;
 }
-
 /** Default levels are according to the [RFC Standard](http://www.faqs.org/rfcs/rfc3164.html) */
 export const rfcLogLevels: LevelsMap = {
   emergency: 0,
@@ -32,7 +30,6 @@ export const rfcLogLevels: LevelsMap = {
   warn: 4,
   note: 5,
 };
-
 /**
  * Determine the level number from a level name
  */
@@ -46,7 +43,6 @@ export function getLevelNumber(
     return levels[name];
   }
 }
-
 /**
  * Determine the level name from a level number
  */
@@ -64,7 +60,6 @@ export function getLevelName(
   }
   return null;
 }
-
 /**
  * Receive either the level name or number and return the combination.
  * @param level Either a log name or a log number that is contained within the levels mapping
@@ -92,16 +87,22 @@ export default function getLevelInfo(
   if (typeof level === "string") {
     // get number from input name
     const levelNumber = getLevelNumber(level, levels);
-    if (levelNumber == null) return null;
+    if (levelNumber == null) {
+      return null;
+    }
     // input name could have been shortened, so get the expanded name
     const levelName = getLevelName(levelNumber, levels);
-    if (levelName == null) return null;
+    if (levelName == null) {
+      return null;
+    }
     // return
     return { levelNumber, levelName };
   } else if (typeof level === "number") {
     // get the expanded name from the input number
     const levelName = getLevelName(level, levels);
-    if (levelName == null) return null;
+    if (levelName == null) {
+      return null;
+    }
     // return
     return { levelNumber: level, levelName };
   } else {

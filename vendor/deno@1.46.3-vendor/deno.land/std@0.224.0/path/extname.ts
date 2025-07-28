@@ -1,6 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { isWindows } from "./_os.ts";
 import { extname as posixExtname } from "./posix/extname.ts";
 import { extname as windowsExtname } from "./windows/extname.ts";

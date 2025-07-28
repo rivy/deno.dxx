@@ -2,9 +2,7 @@
 // Copyright the Browserify authors. MIT License.
 // Ported from https://github.com/browserify/path-browserify/
 // This module is browser compatible.
-
 import { CHAR_DOT, CHAR_FORWARD_SLASH } from "./constants.ts";
-
 // Resolves . and .. elements in a path with directory names
 export function normalizeString(
   path: string,
@@ -18,10 +16,13 @@ export function normalizeString(
   let dots = 0;
   let code: number | undefined;
   for (let i = 0; i <= path.length; ++i) {
-    if (i < path.length) code = path.charCodeAt(i);
-    else if (isPathSeparator(code!)) break;
-    else code = CHAR_FORWARD_SLASH;
-
+    if (i < path.length) {
+      code = path.charCodeAt(i);
+    } else if (isPathSeparator(code!)) {
+      break;
+    } else {
+      code = CHAR_FORWARD_SLASH;
+    }
     if (isPathSeparator(code!)) {
       if (lastSlash === i - 1 || dots === 1) {
         // NOOP
@@ -53,13 +54,19 @@ export function normalizeString(
           }
         }
         if (allowAboveRoot) {
-          if (res.length > 0) res += `${separator}..`;
-          else res = "..";
+          if (res.length > 0) {
+            res += `${separator}..`;
+          } else {
+            res = "..";
+          }
           lastSegmentLength = 2;
         }
       } else {
-        if (res.length > 0) res += separator + path.slice(lastSlash + 1, i);
-        else res = path.slice(lastSlash + 1, i);
+        if (res.length > 0) {
+          res += separator + path.slice(lastSlash + 1, i);
+        } else {
+          res = path.slice(lastSlash + 1, i);
+        }
         lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;

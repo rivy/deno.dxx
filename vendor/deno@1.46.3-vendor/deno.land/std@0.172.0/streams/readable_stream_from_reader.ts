@@ -1,14 +1,11 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { DEFAULT_CHUNK_SIZE } from "./_common.ts";
 import type { Closer, Reader } from "../types.d.ts";
-
 function isCloser(value: unknown): value is Closer {
   return typeof value === "object" && value != null && "close" in value &&
     // deno-lint-ignore no-explicit-any
     typeof (value as Record<string, any>)["close"] === "function";
 }
-
 export interface ReadableStreamFromReaderOptions {
   /** If the `reader` is also a `Closer`, automatically close the `reader`
    * when `EOF` is encountered, or a read error occurs.
@@ -16,15 +13,15 @@ export interface ReadableStreamFromReaderOptions {
    * @default {true}
    */
   autoClose?: boolean;
-
   /** The size of chunks to allocate to read, the default is ~16KiB, which is
    * the maximum size that Deno operations can currently support. */
   chunkSize?: number;
-
   /** The queuing strategy to create the `ReadableStream` with. */
-  strategy?: { highWaterMark?: number | undefined; size?: undefined };
+  strategy?: {
+    highWaterMark?: number | undefined;
+    size?: undefined;
+  };
 }
-
 /**
  * Create a `ReadableStream<Uint8Array>` from a `Reader`.
  *
@@ -45,12 +42,8 @@ export function readableStreamFromReader(
   reader: Reader | (Reader & Closer),
   options: ReadableStreamFromReaderOptions = {},
 ): ReadableStream<Uint8Array> {
-  const {
-    autoClose = true,
-    chunkSize = DEFAULT_CHUNK_SIZE,
-    strategy,
-  } = options;
-
+  const { autoClose = true, chunkSize = DEFAULT_CHUNK_SIZE, strategy } =
+    options;
   return new ReadableStream({
     async pull(controller) {
       const chunk = new Uint8Array(chunkSize);

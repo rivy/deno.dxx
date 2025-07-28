@@ -1,6 +1,5 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /**
  * An abstraction of multiple Uint8Arrays
  */
@@ -13,7 +12,6 @@ export class BytesList {
     offset: number; // offset of head in all bytes
   }[] = [];
   constructor() {}
-
   /**
    * Total size of bytes
    */
@@ -36,7 +34,6 @@ export class BytesList {
     });
     this.#len += end - start;
   }
-
   /**
    * Drop head `n` bytes.
    */
@@ -63,7 +60,6 @@ export class BytesList {
     }
     this.#len = offset;
   }
-
   /**
    * Find chunk index in which `pos` locates by binary-search
    * returns -1 if out of range
@@ -87,7 +83,6 @@ export class BytesList {
       }
     }
   }
-
   /**
    * Get indexed byte from chunks
    */
@@ -99,13 +94,14 @@ export class BytesList {
     const { value, offset, start } = this.#chunks[idx];
     return value[start + i - offset];
   }
-
   /**
    * Iterator of bytes from given position
    */
   *iterator(start = 0): IterableIterator<number> {
     const startIdx = this.getChunkIndex(start);
-    if (startIdx < 0) return;
+    if (startIdx < 0) {
+      return;
+    }
     const first = this.#chunks[startIdx];
     let firstOffset = start - first.offset;
     for (let i = startIdx; i < this.#chunks.length; i++) {
@@ -116,7 +112,6 @@ export class BytesList {
       firstOffset = 0;
     }
   }
-
   /**
    * Returns subset of bytes copied
    */
@@ -153,7 +148,6 @@ export class BytesList {
     return result;
   }
 }
-
 function checkRange(start: number, end: number, len: number) {
   if (start < 0 || len < start || end < 0 || len < end || end < start) {
     throw new Error("invalid range");

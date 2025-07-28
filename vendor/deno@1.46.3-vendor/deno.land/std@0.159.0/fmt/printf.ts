@@ -1,5 +1,4 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
-
 /**
  * {@linkcode sprintf} and {@linkcode printf} for printing formatted strings to
  * stdout.
@@ -9,7 +8,6 @@
  *
  * @module
  */
-
 enum State {
   PASSTHROUGH,
   PERCENT,
@@ -17,12 +15,10 @@ enum State {
   PRECISION,
   WIDTH,
 }
-
 enum WorP {
   WIDTH,
   PRECISION,
 }
-
 class Flags {
   plus?: boolean;
   dash?: boolean;
@@ -33,12 +29,10 @@ class Flags {
   width = -1;
   precision = -1;
 }
-
 const min = Math.min;
 const UNICODE_REPLACEMENT_CHARACTER = "\ufffd";
 const DEFAULT_PRECISION = 6;
 const FLOAT_REGEXP = /(-?)(\d)\.?(\d*)e([+-])(\d+)/;
-
 enum F {
   sign = 1,
   mantissa,
@@ -46,30 +40,24 @@ enum F {
   esign,
   exponent,
 }
-
 class Printf {
   format: string;
   args: unknown[];
   i: number;
-
   state: State = State.PASSTHROUGH;
   verb = "";
   buf = "";
   argNum = 0;
   flags: Flags = new Flags();
-
   haveSeen: boolean[];
-
   // barf, store precision and width errors for later processing ...
   tmpError?: string;
-
   constructor(format: string, ...args: unknown[]) {
     this.format = format;
     this.args = args;
     this.haveSeen = Array.from({ length: args.length });
     this.i = 0;
   }
-
   doPrintf(): string {
     for (; this.i < this.format.length; ++this.i) {
       const c = this.format[this.i];
@@ -108,7 +96,6 @@ class Printf {
     }
     return this.buf;
   }
-
   // %[<positional>]<flag>...<verb>
   handleFormat() {
     this.flags = new Flags();
@@ -176,7 +163,6 @@ class Printf {
       } // switch state
     }
   }
-
   /**
    * Handle width or precision
    * @param wOrP
@@ -202,7 +188,6 @@ class Printf {
     }
     this.argNum++;
   }
-
   /**
    * Handle width and precision
    * @param flags
@@ -260,7 +245,6 @@ class Printf {
       } // switch state
     }
   }
-
   /** Handle positional */
   handlePositional() {
     if (this.format[this.i] !== "[") {
@@ -293,7 +277,6 @@ class Printf {
     this.argNum = err ? this.argNum : positional - 1;
     return;
   }
-
   /** Handle less than */
   handleLessThan(): string {
     // deno-lint-ignore no-explicit-any
@@ -303,12 +286,13 @@ class Printf {
     }
     let str = "[ ";
     for (let i = 0; i !== arg.length; ++i) {
-      if (i !== 0) str += ", ";
+      if (i !== 0) {
+        str += ", ";
+      }
       str += this._handleVerb(arg[i]);
     }
     return str + " ]";
   }
-
   /** Handle verb */
   handleVerb() {
     const verb = this.format[this.i];
@@ -333,7 +317,6 @@ class Printf {
     this.argNum++; // if there is a further positional, it will reset.
     this.state = State.PASSTHROUGH;
   }
-
   // deno-lint-ignore no-explicit-any
   _handleVerb(arg: any): string {
     switch (this.verb) {
@@ -374,21 +357,17 @@ class Printf {
         return `%!(BAD VERB '${this.verb}')`;
     }
   }
-
   /**
    * Pad a string
    * @param s text to pad
    */
   pad(s: string): string {
     const padding = this.flags.zero ? "0" : " ";
-
     if (this.flags.dash) {
       return s.padEnd(this.flags.width, padding);
     }
-
     return s.padStart(this.flags.width, padding);
   }
-
   /**
    * Pad a number
    * @param nStr
@@ -409,23 +388,19 @@ class Printf {
       // in from of value if padding with spaces.
       nStr = sign + nStr;
     }
-
     const pad = zero ? "0" : " ";
     const len = zero ? this.flags.width - sign.length : this.flags.width;
-
     if (this.flags.dash) {
       nStr = nStr.padEnd(len, pad);
     } else {
       nStr = nStr.padStart(len, pad);
     }
-
     if (zero) {
       // see above
       nStr = sign + nStr;
     }
     return nStr;
   }
-
   /**
    * Format a number
    * @param n
@@ -466,7 +441,6 @@ class Printf {
     }
     return this.padNum(num, n < 0);
   }
-
   /**
    * Format number with code points
    * @param n
@@ -480,7 +454,6 @@ class Printf {
     }
     return this.pad(s);
   }
-
   /**
    * Format special float
    * @param n
@@ -488,7 +461,6 @@ class Printf {
   fmtFloatSpecial(n: number): string {
     // formatting of NaN and Inf are pants-on-head
     // stupid and more or less arbitrary.
-
     if (isNaN(n)) {
       this.flags.zero = false;
       return this.padNum("NaN", false);
@@ -504,17 +476,16 @@ class Printf {
     }
     return "";
   }
-
   /**
    * Round fraction to precision
    * @param fractional
    * @param precision
    * @returns tuple of fractional and round
    */
-  roundFractionToPrecision(
-    fractional: string,
-    precision: number,
-  ): [string, boolean] {
+  roundFractionToPrecision(fractional: string, precision: number): [
+    string,
+    boolean,
+  ] {
     let round = false;
     if (fractional.length > precision) {
       fractional = "1" + fractional; // prepend a 1 in case of leading 0
@@ -530,7 +501,6 @@ class Printf {
     }
     return [fractional, round];
   }
-
   /**
    * Format float E
    * @param n
@@ -541,7 +511,6 @@ class Printf {
     if (special !== "") {
       return special;
     }
-
     const m = n.toExponential().match(FLOAT_REGEXP);
     if (!m) {
       throw Error("can't happen, bug");
@@ -555,7 +524,6 @@ class Printf {
       fractional,
       precision,
     );
-
     let e = m[F.exponent];
     let esign = m[F.esign];
     // scientific notation output with exponent padded to minlen 2
@@ -573,7 +541,6 @@ class Printf {
     const val = `${mantissa}.${fractional}${upcase ? "E" : "e"}${esign}${e}`;
     return this.padNum(val, n < 0);
   }
-
   /**
    * Format float F
    * @param n
@@ -583,14 +550,12 @@ class Printf {
     if (special !== "") {
       return special;
     }
-
     // stupid helper that turns a number into a (potentially)
     // VERY long string.
     function expandNumber(n: number): string {
       if (Number.isSafeInteger(n)) {
         return n.toString() + ".";
       }
-
       const t = n.toExponential().split("e");
       let m = t[0].replace(".", "");
       const e = parseInt(t[1]);
@@ -613,7 +578,6 @@ class Printf {
     const arr = val.split(".");
     let dig = arr[0];
     let fractional = arr[1];
-
     const precision = this.flags.precision !== -1
       ? this.flags.precision
       : DEFAULT_PRECISION;
@@ -624,7 +588,6 @@ class Printf {
     }
     return this.padNum(`${dig}.${fractional}`, n < 0);
   }
-
   /**
    * Format float G
    * @param n
@@ -635,7 +598,6 @@ class Printf {
     if (special !== "") {
       return special;
     }
-
     // The double argument representing a floating-point number shall be
     // converted in the style f or e (or in the style F or E in
     // the case of a G conversion specifier), depending on the
@@ -643,32 +605,25 @@ class Printf {
     // precision if non-zero, 6 if the precision is omitted, or 1
     // if the precision is zero. Then, if a conversion with style E would
     // have an exponent of X:
-
     //     - If P > X>=-4, the conversion shall be with style f (or F )
     //     and precision P -( X+1).
-
     //     - Otherwise, the conversion shall be with style e (or E )
     //     and precision P -1.
-
     // Finally, unless the '#' flag is used, any trailing zeros shall be
     // removed from the fractional portion of the result and the
     // decimal-point character shall be removed if there is no
     // fractional portion remaining.
-
     // A double argument representing an infinity or NaN shall be
     // converted in the style of an f or F conversion specifier.
     // https://pubs.opengroup.org/onlinepubs/9699919799/functions/fprintf.html
-
     let P = this.flags.precision !== -1
       ? this.flags.precision
       : DEFAULT_PRECISION;
     P = P === 0 ? 1 : P;
-
     const m = n.toExponential().match(FLOAT_REGEXP);
     if (!m) {
       throw Error("can't happen");
     }
-
     const X = parseInt(m[F.exponent]) * (m[F.esign] === "-" ? -1 : 1);
     let nStr = "";
     if (P > X && X >= -4) {
@@ -686,7 +641,6 @@ class Printf {
     }
     return nStr;
   }
-
   /**
    * Format string
    * @param s
@@ -697,7 +651,6 @@ class Printf {
     }
     return this.pad(s);
   }
-
   /**
    * Format hex
    * @param val
@@ -734,7 +687,6 @@ class Printf {
         );
     }
   }
-
   /**
    * Format value
    * @param val
@@ -750,7 +702,6 @@ class Printf {
       return p === -1 ? val.toString() : val.toString().substr(0, p);
     }
   }
-
   /**
    * Format JSON
    * @param val
@@ -759,7 +710,6 @@ class Printf {
     return JSON.stringify(val);
   }
 }
-
 /**
  * Converts and format a variable number of `args` as is specified by `format`.
  * `sprintf` returns the formatted string.
@@ -771,7 +721,6 @@ export function sprintf(format: string, ...args: unknown[]): string {
   const printf = new Printf(format, ...args);
   return printf.doPrintf();
 }
-
 /**
  * Converts and format a variable number of `args` as is specified by `format`.
  * `printf` writes the formatted string to standard output.

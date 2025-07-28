@@ -1,8 +1,6 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import type { Writer } from "../io/types.ts";
-
 /**
  * Create a {@linkcode Writer} from a {@linkcode WritableStreamDefaultWriter}.
  *

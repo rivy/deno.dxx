@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { DEFAULT_CHUNK_SIZE } from "./_constants.ts";
 import { isCloser } from "./_common.ts";
 import type { Closer, Reader } from "./types.ts";
-
 /** Options for {@linkcode toReadableStream}. */
 export interface ToReadableStreamOptions {
   /** If the `reader` is also a `Closer`, automatically close the `reader`
@@ -13,15 +11,12 @@ export interface ToReadableStreamOptions {
    * @default {true}
    */
   autoClose?: boolean;
-
   /** The size of chunks to allocate to read, the default is ~16KiB, which is
    * the maximum size that Deno operations can currently support. */
   chunkSize?: number;
-
   /** The queuing strategy to create the `ReadableStream` with. */
   strategy?: QueuingStrategy<Uint8Array>;
 }
-
 /**
  * Create a {@linkcode ReadableStream} of {@linkcode Uint8Array}s from a
  * {@linkcode Reader}.
@@ -40,11 +35,8 @@ export interface ToReadableStreamOptions {
  */
 export function toReadableStream(
   reader: Reader | (Reader & Closer),
-  {
-    autoClose = true,
-    chunkSize = DEFAULT_CHUNK_SIZE,
-    strategy,
-  }: ToReadableStreamOptions = {},
+  { autoClose = true, chunkSize = DEFAULT_CHUNK_SIZE, strategy }:
+    ToReadableStreamOptions = {},
 ): ReadableStream<Uint8Array> {
   return new ReadableStream({
     async pull(controller) {

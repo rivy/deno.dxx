@@ -2,7 +2,6 @@
 // Copyright the Browserify authors. MIT License.
 // Ported from https://github.com/browserify/path-browserify/
 // This module is browser compatible.
-
 export function stripTrailingSeparators(
   segment: string,
   isSep: (char: number) => boolean,
@@ -10,9 +9,7 @@ export function stripTrailingSeparators(
   if (segment.length <= 1) {
     return segment;
   }
-
   let end = segment.length;
-
   for (let i = segment.length - 1; i > 0; i--) {
     if (isSep(segment.charCodeAt(i))) {
       end = i;
@@ -20,6 +17,5 @@ export function stripTrailingSeparators(
       break;
     }
   }
-
   return segment.slice(0, end);
 }
