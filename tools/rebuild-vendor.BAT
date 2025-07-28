@@ -6,7 +6,7 @@
 @if NOT EXIST "%REPO%" printf "ERR!: Missing REPO (`%REPO%`)" 1>&2 && exit /b 1
 @if NOT DEFINED VENDOR_FOLDER set "VENDOR_FOLDER=%REPO%/vendor"
 @if NOT DEFINED DENO_VENDOR_EXEC set "DENO_VENDOR_EXEC=deno-v1.46.3"
-@if NOT DEFINED DENO_VENDOR_FOLDER set "DENO_VENDOR_FOLDER=%VENDOR_FOLDER%/%VENDOR_EXEC:deno-v=deno@%-vendor"
+@if NOT DEFINED DENO_VENDOR_FOLDER set "DENO_VENDOR_FOLDER=%VENDOR_FOLDER%/%DENO_VENDOR_EXEC:deno-v=deno@%-vendor"
 @set args=%*
 @if NOT DEFINED args (
     @set "args=$deps.ts bench\*.ts eg\*.ts src\*.ts tests\*.ts tools\*.ts"
