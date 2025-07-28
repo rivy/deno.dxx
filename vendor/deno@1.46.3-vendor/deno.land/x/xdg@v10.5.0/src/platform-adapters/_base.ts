@@ -3,9 +3,9 @@ export namespace Platform {
   export type Adapter = {
     readonly atImportPermissions: {
       /** Is general environment access granted at module import time?
-			- note: used for graceful degradation, but this grant is *required* for unimpaired module functionality
-			- always `true` for non-Deno platforms
-			*/
+                  - note: used for graceful degradation, but this grant is *required* for unimpaired module functionality
+                  - always `true` for non-Deno platforms
+                  */
       readonly env?: boolean;
     };
     readonly env: {

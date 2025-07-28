@@ -4854,7 +4854,8 @@ ${
       let s = cX(t);
       return s
         ? (Pp(i.major) || n.push(Bm(">=", i.version)),
-          Pp(s.major) || n.push(
+          Pp(s.major) ||
+          n.push(
             Pp(s.minor)
               ? Bm("<", s.version.increment("major"))
               : Pp(s.patch)
@@ -4919,14 +4920,12 @@ ${
           case void 0:
             Pp(c) || Pp(_)
               ? (n.push(Bm(">=", s.with({ prerelease: "0" }))),
-                n.push(
-                  Bm(
-                    "<",
-                    s.increment(Pp(c) ? "major" : "minor").with({
-                      prerelease: "0",
-                    }),
-                  ),
-                ))
+                n.push(Bm(
+                  "<",
+                  s.increment(Pp(c) ? "major" : "minor").with({
+                    prerelease: "0",
+                  }),
+                )))
               : n.push(Bm("=", s));
             break;
           default:
@@ -28919,16 +28918,14 @@ ${
     function gD(e) {
       return hOe(e);
     }
-    var Ige = new Map(
-        Object.entries({
-          General_Category: "General_Category",
-          gc: "General_Category",
-          Script: "Script",
-          sc: "Script",
-          Script_Extensions: "Script_Extensions",
-          scx: "Script_Extensions",
-        }),
-      ),
+    var Ige = new Map(Object.entries({
+        General_Category: "General_Category",
+        gc: "General_Category",
+        Script: "Script",
+        sc: "Script",
+        Script_Extensions: "Script_Extensions",
+        scx: "Script_Extensions",
+      })),
       Fge = new Set([
         "ASCII",
         "ASCII_Hex_Digit",
@@ -31424,54 +31421,46 @@ ${
           })),
           Iterator: new Map(Object.entries({ es2015: He })),
           AsyncIterator: new Map(Object.entries({ es2015: He })),
-          ArrayBuffer: new Map(
-            Object.entries({
-              es2024: [
-                "maxByteLength",
-                "resizable",
-                "resize",
-                "detached",
-                "transfer",
-                "transferToFixedLength",
-              ],
-            }),
-          ),
-          Atomics: new Map(
-            Object.entries({
-              es2017: [
-                "add",
-                "and",
-                "compareExchange",
-                "exchange",
-                "isLockFree",
-                "load",
-                "or",
-                "store",
-                "sub",
-                "wait",
-                "notify",
-                "xor",
-              ],
-              es2024: ["waitAsync"],
-            }),
-          ),
-          SharedArrayBuffer: new Map(
-            Object.entries({
-              es2017: ["byteLength", "slice"],
-              es2024: ["growable", "maxByteLength", "grow"],
-            }),
-          ),
+          ArrayBuffer: new Map(Object.entries({
+            es2024: [
+              "maxByteLength",
+              "resizable",
+              "resize",
+              "detached",
+              "transfer",
+              "transferToFixedLength",
+            ],
+          })),
+          Atomics: new Map(Object.entries({
+            es2017: [
+              "add",
+              "and",
+              "compareExchange",
+              "exchange",
+              "isLockFree",
+              "load",
+              "or",
+              "store",
+              "sub",
+              "wait",
+              "notify",
+              "xor",
+            ],
+            es2024: ["waitAsync"],
+          })),
+          SharedArrayBuffer: new Map(Object.entries({
+            es2017: ["byteLength", "slice"],
+            es2024: ["growable", "maxByteLength", "grow"],
+          })),
           AsyncIterable: new Map(Object.entries({ es2018: He })),
           AsyncIterableIterator: new Map(Object.entries({ es2018: He })),
           AsyncGenerator: new Map(Object.entries({ es2018: He })),
           AsyncGeneratorFunction: new Map(Object.entries({ es2018: He })),
-          RegExp: new Map(
-            Object.entries({
-              es2015: ["flags", "sticky", "unicode"],
-              es2018: ["dotAll"],
-              es2024: ["unicodeSets"],
-            }),
-          ),
+          RegExp: new Map(Object.entries({
+            es2015: ["flags", "sticky", "unicode"],
+            es2018: ["dotAll"],
+            es2024: ["unicodeSets"],
+          })),
           Reflect: new Map(Object.entries({
             es2015: [
               "apply",
@@ -31505,73 +31494,63 @@ ${
             es2022: ["hasOwn"],
             es2024: ["groupBy"],
           })),
-          NumberConstructor: new Map(
-            Object.entries({
-              es2015: [
-                "isFinite",
-                "isInteger",
-                "isNaN",
-                "isSafeInteger",
-                "parseFloat",
-                "parseInt",
-              ],
-            }),
-          ),
-          Math: new Map(
-            Object.entries({
-              es2015: [
-                "clz32",
-                "imul",
-                "sign",
-                "log10",
-                "log2",
-                "log1p",
-                "expm1",
-                "cosh",
-                "sinh",
-                "tanh",
-                "acosh",
-                "asinh",
-                "atanh",
-                "hypot",
-                "trunc",
-                "fround",
-                "cbrt",
-              ],
-            }),
-          ),
+          NumberConstructor: new Map(Object.entries({
+            es2015: [
+              "isFinite",
+              "isInteger",
+              "isNaN",
+              "isSafeInteger",
+              "parseFloat",
+              "parseInt",
+            ],
+          })),
+          Math: new Map(Object.entries({
+            es2015: [
+              "clz32",
+              "imul",
+              "sign",
+              "log10",
+              "log2",
+              "log1p",
+              "expm1",
+              "cosh",
+              "sinh",
+              "tanh",
+              "acosh",
+              "asinh",
+              "atanh",
+              "hypot",
+              "trunc",
+              "fround",
+              "cbrt",
+            ],
+          })),
           Map: new Map(
             Object.entries({ es2015: ["entries", "keys", "values"] }),
           ),
           MapConstructor: new Map(Object.entries({ es2024: ["groupBy"] })),
-          Set: new Map(
-            Object.entries({
-              es2015: ["entries", "keys", "values"],
-              esnext: [
-                "union",
-                "intersection",
-                "difference",
-                "symmetricDifference",
-                "isSubsetOf",
-                "isSupersetOf",
-                "isDisjointFrom",
-              ],
-            }),
-          ),
-          PromiseConstructor: new Map(
-            Object.entries({
-              es2015: ["all", "race", "reject", "resolve"],
-              es2020: ["allSettled"],
-              es2021: ["any"],
-              es2024: ["withResolvers"],
-            }),
-          ),
-          Symbol: new Map(
-            Object.entries({
-              es2015: ["for", "keyFor"],
-              es2019: ["description"],
-            }),
-          ),
+          Set: new Map(Object.entries({
+            es2015: ["entries", "keys", "values"],
+            esnext: [
+              "union",
+              "intersection",
+              "difference",
+              "symmetricDifference",
+              "isSubsetOf",
+              "isSupersetOf",
+              "isDisjointFrom",
+            ],
+          })),
+          PromiseConstructor: new Map(Object.entries({
+            es2015: ["all", "race", "reject", "resolve"],
+            es2020: ["allSettled"],
+            es2021: ["any"],
+            es2024: ["withResolvers"],
+          })),
+          Symbol: new Map(Object.entries({
+            es2015: ["for", "keyFor"],
+            es2019: ["description"],
+          })),
           WeakMap: new Map(
             Object.entries({ es2015: ["entries", "keys", "values"] }),
           ),
@@ -31618,173 +31597,145 @@ ${
           RegExpExecArray: new Map(Object.entries({ es2018: ["groups"] })),
           Intl: new Map(Object.entries({ es2018: ["PluralRules"] })),
           NumberFormat: new Map(Object.entries({ es2018: ["formatToParts"] })),
-          SymbolConstructor: new Map(
-            Object.entries({
-              es2020: ["matchAll"],
-              esnext: ["metadata", "dispose", "asyncDispose"],
-            }),
-          ),
-          DataView: new Map(
-            Object.entries({
-              es2020: [
-                "setBigInt64",
-                "setBigUint64",
-                "getBigInt64",
-                "getBigUint64",
-              ],
-            }),
-          ),
+          SymbolConstructor: new Map(Object.entries({
+            es2020: ["matchAll"],
+            esnext: ["metadata", "dispose", "asyncDispose"],
+          })),
+          DataView: new Map(Object.entries({
+            es2020: [
+              "setBigInt64",
+              "setBigUint64",
+              "getBigInt64",
+              "getBigUint64",
+            ],
+          })),
           BigInt: new Map(Object.entries({ es2020: He })),
-          RelativeTimeFormat: new Map(
-            Object.entries({
-              es2020: ["format", "formatToParts", "resolvedOptions"],
-            }),
-          ),
-          Int8Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Uint8Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Uint8ClampedArray: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Int16Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Uint16Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Int32Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Uint32Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Float32Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          Float64Array: new Map(
-            Object.entries({
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          BigInt64Array: new Map(
-            Object.entries({
-              es2020: He,
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
-          BigUint64Array: new Map(
-            Object.entries({
-              es2020: He,
-              es2022: ["at"],
-              es2023: [
-                "findLastIndex",
-                "findLast",
-                "toReversed",
-                "toSorted",
-                "toSpliced",
-                "with",
-              ],
-            }),
-          ),
+          RelativeTimeFormat: new Map(Object.entries({
+            es2020: ["format", "formatToParts", "resolvedOptions"],
+          })),
+          Int8Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Uint8Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Uint8ClampedArray: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Int16Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Uint16Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Int32Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Uint32Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Float32Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          Float64Array: new Map(Object.entries({
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          BigInt64Array: new Map(Object.entries({
+            es2020: He,
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
+          BigUint64Array: new Map(Object.entries({
+            es2020: He,
+            es2022: ["at"],
+            es2023: [
+              "findLastIndex",
+              "findLast",
+              "toReversed",
+              "toSorted",
+              "toSpliced",
+              "with",
+            ],
+          })),
           Error: new Map(Object.entries({ es2022: ["cause"] })),
         }))
       ),
@@ -32336,12 +32287,9 @@ ${
           e.kind === 217 || e.kind === 260 || e.kind === 281
           ? Bi(F0(t, e.pos), Sg(t, e.pos))
           : Sg(t, e.pos);
-      return kn(
-        n,
-        (i) =>
-          i.end <= e.end && t.charCodeAt(i.pos + 1) === 42 &&
-          t.charCodeAt(i.pos + 2) === 42 && t.charCodeAt(i.pos + 3) !== 47,
-      );
+      return kn(n, (i) =>
+        i.end <= e.end && t.charCodeAt(i.pos + 1) === 42 &&
+        t.charCodeAt(i.pos + 2) === 42 && t.charCodeAt(i.pos + 3) !== 47);
     }
     var MOe = /^\/\/\/\s*<reference\s+path\s*=\s*(?:'[^']*'|"[^"]*").*?\/>/,
       ROe = /^\/\/\/\s*<reference\s+types\s*=\s*(?:'[^']*'|"[^"]*").*?\/>/,
@@ -42342,13 +42290,11 @@ ${
       }
       function $(v, N) {
         return _c(
-          _p(
-            Cs([
-              ee(void 0, "value", [
-                hr(void 0, void 0, v, void 0, void 0, void 0),
-              ], $g([Ge(N)])),
-            ]),
-          ),
+          _p(Cs([
+            ee(void 0, "value", [
+              hr(void 0, void 0, v, void 0, void 0, void 0),
+            ], $g([Ge(N)])),
+          ])),
           "value",
         );
       }
@@ -52044,15 +51990,13 @@ ${
         type: "boolean",
         defaultValueDescription: !1,
       },
-      Oye = new Map(
-        Object.entries({
-          preserve: 1,
-          "react-native": 3,
-          react: 2,
-          "react-jsx": 4,
-          "react-jsxdev": 5,
-        }),
-      ),
+      Oye = new Map(Object.entries({
+        preserve: 1,
+        "react-native": 3,
+        react: 2,
+        "react-jsx": 4,
+        "react-jsxdev": 5,
+      })),
       jA = new Map(Q6(Oye.entries(), ([e, t]) => ["" + t, e])),
       Lye = [
         ["es5", "lib.es5.d.ts"],
@@ -52156,43 +52100,37 @@ ${
       Nz = new Map(Lye),
       nk = [{
         name: "watchFile",
-        type: new Map(
-          Object.entries({
-            fixedpollinginterval: 0,
-            prioritypollinginterval: 1,
-            dynamicprioritypolling: 2,
-            fixedchunksizepolling: 3,
-            usefsevents: 4,
-            usefseventsonparentdirectory: 5,
-          }),
-        ),
+        type: new Map(Object.entries({
+          fixedpollinginterval: 0,
+          prioritypollinginterval: 1,
+          dynamicprioritypolling: 2,
+          fixedchunksizepolling: 3,
+          usefsevents: 4,
+          usefseventsonparentdirectory: 5,
+        })),
         category: p.Watch_and_Build_Modes,
         description: p.Specify_how_the_TypeScript_watch_mode_works,
         defaultValueDescription: 4,
       }, {
         name: "watchDirectory",
-        type: new Map(
-          Object.entries({
-            usefsevents: 0,
-            fixedpollinginterval: 1,
-            dynamicprioritypolling: 2,
-            fixedchunksizepolling: 3,
-          }),
-        ),
+        type: new Map(Object.entries({
+          usefsevents: 0,
+          fixedpollinginterval: 1,
+          dynamicprioritypolling: 2,
+          fixedchunksizepolling: 3,
+        })),
         category: p.Watch_and_Build_Modes,
         description:
           p.Specify_how_directories_are_watched_on_systems_that_lack_recursive_file_watching_functionality,
         defaultValueDescription: 0,
       }, {
         name: "fallbackPolling",
-        type: new Map(
-          Object.entries({
-            fixedinterval: 0,
-            priorityinterval: 1,
-            dynamicpriority: 2,
-            fixedchunksize: 3,
-          }),
-        ),
+        type: new Map(Object.entries({
+          fixedinterval: 0,
+          priorityinterval: 1,
+          dynamicpriority: 2,
+          fixedchunksize: 3,
+        })),
         category: p.Watch_and_Build_Modes,
         description:
           p.Specify_what_approach_the_watcher_should_use_if_the_system_runs_out_of_native_file_watchers,
@@ -52413,24 +52351,22 @@ ${
       wz = {
         name: "target",
         shortName: "t",
-        type: new Map(
-          Object.entries({
-            es3: 0,
-            es5: 1,
-            es6: 2,
-            es2015: 2,
-            es2016: 3,
-            es2017: 4,
-            es2018: 5,
-            es2019: 6,
-            es2020: 7,
-            es2021: 8,
-            es2022: 9,
-            es2023: 10,
-            es2024: 11,
-            esnext: 99,
-          }),
-        ),
+        type: new Map(Object.entries({
+          es3: 0,
+          es5: 1,
+          es6: 2,
+          es2015: 2,
+          es2016: 3,
+          es2017: 4,
+          es2018: 5,
+          es2019: 6,
+          es2020: 7,
+          es2021: 8,
+          es2022: 9,
+          es2023: 10,
+          es2024: 11,
+          esnext: 99,
+        })),
         affectsSourceFile: !0,
         affectsModuleResolution: !0,
         affectsEmit: !0,
@@ -52446,23 +52382,21 @@ ${
       _re = {
         name: "module",
         shortName: "m",
-        type: new Map(
-          Object.entries({
-            none: 0,
-            commonjs: 1,
-            amd: 2,
-            system: 4,
-            umd: 3,
-            es6: 5,
-            es2015: 5,
-            es2020: 6,
-            es2022: 7,
-            esnext: 99,
-            node16: 100,
-            nodenext: 199,
-            preserve: 200,
-          }),
-        ),
+        type: new Map(Object.entries({
+          none: 0,
+          commonjs: 1,
+          amd: 2,
+          system: 4,
+          umd: 3,
+          es6: 5,
+          es2015: 5,
+          es2020: 6,
+          es2022: 7,
+          esnext: 99,
+          node16: 100,
+          nodenext: 199,
+          preserve: 200,
+        })),
         affectsSourceFile: !0,
         affectsModuleResolution: !0,
         affectsEmit: !0,
@@ -52902,16 +52836,14 @@ ${
         },
         {
           name: "moduleResolution",
-          type: new Map(
-            Object.entries({
-              node10: 2,
-              node: 2,
-              classic: 1,
-              node16: 3,
-              nodenext: 99,
-              bundler: 100,
-            }),
-          ),
+          type: new Map(Object.entries({
+            node10: 2,
+            node: 2,
+            classic: 1,
+            node16: 3,
+            nodenext: 99,
+            bundler: 100,
+          })),
           deprecatedKeys: new Set(["node"]),
           affectsSourceFile: !0,
           affectsModuleResolution: !0,
@@ -54149,14 +54081,11 @@ ${
             version: void 0,
           },
           watchOptions: m && GO(m),
-          references: mr(
-            e.projectReferences,
-            (C) => ({
-              ...C,
-              path: C.originalPath ? C.originalPath : "",
-              originalPath: void 0,
-            }),
-          ),
+          references: mr(e.projectReferences, (C) => ({
+            ...C,
+            path: C.originalPath ? C.originalPath : "",
+            originalPath: void 0,
+          })),
           files: Ir(_) ? _ : void 0,
           ...(o = e.options.configFile) != null && o.configFileSpecs
             ? {
@@ -54804,11 +54733,7 @@ ${
             (A === HO ? u = m0e(C, t, n, i, s, D, D.initializer, e) : A ||
               (T === "excludes" &&
                 s.push(
-                  Zf(
-                    e,
-                    D.name,
-                    p.Unknown_option_excludes_Did_you_mean_exclude,
-                  ),
+                  Zf(e, D.name, p.Unknown_option_excludes_Did_you_mean_exclude),
                 ),
                 Nn(fre, (L) => L.name === T) && (g = Pr(g, D.name))));
         }
@@ -57260,17 +57185,15 @@ ${
               }
             }
             _e.length > 1 &&
-              t.reportDiagnostic(
-                zo(
-                  L
-                    ? p
-                      .The_project_root_is_ambiguous_but_is_required_to_resolve_import_map_entry_0_in_file_1_Supply_the_rootDir_compiler_option_to_disambiguate
-                    : p
-                      .The_project_root_is_ambiguous_but_is_required_to_resolve_export_map_entry_0_in_file_1_Supply_the_rootDir_compiler_option_to_disambiguate,
-                  P === "" ? "." : P,
-                  A,
-                ),
-              );
+              t.reportDiagnostic(zo(
+                L
+                  ? p
+                    .The_project_root_is_ambiguous_but_is_required_to_resolve_import_map_entry_0_in_file_1_Supply_the_rootDir_compiler_option_to_disambiguate
+                  : p
+                    .The_project_root_is_ambiguous_but_is_required_to_resolve_export_map_entry_0_in_file_1_Supply_the_rootDir_compiler_option_to_disambiguate,
+                P === "" ? "." : P,
+                A,
+              ));
             for (let Z of _e) {
               let W = Q(Z);
               for (let ne of W) {
@@ -60274,7 +60197,8 @@ ${
       return xc(
         g,
         (m) => lne(m, u, t, s, e, c, void 0, _.overrideImportMode),
-      ) || one(i, u, e, s, _.overrideImportMode || lW(t, s, e), o);
+      ) ||
+        one(i, u, e, s, _.overrideImportMode || lW(t, s, e), o);
     }
     function MMe(e, t, n, i, s = {}) {
       let o = r1e(e, t, n, i, s);
@@ -60325,28 +60249,25 @@ ${
       let _ = p5(n.fileName, i),
         u = XA(s, i, t, n),
         g = Ng(n) &&
-          cr(
-            e,
-            (D) =>
-              cr(
-                i.getFileIncludeReasons().get(
-                  io(D.path, i.getCurrentDirectory(), _.getCanonicalFileName),
-                ),
-                (P) => {
-                  if (P.kind !== 3 || P.file !== n.path) {
-                    return;
-                  }
-                  let A = i.getModeForResolutionAtIndex(n, P.index),
-                    L = o.overrideImportMode ??
-                      i.getDefaultResolutionModeForFile(n);
-                  if (A !== L && A !== void 0 && L !== void 0) {
-                    return;
-                  }
-                  let O = dI(n, P.index).text;
-                  return u.relativePreference !== 1 || !uf(O) ? O : void 0;
-                },
+          cr(e, (D) =>
+            cr(
+              i.getFileIncludeReasons().get(
+                io(D.path, i.getCurrentDirectory(), _.getCanonicalFileName),
               ),
-          );
+              (P) => {
+                if (P.kind !== 3 || P.file !== n.path) {
+                  return;
+                }
+                let A = i.getModeForResolutionAtIndex(n, P.index),
+                  L = o.overrideImportMode ??
+                    i.getDefaultResolutionModeForFile(n);
+                if (A !== L && A !== void 0 && L !== void 0) {
+                  return;
+                }
+                let O = dI(n, P.index).text;
+                return u.relativePreference !== 1 || !uf(O) ? O : void 0;
+              },
+            ));
       if (g) {
         return {
           kind: void 0,
@@ -61161,18 +61082,16 @@ ${
         e[e.OrFactsMask = 8256] = "OrFactsMask",
         e[e.AndFactsMask = 134209471] = "AndFactsMask",
         e))(_W || {}),
-      fne = new Map(
-        Object.entries({
-          string: 256,
-          number: 512,
-          bigint: 1024,
-          boolean: 2048,
-          symbol: 4096,
-          undefined: 524288,
-          object: 8192,
-          function: 16384,
-        }),
-      ),
+      fne = new Map(Object.entries({
+        string: 256,
+        number: 512,
+        bigint: 1024,
+        boolean: 2048,
+        symbol: 4096,
+        undefined: 524288,
+        object: 8192,
+        function: 16384,
+      })),
       fW = ((
         e,
       ) => (e[e.Normal = 0] = "Normal",
@@ -61195,15 +61114,13 @@ ${
         e[e.Callback = 3] = "Callback",
         e))(pW || {}),
       $Me = W8(y1e, XMe),
-      dW = new Map(
-        Object.entries({
-          Uppercase: 0,
-          Lowercase: 1,
-          Capitalize: 2,
-          Uncapitalize: 3,
-          NoInfer: 4,
-        }),
-      ),
+      dW = new Map(Object.entries({
+        Uppercase: 0,
+        Lowercase: 1,
+        Capitalize: 2,
+        Uncapitalize: 3,
+        NoInfer: 4,
+      })),
       h1e = class {
       };
     function QMe() {
@@ -62226,24 +62143,16 @@ ${
           if (Y && ve && fc && !F && Y !== ve) {
             let ht = ph(Y.path, ve.path) === -1 ? Y : ve,
               ir = ht === Y ? ve : Y,
-              tr = K6(
-                fc,
-                `${ht.path}|${ir.path}`,
-                () => ({
-                  firstFile: ht,
-                  secondFile: ir,
-                  conflictingSymbols: new Map(),
-                }),
-              ),
-              Yr = K6(
-                tr.conflictingSymbols,
-                dt,
-                () => ({
-                  isBlockScoped: R,
-                  firstFileLocations: [],
-                  secondFileLocations: [],
-                }),
-              );
+              tr = K6(fc, `${ht.path}|${ir.path}`, () => ({
+                firstFile: ht,
+                secondFile: ir,
+                conflictingSymbols: new Map(),
+              })),
+              Yr = K6(tr.conflictingSymbols, dt, () => ({
+                isBlockScoped: R,
+                firstFileLocations: [],
+                secondFileLocations: [],
+              }));
             pe || d(Yr.firstFileLocations, x),
               Xe || d(Yr.secondFileLocations, y);
           } else {
@@ -62905,12 +62814,9 @@ ${
       }
       function Cm(r, a, l) {
         return !!a &&
-          !!lr(
-            r,
-            (f) =>
-              f === a ||
-              (f === l || ys(f) && (!wb(f) || Oc(f) & 3) ? "quit" : !1),
-          );
+          !!lr(r, (f) =>
+            f === a ||
+            (f === l || ys(f) && (!wb(f) || Oc(f) & 3) ? "quit" : !1));
       }
       function ad(r) {
         switch (r.kind) {
@@ -66453,18 +66359,16 @@ ${
             let ka = !!O.outFile,
               { moduleResolverHost: sa } = se.tracker,
               aa = ka ? { ...O, baseUrl: sa.getCommonSourceDirectory() } : O;
-            $i = ba(
-              n1e(ye, jr, aa, zr, sa, {
-                importModuleSpecifierPreference: ka
-                  ? "non-relative"
-                  : "project-relative",
-                importModuleSpecifierEnding: ka
-                  ? "minimal"
-                  : Zn === 99
-                  ? "js"
-                  : void 0,
-              }, { overrideImportMode: kt }),
-            ),
+            $i = ba(n1e(ye, jr, aa, zr, sa, {
+              importModuleSpecifierPreference: ka
+                ? "non-relative"
+                : "project-relative",
+              importModuleSpecifierEnding: ka
+                ? "minimal"
+                : Zn === 99
+                ? "js"
+                : void 0,
+            }, { overrideImportMode: kt })),
               Ts.specifierCache ?? (Ts.specifierCache = new Map()),
               Ts.specifierCache.set(pi, $i);
           }
@@ -66487,14 +66391,12 @@ ${
               (hu(O) === 3 || hu(O) === 99) && ka?.impliedNodeFormat === 99 &&
               ka.impliedNodeFormat !== $i?.impliedNodeFormat &&
               (sa = Rr(pr[0], se, 99),
-                aa = w.createImportAttributes(
-                  w.createNodeArray([
-                    w.createImportAttribute(
-                      w.createStringLiteral("resolution-mode"),
-                      w.createStringLiteral("import"),
-                    ),
-                  ]),
-                )),
+                aa = w.createImportAttributes(w.createNodeArray([
+                  w.createImportAttribute(
+                    w.createStringLiteral("resolution-mode"),
+                    w.createStringLiteral("import"),
+                  ),
+                ]))),
                 sa || (sa = Rr(pr[0], se)),
                 !(se.flags & 67108864) && hu(O) !== 1 &&
                 sa.includes("/node_modules/")
@@ -66505,16 +66407,12 @@ ${
                 sa = Rr(pr[0], se, rt),
                   sa.includes("/node_modules/")
                     ? sa = Je
-                    : aa = w.createImportAttributes(
-                      w.createNodeArray([
-                        w.createImportAttribute(
-                          w.createStringLiteral("resolution-mode"),
-                          w.createStringLiteral(
-                            rt === 99 ? "import" : "require",
-                          ),
-                        ),
-                      ]),
-                    );
+                    : aa = w.createImportAttributes(w.createNodeArray([
+                      w.createImportAttribute(
+                        w.createStringLiteral("resolution-mode"),
+                        w.createStringLiteral(rt === 99 ? "import" : "require"),
+                      ),
+                    ]));
               }
               aa ||
                 (se.encounteredError = !0,
@@ -67601,20 +67499,23 @@ ${
               se = Wa, er(zs(Va), ni, !0), se = mo, ka = Es;
               let i_ = zr;
               zr = As;
-              let Du = mr(i_, (Ho) =>
-                  Po(Ho) && !Ho.isExportEquals && Oe(Ho.expression)
-                    ? w.createExportDeclaration(
-                      void 0,
-                      !1,
-                      w.createNamedExports([
-                        w.createExportSpecifier(
-                          !1,
-                          Ho.expression,
-                          w.createIdentifier("default"),
-                        ),
-                      ]),
-                    )
-                    : Ho),
+              let Du = mr(
+                  i_,
+                  (Ho) =>
+                    Po(Ho) && !Ho.isExportEquals && Oe(Ho.expression)
+                      ? w.createExportDeclaration(
+                        void 0,
+                        !1,
+                        w.createNamedExports([
+                          w.createExportSpecifier(
+                            !1,
+                            Ho.expression,
+                            w.createIdentifier("default"),
+                          ),
+                        ]),
+                      )
+                      : Ho,
+                ),
                 Bl = Ri(Du, (Ho) =>
                     Gn(Ho, 32))
                   ? mr(Du, It)
@@ -68895,13 +68796,10 @@ ${
           return a.isConstructorDeclaredProperty === void 0 &&
             (a.isConstructorDeclaredProperty = !1,
               a.isConstructorDeclaredProperty = !!q4(r) &&
-                Ri(
-                  r.declarations,
-                  (l) =>
-                    un(l) && R$(l) &&
-                    (l.left.kind !== 212 || Nf(l.left.argumentExpression)) &&
-                    !w1(void 0, l, r, l),
-                )),
+                Ri(r.declarations, (l) =>
+                  un(l) && R$(l) &&
+                  (l.left.kind !== 212 || Nf(l.left.argumentExpression)) &&
+                  !w1(void 0, l, r, l))),
             a.isConstructorDeclaredProperty;
         }
         return !1;
@@ -71797,15 +71695,15 @@ ${
                   : (f = d.symbol.escapedName, !0));
             })
           ) {
-            let d = Bo(
-                r,
-                (x) =>
-                  m0(
-                    (GNe(x.symbol.parent) ? Ps : Ti).typeParameters[0],
-                    x.mapper,
-                  ),
-              ),
-              y = fu(d, xp(r, (x) => GNe(x.symbol.parent)));
+            let d = Bo(r, (x) =>
+                m0(
+                  (GNe(x.symbol.parent) ? Ps : Ti).typeParameters[0],
+                  x.mapper,
+                )),
+              y = fu(
+                d,
+                xp(r, (x) => GNe(x.symbol.parent)),
+              );
             return r.arrayFallbackSignatures = Ns(Pc(y, f), a);
           }
           r.arrayFallbackSignatures = l;
@@ -74723,12 +74621,9 @@ ${
       }
       function Xwe(r) {
         return qx(r) && Ir(r.elements) > 0 &&
-          !ot(
-            r.elements,
-            (a) =>
-              hO(a) || yO(a) ||
-              oE(a) && !!(a.questionToken || a.dotDotDotToken),
-          );
+          !ot(r.elements, (a) =>
+            hO(a) || yO(a) ||
+            oE(a) && !!(a.questionToken || a.dotDotDotToken));
       }
       function Kwe(r, a) {
         return ib(r) || a && va(r) && ot(MS(r), ib);
@@ -83236,13 +83131,10 @@ ${
         return !0;
       }
       function Cit(r, a) {
-        return !!lr(
-          r,
-          (l) =>
-            l === a ? "quit" : ys(l) ||
-              l.parent && is(l.parent) && !Kc(l.parent) &&
-                l.parent.initializer === l,
-        );
+        return !!lr(r, (l) =>
+          l === a ? "quit" : ys(l) ||
+            l.parent && is(l.parent) && !Kc(l.parent) &&
+              l.parent.initializer === l);
       }
       function Eit(r, a) {
         return lr(
@@ -84214,13 +84106,10 @@ ${
             a,
             Bi(
               mr(
-                kn(
-                  r.properties,
-                  (y) =>
-                    !!y.symbol && y.kind === 291 &&
-                    sN(a, y.symbol.escapedName) &&
-                    (!y.initializer || wM(y.initializer)),
-                ),
+                kn(r.properties, (y) =>
+                  !!y.symbol && y.kind === 291 &&
+                  sN(a, y.symbol.escapedName) &&
+                  (!y.initializer || wM(y.initializer))),
                 (y) => [
                   y.initializer ? () => XM(y.initializer) : () => qr,
                   y.symbol.escapedName,
@@ -87858,12 +87747,9 @@ ${
       }
       function Aat(r, a) {
         return a.length &&
-          Ri(
-            a,
-            (l) =>
-              l.minArgumentCount === 0 && !bu(l) &&
-              l.parameters.length < F3e(r, l),
-          );
+          Ri(a, (l) =>
+            l.minArgumentCount === 0 && !bu(l) &&
+            l.parameters.length < F3e(r, l));
       }
       function Iat(r, a, l) {
         switch (r.kind) {
@@ -93568,7 +93454,8 @@ ${
         let z = a, Y = !1;
         if (r & 4) {
           if (z.flags & 1048576) {
-            let Xe = a.types, dt = kn(Xe, (ht) => !(ht.flags & 402653316));
+            let Xe = a.types,
+              dt = kn(Xe, (ht) => !(ht.flags & 402653316));
             dt !== Xe && (z = Qn(dt, 2));
           } else {
             z.flags & 402653316 && (z = Kt);
@@ -106703,13 +106590,11 @@ ${
         Ft &&
           (hr = ct(
             t.createNodeArray([
-              t.createClassStaticBlockDeclaration(
-                t.createBlock([
-                  t.createExpressionStatement(
-                    t.createAssignment(Et, t.createThis()),
-                  ),
-                ]),
-              ),
+              t.createClassStaticBlockDeclaration(t.createBlock([
+                t.createExpressionStatement(
+                  t.createAssignment(Et, t.createThis()),
+                ),
+              ])),
               ...hr,
             ]),
             hr,
@@ -110893,11 +110778,8 @@ ${
       function Q(Se, Me, X, we) {
         let Ee = ue(Se),
           Te = Me && Me.length ? H(Me) : void 0,
-          je = Nn(
-            Se.attributes.properties,
-            (rr) =>
-              !!rr.name && Oe(rr.name) && rr.name.escapedText === "key",
-          ),
+          je = Nn(Se.attributes.properties, (rr) =>
+            !!rr.name && Oe(rr.name) && rr.name.escapedText === "key"),
           gt = je
             ? kn(Se.attributes.properties, (rr) =>
               rr !== je)
@@ -110918,19 +110800,17 @@ ${
             X === void 0 && rr.push(t.createVoidZero()),
               rr.push(At ? t.createTrue() : t.createFalse());
             let Ht = js(Et, Te.pos);
-            rr.push(
-              t.createObjectLiteralExpression([
-                t.createPropertyAssignment("fileName", c()),
-                t.createPropertyAssignment(
-                  "lineNumber",
-                  t.createNumericLiteral(Ht.line + 1),
-                ),
-                t.createPropertyAssignment(
-                  "columnNumber",
-                  t.createNumericLiteral(Ht.character + 1),
-                ),
-              ]),
-            ), rr.push(t.createThis());
+            rr.push(t.createObjectLiteralExpression([
+              t.createPropertyAssignment("fileName", c()),
+              t.createPropertyAssignment(
+                "lineNumber",
+                t.createNumericLiteral(Ht.line + 1),
+              ),
+              t.createPropertyAssignment(
+                "columnNumber",
+                t.createNumericLiteral(Ht.character + 1),
+              ),
+            ])), rr.push(t.createThis());
           }
         }
         let Tr = ct(t.createCallExpression(u(At), void 0, rr), Te);
@@ -110992,7 +110872,9 @@ ${
       }
       function ie(Se, Me) {
         let X = Ep(
-          yR(Se, Kx, (we, Ee) => Ep(mr(we, (Te) => Ee ? ne(Te) : be(Te)))),
+          yR(Se, Kx, (we, Ee) =>
+            Ep(mr(we, (Te) =>
+              Ee ? ne(Te) : be(Te)))),
         );
         return Me && X.push(Me), X;
       }
@@ -111655,16 +111537,14 @@ ${
         return P
           ? (P.nonLocalJumps |= 8,
             U(K) && (K = be(K)),
-            t.createReturnStatement(
-              t.createObjectLiteralExpression([
-                t.createPropertyAssignment(
-                  t.createIdentifier("value"),
-                  K.expression
-                    ? E.checkDefined(Qe(K.expression, V, ut))
-                    : t.createVoidZero(),
-                ),
-              ]),
-            ))
+            t.createReturnStatement(t.createObjectLiteralExpression([
+              t.createPropertyAssignment(
+                t.createIdentifier("value"),
+                K.expression
+                  ? E.checkDefined(Qe(K.expression, V, ut))
+                  : t.createVoidZero(),
+              ),
+            ])))
           : U(K)
           ? be(K)
           : br(K, V, e);
@@ -111826,7 +111706,8 @@ ${
         return uc(K) &&
           Ri(
             K.declarationList.declarations,
-            (et) => Oe(et.name) && !et.initializer,
+            (et) =>
+              Oe(et.name) && !et.initializer,
           );
       }
       function je(K) {
@@ -115561,44 +115442,34 @@ ${
             fe,
             ct(
               n.createNodeArray([
-                n.createExpressionStatement(
-                  n.createCallExpression(M, void 0, [
-                    ...Le ? [Le] : [],
-                    n.createArrayLiteralExpression(
-                      q ? He : [
-                        n.createStringLiteral("require"),
-                        n.createStringLiteral("exports"),
-                        ...at,
-                        ...Ot,
+                n.createExpressionStatement(n.createCallExpression(M, void 0, [
+                  ...Le ? [Le] : [],
+                  n.createArrayLiteralExpression(
+                    q ? He : [
+                      n.createStringLiteral("require"),
+                      n.createStringLiteral("exports"),
+                      ...at,
+                      ...Ot,
+                    ],
+                  ),
+                  q
+                    ? q.statements.length
+                      ? q.statements[0].expression
+                      : n.createObjectLiteralExpression()
+                    : n.createFunctionExpression(
+                      void 0,
+                      void 0,
+                      void 0,
+                      void 0,
+                      [
+                        n.createParameterDeclaration(void 0, void 0, "require"),
+                        n.createParameterDeclaration(void 0, void 0, "exports"),
+                        ...de,
                       ],
+                      void 0,
+                      W(fe),
                     ),
-                    q
-                      ? q.statements.length
-                        ? q.statements[0].expression
-                        : n.createObjectLiteralExpression()
-                      : n.createFunctionExpression(
-                        void 0,
-                        void 0,
-                        void 0,
-                        void 0,
-                        [
-                          n.createParameterDeclaration(
-                            void 0,
-                            void 0,
-                            "require",
-                          ),
-                          n.createParameterDeclaration(
-                            void 0,
-                            void 0,
-                            "exports",
-                          ),
-                          ...de,
-                        ],
-                        void 0,
-                        W(fe),
-                      ),
-                  ]),
-                ),
+                ])),
               ]),
               fe.statements,
             ),
@@ -115706,23 +115577,21 @@ ${
             fe,
             ct(
               n.createNodeArray([
-                n.createExpressionStatement(
-                  n.createCallExpression(Ot, void 0, [
-                    n.createFunctionExpression(
-                      void 0,
-                      void 0,
-                      void 0,
-                      void 0,
-                      [
-                        n.createParameterDeclaration(void 0, void 0, "require"),
-                        n.createParameterDeclaration(void 0, void 0, "exports"),
-                        ...q,
-                      ],
-                      void 0,
-                      W(fe),
-                    ),
-                  ]),
-                ),
+                n.createExpressionStatement(n.createCallExpression(Ot, void 0, [
+                  n.createFunctionExpression(
+                    void 0,
+                    void 0,
+                    void 0,
+                    void 0,
+                    [
+                      n.createParameterDeclaration(void 0, void 0, "require"),
+                      n.createParameterDeclaration(void 0, void 0, "exports"),
+                      ...q,
+                    ],
+                    void 0,
+                    W(fe),
+                  ),
+                ])),
               ]),
               fe.statements,
             ),
@@ -125888,16 +125757,17 @@ ${
           En = (c = hr.getModuleResolutionCache) == null ? void 0 : c.call(hr))
         : hr.resolveModuleNames
         ? (Si = (Ie, Ge, St, Zt, xr, Wr) =>
-          hr.resolveModuleNames(Ie.map(vie), Ge, Wr?.map(vie), St, Zt, xr).map(
-            (Nr) =>
-              Nr
-                ? Nr.extension !== void 0 ? { resolvedModule: Nr } : {
-                  resolvedModule: {
-                    ...Nr,
-                    extension: cP(Nr.resolvedFileName),
-                  },
-                }
-                : nve,
+          hr.resolveModuleNames(Ie.map(vie), Ge, Wr?.map(vie), St, Zt, xr).map((
+            Nr,
+          ) =>
+            Nr
+              ? Nr.extension !== void 0 ? { resolvedModule: Nr } : {
+                resolvedModule: {
+                  ...Nr,
+                  extension: cP(Nr.resolvedFileName),
+                },
+              }
+              : nve
           ),
           En = (_ = hr.getModuleResolutionCache) == null ? void 0 : _.call(hr))
         : (En = CE(ai, xn, Q),
@@ -129976,9 +129846,9 @@ ${
         }),
         C;
       (t = e.referencedMap) != null && t.size() &&
-        (C = Zi(e.referencedMap.keys()).sort(ou).map(
-          (G) => [j(G), U(e.referencedMap.getValues(G))],
-        ));
+        (C = Zi(e.referencedMap.keys()).sort(ou).map((
+          G,
+        ) => [j(G), U(e.referencedMap.getValues(G))]));
       let D = Z(), P;
       if ((n = e.affectedFilesPendingEmit) != null && n.size) {
         let G = _1(e.compilerOptions), me = new Set();
@@ -131677,14 +131547,11 @@ ${
       function Ve(Ye) {
         return C?.has(Ye) || vN(D?.keys() || [], (pt) =>
           Wi(Ye, pt) ? !0 : void 0) ||
-          vN(
-            P?.keys() || [],
-            (pt) =>
-              Ye.length > pt.length && Wi(Ye, pt) &&
-                (cj(pt) || Ye[pt.length] === Fo)
-                ? !0
-                : void 0,
-          );
+          vN(P?.keys() || [], (pt) =>
+            Ye.length > pt.length && Wi(Ye, pt) &&
+              (cj(pt) || Ye[pt.length] === Fo)
+              ? !0
+              : void 0);
       }
       function ee(Ye) {
         var pt;
@@ -139625,11 +139492,12 @@ ${
         let U =
             (A ? e.getPackageJsonAutoImportProvider() : e.getCurrentProgram())
               .getTypeChecker(),
-          H = T.moduleSymbol || j || E.checkDefined(
-            T.moduleFile
-              ? U.getMergedSymbol(T.moduleFile.symbol)
-              : U.tryFindAmbientModule(T.moduleName),
-          ),
+          H = T.moduleSymbol || j ||
+            E.checkDefined(
+              T.moduleFile
+                ? U.getMergedSymbol(T.moduleFile.symbol)
+                : U.tryFindAmbientModule(T.moduleName),
+            ),
           Q = T.symbol || O ||
             E.checkDefined(
               D === 2
@@ -142212,10 +142080,8 @@ ${
           let i = t.getSymbolAtLocation(e);
           return i
             ? t.isUndefinedSymbol(i) ||
-              ot(
-                ql(i, t).declarations,
-                (s) => ys(s) || Ty(s) && !!s.initializer && ys(s.initializer),
-              )
+              ot(ql(i, t).declarations, (s) =>
+                ys(s) || Ty(s) && !!s.initializer && ys(s.initializer))
             : !1;
         }
         default:
@@ -142368,12 +142234,9 @@ interface Symbol {
     var Qae;
     function yq(e, t) {
       Qae = Qae ||
-        kn(
-          Cd,
-          (n) =>
-            typeof n.type == "object" &&
-            !al(n.type, (i) => typeof i != "number"),
-        ), e = bV(e);
+        kn(Cd, (n) =>
+          typeof n.type == "object" &&
+          !al(n.type, (i) => typeof i != "number")), e = bV(e);
       for (let n of Qae) {
         if (!eo(e, n.name)) {
           continue;
@@ -143525,10 +143388,7 @@ interface Symbol {
         E.assert(ot(XT(kq), (o) => o.name === n), "Unexpected action name");
         let i = QSe(t);
         return E.assert(i && !Ah(i), "Expected applicable refactor info"), {
-          edits: nn.ChangeTracker.with(
-            t,
-            (o) => oze(t.file, t.program, o, i),
-          ),
+          edits: nn.ChangeTracker.with(t, (o) => oze(t.file, t.program, o, i)),
           renameFilename: void 0,
           renameLocation: void 0,
         };
@@ -144108,17 +143968,20 @@ interface Symbol {
           ? o.fileExists(_) && c.getSourceFile(_) === void 0
             ? r2e(ls(p.Cannot_move_statements_to_the_selected_file))
             : {
-              edits: nn.ChangeTracker.with(t, (g) =>
-                yze(
-                  t,
-                  t.file,
-                  i.targetFile,
-                  t.program,
-                  s,
-                  g,
-                  t.host,
-                  t.preferences,
-                )),
+              edits: nn.ChangeTracker.with(
+                t,
+                (g) =>
+                  yze(
+                    t,
+                    t.file,
+                    i.targetFile,
+                    t.program,
+                    s,
+                    g,
+                    t.host,
+                    t.preferences,
+                  ),
+              ),
               renameFilename: void 0,
               renameLocation: void 0,
             }
@@ -145368,12 +145231,9 @@ ${
       }
       let g = _;
       if (
-        ot(
-          g,
-          (S) =>
-            !!S.typeParameters ||
-            ot(S.parameters, (T) => !!T.modifiers || !Oe(T.name)),
-        )
+        ot(g, (S) =>
+          !!S.typeParameters ||
+          ot(S.parameters, (T) => !!T.modifiers || !Oe(T.name)))
       ) {
         return;
       }
@@ -148080,14 +147940,11 @@ ${
         return;
       }
       let t = d_(e.file, e.startPosition),
-        n = lr(
-          t,
-          (c) =>
-            xs(c) ||
-              c.parent && ho(c.parent) && (c.kind === 39 || c.parent.body === c)
-              ? "quit"
-              : CUe(c),
-        );
+        n = lr(t, (c) =>
+          xs(c) ||
+            c.parent && ho(c.parent) && (c.kind === 39 || c.parent.body === c)
+            ? "quit"
+            : CUe(c));
       if (!n || !n.body || n.type) {
         return { error: ls(p.Return_type_must_be_inferred_from_a_function) };
       }
@@ -151971,14 +151828,11 @@ ${
     }
     function RTe(e) {
       return e.flags & 65536 ||
-        !!lr(
-          e,
-          (t) =>
-            t.parent && ho(t.parent) && t.parent.body === t ||
-            xs(t) &&
-              (t.parent.kind === 262 || t.parent.kind === 218 ||
-                t.parent.kind === 219 || t.parent.kind === 174),
-        );
+        !!lr(e, (t) =>
+          t.parent && ho(t.parent) && t.parent.body === t ||
+          xs(t) &&
+            (t.parent.kind === 262 || t.parent.kind === 218 ||
+              t.parent.kind === 219 || t.parent.kind === 174));
     }
     function bce(e, t, n, i, s, o) {
       if (kA(s.parent) && !s.parent.awaitModifier) {
@@ -152290,14 +152144,12 @@ ${
             ], m.attributes.elements.hasTrailingComma),
             m.attributes.multiLine,
           )
-          : w.createImportAttributes(
-            w.createNodeArray([
-              w.createImportAttribute(
-                w.createStringLiteral("resolution-mode", h),
-                w.createStringLiteral(T ? "import" : "require", h),
-              ),
-            ]),
-          );
+          : w.createImportAttributes(w.createNodeArray([
+            w.createImportAttribute(
+              w.createStringLiteral("resolution-mode", h),
+              w.createStringLiteral(T ? "import" : "require", h),
+            ),
+          ]));
       m.kind === 272
         ? e.replaceNode(
           t,
@@ -153741,14 +153593,11 @@ ${
     function uqe(e, t, n, i, s, o) {
       switch (e.kind) {
         case 206: {
-          let c = hR(
-            e.elements,
-            (_) =>
-              _.dotDotDotToken || _.initializer ||
-                _.propertyName && !Oe(_.propertyName) || !Oe(_.name)
-                ? void 0
-                : Exe(_.propertyName && _.propertyName.text, _.name.text),
-          );
+          let c = hR(e.elements, (_) =>
+            _.dotDotDotToken || _.initializer ||
+              _.propertyName && !Oe(_.propertyName) || !Oe(_.name)
+              ? void 0
+              : Exe(_.propertyName && _.propertyName.text, _.name.text));
           if (c) {
             return D4([p1(void 0, c, t, o)]);
           }
@@ -154909,14 +154758,11 @@ ${
                 ne,
                 be,
                 G &&
-                  Zi(
-                    G.entries(),
-                    ([ue, [nt, Ae]]) => ({
-                      addAsTypeOnly: nt,
-                      propertyName: Ae,
-                      name: ue,
-                    }),
-                  ),
+                  Zi(G.entries(), ([ue, [nt, Ae]]) => ({
+                    addAsTypeOnly: nt,
+                    propertyName: Ae,
+                    name: ue,
+                  })),
                 me,
                 c,
                 i,
@@ -155436,13 +155282,10 @@ ${
     }
     function tke(e, t, n, i, s, o) {
       let c = (_) => io(_, s.getCurrentDirectory(), bh(s));
-      return W_(
-        e,
-        (_, u) =>
-          H1(!!_.isJsxNamespaceFix, !!u.isJsxNamespaceFix) ||
-          lo(_.fix.kind, u.fix.kind) ||
-          nke(_.fix, u.fix, t, n, o, i.allowsImportingSpecifier, c),
-      );
+      return W_(e, (_, u) =>
+        H1(!!_.isJsxNamespaceFix, !!u.isJsxNamespaceFix) ||
+        lo(_.fix.kind, u.fix.kind) ||
+        nke(_.fix, u.fix, t, n, o, i.allowsImportingSpecifier, c));
     }
     function Fqe(e, t, n) {
       let i = ske(e, t, n), s = GE(e.sourceFile, e.preferences, e.host);
@@ -155837,7 +155680,9 @@ ${
     function cke(e, t, n, i, s, o, c) {
       var _;
       if (n.kind === 206) {
-        if (o && n.elements.some((h) => o.has(h))) {
+        if (
+          o && n.elements.some((h) => o.has(h))
+        ) {
           e.replaceNode(
             t,
             n,
@@ -155897,8 +155742,10 @@ ${
           let C = u && g
             ? w.updateNamedImports(
               n.namedBindings,
-              Jc(g, (D) =>
-                w.updateImportSpecifier(D, !0, D.propertyName, D.name)),
+              Jc(
+                g,
+                (D) => w.updateImportSpecifier(D, !0, D.propertyName, D.name),
+              ),
             ).elements
             : g;
           for (let D of T) {
@@ -156102,12 +155949,9 @@ ${
       if (i === void 0 || i.relatedInformation === void 0) {
         return;
       }
-      let s = Nn(
-        i.relatedInformation,
-        (c) =>
-          c.code ===
-            p.This_type_parameter_might_need_an_extends_0_constraint.code,
-      );
+      let s = Nn(i.relatedInformation, (c) =>
+        c.code ===
+          p.This_type_parameter_might_need_an_extends_0_constraint.code);
       if (
         s === void 0 || s.file === void 0 || s.start === void 0 ||
         s.length === void 0
@@ -157689,12 +157533,9 @@ ${
           }
         }
       }
-      return kn(
-        s,
-        (c) =>
-          C_(c.name, t, 1) &&
-          !(c.flags & 16777216 || ec(c) & 48 || o.has(c.escapedName)),
-      );
+      return kn(s, (c) =>
+        C_(c.name, t, 1) &&
+        !(c.flags & 16777216 || ec(c) & 48 || o.has(c.escapedName)));
     }
     function dHe(e, t) {
       if (Gu(e)) {
@@ -157921,18 +157762,15 @@ ${
       }
     }
     function cCe(e, t, n, i) {
-      let s = mr(
-        n.parameters,
-        (o) =>
-          w.createParameterDeclaration(
-            o.modifiers,
-            o.dotDotDotToken,
-            o.name,
-            o.questionToken,
-            o.type,
-            o.initializer,
-          ),
-      );
+      let s = mr(n.parameters, (o) =>
+        w.createParameterDeclaration(
+          o.modifiers,
+          o.dotDotDotToken,
+          o.name,
+          o.questionToken,
+          o.type,
+          o.initializer,
+        ));
       for (let { pos: o, declaration: c } of i) {
         let _ = o > 0 ? s[o - 1] : void 0;
         s.splice(
@@ -157974,12 +157812,9 @@ ${
     }
     function SHe(e, t) {
       return Ir(e) &&
-        ot(
-          e,
-          (n) =>
-            t < Ir(n.parameters) && !!n.parameters[t] &&
-            n.parameters[t].questionToken === void 0,
-        );
+        ot(e, (n) =>
+          t < Ir(n.parameters) && !!n.parameters[t] &&
+          n.parameters[t].questionToken === void 0);
     }
     function THe(e, t, n) {
       let i = yS(t, n);
@@ -158310,12 +158145,10 @@ ${
           let g = nn.ChangeTracker.with(t, (m) => {
             Jle(m, i, "module", w.createStringLiteral("esnext"));
           });
-          s.push(
-            Nd("fixModuleOption", g, [
-              p.Set_the_module_option_in_your_configuration_file_to_0,
-              "esnext",
-            ]),
-          );
+          s.push(Nd("fixModuleOption", g, [
+            p.Set_the_module_option_in_your_configuration_file_to_0,
+            "esnext",
+          ]));
         }
         let _ = ma(n);
         if (_ < 4 || _ > 99) {
@@ -158327,12 +158160,10 @@ ${
             o === 1 && S.push(["module", w.createStringLiteral("commonjs")]),
               Ble(m, i, S);
           });
-          s.push(
-            Nd("fixTargetOption", g, [
-              p.Set_the_target_option_in_your_configuration_file_to_0,
-              "es2017",
-            ]),
-          );
+          s.push(Nd("fixTargetOption", g, [
+            p.Set_the_target_option_in_your_configuration_file_to_0,
+            "es2017",
+          ]));
         }
         return s.length ? s : void 0;
       },
@@ -161113,20 +160944,24 @@ ${
           return;
         }
         let _ = n.checkJsDirective ? "" : wh(o, c.options),
-          u = [Nd(IEe, [kTe(n.fileName, [wI(
-            n.checkJsDirective
-              ? hc(n.checkJsDirective.pos, n.checkJsDirective.end)
-              : Ul(0, 0),
-            `// @ts-nocheck${_}`,
-          )])], p.Disable_checking_for_this_file)];
+          u = [
+            Nd(IEe, [kTe(n.fileName, [wI(
+              n.checkJsDirective
+                ? hc(n.checkJsDirective.pos, n.checkJsDirective.end)
+                : Ul(0, 0),
+              `// @ts-nocheck${_}`,
+            )])], p.Disable_checking_for_this_file),
+          ];
         return nn.isValidLocationToAddComment(n, s.start) &&
-          u.unshift(Os(
-            IEe,
-            nn.ChangeTracker.with(t, (g) => LEe(g, n, s.start)),
-            p.Ignore_this_error_message,
-            FEe,
-            p.Add_ts_ignore_to_all_error_messages,
-          )),
+          u.unshift(
+            Os(
+              IEe,
+              nn.ChangeTracker.with(t, (g) => LEe(g, n, s.start)),
+              p.Ignore_this_error_message,
+              FEe,
+              p.Add_ts_ignore_to_all_error_messages,
+            ),
+          ),
           u;
       },
       fixIds: [FEe],
@@ -162002,12 +161837,9 @@ ${
     });
     function SGe(e) {
       let t = e.sourceFile,
-        n = lr(
-          yi(t, e.span.start),
-          (i) =>
-            i.getStart() === e.span.start &&
-            i.getEnd() === e.span.start + e.span.length,
-        );
+        n = lr(yi(t, e.span.start), (i) =>
+          i.getStart() === e.span.start &&
+          i.getEnd() === e.span.start + e.span.length);
       return n ? YEe(e, n) : [];
     }
     function YEe(e, t) {
@@ -169729,14 +169561,11 @@ ${
           return Qt && Ue(Qt, 4);
         }
         function Ue(Qt, Zr) {
-          return xc(
-            re.getRootSymbols(Qt),
-            (ge) =>
-              Ne(Qt, ge, void 0, Zr) ||
-              (ge.parent && ge.parent.flags & 96 && $e(ge)
-                ? vt(ge.parent, ge.name, re, (_t) => Ne(Qt, ge, _t, Zr))
-                : void 0),
-          );
+          return xc(re.getRootSymbols(Qt), (ge) =>
+            Ne(Qt, ge, void 0, Zr) ||
+            (ge.parent && ge.parent.flags & 96 && $e(ge)
+              ? vt(ge.parent, ge.name, re, (_t) => Ne(Qt, ge, _t, Zr))
+              : void 0));
         }
         function Dt(Qt, Zr) {
           let ge = Ao(Qt, 208);
@@ -170213,7 +170042,8 @@ ${
       if (c) {
         return c;
       }
-      let _ = kn(o, (S) => !IQe(S)), u = ot(_) ? _ : o;
+      let _ = kn(o, (S) => !IQe(S)),
+        u = ot(_) ? _ : o;
       return mr(u, (S) => l3(S, e, t, n, !1, i));
       function g() {
         if (t.flags & 32 && !(t.flags & 19) && (c4(n) || n.kind === 137)) {
@@ -171054,13 +170884,10 @@ ${
       return LV(e, (i) => {
         for (let s of VQe(i)) {
           let o = kd(s) && s.tags &&
-            Nn(
-              s.tags,
-              (_) =>
-                _.kind === 327 &&
-                (_.tagName.escapedText === "inheritDoc" ||
-                  _.tagName.escapedText === "inheritdoc"),
-            );
+            Nn(s.tags, (_) =>
+              _.kind === 327 &&
+              (_.tagName.escapedText === "inheritDoc" ||
+                _.tagName.escapedText === "inheritdoc"));
           if (
             s.comment === void 0 && !o ||
             kd(s) && i.kind !== 346 && i.kind !== 338 && s.tags &&
@@ -171192,28 +171019,22 @@ ${
     }
     function GQe() {
       return rPe ||
-        (rPe = mr(
-          tPe,
-          (e) => ({
-            name: e,
-            kind: "keyword",
-            kindModifiers: "",
-            sortText: xk.SortText.LocationPriority,
-          }),
-        ));
+        (rPe = mr(tPe, (e) => ({
+          name: e,
+          kind: "keyword",
+          kindModifiers: "",
+          sortText: xk.SortText.LocationPriority,
+        })));
     }
     var $Qe = oPe;
     function QQe() {
       return nPe ||
-        (nPe = mr(
-          tPe,
-          (e) => ({
-            name: `@${e}`,
-            kind: "keyword",
-            kindModifiers: "",
-            sortText: xk.SortText.LocationPriority,
-          }),
-        ));
+        (nPe = mr(tPe, (e) => ({
+          name: `@${e}`,
+          kind: "keyword",
+          kindModifiers: "",
+          sortText: xk.SortText.LocationPriority,
+        })));
     }
     function oPe(e) {
       return {
@@ -172149,13 +171970,10 @@ ${t}
       return lPe(e, s, o, n);
     }
     function EXe(e, t, n) {
-      return uPe(
-        e,
-        (s, o) =>
-          Oue(s, o, NL(t), {
-            organizeImportsTypeOrder: n?.organizeImportsTypeOrder ?? "last",
-          }),
-      );
+      return uPe(e, (s, o) =>
+        Oue(s, o, NL(t), {
+          organizeImportsTypeOrder: n?.organizeImportsTypeOrder ?? "last",
+        }));
     }
     function DXe(e, t, n) {
       let i = NL(!!n);
@@ -173270,12 +173088,9 @@ ${t}
       if (N2(e)) {
         let [n, ...i] = e.getChildren(), s = E.checkDefined(i.pop());
         E.assertEqual(n.kind, 19), E.assertEqual(s.kind, 20);
-        let o = d3(
-            i,
-            (_) =>
-              _ === e.readonlyToken || _.kind === 148 ||
-              _ === e.questionToken || _.kind === 58,
-          ),
+        let o = d3(i, (_) =>
+            _ === e.readonlyToken || _.kind === 148 ||
+            _ === e.questionToken || _.kind === 58),
           c = d3(o, ({ kind: _ }) => _ === 23 || _ === 168 || _ === 24);
         return [n, m3(WH(c, ({ kind: _ }) => _ === 59)), s];
       }
@@ -182800,13 +182615,10 @@ ${i.prefix}`
         var i, s;
         let o = n
           ? (u) =>
-            Zi(
-              u.entries(),
-              ([g, m]) => ({
-                fileName: g,
-                isSourceOfProjectReferenceRedirect: m,
-              }),
-            )
+            Zi(u.entries(), ([g, m]) => ({
+              fileName: g,
+              isSourceOfProjectReferenceRedirect: m,
+            }))
           : (u) => Zi(u.keys());
         this.initialLoadPending || Wp(this);
         let c = {
@@ -184145,20 +183957,15 @@ ${i.prefix}`
         return u(n, T, C, (D) => ({ eventName: fG, data: { id: D, path: T } }));
       }
       function _(T, C, D) {
-        return u(
-          D ? s : i,
-          T,
-          C,
-          (P) => ({
-            eventName: pG,
-            data: {
-              id: P,
-              path: T,
-              recursive: !!D,
-              ignoreUpdate: T.endsWith("/node_modules") ? void 0 : !0,
-            },
-          }),
-        );
+        return u(D ? s : i, T, C, (P) => ({
+          eventName: pG,
+          data: {
+            id: P,
+            path: T,
+            recursive: !!D,
+            ignoreUpdate: T.endsWith("/node_modules") ? void 0 : !0,
+          },
+        }));
       }
       function u({ pathToId: T, idToCallbacks: C }, D, P, A) {
         let L = e.toPath(D), O = T.get(L);
@@ -185182,9 +184989,11 @@ ${i.prefix}`
         for (let _ of i) {
           let u = s.getFileName(_);
           if (!T2(u) && (c += this.host.getFileSize(u), c > iG || c > o)) {
-            let g = i.map((m) => s.getFileName(m)).filter((m) => !T2(m)).map(
-              (m) => ({ name: m, size: this.host.getFileSize(m) }),
-            ).sort((m, h) => h.size - m.size).slice(0, 5);
+            let g = i.map((m) => s.getFileName(m)).filter((m) => !T2(m)).map((
+              m,
+            ) => ({ name: m, size: this.host.getFileSize(m) })).sort((m, h) =>
+              h.size - m.size
+            ).slice(0, 5);
             return this.logger.info(
               `Non TS file size exceeded limit (${c}). Largest files: ${
                 g.map((m) => `${m.name}:${m.size}`).join(", ")
@@ -185377,20 +185186,18 @@ ${i.prefix}`
             this.extendedConfigCache,
           );
         T.errors.length && h.push(...T.errors),
-          this.logger.info(
-            `Config: ${t} : ${
-              JSON.stringify(
-                {
-                  rootNames: T.fileNames,
-                  options: T.options,
-                  watchOptions: T.watchOptions,
-                  projectReferences: T.projectReferences,
-                },
-                void 0,
-                " ",
-              )
-            }`,
-          );
+          this.logger.info(`Config: ${t} : ${
+            JSON.stringify(
+              {
+                rootNames: T.fileNames,
+                options: T.options,
+                watchOptions: T.watchOptions,
+                projectReferences: T.projectReferences,
+              },
+              void 0,
+              " ",
+            )
+          }`);
         let C = (c = i.config) == null ? void 0 : c.parsedCommandLine;
         return i.config
           ? (i.config.parsedCommandLine = T,
@@ -185407,33 +185214,29 @@ ${i.prefix}`
             this.getWatchOptionsFromProjectWatchOptions(T.watchOptions, S),
           ) && ((_ = i.watcher) == null || _.close(), i.watcher = void 0),
           this.createConfigFileWatcherForParsedConfig(t, n, s),
-          D5(
-            n,
-            T.options,
-            this.sharedExtendedConfigFileWatchers,
-            (D, P) =>
-              this.watchFactory.watchFile(
-                D,
-                () => {
-                  var A;
-                  P5(this.extendedConfigCache, P, (O) => this.toPath(O));
-                  let L = !1;
-                  (A = this.sharedExtendedConfigFileWatchers.get(P)) == null ||
-                  A.projects.forEach((O) => {
-                    L = this
-                      .delayUpdateProjectsFromParsedConfigOnConfigFileChange(
-                        O,
-                        `Change in extended config file ${D} detected`,
-                      ) || L;
-                  }), L && this.delayEnsureProjectForOpenFiles();
-                },
-                2e3,
-                this.hostConfiguration.watchOptions,
-                Dl.ExtendedConfigFile,
-                t,
-              ),
-            (D) => this.toPath(D),
-          ),
+          D5(n, T.options, this.sharedExtendedConfigFileWatchers, (D, P) =>
+            this.watchFactory.watchFile(
+              D,
+              () => {
+                var A;
+                P5(this.extendedConfigCache, P, (O) =>
+                  this.toPath(O));
+                let L = !1;
+                (A = this.sharedExtendedConfigFileWatchers.get(P)) == null ||
+                A.projects.forEach((O) => {
+                  L = this
+                    .delayUpdateProjectsFromParsedConfigOnConfigFileChange(
+                      O,
+                      `Change in extended config file ${D} detected`,
+                    ) || L;
+                }), L && this.delayEnsureProjectForOpenFiles();
+              },
+              2e3,
+              this.hostConfiguration.watchOptions,
+              Dl.ExtendedConfigFile,
+              t,
+            ), (D) =>
+            this.toPath(D)),
           i;
       }
       watchWildcards(t, { exists: n, config: i }, s) {
@@ -188060,10 +187863,7 @@ ${o}${i}`;
               },
               openExternalProject: (
                 o,
-              ) => (this.projectService.openExternalProject(
-                o.arguments,
-                !0,
-              ),
+              ) => (this.projectService.openExternalProject(o.arguments, !0),
                 this.requiredResponse(!0)),
               openExternalProjects: (
                 o,
@@ -188090,20 +187890,17 @@ ${o}${i}`;
                 ) {
                   return this.requiredResponse(c);
                 }
-                let _ = mr(
-                  c,
-                  (u) =>
-                    !u.projectErrors || u.projectErrors.length === 0 ? u : {
-                      info: u.info,
-                      changes: u.changes,
-                      files: u.files,
-                      projectErrors: this
-                        .convertToDiagnosticsWithLinePosition(
-                          u.projectErrors,
-                          void 0,
-                        ),
-                    },
-                );
+                let _ = mr(c, (u) =>
+                  !u.projectErrors || u.projectErrors.length === 0 ? u : {
+                    info: u.info,
+                    changes: u.changes,
+                    files: u.files,
+                    projectErrors: this
+                      .convertToDiagnosticsWithLinePosition(
+                        u.projectErrors,
+                        void 0,
+                      ),
+                  });
                 return this.requiredResponse(_);
               },
               updateOpen: (
@@ -188111,15 +187908,12 @@ ${o}${i}`;
               ) => (this.changeSeq++,
                 this.projectService.applyChangesInOpenFiles(
                   o.arguments.openFiles &&
-                    Q6(
-                      o.arguments.openFiles,
-                      (c) => ({
-                        fileName: c.file,
-                        content: c.fileContent,
-                        scriptKind: c.scriptKindName,
-                        projectRootPath: c.projectRootPath,
-                      }),
-                    ),
+                    Q6(o.arguments.openFiles, (c) => ({
+                      fileName: c.file,
+                      content: c.fileContent,
+                      scriptKind: c.scriptKindName,
+                      projectRootPath: c.projectRootPath,
+                    })),
                   o.arguments.changedFiles &&
                     Q6(o.arguments.changedFiles, (c) => ({
                       fileName: c.fileName,
@@ -188189,7 +187983,9 @@ ${o}${i}`;
                 this.requiredResponse(this.getRenameLocations(o.arguments, !1)),
               "rename-full": (o) =>
                 this.requiredResponse(this.getRenameInfo(o.arguments)),
-              open: (o) => (this.openClientFile(
+              open: (
+                o,
+              ) => (this.openClientFile(
                 Xa(o.arguments.file),
                 o.arguments.fileContent,
                 gG(o.arguments.scriptKindName),
@@ -189669,7 +189465,9 @@ Project '${_.projectName}' (${M4[_.projectKind]}) ${o}
               c,
               c,
               nNe,
-              (m) => (this.logger.info(
+              (
+                m,
+              ) => (this.logger.info(
                 `Finding references to file ${s} in project ${m.getProjectName()}`,
               ),
                 m.getLanguageService().getFileReferences(s)),

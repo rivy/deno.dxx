@@ -4,7 +4,6 @@ import type {
   ITypeInfo,
   ValuesHandlerResult,
 } from "./types.ts";
-
 /**
  * Base class for custom types.
  *
@@ -29,22 +28,14 @@ import type {
  */
 export abstract class Type<T> {
   public abstract parse(type: ITypeInfo): T;
-
   /**
    * Returns values displayed in help text. If no complete method is provided,
    * these values are also used for shell completions.
    */
-  public values?(
-    cmd: Command,
-    parent?: Command,
-  ): ValuesHandlerResult;
-
+  public values?(cmd: Command, parent?: Command): ValuesHandlerResult;
   /**
    * Returns shell completion values. If no complete method is provided,
    * values from the values method are used.
    */
-  public complete?(
-    cmd: Command,
-    parent?: Command,
-  ): CompleteHandlerResult;
+  public complete?(cmd: Command, parent?: Command): CompleteHandlerResult;
 }

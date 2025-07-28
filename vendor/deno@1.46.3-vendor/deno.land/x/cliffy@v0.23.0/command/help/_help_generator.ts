@@ -17,28 +17,21 @@ import {
 import type { IArgument } from "../types.ts";
 import type { IEnvVar, IExample, IOption } from "../types.ts";
 import { Type } from "../type.ts";
-
 export interface HelpOptions {
   types?: boolean;
   hints?: boolean;
   colors?: boolean;
   long?: boolean;
 }
-
 /** Help text generator. */
 export class HelpGenerator {
   private indent = 2;
   private options: Required<HelpOptions>;
-
   /** Generate help text for given command. */
   public static generate(cmd: Command, options?: HelpOptions): string {
     return new HelpGenerator(cmd, options).generate();
   }
-
-  private constructor(
-    private cmd: Command,
-    options: HelpOptions = {},
-  ) {
+  private constructor(private cmd: Command, options: HelpOptions = {}) {
     this.options = {
       types: false,
       hints: true,
@@ -47,7 +40,6 @@ export class HelpGenerator {
       ...options,
     };
   }
-
   private generate(): string {
     const areColorsEnabled = getColorEnabled();
     setColorEnabled(this.options.colors);
@@ -61,7 +53,6 @@ export class HelpGenerator {
     setColorEnabled(areColorsEnabled);
     return result;
   }
-
   private generateHeader(): string {
     const usage = this.cmd.getUsage();
     const rows = [
@@ -84,18 +75,15 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateMeta(): string {
     const meta = Object.entries(this.cmd.getMeta());
     if (!meta.length) {
       return "";
     }
-
     const rows = [];
     for (const [name, value] of meta) {
       rows.push([bold(`${name}: `) + value]);
     }
-
     return "\n" +
       Table.from(rows)
         .indent(this.indent)
@@ -103,7 +91,6 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateDescription(): string {
     if (!this.cmd.getDescription()) {
       return "";
@@ -118,26 +105,20 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateOptions(): string {
     const options = this.cmd.getOptions(false);
     if (!options.length) {
       return "";
     }
-
     const hasTypeDefinitions = !!options.find((option) =>
       !!option.typeDefinition
     );
-
     if (hasTypeDefinitions) {
       return this.label("Options") +
         Table.from([
           ...options.map((option: IOption) => [
             option.flags.map((flag) => blue(flag)).join(", "),
-            highlightArguments(
-              option.typeDefinition || "",
-              this.options.types,
-            ),
+            highlightArguments(option.typeDefinition || "", this.options.types),
             red(bold("-")),
             this.options.long
               ? option.description
@@ -151,7 +132,6 @@ export class HelpGenerator {
           .toString() +
         "\n";
     }
-
     return this.label("Options") +
       Table.from([
         ...options.map((option: IOption) => [
@@ -169,17 +149,14 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateCommands(): string {
     const commands = this.cmd.getCommands(false);
     if (!commands.length) {
       return "";
     }
-
     const hasTypeDefinitions = !!commands.find((command) =>
       !!command.getArgsDefinition()
     );
-
     if (hasTypeDefinitions) {
       return this.label("Commands") +
         Table.from([
@@ -201,7 +178,6 @@ export class HelpGenerator {
           .toString() +
         "\n";
     }
-
     return this.label("Commands") +
       Table.from([
         ...commands.map((command: Command) => [
@@ -217,7 +193,6 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateEnvironmentVariables(): string {
     const envVars = this.cmd.getEnvVars(false);
     if (!envVars.length) {
@@ -227,10 +202,7 @@ export class HelpGenerator {
       Table.from([
         ...envVars.map((envVar: IEnvVar) => [
           envVar.names.map((name: string) => blue(name)).join(", "),
-          highlightArgumentDetails(
-            envVar.details,
-            this.options.types,
-          ),
+          highlightArgumentDetails(envVar.details, this.options.types),
           red(bold("-")),
           this.options.long
             ? envVar.description
@@ -243,7 +215,6 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateExamples(): string {
     const examples = this.cmd.getExamples();
     if (!examples.length) {
@@ -260,17 +231,16 @@ export class HelpGenerator {
         .toString() +
       "\n";
   }
-
   private generateHints(option: IOption): string {
     if (!this.options.hints) {
       return "";
     }
     const hints = [];
-
     option.required && hints.push(yellow(`required`));
-    typeof option.default !== "undefined" && hints.push(
-      bold(`Default: `) + inspect(option.default, this.options.colors),
-    );
+    typeof option.default !== "undefined" &&
+      hints.push(
+        bold(`Default: `) + inspect(option.default, this.options.colors),
+      );
     option.depends?.length && hints.push(
       yellow(bold(`Depends: `)) +
         italic(option.depends.map(getFlag).join(", ")),
@@ -279,7 +249,6 @@ export class HelpGenerator {
       red(bold(`Conflicts: `)) +
         italic(option.conflicts.map(getFlag).join(", ")),
     );
-
     const type = this.cmd.getType(option.args[0]?.type)?.handler;
     if (type instanceof Type) {
       const possibleValues = type.values?.(this.cmd, this.cmd.getParent());
@@ -292,33 +261,26 @@ export class HelpGenerator {
         );
       }
     }
-
     if (hints.length) {
       return `(${hints.join(", ")})`;
     }
-
     return "";
   }
-
   private label(label: string) {
     return "\n" +
       " ".repeat(this.indent) + bold(`${label}:`) +
       "\n\n";
   }
 }
-
 function capitalize(string: string): string {
   return string?.charAt(0).toUpperCase() + string.slice(1) ?? "";
 }
-
 function inspect(value: unknown, colors: boolean): string {
   return Deno.inspect(
-    value,
-    // deno < 1.4.3 doesn't support the colors property.
+    value, // deno < 1.4.3 doesn't support the colors property.
     { depth: 1, colors, trailingComma: false } as Deno.InspectOptions,
   );
 }
-
 /**
  * Colorize arguments string.
  * @param argsDefinition Arguments definition: `<color1:string> <color2:string>`
@@ -328,36 +290,27 @@ function highlightArguments(argsDefinition: string, types = true) {
   if (!argsDefinition) {
     return "";
   }
-
   return parseArgumentsDefinition(argsDefinition, false, true)
     .map((arg: IArgument | string) =>
       typeof arg === "string" ? arg : highlightArgumentDetails(arg, types)
     )
     .join(" ");
 }
-
 /**
  * Colorize argument string.
  * @param arg Argument details.
  * @param types Show types.
  */
-function highlightArgumentDetails(
-  arg: IArgument,
-  types = true,
-): string {
+function highlightArgumentDetails(arg: IArgument, types = true): string {
   let str = "";
-
   str += yellow(arg.optionalValue ? "[" : "<");
-
   let name = "";
   name += arg.name;
   if (arg.variadic) {
     name += "...";
   }
   name = magenta(name);
-
   str += name;
-
   if (types) {
     str += yellow(":");
     str += red(arg.type);
@@ -365,8 +318,6 @@ function highlightArgumentDetails(
       str += green("[]");
     }
   }
-
   str += yellow(arg.optionalValue ? "]" : ">");
-
   return str;
 }

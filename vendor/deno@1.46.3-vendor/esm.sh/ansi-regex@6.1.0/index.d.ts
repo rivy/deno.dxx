@@ -1,12 +1,11 @@
 export type Options = {
   /**
-	Match only the first ANSI escape.
+      Match only the first ANSI escape.
 
-	@default false
-	*/
+      @default false
+      */
   readonly onlyFirst: boolean;
 };
-
 /**
 Regular expression for matching ANSI escape codes.
 

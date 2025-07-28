@@ -1,20 +1,15 @@
 import { Command } from "../command.ts";
 import { UnknownCompletionCommand } from "../_errors.ts";
 import type { ICompletion } from "../types.ts";
-
 /** Execute auto completion method of command and action. */
-export class CompleteCommand extends Command<
-  void,
-  void,
-  void,
-  [action: string, commandNames?: Array<string>]
-> {
+export class CompleteCommand extends Command<void, void, void, [
+  action: string,
+  commandNames?: Array<string>,
+]> {
   public constructor(cmd?: Command) {
     super();
     return this
-      .description(
-        "Get completions for given action from given command.",
-      )
+      .description("Get completions for given action from given command.")
       .arguments("<action:string> [command...:string]")
       .action(async (_, action: string, commandNames?: Array<string>) => {
         let parent: Command | undefined;
@@ -27,12 +22,10 @@ export class CompleteCommand extends Command<
             }
             return childCmd;
           }, cmd || this.getMainCommand()) ?? (cmd || this.getMainCommand());
-
         const completion: ICompletion | undefined = completeCommand
           .getCompletion(action);
         const result: Array<string | number> =
           await completion?.complete(completeCommand, parent) ?? [];
-
         if (result?.length) {
           Deno.stdout.writeSync(new TextEncoder().encode(result.join("\n")));
         }

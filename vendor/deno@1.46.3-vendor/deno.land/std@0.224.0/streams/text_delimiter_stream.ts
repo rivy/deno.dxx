@@ -1,13 +1,10 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { createLPS } from "./_common.ts";
-
 import type {
   DelimiterDisposition,
   DelimiterStreamOptions,
 } from "./delimiter_stream.ts";
-
 /**
  * Transform a stream into a stream where each chunk is divided by a given delimiter.
  *
@@ -27,7 +24,6 @@ export class TextDelimiterStream extends TransformStream<string, string> {
   #matchIndex = 0;
   #delimLPS: Uint8Array;
   #disp: DelimiterDisposition;
-
   /** Constructs a new instance. */
   constructor(delimiter: string, options?: DelimiterStreamOptions) {
     super({
@@ -38,16 +34,11 @@ export class TextDelimiterStream extends TransformStream<string, string> {
         controller.enqueue(this.#buf);
       },
     });
-
     this.#delimiter = delimiter;
     this.#delimLPS = createLPS(new TextEncoder().encode(delimiter));
     this.#disp = options?.disposition ?? "discard";
   }
-
-  #handle(
-    chunk: string,
-    controller: TransformStreamDefaultController<string>,
-  ) {
+  #handle(chunk: string, controller: TransformStreamDefaultController<string>) {
     this.#buf += chunk;
     let localIndex = 0;
     while (this.#inspectIndex < this.#buf.length) {

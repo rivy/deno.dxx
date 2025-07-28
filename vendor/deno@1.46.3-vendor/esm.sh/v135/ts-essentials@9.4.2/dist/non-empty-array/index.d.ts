@@ -1,1 +1,4 @@
-export declare type NonEmptyArray<Type> = [Type, ...Type[]];
+export declare type NonEmptyArray<Type> = [
+  Type,
+  ...Type[],
+];

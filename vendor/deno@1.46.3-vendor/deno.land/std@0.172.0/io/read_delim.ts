@@ -1,8 +1,6 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { BytesList } from "../bytes/bytes_list.ts";
 import type { Reader } from "../types.d.ts";
-
 /** Generate longest proper prefix which is also suffix array. */
 function createLPS(pat: Uint8Array): Uint8Array {
   const lps = new Uint8Array(pat.length);
@@ -23,7 +21,6 @@ function createLPS(pat: Uint8Array): Uint8Array {
   }
   return lps;
 }
-
 /** Read delimited bytes from a Reader. */
 export async function* readDelim(
   reader: Reader,
@@ -34,7 +31,6 @@ export async function* readDelim(
   const delimLPS = createLPS(delim);
   const chunks = new BytesList();
   const bufSize = Math.max(1024, delimLen + 1);
-
   // Modified KMP
   let inspectIndex = 0;
   let matchIndex = 0;

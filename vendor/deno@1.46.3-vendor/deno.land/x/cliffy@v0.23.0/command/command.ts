@@ -64,7 +64,6 @@ import type {
 } from "./types.ts";
 import { IntegerType } from "./types/integer.ts";
 import { underscoreToCamelCase } from "../flags/_utils.ts";
-
 export class Command<
   CPG extends Record<string, any> | void = void,
   CPT extends Record<string, any> | void = CPG extends number ? any : void,
@@ -115,7 +114,6 @@ export class Command<
   private _help?: IHelpHandler;
   private _shouldExit?: boolean;
   private _meta: Record<string, string> = {};
-
   /** Disable version option. */
   public versionOption(enable: false): this;
   /**
@@ -170,7 +168,6 @@ export class Command<
     };
     return this;
   }
-
   /** Disable help option. */
   public helpOption(enable: false): this;
   /**
@@ -225,7 +222,6 @@ export class Command<
     };
     return this;
   }
-
   /**
    * Add new sub-command.
    * @param name      Command definition. E.g: `my-command <input-file:string> <output-file:string>`
@@ -269,7 +265,6 @@ export class Command<
       OneOf<CP, this>
     >
     : never;
-
   /**
    * Add new sub-command.
    * @param name      Command definition. E.g: `my-command <input-file:string> <output-file:string>`
@@ -286,17 +281,17 @@ export class Command<
     name: N,
     desc?: string,
     override?: boolean,
-  ): CPG extends number ? Command<any> : Command<
-    CP extends Command<any> ? CPG : Merge<CPG, CG>,
-    CP extends Command<any> ? CPT : Merge<CPT, CGT>,
-    void,
-    A,
-    void,
-    void,
-    void,
-    OneOf<CP, this>
-  >;
-
+  ): CPG extends number ? Command<any>
+    : Command<
+      CP extends Command<any> ? CPG : Merge<CPG, CG>,
+      CP extends Command<any> ? CPT : Merge<CPT, CGT>,
+      void,
+      A,
+      void,
+      void,
+      void,
+      OneOf<CP, this>
+    >;
   /**
    * Add new sub-command.
    * @param nameAndArguments  Command definition. E.g: `my-command <input-file:string> <output-file:string>`
@@ -309,54 +304,40 @@ export class Command<
     override?: boolean,
   ): Command<any> {
     const result = splitArguments(nameAndArguments);
-
     const name: string | undefined = result.flags.shift();
     const aliases: string[] = result.flags;
-
     if (!name) {
       throw new MissingCommandName();
     }
-
     if (this.getBaseCommand(name, true)) {
       if (!override) {
         throw new DuplicateCommandName(name);
       }
       this.removeCommand(name);
     }
-
     let description: string | undefined;
     let cmd: Command<any>;
-
     if (typeof cmdOrDescription === "string") {
       description = cmdOrDescription;
     }
-
     if (cmdOrDescription instanceof Command) {
       cmd = cmdOrDescription.reset();
     } else {
       cmd = new Command();
     }
-
     cmd._name = name;
     cmd._parent = this;
-
     if (description) {
       cmd.description(description);
     }
-
     if (result.typeDefinition) {
       cmd.arguments(result.typeDefinition);
     }
-
     aliases.forEach((alias: string) => cmd.alias(alias));
-
     this.commands.set(name, cmd);
-
     this.select(name);
-
     return this;
   }
-
   /**
    * Add new command alias.
    * @param alias Tha name of the alias.
@@ -365,18 +346,14 @@ export class Command<
     if (this.cmd._name === alias || this.cmd.aliases.includes(alias)) {
       throw new DuplicateCommandAlias(alias);
     }
-
     this.cmd.aliases.push(alias);
-
     return this;
   }
-
   /** Reset internal command reference to main command. */
   public reset(): OneOf<CP, this> {
     this.cmd = this;
     return this as OneOf<CP, this>;
   }
-
   /**
    * Set internal command pointer to child command with given name.
    * @param name The name of the command to select.
@@ -387,26 +364,20 @@ export class Command<
     G extends Record<string, unknown> | void = any,
   >(name: string): Command<CPG, CPT, O, A, G, CT, CGT, CP> {
     const cmd = this.getBaseCommand(name, true);
-
     if (!cmd) {
       throw new CommandNotFound(name, this.getBaseCommands(true));
     }
-
     this.cmd = cmd;
-
     return this as Command<any>;
   }
-
   /** ***************************************************************************
    * *** SUB HANDLER ************************************************************
    * *************************************************************************** */
-
   /** Set command name. */
   public name(name: string): this {
     this.cmd._name = name;
     return this;
   }
-
   /**
    * Set command version.
    * @param version Semantic version string string or method that returns the version string.
@@ -423,18 +394,15 @@ export class Command<
     }
     return this;
   }
-
   public meta(name: string, value: string): this {
     this.cmd._meta[name] = value;
     return this;
   }
-
   public getMeta(): Record<string, string>;
   public getMeta(name: string): string;
   public getMeta(name?: string): Record<string, string> | string {
     return typeof name === "undefined" ? this._meta : this._meta[name];
   }
-
   /**
    * Set command help.
    * @param help Help string, method, or config for generator that returns the help string.
@@ -455,7 +423,6 @@ export class Command<
     }
     return this;
   }
-
   /**
    * Set the long command description.
    * @param description The command description.
@@ -466,7 +433,6 @@ export class Command<
     this.cmd.desc = description;
     return this;
   }
-
   /**
    * Set the command usage. Defaults to arguments.
    * @param usage The command usage.
@@ -475,7 +441,6 @@ export class Command<
     this.cmd._usage = usage;
     return this;
   }
-
   /**
    * Hide command from help, completions, etc.
    */
@@ -483,19 +448,16 @@ export class Command<
     this.cmd.isHidden = true;
     return this;
   }
-
   /** Make command globally available. */
   public global(): this {
     this.cmd.isGlobal = true;
     return this;
   }
-
   /** Make command executable. */
   public executable(): this {
     this.cmd.isExecutable = true;
     return this;
   }
-
   /**
    * Set command arguments:
    *
@@ -504,13 +466,10 @@ export class Command<
   public arguments<
     A extends TypedArguments<N, Merge<CPT, Merge<CGT, CT>>>,
     N extends string = string,
-  >(
-    args: N,
-  ): Command<CPG, CPT, CO, A, CG, CT, CGT, CP> {
+  >(args: N): Command<CPG, CPT, CO, A, CG, CT, CGT, CP> {
     this.cmd.argsDefinition = args;
     return this as Command<any>;
   }
-
   /**
    * Set command callback method.
    * @param fn Command action handler.
@@ -519,7 +478,6 @@ export class Command<
     this.cmd.fn = fn;
     return this;
   }
-
   /**
    * Don't throw an error if the command was called without arguments.
    * @param allowEmpty Enable/disable allow empty.
@@ -528,7 +486,6 @@ export class Command<
     this.cmd._allowEmpty = allowEmpty;
     return this;
   }
-
   /**
    * Enable stop early. If enabled, all arguments starting from the first non
    * option argument will be passed as arguments with type string to the command
@@ -547,7 +504,6 @@ export class Command<
     this.cmd._stopEarly = stopEarly;
     return this;
   }
-
   /**
    * Disable parsing arguments. If enabled the raw arguments will be passed to
    * the action handler. This has no effect for parent or child commands. Only
@@ -560,7 +516,6 @@ export class Command<
     this.cmd._useRawArgs = useRawArgs;
     return this as Command<any>;
   }
-
   /**
    * Set default command. The default command is executed when the program
    * was called without any argument and if no action handler is registered.
@@ -570,7 +525,6 @@ export class Command<
     this.cmd.defaultCommand = name;
     return this;
   }
-
   public globalType<
     H extends TypeOrTypeHandler<unknown>,
     N extends string = string,
@@ -578,48 +532,24 @@ export class Command<
     name: N,
     handler: H,
     options?: Omit<ITypeOptions, "global">,
-  ): Command<
-    CPG,
-    CPT,
-    CO,
-    CA,
-    CG,
-    CT,
-    Merge<CGT, TypedType<N, H>>,
-    CP
-  > {
+  ): Command<CPG, CPT, CO, CA, CG, CT, Merge<CGT, TypedType<N, H>>, CP> {
     return this.type(name, handler, { ...options, global: true });
   }
-
   /**
    * Register custom type.
    * @param name    The name of the type.
    * @param handler The callback method to parse the type.
    * @param options Type options.
    */
-  public type<
-    H extends TypeOrTypeHandler<unknown>,
-    N extends string = string,
-  >(
+  public type<H extends TypeOrTypeHandler<unknown>, N extends string = string>(
     name: N,
     handler: H,
     options?: ITypeOptions,
-  ): Command<
-    CPG,
-    CPT,
-    CO,
-    CA,
-    CG,
-    Merge<CT, TypedType<N, H>>,
-    CGT,
-    CP
-  > {
+  ): Command<CPG, CPT, CO, CA, CG, Merge<CT, TypedType<N, H>>, CGT, CP> {
     if (this.cmd.types.get(name) && !options?.override) {
       throw new DuplicateType(name);
     }
-
     this.cmd.types.set(name, { ...options, name, handler });
-
     if (
       handler instanceof Type &&
       (typeof handler.complete !== "undefined" ||
@@ -631,10 +561,8 @@ export class Command<
       ) => handler.complete?.(cmd, parent) || [];
       this.complete(name, completeHandler, options);
     }
-
     return this as Command<any>;
   }
-
   public globalComplete(
     name: string,
     complete: ICompleteHandler,
@@ -642,7 +570,6 @@ export class Command<
   ): this {
     return this.complete(name, complete, { ...options, global: true });
   }
-
   /**
    * Register command specific custom type.
    * @param name      The name of the completion.
@@ -661,7 +588,9 @@ export class Command<
       CPT,
       any
     >,
-    options: ICompleteOptions & { global: boolean },
+    options: ICompleteOptions & {
+      global: boolean;
+    },
   ): this;
   public complete(
     name: string,
@@ -672,31 +601,19 @@ export class Command<
     name: string,
     complete:
       | ICompleteHandler<CO, CA, CG, CPG, CT, CGT, CPT, CP>
-      | ICompleteHandler<
-        Partial<CO>,
-        Partial<CA>,
-        CG,
-        CPG,
-        CT,
-        CGT,
-        CPT,
-        any
-      >,
+      | ICompleteHandler<Partial<CO>, Partial<CA>, CG, CPG, CT, CGT, CPT, any>,
     options?: ICompleteOptions,
   ): this {
     if (this.cmd.completions.has(name) && !options?.override) {
       throw new DuplicateCompletion(name);
     }
-
     this.cmd.completions.set(name, {
       name,
       complete,
       ...options,
     });
-
     return this;
   }
-
   /**
    * Throw validation error's instead of calling `Deno.exit()` to handle
    * validation error's manually.
@@ -728,7 +645,6 @@ export class Command<
     this.cmd.throwOnError = true;
     return this;
   }
-
   /**
    * Same as `.throwErrors()` but also prevents calling `Deno.exit` after
    * printing help or version with the --help and --version option.
@@ -738,17 +654,14 @@ export class Command<
     this.throwErrors();
     return this;
   }
-
   /** Check whether the command should throw errors or exit. */
   protected shouldThrowErrors(): boolean {
     return this.cmd.throwOnError || !!this.cmd._parent?.shouldThrowErrors();
   }
-
   /** Check whether the command should exit after printing help or version. */
   protected shouldExit(): boolean {
     return this.cmd._shouldExit ?? this.cmd._parent?.shouldExit() ?? true;
   }
-
   public globalOption<
     F extends string,
     G extends TypedOption<F, CO, Merge<CPT, Merge<CGT, CT>>, R, D>,
@@ -781,16 +694,7 @@ export class Command<
           value?: IFlagValueHandler<MapTypes<ValueOf<G>>, V>;
         }
       | IFlagValueHandler<MapTypes<ValueOf<G>>, V>,
-  ): Command<
-    CPG,
-    CPT,
-    CO,
-    CA,
-    MergeOptions<F, CG, MG>,
-    CT,
-    CGT,
-    CP
-  > {
+  ): Command<CPG, CPT, CO, CA, MergeOptions<F, CG, MG>, CT, CGT, CP> {
     if (typeof opts === "function") {
       return this.option(
         flags,
@@ -804,7 +708,6 @@ export class Command<
       { ...opts, global: true } as ICommandOption,
     ) as Command<any>;
   }
-
   /**
    * Add a new option.
    * @param flags Flags string e.g: -h, --help, --manual <requiredArg:string> [optionalArg:number] [...restArgs:string]
@@ -844,17 +747,7 @@ export class Command<
           value?: IFlagValueHandler<MapTypes<ValueOf<G>>, V>;
         }
       | IFlagValueHandler<MapTypes<ValueOf<G>>, V>,
-  ): Command<
-    CPG,
-    CPT,
-    CO,
-    CA,
-    MergeOptions<F, CG, MG>,
-    CT,
-    CGT,
-    CP
-  >;
-
+  ): Command<CPG, CPT, CO, CA, MergeOptions<F, CG, MG>, CT, CGT, CP>;
   public option<
     F extends string,
     O extends TypedOption<F, CO, Merge<CPT, Merge<CGT, CT>>, R, D>,
@@ -878,17 +771,7 @@ export class Command<
           value?: IFlagValueHandler<MapTypes<ValueOf<O>>, V>;
         }
       | IFlagValueHandler<MapTypes<ValueOf<O>>, V>,
-  ): Command<
-    CPG,
-    CPT,
-    MergeOptions<F, CO, MO>,
-    CA,
-    CG,
-    CT,
-    CGT,
-    CP
-  >;
-
+  ): Command<CPG, CPT, MergeOptions<F, CO, MO>, CA, CG, CT, CGT, CP>;
   public option(
     flags: string,
     desc: string,
@@ -897,13 +780,10 @@ export class Command<
     if (typeof opts === "function") {
       return this.option(flags, desc, { value: opts });
     }
-
     const result = splitArguments(flags);
-
     const args: IArgument[] = result.typeDefinition
       ? parseArgumentsDefinition(result.typeDefinition)
       : [];
-
     const option: IOption = {
       ...opts,
       name: "",
@@ -912,7 +792,6 @@ export class Command<
       flags: result.flags,
       typeDefinition: result.typeDefinition,
     };
-
     if (option.separator) {
       for (const arg of args) {
         if (arg.list) {
@@ -920,12 +799,10 @@ export class Command<
         }
       }
     }
-
     for (const part of option.flags) {
       const arg = part.trim();
       const isLong = /^--/.test(arg);
       const name = isLong ? arg.slice(2) : arg.slice(1);
-
       if (this.cmd.getBaseOption(name, true)) {
         if (opts?.override) {
           this.removeOption(name);
@@ -933,7 +810,6 @@ export class Command<
           throw new DuplicateOptionName(name);
         }
       }
-
       if (!option.name && isLong) {
         option.name = name;
       } else if (!option.aliases) {
@@ -942,16 +818,13 @@ export class Command<
         option.aliases.push(name);
       }
     }
-
     if (option.prepend) {
       this.cmd.options.unshift(option);
     } else {
       this.cmd.options.push(option);
     }
-
     return this;
   }
-
   /**
    * Add new command example.
    * @param name          Name of the example.
@@ -961,12 +834,9 @@ export class Command<
     if (this.cmd.hasExample(name)) {
       throw new DuplicateExample(name);
     }
-
     this.cmd.examples.push({ name, description });
-
     return this;
   }
-
   public globalEnv<
     N extends string,
     G extends TypedEnv<N, P, CO, Merge<CPT, Merge<CGT, CT>>, R>,
@@ -989,7 +859,6 @@ export class Command<
       { ...options, global: true } as IEnvVarOptions,
     ) as Command<any>;
   }
-
   /**
    * Add new environment variable.
    * @param name          Name of the environment variable.
@@ -1013,7 +882,6 @@ export class Command<
       value?: IEnvVarValueHandler<MapTypes<ValueOf<G>>, V>;
     },
   ): Command<CPG, CPT, CO, CA, Merge<CG, MG>, CT, CGT, CP>;
-
   public env<
     N extends string,
     O extends TypedEnv<N, P, CO, Merge<CPT, Merge<CGT, CT>>, R>,
@@ -1030,26 +898,21 @@ export class Command<
       value?: IEnvVarValueHandler<MapTypes<ValueOf<O>>, V>;
     },
   ): Command<CPG, CPT, Merge<CO, MO>, CA, CG, CT, CGT, CP>;
-
   public env(
     name: string,
     description: string,
     options?: IEnvVarOptions,
   ): Command<any> {
     const result = splitArguments(name);
-
     if (!result.typeDefinition) {
       result.typeDefinition = "<value:boolean>";
     }
-
     if (result.flags.some((envName) => this.cmd.getBaseEnvVar(envName, true))) {
       throw new DuplicateEnvironmentVariable(name);
     }
-
     const details: IArgument[] = parseArgumentsDefinition(
       result.typeDefinition,
     );
-
     if (details.length > 1) {
       throw new EnvironmentVariableSingleValue(name);
     } else if (details.length && details[0].optionalValue) {
@@ -1057,7 +920,6 @@ export class Command<
     } else if (details.length && details[0].variadic) {
       throw new EnvironmentVariableVariadicValue(name);
     }
-
     this.cmd.envVars.push({
       name: result.flags[0],
       names: result.flags,
@@ -1066,14 +928,11 @@ export class Command<
       details: details.shift() as IArgument,
       ...options,
     });
-
     return this;
   }
-
   /** ***************************************************************************
    * *** MAIN HANDLER ***********************************************************
    * *************************************************************************** */
-
   /**
    * Parse command line arguments and execute matched command.
    * @param args Command line args to parse. Ex: `cmd.parse( Deno.args )`
@@ -1106,17 +965,13 @@ export class Command<
       this.reset();
       this.registerDefaults();
       this.rawArgs = args;
-
       if (args.length > 0) {
         const subCommand = this.getCommand(args[0], true);
         if (subCommand) {
           subCommand._globalParent = this;
-          return subCommand.parse(
-            this.rawArgs.slice(1),
-          ) as any;
+          return subCommand.parse(this.rawArgs.slice(1)) as any;
         }
       }
-
       if (this.isExecutable) {
         await this.executeExecutable(this.rawArgs);
         return {
@@ -1131,16 +986,10 @@ export class Command<
       } else {
         const env: Record<string, unknown> = await this.parseEnvVars();
         const { actionOption, flags, unknown, literal } = this
-          .parseFlags(
-            this.rawArgs,
-            env,
-          );
-
+          .parseFlags(this.rawArgs, env);
         this.literalArgs = literal;
-
         const options: Record<string, unknown> = { ...env, ...flags };
         const params = this.parseArguments(unknown, options);
-
         if (actionOption) {
           await actionOption.action.call(this, options, ...params);
           if (actionOption.standalone) {
@@ -1152,7 +1001,6 @@ export class Command<
             } as any;
           }
         }
-
         return this.execute(options, ...params) as any;
       }
     } catch (error: unknown) {
@@ -1163,16 +1011,13 @@ export class Command<
       }
     }
   }
-
   /** Register default options like `--version` and `--help`. */
   private registerDefaults(): this {
     if (this.hasDefaults || this.getParent()) {
       return this;
     }
     this.hasDefaults = true;
-
     this.reset();
-
     !this.types.has("string") &&
       this.type("string", new StringType(), { global: true });
     !this.types.has("number") &&
@@ -1183,14 +1028,12 @@ export class Command<
       this.type("boolean", new BooleanType(), { global: true });
     !this.types.has("file") &&
       this.type("file", new FileType(), { global: true });
-
     if (!this._help) {
       this.help({
         hints: true,
         types: false,
       });
     }
-
     if (this._versionOption !== false && (this._versionOption || this.ver)) {
       this.option(
         this._versionOption?.flags || "-V, --version",
@@ -1214,7 +1057,6 @@ export class Command<
       );
       const versionOption = this.options[0];
     }
-
     if (this._helpOption !== false) {
       this.option(
         this._helpOption?.flags || "-h, --help",
@@ -1234,10 +1076,8 @@ export class Command<
       );
       const helpOption = this.options[0];
     }
-
     return this;
   }
-
   /**
    * Execute command.
    * @param options A map of options.
@@ -1251,18 +1091,15 @@ export class Command<
       await this.fn(options, ...args);
     } else if (this.defaultCommand) {
       const cmd = this.getCommand(this.defaultCommand, true);
-
       if (!cmd) {
         throw new DefaultCommandNotFound(
           this.defaultCommand,
           this.getCommands(),
         );
       }
-
       cmd._globalParent = this;
       await cmd.execute(options, ...args);
     }
-
     return {
       options,
       args,
@@ -1270,16 +1107,13 @@ export class Command<
       literal: this.literalArgs,
     };
   }
-
   /**
    * Execute external sub-command.
    * @param args Raw command line arguments.
    */
   protected async executeExecutable(args: string[]) {
     const command = this.getPath().replace(/\s+/g, "-");
-
     await Deno.permissions.request({ name: "run", command });
-
     try {
       const process: Deno.Process = Deno.run({
         cmd: [command, ...args],
@@ -1295,7 +1129,6 @@ export class Command<
       throw error;
     }
   }
-
   /**
    * Parse raw command line arguments.
    * @param args Raw command line arguments.
@@ -1303,9 +1136,17 @@ export class Command<
   protected parseFlags(
     args: string[],
     env: Record<string, unknown>,
-  ): IFlagsResult & { actionOption?: IOption & { action: IAction } } {
+  ): IFlagsResult & {
+    actionOption?: IOption & {
+      action: IAction;
+    };
+  } {
     try {
-      let actionOption: IOption & { action: IAction } | undefined;
+      let actionOption:
+        | IOption & {
+          action: IAction;
+        }
+        | undefined;
       const result = parseFlags(args, {
         stopEarly: this._stopEarly,
         allowEmpty: this._allowEmpty,
@@ -1314,7 +1155,9 @@ export class Command<
         parse: (type: ITypeInfo) => this.parseType(type),
         option: (option: IOption) => {
           if (!actionOption && option.action) {
-            actionOption = option as IOption & { action: IAction };
+            actionOption = option as IOption & {
+              action: IAction;
+            };
           }
         },
       });
@@ -1326,55 +1169,44 @@ export class Command<
       throw error;
     }
   }
-
   /** Parse argument type. */
   protected parseType(type: ITypeInfo): unknown {
     const typeSettings: IType | undefined = this.getType(type.type);
-
     if (!typeSettings) {
       throw new UnknownType(
         type.type,
         this.getTypes().map((type) => type.name),
       );
     }
-
     return typeSettings.handler instanceof Type
       ? typeSettings.handler.parse(type)
       : typeSettings.handler(type);
   }
-
   /** Validate environment variables. */
   protected async parseEnvVars(): Promise<Record<string, unknown>> {
     const envVars = this.getEnvVars(true);
     const result: Record<string, unknown> = {};
-
     if (!envVars.length) {
       return result;
     }
-
     const hasEnvPermissions = (await Deno.permissions.query({
       name: "env",
     })).state === "granted";
-
     for (const env of envVars) {
-      const name = hasEnvPermissions && env.names.find(
-        (name: string) => !!Deno.env.get(name),
-      );
-
+      const name = hasEnvPermissions &&
+        env.names.find((name: string) => !!Deno.env.get(name));
       if (name) {
         const propertyName = underscoreToCamelCase(
           env.prefix
             ? env.names[0].replace(new RegExp(`^${env.prefix}`), "")
             : env.names[0],
         );
-
         result[propertyName] = this.parseType({
           label: "Environment variable",
           type: env.type,
           name,
           value: Deno.env.get(name) ?? "",
         });
-
         if (env.value && typeof result[propertyName] !== "undefined") {
           result[propertyName] = env.value(result[propertyName]);
         }
@@ -1382,10 +1214,8 @@ export class Command<
         throw new MissingRequiredEnvVar(env);
       }
     }
-
     return result;
   }
-
   /**
    * Parse command-line arguments.
    * @param args  Raw command line arguments.
@@ -1393,10 +1223,8 @@ export class Command<
    */
   protected parseArguments(args: string[], flags: Record<string, unknown>): CA {
     const params: Array<unknown> = [];
-
     // remove array reference
     args = args.slice(0);
-
     if (!this.hasArguments()) {
       if (args.length) {
         if (this.hasCommands(true)) {
@@ -1410,13 +1238,11 @@ export class Command<
         const required = this.getArguments()
           .filter((expectedArg) => !expectedArg.optionalValue)
           .map((expectedArg) => expectedArg.name);
-
         if (required.length) {
           const flagNames: string[] = Object.keys(flags);
           const hasStandaloneOption = !!flagNames.find((name) =>
             this.getOption(name, true)?.standalone
           );
-
           if (!hasStandaloneOption) {
             throw new MissingArguments(required);
           }
@@ -1429,9 +1255,7 @@ export class Command<
             }
             throw new MissingArgument(`Missing argument: ${expectedArg.name}`);
           }
-
           let arg: unknown;
-
           if (expectedArg.variadic) {
             arg = args.splice(0, args.length)
               .map((value) =>
@@ -1450,21 +1274,17 @@ export class Command<
               value: args.shift() as string,
             });
           }
-
           if (typeof arg !== "undefined") {
             params.push(arg);
           }
         }
-
         if (args.length) {
           throw new TooManyArguments(args);
         }
       }
     }
-
     return params as CA;
   }
-
   /**
    * Handle error. If `throwErrors` is enabled the error will be returned,
    * otherwise a formatted error message will be printed and `Deno.exit(1)`
@@ -1479,21 +1299,17 @@ export class Command<
     console.error(red(`  ${bold("error")}: ${error.message}\n`));
     Deno.exit(error instanceof ValidationError ? error.exitCode : 1);
   }
-
   /** ************************************************************************** *
    * *** GETTER **************************************************************** *
    * *************************************************************************** */
-
   /** Get command name. */
   public getName(): string {
     return this._name;
   }
-
   /** Get parent command. */
   public getParent(): CP {
     return this._parent as CP;
   }
-
   /**
    * Get parent command from global executed command.
    * Be sure, to call this method only inside an action handler. Unless this or any child command was executed,
@@ -1502,29 +1318,24 @@ export class Command<
   public getGlobalParent(): Command<any> | undefined {
     return this._globalParent;
   }
-
   /** Get main command. */
   public getMainCommand(): Command<any> {
     return this._parent?.getMainCommand() ?? this;
   }
-
   /** Get command name aliases. */
   public getAliases(): string[] {
     return this.aliases;
   }
-
   /** Get full command path. */
   public getPath(): string {
     return this._parent
       ? this._parent.getPath() + " " + this._name
       : this._name;
   }
-
   /** Get arguments definition. E.g: <input-file:string> <output-file:string> */
   public getArgsDefinition(): string | undefined {
     return this.argsDefinition;
   }
-
   /**
    * Get argument by name.
    * @param name Name of the argument.
@@ -1532,31 +1343,25 @@ export class Command<
   public getArgument(name: string): IArgument | undefined {
     return this.getArguments().find((arg) => arg.name === name);
   }
-
   /** Get arguments. */
   public getArguments(): IArgument[] {
     if (!this.args.length && this.argsDefinition) {
       this.args = parseArgumentsDefinition(this.argsDefinition);
     }
-
     return this.args;
   }
-
   /** Check if command has arguments. */
   public hasArguments() {
     return !!this.argsDefinition;
   }
-
   /** Get command version. */
   public getVersion(): string | undefined {
     return this.getVersionHandler()?.call(this, this);
   }
-
   /** Get help handler method. */
   private getVersionHandler(): IVersionHandler | undefined {
     return this.ver ?? this._parent?.getVersionHandler();
   }
-
   /** Get command description. */
   public getDescription(): string {
     // call description method only once
@@ -1564,70 +1369,57 @@ export class Command<
       ? this.desc = this.desc()
       : this.desc;
   }
-
   public getUsage() {
     return this._usage ?? this.getArgsDefinition();
   }
-
   /** Get short command description. This is the first line of the description. */
   public getShortDescription(): string {
     return this.getDescription()
       .trim()
       .split("\n", 1)[0];
   }
-
   /** Get original command-line arguments. */
   public getRawArgs(): string[] {
     return this.rawArgs;
   }
-
   /** Get all arguments defined after the double dash. */
   public getLiteralArgs(): string[] {
     return this.literalArgs;
   }
-
   /** Output generated help without exiting. */
   public showVersion(): void {
     console.log(this.getVersion());
   }
-
   /** Returns command name, version and meta data. */
   public getLongVersion(): string {
     return `${bold(this.getMainCommand().getName())} ${
       blue(this.getVersion() ?? "")
     }` +
-      Object.entries(this.getMeta()).map(
-        ([k, v]) => `\n${bold(k)} ${blue(v)}`,
-      ).join("");
+      Object.entries(this.getMeta()).map(([k, v]) => `\n${bold(k)} ${blue(v)}`)
+        .join("");
   }
-
   /** Outputs command name, version and meta data. */
   public showLongVersion(): void {
     console.log(this.getLongVersion());
   }
-
   /** Output generated help without exiting. */
   public showHelp(options?: HelpOptions): void {
     console.log(this.getHelp(options));
   }
-
   /** Get generated help. */
   public getHelp(options?: HelpOptions): string {
     this.registerDefaults();
     return this.getHelpHandler().call(this, this, options ?? {});
   }
-
   /** Get help handler method. */
   private getHelpHandler(): IHelpHandler {
     return this._help ?? this._parent?.getHelpHandler() as IHelpHandler;
   }
-
   private exit(code = 0) {
     if (this.shouldExit()) {
       Deno.exit(code);
     }
   }
-
   /** Check if new version is available and add hint to version. */
   public async checkVersion(): Promise<void> {
     const mainCommand = this.getMainCommand();
@@ -1648,11 +1440,9 @@ export class Command<
       }
     }
   }
-
   /** ************************************************************************** *
    * *** Options GETTER ******************************************************** *
    * *************************************************************************** */
-
   /**
    * Checks whether the command has options or not.
    * @param hidden Include hidden options.
@@ -1660,7 +1450,6 @@ export class Command<
   public hasOptions(hidden?: boolean): boolean {
     return this.getOptions(hidden).length > 0;
   }
-
   /**
    * Get options.
    * @param hidden Include hidden options.
@@ -1668,7 +1457,6 @@ export class Command<
   public getOptions(hidden?: boolean): IOption[] {
     return this.getGlobalOptions(hidden).concat(this.getBaseOptions(hidden));
   }
-
   /**
    * Get base options.
    * @param hidden Include hidden options.
@@ -1677,12 +1465,10 @@ export class Command<
     if (!this.options.length) {
       return [];
     }
-
     return hidden
       ? this.options.slice(0)
       : this.options.filter((opt) => !opt.hidden);
   }
-
   /**
    * Get global options.
    * @param hidden Include hidden options.
@@ -1707,16 +1493,12 @@ export class Command<
             }
           });
         }
-
         return getOptions(cmd._parent, options, names);
       }
-
       return options;
     };
-
     return getOptions(this._parent);
   }
-
   /**
    * Checks whether the command has an option with given name or not.
    * @param name Name of the option. Must be in param-case.
@@ -1725,7 +1507,6 @@ export class Command<
   public hasOption(name: string, hidden?: boolean): boolean {
     return !!this.getOption(name, hidden);
   }
-
   /**
    * Get option by name.
    * @param name Name of the option. Must be in param-case.
@@ -1735,7 +1516,6 @@ export class Command<
     return this.getBaseOption(name, hidden) ??
       this.getGlobalOption(name, hidden);
   }
-
   /**
    * Get base option by name.
    * @param name Name of the option. Must be in param-case.
@@ -1743,10 +1523,8 @@ export class Command<
    */
   public getBaseOption(name: string, hidden?: boolean): IOption | undefined {
     const option = this.options.find((option) => option.name === name);
-
     return option && (hidden || !option.hidden) ? option : undefined;
   }
-
   /**
    * Get global option from parent command's by name.
    * @param name Name of the option. Must be in param-case.
@@ -1756,33 +1534,26 @@ export class Command<
     if (!this._parent) {
       return;
     }
-
     const option: IOption | undefined = this._parent.getBaseOption(
       name,
       hidden,
     );
-
     if (!option || !option.global) {
       return this._parent.getGlobalOption(name, hidden);
     }
-
     return option;
   }
-
   /**
    * Remove option by name.
    * @param name Name of the option. Must be in param-case.
    */
   public removeOption(name: string): IOption | undefined {
     const index = this.options.findIndex((option) => option.name === name);
-
     if (index === -1) {
       return;
     }
-
     return this.options.splice(index, 1)[0];
   }
-
   /**
    * Checks whether the command has sub-commands or not.
    * @param hidden Include hidden commands.
@@ -1790,7 +1561,6 @@ export class Command<
   public hasCommands(hidden?: boolean): boolean {
     return this.getCommands(hidden).length > 0;
   }
-
   /**
    * Get commands.
    * @param hidden Include hidden commands.
@@ -1798,7 +1568,6 @@ export class Command<
   public getCommands(hidden?: boolean): Array<Command<any>> {
     return this.getGlobalCommands(hidden).concat(this.getBaseCommands(hidden));
   }
-
   /**
    * Get base commands.
    * @param hidden Include hidden commands.
@@ -1807,7 +1576,6 @@ export class Command<
     const commands = Array.from(this.commands.values());
     return hidden ? commands : commands.filter((cmd) => !cmd.isHidden);
   }
-
   /**
    * Get global commands.
    * @param hidden Include hidden commands.
@@ -1833,16 +1601,12 @@ export class Command<
             }
           });
         }
-
         return getCommands(cmd._parent, commands, names);
       }
-
       return commands;
     };
-
     return getCommands(this._parent);
   }
-
   /**
    * Checks whether a child command exists by given name or alias.
    * @param name Name or alias of the command.
@@ -1851,7 +1615,6 @@ export class Command<
   public hasCommand(name: string, hidden?: boolean): boolean {
     return !!this.getCommand(name, hidden);
   }
-
   /**
    * Get command by name or alias.
    * @param name Name or alias of the command.
@@ -1864,7 +1627,6 @@ export class Command<
     return this.getBaseCommand(name, hidden) ??
       this.getGlobalCommand(name, hidden);
   }
-
   /**
    * Get base command by name or alias.
    * @param name Name or alias of the command.
@@ -1882,7 +1644,6 @@ export class Command<
       }
     }
   }
-
   /**
    * Get global command by name or alias.
    * @param name Name or alias of the command.
@@ -1895,40 +1656,31 @@ export class Command<
     if (!this._parent) {
       return;
     }
-
     const cmd = this._parent.getBaseCommand(name, hidden);
-
     if (!cmd?.isGlobal) {
       return this._parent.getGlobalCommand(name, hidden);
     }
-
     return cmd as C;
   }
-
   /**
    * Remove sub-command by name or alias.
    * @param name Name or alias of the command.
    */
   public removeCommand(name: string): Command<any> | undefined {
     const command = this.getBaseCommand(name, true);
-
     if (command) {
       this.commands.delete(command._name);
     }
-
     return command;
   }
-
   /** Get types. */
   public getTypes(): IType[] {
     return this.getGlobalTypes().concat(this.getBaseTypes());
   }
-
   /** Get base types. */
   public getBaseTypes(): IType[] {
     return Array.from(this.types.values());
   }
-
   /** Get global types. */
   public getGlobalTypes(): IType[] {
     const getTypes = (
@@ -1949,16 +1701,12 @@ export class Command<
             }
           });
         }
-
         return getTypes(cmd._parent, types, names);
       }
-
       return types;
     };
-
     return getTypes(this._parent);
   }
-
   /**
    * Get type by name.
    * @param name Name of the type.
@@ -1966,7 +1714,6 @@ export class Command<
   public getType(name: string): IType | undefined {
     return this.getBaseType(name) ?? this.getGlobalType(name);
   }
-
   /**
    * Get base type by name.
    * @param name Name of the type.
@@ -1974,7 +1721,6 @@ export class Command<
   public getBaseType(name: string): IType | undefined {
     return this.types.get(name);
   }
-
   /**
    * Get global type by name.
    * @param name Name of the type.
@@ -1983,26 +1729,20 @@ export class Command<
     if (!this._parent) {
       return;
     }
-
     const cmd: IType | undefined = this._parent.getBaseType(name);
-
     if (!cmd?.global) {
       return this._parent.getGlobalType(name);
     }
-
     return cmd;
   }
-
   /** Get completions. */
   public getCompletions() {
     return this.getGlobalCompletions().concat(this.getBaseCompletions());
   }
-
   /** Get base completions. */
   public getBaseCompletions(): ICompletion[] {
     return Array.from(this.completions.values());
   }
-
   /** Get global completions. */
   public getGlobalCompletions(): ICompletion[] {
     const getCompletions = (
@@ -2023,16 +1763,12 @@ export class Command<
             }
           });
         }
-
         return getCompletions(cmd._parent, completions, names);
       }
-
       return completions;
     };
-
     return getCompletions(this._parent);
   }
-
   /**
    * Get completion by name.
    * @param name Name of the completion.
@@ -2040,7 +1776,6 @@ export class Command<
   public getCompletion(name: string): ICompletion | undefined {
     return this.getBaseCompletion(name) ?? this.getGlobalCompletion(name);
   }
-
   /**
    * Get base completion by name.
    * @param name Name of the completion.
@@ -2048,7 +1783,6 @@ export class Command<
   public getBaseCompletion(name: string): ICompletion | undefined {
     return this.completions.get(name);
   }
-
   /**
    * Get global completions by name.
    * @param name Name of the completion.
@@ -2057,18 +1791,14 @@ export class Command<
     if (!this._parent) {
       return;
     }
-
     const completion: ICompletion | undefined = this._parent.getBaseCompletion(
       name,
     );
-
     if (!completion?.global) {
       return this._parent.getGlobalCompletion(name);
     }
-
     return completion;
   }
-
   /**
    * Checks whether the command has environment variables or not.
    * @param hidden Include hidden environment variable.
@@ -2076,7 +1806,6 @@ export class Command<
   public hasEnvVars(hidden?: boolean): boolean {
     return this.getEnvVars(hidden).length > 0;
   }
-
   /**
    * Get environment variables.
    * @param hidden Include hidden environment variable.
@@ -2084,7 +1813,6 @@ export class Command<
   public getEnvVars(hidden?: boolean): IEnvVar[] {
     return this.getGlobalEnvVars(hidden).concat(this.getBaseEnvVars(hidden));
   }
-
   /**
    * Get base environment variables.
    * @param hidden Include hidden environment variable.
@@ -2093,12 +1821,10 @@ export class Command<
     if (!this.envVars.length) {
       return [];
     }
-
     return hidden
       ? this.envVars.slice(0)
       : this.envVars.filter((env) => !env.hidden);
   }
-
   /**
    * Get global environment variables.
    * @param hidden Include hidden environment variable.
@@ -2123,16 +1849,12 @@ export class Command<
             }
           });
         }
-
         return getEnvVars(cmd._parent, envVars, names);
       }
-
       return envVars;
     };
-
     return getEnvVars(this._parent);
   }
-
   /**
    * Checks whether the command has an environment variable with given name or not.
    * @param name Name of the environment variable.
@@ -2141,7 +1863,6 @@ export class Command<
   public hasEnvVar(name: string, hidden?: boolean): boolean {
     return !!this.getEnvVar(name, hidden);
   }
-
   /**
    * Get environment variable by name.
    * @param name Name of the environment variable.
@@ -2151,7 +1872,6 @@ export class Command<
     return this.getBaseEnvVar(name, hidden) ??
       this.getGlobalEnvVar(name, hidden);
   }
-
   /**
    * Get base environment variable by name.
    * @param name Name of the environment variable.
@@ -2161,10 +1881,8 @@ export class Command<
     const envVar: IEnvVar | undefined = this.envVars.find((env) =>
       env.names.indexOf(name) !== -1
     );
-
     return envVar && (hidden || !envVar.hidden) ? envVar : undefined;
   }
-
   /**
    * Get global environment variable by name.
    * @param name Name of the environment variable.
@@ -2174,88 +1892,63 @@ export class Command<
     if (!this._parent) {
       return;
     }
-
     const envVar: IEnvVar | undefined = this._parent.getBaseEnvVar(
       name,
       hidden,
     );
-
     if (!envVar?.global) {
       return this._parent.getGlobalEnvVar(name, hidden);
     }
-
     return envVar;
   }
-
   /** Checks whether the command has examples or not. */
   public hasExamples(): boolean {
     return this.examples.length > 0;
   }
-
   /** Get all examples. */
   public getExamples(): IExample[] {
     return this.examples;
   }
-
   /** Checks whether the command has an example with given name or not. */
   public hasExample(name: string): boolean {
     return !!this.getExample(name);
   }
-
   /** Get example with given name. */
   public getExample(name: string): IExample | undefined {
     return this.examples.find((example) => example.name === name);
   }
 }
-
 function isUpgradeCommand(command: unknown): command is UpgradeCommandImpl {
   return command instanceof Command && "getLatestVersion" in command;
 }
-
 interface UpgradeCommandImpl {
   getLatestVersion(): Promise<string>;
 }
-
 interface IDefaultOption {
   flags: string;
   desc?: string;
   opts?: ICommandOption;
 }
-
 type TrimLeft<T extends string, V extends string | undefined> = T extends
-  `${V}${infer U}` ? U
-  : T;
-
+  `${V}${infer U}` ? U : T;
 type TrimRight<T extends string, V extends string> = T extends `${infer U}${V}`
   ? U
   : T;
-
 type Lower<V extends string> = V extends Uppercase<V> ? Lowercase<V>
   : Uncapitalize<V>;
-
 type CamelCase<T extends string> = T extends `${infer V}_${infer Rest}`
   ? `${Lower<V>}${Capitalize<CamelCase<Rest>>}`
   : T extends `${infer V}-${infer Rest}`
     ? `${Lower<V>}${Capitalize<CamelCase<Rest>>}`
   : Lower<T>;
-
 type OneOf<T, V> = T extends void ? V : T;
-
-type Merge<L, R> = L extends void ? R
-  : R extends void ? L
-  : L & R;
-
+type Merge<L, R> = L extends void ? R : R extends void ? L : L & R;
 // type Merge<L, R> = L extends void ? R
 //   : R extends void ? L
 //   : Omit<L, keyof R> & R;
-
-type MergeRecursive<L, R> = L extends void ? R
-  : R extends void ? L
-  : L & R;
-
+type MergeRecursive<L, R> = L extends void ? R : R extends void ? L : L & R;
 type OptionalOrRequiredValue<T extends string> = `[${T}]` | `<${T}>`;
 type RestValue = `...${string}` | `${string}...`;
-
 /**
  * Rest args with list type and completions.
  *
@@ -2267,7 +1960,6 @@ type RestValue = `...${string}` | `${string}...`;
 type RestArgsListTypeCompletion<T extends string> = OptionalOrRequiredValue<
   `${RestValue}:${T}[]:${string}`
 >;
-
 /**
  * Rest args with list type.
  *
@@ -2279,7 +1971,6 @@ type RestArgsListTypeCompletion<T extends string> = OptionalOrRequiredValue<
 type RestArgsListType<T extends string> = OptionalOrRequiredValue<
   `${RestValue}:${T}[]`
 >;
-
 /**
  * Rest args with type and completions.
  *
@@ -2291,7 +1982,6 @@ type RestArgsListType<T extends string> = OptionalOrRequiredValue<
 type RestArgsTypeCompletion<T extends string> = OptionalOrRequiredValue<
   `${RestValue}:${T}:${string}`
 >;
-
 /**
  * Rest args with type.
  *
@@ -2303,7 +1993,6 @@ type RestArgsTypeCompletion<T extends string> = OptionalOrRequiredValue<
 type RestArgsType<T extends string> = OptionalOrRequiredValue<
   `${RestValue}:${T}`
 >;
-
 /**
  * Rest args.
  * - `[...name]`
@@ -2311,10 +2000,7 @@ type RestArgsType<T extends string> = OptionalOrRequiredValue<
  * - `[name...]`
  * - `<name...>`
  */
-type RestArgs = OptionalOrRequiredValue<
-  `${RestValue}`
->;
-
+type RestArgs = OptionalOrRequiredValue<`${RestValue}`>;
 /**
  * Single arg with list type and completions.
  *
@@ -2324,7 +2010,6 @@ type RestArgs = OptionalOrRequiredValue<
 type SingleArgListTypeCompletion<T extends string> = OptionalOrRequiredValue<
   `${string}:${T}[]:${string}`
 >;
-
 /**
  * Single arg with list type.
  *
@@ -2334,7 +2019,6 @@ type SingleArgListTypeCompletion<T extends string> = OptionalOrRequiredValue<
 type SingleArgListType<T extends string> = OptionalOrRequiredValue<
   `${string}:${T}[]`
 >;
-
 /**
  * Single arg  with type and completion.
  *
@@ -2344,7 +2028,6 @@ type SingleArgListType<T extends string> = OptionalOrRequiredValue<
 type SingleArgTypeCompletion<T extends string> = OptionalOrRequiredValue<
   `${string}:${T}:${string}`
 >;
-
 /**
  * Single arg with type.
  *
@@ -2354,24 +2037,19 @@ type SingleArgTypeCompletion<T extends string> = OptionalOrRequiredValue<
 type SingleArgType<T extends string> = OptionalOrRequiredValue<
   `${string}:${T}`
 >;
-
 /**
  * Single arg.
  *
  * - `[name]`
  * - `<name>`
  */
-type SingleArg = OptionalOrRequiredValue<
-  `${string}`
->;
-
+type SingleArg = OptionalOrRequiredValue<`${string}`>;
 type DefaultTypes = {
   number: NumberType;
   integer: IntegerType;
   string: StringType;
   boolean: BooleanType;
 };
-
 type ArgumentType<A extends string, U, T = Merge<DefaultTypes, U>> = A extends
   RestArgsListTypeCompletion<infer Type>
   ? T extends Record<Type, infer R> ? Array<Array<R>> : unknown
@@ -2392,45 +2070,49 @@ type ArgumentType<A extends string, U, T = Merge<DefaultTypes, U>> = A extends
     ? T extends Record<Type, infer R> ? R : unknown
   : A extends SingleArg ? string
   : unknown;
-
 type ArgumentTypes<A extends string, T extends void | Record<string, any>> =
-  A extends `${string} ${string}` ? TypedArguments<A, T>
-    : ArgumentType<A, T>;
-
+  A extends `${string} ${string}` ? TypedArguments<A, T> : ArgumentType<A, T>;
 type GetArguments<A extends string> = A extends `-${string}=${infer Rest}`
   ? GetArguments<Rest>
   : A extends `-${string} ${infer Rest}` ? GetArguments<Rest>
   : A;
-
 type OptionName<Name extends string> = Name extends "*" ? string
   : CamelCase<TrimRight<Name, ",">>;
-
 type IsRequired<R extends boolean | undefined, D> = R extends true ? true
   : D extends undefined ? false
   : true;
-
 type NegatableOption<
   F extends string,
   CO,
   D,
   N extends string = OptionName<F>,
-> = D extends undefined
-  ? N extends keyof CO ? { [K in N]?: false } : { [K in N]: boolean }
-  : { [K in N]: NonNullable<D> | false };
-
+> = D extends undefined ? N extends keyof CO ? {
+      [K in N]?: false;
+    }
+  : {
+    [K in N]: boolean;
+  }
+  : {
+    [K in N]: NonNullable<D> | false;
+  };
 type BooleanOption<
   N extends string,
   CO,
   R extends boolean | undefined = undefined,
   D = undefined,
 > = N extends `no-${infer Name}` ? NegatableOption<Name, CO, D>
-  : N extends `${infer Name}.${infer Rest}`
-    ? (R extends true
-      ? { [K in OptionName<Name>]: BooleanOption<Rest, CO, R, D> }
-      : { [K in OptionName<Name>]?: BooleanOption<Rest, CO, R, D> })
-  : (R extends true ? { [K in OptionName<N>]: true | D }
-    : { [K in OptionName<N>]?: true | D });
-
+  : N extends `${infer Name}.${infer Rest}` ? (R extends true ? {
+        [K in OptionName<Name>]: BooleanOption<Rest, CO, R, D>;
+      }
+      : {
+        [K in OptionName<Name>]?: BooleanOption<Rest, CO, R, D>;
+      })
+  : (R extends true ? {
+      [K in OptionName<N>]: true | D;
+    }
+    : {
+      [K in OptionName<N>]?: true | D;
+    });
 type ValueOption<
   N extends string,
   F extends string,
@@ -2453,7 +2135,6 @@ type ValueOption<
         ? NonNullable<D> | true | ArgumentType<GetArguments<F>, V>
         : NonNullable<D> | ArgumentType<GetArguments<F>, V>;
     });
-
 type ValuesOption<
   T extends string,
   Rest extends string,
@@ -2476,7 +2157,6 @@ type ValuesOption<
         ? NonNullable<D> | true | ArgumentTypes<GetArguments<Rest>, V>
         : NonNullable<D> | ArgumentTypes<GetArguments<Rest>, V>;
     });
-
 type MapValue<O, V, C = undefined> = V extends undefined ? C extends true ? {
       [K in keyof O]: O[K] extends (Record<string, unknown> | undefined)
         ? MapValue<O[K], V>
@@ -2488,7 +2168,6 @@ type MapValue<O, V, C = undefined> = V extends undefined ? C extends true ? {
       ? MapValue<O[K], V>
       : V;
   };
-
 type GetOptionName<T> = T extends `${string}--${infer Name}=${string}`
   ? TrimRight<Name, ",">
   : T extends `${string}--${infer Name} ${string}` ? TrimRight<Name, ",">
@@ -2497,12 +2176,10 @@ type GetOptionName<T> = T extends `${string}--${infer Name}=${string}`
   : T extends `-${infer Name} ${string}` ? TrimRight<Name, ",">
   : T extends `-${infer Name}` ? Name
   : unknown;
-
 type MergeOptions<T, CO, O, N = GetOptionName<T>> = N extends `no-${string}`
   ? Spread<CO, O>
   : N extends `${string}.${string}` ? MergeRecursive<CO, O>
   : Merge<CO, O>;
-
 // type MergeOptions<T, CO, O, N = GetOptionName<T>> = N extends `no-${string}`
 //   ? Spread<CO, O>
 //   : N extends `${infer Name}.${infer Child}`
@@ -2512,7 +2189,6 @@ type MergeOptions<T, CO, O, N = GetOptionName<T>> = N extends `no-${string}`
 //       : MergeRecursive<CO, O>
 //       : MergeRecursive<CO, O>)
 //   : Merge<CO, O>;
-
 type TypedOption<
   F extends string,
   CO,
@@ -2532,23 +2208,28 @@ type TypedOption<
     ? ValuesOption<Name, Rest, T, IsRequired<R, D>, D>
   : F extends `-${infer Name}` ? BooleanOption<Name, CO, IsRequired<R, D>, D>
   : Record<string, unknown>;
-
 type TypedArguments<A extends string, T extends Record<string, any> | void> =
   number extends T ? any
-    : A extends `${infer Arg} ${infer Rest}`
-      ? Arg extends `[${string}]`
-        ? [ArgumentType<Arg, T>?, ...TypedArguments<Rest, T>]
-      : [ArgumentType<Arg, T>, ...TypedArguments<Rest, T>]
-    : A extends `[${string}]` ? [ArgumentType<A, T>?]
-    : [ArgumentType<A, T>];
-
+    : A extends `${infer Arg} ${infer Rest}` ? Arg extends `[${string}]` ? [
+          ArgumentType<Arg, T>?,
+          ...TypedArguments<Rest, T>,
+        ]
+      : [
+        ArgumentType<Arg, T>,
+        ...TypedArguments<Rest, T>,
+      ]
+    : A extends `[${string}]` ? [
+        ArgumentType<A, T>?,
+      ]
+    : [
+      ArgumentType<A, T>,
+    ];
 type TypedCommandArguments<
   N extends string,
   T extends void | Record<string, any>,
 > = number extends T ? any
   : N extends `${string} ${infer Args}` ? TypedArguments<Args, T>
   : [];
-
 type TypedEnv<
   N extends string,
   P extends string | undefined,
@@ -2563,41 +2244,26 @@ type TypedEnv<
     ? ValueOption<TrimLeft<Name, P>, Rest, T, R, D>
   : N extends `${infer Name}` ? BooleanOption<TrimLeft<Name, P>, CO, R, D>
   : Record<string, unknown>;
-
 type TypedType<
   Name extends string,
   Handler extends TypeOrTypeHandler<unknown>,
-> = { [N in Name]: Handler };
-
+> = {
+  [N in Name]: Handler;
+};
 type RequiredKeys<T> = {
-  // deno-lint-ignore ban-types
   [K in keyof T]-?: {} extends Pick<T, K> ? never : K;
 }[keyof T];
-
 type OptionalKeys<T> = {
-  // deno-lint-ignore ban-types
   [K in keyof T]-?: {} extends Pick<T, K> ? K : never;
 }[keyof T];
-
-type SpreadRequiredProperties<
-  L,
-  R,
-  K extends keyof L & keyof R,
-> = {
+type SpreadRequiredProperties<L, R, K extends keyof L & keyof R> = {
   [P in K]: Exclude<L[P], undefined> | Exclude<R[P], undefined>;
 };
-
-type SpreadOptionalProperties<
-  L,
-  R,
-  K extends keyof L & keyof R,
-> = {
+type SpreadOptionalProperties<L, R, K extends keyof L & keyof R> = {
   [P in K]?: L[P] | R[P];
 };
-
 /** Merge types of two objects. */
 type Spread<L, R> = L extends void ? R : R extends void ? L
-  // Properties in L that don't exist in R.
 :
   & Omit<L, keyof R>
   // Properties in R that don't exist in L.
@@ -2607,10 +2273,5 @@ type Spread<L, R> = L extends void ? R : R extends void ? L
   // Required properties in L that exist in R.
   & SpreadRequiredProperties<L, R, RequiredKeys<L> & keyof R>
   // Optional properties in L and R.
-  & SpreadOptionalProperties<
-    L,
-    R,
-    OptionalKeys<L> & OptionalKeys<R>
-  >;
-
+  & SpreadOptionalProperties<L, R, OptionalKeys<L> & OptionalKeys<R>>;
 type ValueOf<T> = T extends Record<string, infer V> ? ValueOf<V> : T;

@@ -1,9 +1,7 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { type Reader } from "../types.d.ts";
 import { BufReader } from "./buf_reader.ts";
 import { concat } from "../bytes/concat.ts";
-
 /**
  * Read strings line-by-line from a Reader.
  *
@@ -20,14 +18,11 @@ import { concat } from "../bytes/concat.ts";
  * }
  * ```
  */
-export async function* readLines(
-  reader: Reader,
-  decoderOpts?: {
-    encoding?: string;
-    fatal?: boolean;
-    ignoreBOM?: boolean;
-  },
-): AsyncIterableIterator<string> {
+export async function* readLines(reader: Reader, decoderOpts?: {
+  encoding?: string;
+  fatal?: boolean;
+  ignoreBOM?: boolean;
+}): AsyncIterableIterator<string> {
   const bufReader = new BufReader(reader);
   let chunks: Uint8Array[] = [];
   const decoder = new TextDecoder(decoderOpts?.encoding, decoderOpts);

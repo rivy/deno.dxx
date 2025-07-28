@@ -1,77 +1,73 @@
 export type Options = {
   /**
-	The position to truncate the string.
+      The position to truncate the string.
 
-	@default 'end'
-	*/
+      @default 'end'
+      */
   readonly position?: "start" | "middle" | "end";
-
   /**
-	Add a space between the text and the ellipsis.
+      Add a space between the text and the ellipsis.
 
-	@default false
+      @default false
 
-	@example
-	```
-	import cliTruncate from 'cli-truncate';
+      @example
+      ```
+      import cliTruncate from 'cli-truncate';
 
-	cliTruncate('unicorns', 5, {position: 'end', space: true});
-	//=> 'uni …'
+      cliTruncate('unicorns', 5, {position: 'end', space: true});
+      //=> 'uni …'
 
-	cliTruncate('unicorns', 5, {position: 'end', space: false});
-	//=> 'unic…'
+      cliTruncate('unicorns', 5, {position: 'end', space: false});
+      //=> 'unic…'
 
-	cliTruncate('unicorns', 6, {position: 'start', space: true});
-	//=> '… orns'
+      cliTruncate('unicorns', 6, {position: 'start', space: true});
+      //=> '… orns'
 
-	cliTruncate('unicorns', 7, {position: 'middle', space: true});
-	//=> 'uni … s'
-	```
-	*/
+      cliTruncate('unicorns', 7, {position: 'middle', space: true});
+      //=> 'uni … s'
+      ```
+      */
   readonly space?: boolean;
-
   /**
-	Truncate the string from a whitespace if it is within 3 characters from the actual breaking point.
+      Truncate the string from a whitespace if it is within 3 characters from the actual breaking point.
 
-	@default false
+      @default false
 
-	@example
-	```
-	import cliTruncate from 'cli-truncate';
+      @example
+      ```
+      import cliTruncate from 'cli-truncate';
 
-	cliTruncate('unicorns rainbow dragons', 20, {position: 'start', preferTruncationOnSpace: true});
-	//=> '…rainbow dragons'
+      cliTruncate('unicorns rainbow dragons', 20, {position: 'start', preferTruncationOnSpace: true});
+      //=> '…rainbow dragons'
 
-	cliTruncate('unicorns rainbow dragons', 20, {position: 'middle', preferTruncationOnSpace: true});
-	//=> 'unicorns…dragons'
+      cliTruncate('unicorns rainbow dragons', 20, {position: 'middle', preferTruncationOnSpace: true});
+      //=> 'unicorns…dragons'
 
-	cliTruncate('unicorns rainbow dragons', 6, {position: 'end', preferTruncationOnSpace: true});
-	//=> 'unico…'
-	````
-	*/
+      cliTruncate('unicorns rainbow dragons', 6, {position: 'end', preferTruncationOnSpace: true});
+      //=> 'unico…'
+      ````
+      */
   readonly preferTruncationOnSpace?: boolean;
-
   /**
-	The character to use at the breaking point.
+      The character to use at the breaking point.
 
-	@default '…'
+      @default '…'
 
-	@example
-	```
-	import cliTruncate from 'cli-truncate';
+      @example
+      ```
+      import cliTruncate from 'cli-truncate';
 
-	cliTruncate('unicorns', 5, {position: 'end'});
-	//=> 'unic…'
+      cliTruncate('unicorns', 5, {position: 'end'});
+      //=> 'unic…'
 
-	cliTruncate('unicorns', 5, {position: 'end', truncationCharacter: '.'});
-	//=> 'unic.'
+      cliTruncate('unicorns', 5, {position: 'end', truncationCharacter: '.'});
+      //=> 'unic.'
 
-	cliTruncate('unicorns', 5, {position: 'end', truncationCharacter: ''});
-	//=> 'unico'
-	*/
+      cliTruncate('unicorns', 5, {position: 'end', truncationCharacter: ''});
+      //=> 'unico'
+      */
   readonly truncationCharacter?: string;
 };
-
 /**
 Truncate a string to a specific width in the terminal.
 

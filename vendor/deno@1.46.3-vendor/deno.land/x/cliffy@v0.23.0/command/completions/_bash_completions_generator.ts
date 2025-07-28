@@ -1,23 +1,19 @@
 import type { Command } from "../command.ts";
 import type { IArgument } from "../types.ts";
 import { FileType } from "../types/file.ts";
-
 /** Generates bash completions script. */
 export class BashCompletionsGenerator {
   /** Generates bash completions script for given command. */
   public static generate(cmd: Command) {
     return new BashCompletionsGenerator(cmd).generate();
   }
-
   private constructor(protected cmd: Command) {}
-
   /** Generates bash completions code. */
   private generate(): string {
     const path = this.cmd.getPath();
     const version: string | undefined = this.cmd.getVersion()
       ? ` v${this.cmd.getVersion()}`
       : "";
-
     return `#!/usr/bin/env bash
 # bash completion support for ${path}${version}
 
@@ -112,7 +108,6 @@ _${replaceSpecialChars(path)}() {
 
 complete -F _${replaceSpecialChars(path)} -o bashdefault -o default ${path}`;
   }
-
   /** Generates bash completions method for given command and child commands. */
   private generateCompletions(command: Command, path = "", index = 1): string {
     path = (path ? path + " " : "") + command.getName();
@@ -127,36 +122,29 @@ complete -F _${replaceSpecialChars(path)} -o bashdefault -o default ${path}`;
         this.generateCompletions(subCommand, path, index + 1)
       )
       .join("");
-
     return `${commandCompletions}
 
 ${childCommandCompletions}`;
   }
-
   private generateCommandCompletions(
     command: Command,
     path: string,
     index: number,
   ): string {
     const flags: string[] = this.getFlags(command);
-
     const childCommandNames: string[] = command.getCommands(false)
       .map((childCommand: Command) => childCommand.getName());
-
     const completionsPath: string = ~path.indexOf(" ")
       ? " " + path.split(" ").slice(1).join(" ")
       : "";
-
     const optionArguments = this.generateOptionArguments(
       command,
       completionsPath,
     );
-
     const completionsCmd: string = this.generateCommandCompletionsCommand(
       command,
       completionsPath,
     );
-
     return `  __${replaceSpecialChars(path)}() {
     opts=(${[...flags, ...childCommandNames].join(" ")})
     ${completionsCmd}
@@ -166,13 +154,11 @@ ${childCommandCompletions}`;
     ${optionArguments}
   }`;
   }
-
   private getFlags(command: Command): string[] {
     return command.getOptions(false)
       .map((option) => option.flags)
       .flat();
   }
-
   private generateOptionArguments(
     command: Command,
     completionsPath: string,
@@ -185,26 +171,19 @@ ${childCommandCompletions}`;
         const flags: string = option.flags
           .map((flag: string) => flag.trim())
           .join("|");
-
         const completionsCmd: string = this.generateOptionCompletionsCommand(
           command,
           option.args,
           completionsPath,
           { standalone: option.standalone },
         );
-
         opts += `\n      ${flags}) ${completionsCmd} ;;`;
       }
       opts += "\n    esac";
     }
-
     return opts;
   }
-
-  private generateCommandCompletionsCommand(
-    command: Command,
-    path: string,
-  ) {
+  private generateCommandCompletionsCommand(command: Command, path: string) {
     const args: IArgument[] = command.getArguments();
     if (args.length) {
       const type = command.getType(args[0].type);
@@ -216,15 +195,15 @@ ${childCommandCompletions}`;
         args[0].action
       }${path}`;
     }
-
     return "";
   }
-
   private generateOptionCompletionsCommand(
     command: Command,
     args: IArgument[],
     path: string,
-    opts?: { standalone?: boolean },
+    opts?: {
+      standalone?: boolean;
+    },
   ) {
     if (args.length) {
       const type = command.getType(args[0].type);
@@ -236,15 +215,12 @@ ${childCommandCompletions}`;
         args[0].action
       }${path}`;
     }
-
     if (opts?.standalone) {
       return "opts=()";
     }
-
     return "";
   }
 }
-
 function replaceSpecialChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9]/g, "_");
 }

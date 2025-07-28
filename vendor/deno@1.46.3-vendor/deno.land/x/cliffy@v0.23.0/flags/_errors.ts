@@ -1,13 +1,11 @@
 import { didYouMeanOption, didYouMeanType, getFlag } from "./_utils.ts";
 import type { IFlagOptions, ITypeInfo } from "./types.ts";
-
 export class FlagsError extends Error {
   constructor(message: string) {
     super(message);
     Object.setPrototypeOf(this, FlagsError.prototype);
   }
 }
-
 export class UnknownRequiredOption extends FlagsError {
   constructor(option: string, options: Array<IFlagOptions>) {
     super(
@@ -18,7 +16,6 @@ export class UnknownRequiredOption extends FlagsError {
     Object.setPrototypeOf(this, UnknownRequiredOption.prototype);
   }
 }
-
 export class UnknownConflictingOption extends FlagsError {
   constructor(option: string, options: Array<IFlagOptions>) {
     super(
@@ -29,16 +26,13 @@ export class UnknownConflictingOption extends FlagsError {
     Object.setPrototypeOf(this, UnknownConflictingOption.prototype);
   }
 }
-
 export class UnknownType extends FlagsError {
   constructor(type: string, types: Array<string>) {
     super(`Unknown type "${type}".${didYouMeanType(type, types)}`);
     Object.setPrototypeOf(this, UnknownType.prototype);
   }
 }
-
 /* Validation errors. */
-
 /**
  * A validation error is thrown when the command is wrongly used by the user.
  * For example: If the user passes some invalid options or arguments to the
@@ -50,7 +44,6 @@ export class ValidationError extends FlagsError {
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
-
 export class DuplicateOption extends ValidationError {
   constructor(name: string) {
     super(
@@ -61,7 +54,6 @@ export class DuplicateOption extends ValidationError {
     Object.setPrototypeOf(this, DuplicateOption.prototype);
   }
 }
-
 export class InvalidOption extends ValidationError {
   constructor(option: string, options: Array<IFlagOptions>) {
     super(
@@ -72,7 +64,6 @@ export class InvalidOption extends ValidationError {
     Object.setPrototypeOf(this, InvalidOption.prototype);
   }
 }
-
 export class UnknownOption extends ValidationError {
   constructor(option: string, options: Array<IFlagOptions>) {
     super(
@@ -83,14 +74,12 @@ export class UnknownOption extends ValidationError {
     Object.setPrototypeOf(this, UnknownOption.prototype);
   }
 }
-
 export class MissingOptionValue extends ValidationError {
   constructor(option: string) {
     super(`Missing value for option "${getFlag(option)}".`);
     Object.setPrototypeOf(this, MissingOptionValue.prototype);
   }
 }
-
 export class InvalidOptionValue extends ValidationError {
   constructor(option: string, expected: string, value: string) {
     super(
@@ -101,14 +90,12 @@ export class InvalidOptionValue extends ValidationError {
     Object.setPrototypeOf(this, InvalidOptionValue.prototype);
   }
 }
-
 export class OptionNotCombinable extends ValidationError {
   constructor(option: string) {
     super(`Option "${getFlag(option)}" cannot be combined with other options.`);
     Object.setPrototypeOf(this, OptionNotCombinable.prototype);
   }
 }
-
 export class ConflictingOption extends ValidationError {
   constructor(option: string, conflictingOption: string) {
     super(
@@ -119,7 +106,6 @@ export class ConflictingOption extends ValidationError {
     Object.setPrototypeOf(this, ConflictingOption.prototype);
   }
 }
-
 export class DependingOption extends ValidationError {
   constructor(option: string, dependingOption: string) {
     super(
@@ -130,14 +116,12 @@ export class DependingOption extends ValidationError {
     Object.setPrototypeOf(this, DependingOption.prototype);
   }
 }
-
 export class MissingRequiredOption extends ValidationError {
   constructor(option: string) {
     super(`Missing required option "${getFlag(option)}".`);
     Object.setPrototypeOf(this, MissingRequiredOption.prototype);
   }
 }
-
 export class RequiredArgumentFollowsOptionalArgument extends ValidationError {
   constructor(arg: string) {
     super(
@@ -149,34 +133,30 @@ export class RequiredArgumentFollowsOptionalArgument extends ValidationError {
     );
   }
 }
-
 export class ArgumentFollowsVariadicArgument extends ValidationError {
   constructor(arg: string) {
     super(`An argument cannot follow an variadic argument, but got "${arg}".`);
     Object.setPrototypeOf(this, ArgumentFollowsVariadicArgument.prototype);
   }
 }
-
 export class NoArguments extends ValidationError {
   constructor() {
     super(`No arguments.`);
     Object.setPrototypeOf(this, NoArguments.prototype);
   }
 }
-
 export class InvalidTypeError extends ValidationError {
   constructor(
     { label, name, value, type }: ITypeInfo,
     expected?: Array<string | number>,
   ) {
     super(
-      `${label} "${name}" must be of type "${type}", but got "${value}".` + (
-        expected
+      `${label} "${name}" must be of type "${type}", but got "${value}".` +
+        (expected
           ? ` Expected values: ${
             expected.map((value) => `"${value}"`).join(", ")
           }`
-          : ""
-      ),
+          : ""),
     );
     Object.setPrototypeOf(this, MissingOptionValue.prototype);
   }

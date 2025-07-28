@@ -1,7 +1,6 @@
 import { initCharacters } from "./init.ts";
 import Renderer, { GenericObject, GenericType } from "./render.ts";
 import { TruncatedTable, truncateTable } from "../utils/truncate.ts";
-
 export interface TableCharacters {
   middleMiddle?: string;
   rowMiddle?: string;
@@ -17,83 +16,63 @@ export interface TableCharacters {
   right?: string;
   middle?: string;
 }
-
 export interface TableOptions {
   header?: GenericType[];
   widths?: number[];
   chars?: TableCharacters;
 }
-
 export class Table extends Array {
   private options: TableOptions;
-
   constructor(opts?: TableOptions) {
     super();
-
     this.options = {};
-
     this.options.header = opts?.header || [];
     this.options.widths = opts?.widths;
     this.options.chars = opts?.chars
       ? initCharacters(opts.chars)
       : initCharacters();
   }
-
   fromObjects(arr: GenericObject[]): Table {
     if (!this.options.header?.length) {
       throw new Error(
         `Table.fromObjects requires that you have the "headers" option set up.`,
       );
     }
-
     const rows: GenericType[][] = [];
-
     arr.forEach((row) => {
       if (Object.keys(row).length < 1) {
         return;
       }
-
       const current: GenericType[] = [];
-
       this.options.header?.forEach((cell) => {
         current.push(row[String(cell)] || "");
       });
-
       rows.push(current);
     });
-
     this.push(...rows);
-
     return this;
   }
-
   toString(): string {
     if (!this.length) {
       return "";
     }
-
     let items = this as GenericType[][];
     let truncatedTable: TruncatedTable | undefined;
     let truncatedHeader: TruncatedTable | undefined;
-
     const renderer = new Renderer({
       header: this.options.header,
       widths: this.options.widths,
       items,
       characters: this.options.chars,
     });
-
     const stringComponents = [];
     stringComponents.push(renderer.renderTop());
-
     if (this.options?.header?.length) {
       let headers = [this.options.header];
-
       if (this.options.widths?.length) {
         truncatedHeader = truncateTable(headers, this.options.widths);
         headers = truncatedHeader.table;
       }
-
       stringComponents.push(
         headers
           .map((item, idx) =>
@@ -102,12 +81,10 @@ export class Table extends Array {
           .join("\n"),
       );
     }
-
     if (this.options.widths?.length) {
       truncatedTable = truncateTable(items, this.options.widths);
       items = truncatedTable.table;
     }
-
     stringComponents.push(
       items
         .map((item, idx) =>
@@ -119,7 +96,6 @@ export class Table extends Array {
         )
         .join("\n"),
     );
-
     stringComponents.push(renderer.renderBottom());
     return stringComponents.join("\n");
   }

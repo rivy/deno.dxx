@@ -1,9 +1,7 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { Buffer } from "../io/buffer.ts";
 import { writeAll } from "./write_all.ts";
 import type { Reader } from "../types.d.ts";
-
 /**
  * Create a `Reader` from a `ReadableStreamDefaultReader`.
  *
@@ -24,7 +22,6 @@ export function readerFromStreamReader(
   streamReader: ReadableStreamDefaultReader<Uint8Array>,
 ): Reader {
   const buffer = new Buffer();
-
   return {
     async read(p: Uint8Array): Promise<number | null> {
       if (buffer.empty()) {
@@ -32,10 +29,8 @@ export function readerFromStreamReader(
         if (res.done) {
           return null; // EOF
         }
-
         await writeAll(buffer, res.value);
       }
-
       return buffer.read(p);
     },
   };

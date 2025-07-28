@@ -1,9 +1,7 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import type { Writer } from "../io/types.ts";
 import { toWritableStream } from "../io/to_writable_stream.ts";
-
 /**
  * Options for {@linkcode writableStreamFromWriter}.
  *
@@ -18,7 +16,6 @@ export interface WritableStreamFromWriterOptions {
    */
   autoClose?: boolean;
 }
-
 /**
  * Create a {@linkcode WritableStream} from a {@linkcode Writer}.
  *

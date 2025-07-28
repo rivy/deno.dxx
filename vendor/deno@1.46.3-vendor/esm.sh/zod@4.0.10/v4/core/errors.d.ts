@@ -198,7 +198,10 @@ export declare function flattenError<T, U>(
   error: $ZodError<T>,
   mapper?: (issue: $ZodIssue) => U,
 ): _FlattenedError<T, U>;
-type _ZodFormattedError<T, U = string> = T extends [any, ...any[]] ? {
+type _ZodFormattedError<T, U = string> = T extends [
+  any,
+  ...any[],
+] ? {
     [K in keyof T]?: $ZodFormattedError<T[K], U>;
   }
   : T extends any[] ? {
@@ -223,7 +226,10 @@ export declare function formatError<T, U>(
 export type $ZodErrorTree<T, U = string> = T extends util.Primitive ? {
     errors: U[];
   }
-  : T extends [any, ...any[]] ? {
+  : T extends [
+    any,
+    ...any[],
+  ] ? {
       errors: U[];
       items?: {
         [K in keyof T]?: $ZodErrorTree<T[K], U>;

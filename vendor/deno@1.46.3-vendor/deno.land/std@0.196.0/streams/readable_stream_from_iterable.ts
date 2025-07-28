@@ -1,6 +1,5 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /**
  * @deprecated (will be removed after 0.196.0) Use `ReadableStream.from` instead.
  *

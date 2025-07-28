@@ -29,10 +29,15 @@ export interface ZodType<
   }): this;
   register<R extends core.$ZodRegistry>(
     registry: R,
-    ...meta: this extends R["_schema"]
-      ? undefined extends R["_meta"] ? [core.$replace<R["_meta"], this>?]
-      : [core.$replace<R["_meta"], this>]
-      : ["Incompatible schema"]
+    ...meta: this extends R["_schema"] ? undefined extends R["_meta"] ? [
+          core.$replace<R["_meta"], this>?,
+        ]
+      : [
+        core.$replace<R["_meta"], this>,
+      ]
+      : [
+        "Incompatible schema",
+      ]
   ): this;
   brand<T extends PropertyKey = PropertyKey>(
     value?: T,
@@ -79,7 +84,10 @@ export interface ZodType<
   prefault(def: () => core.input<this>): ZodPrefault<this>;
   prefault(def: core.input<this>): ZodPrefault<this>;
   array(): ZodArray<this>;
-  or<T extends core.SomeType>(option: T): ZodUnion<[this, T]>;
+  or<T extends core.SomeType>(option: T): ZodUnion<[
+    this,
+    T,
+  ]>;
   and<T extends core.SomeType>(incoming: T): ZodIntersection<this, T>;
   transform<NewOut>(
     transform: (
@@ -673,10 +681,16 @@ export interface ZodTuple<
 }
 export declare const ZodTuple: core.$constructor<ZodTuple>;
 export declare function tuple<
-  T extends readonly [core.SomeType, ...core.SomeType[]],
+  T extends readonly [
+    core.SomeType,
+    ...core.SomeType[],
+  ],
 >(items: T, params?: string | core.$ZodTupleParams): ZodTuple<T, null>;
 export declare function tuple<
-  T extends readonly [core.SomeType, ...core.SomeType[]],
+  T extends readonly [
+    core.SomeType,
+    ...core.SomeType[],
+  ],
   Rest extends core.SomeType,
 >(
   items: T,

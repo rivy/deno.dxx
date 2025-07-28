@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { isWindows } from "./_os.ts";
 import { basename as posixBasename } from "./posix/basename.ts";
 import { basename as windowsBasename } from "./windows/basename.ts";
-
 /**
  * Return the last portion of a `path`.
  * Trailing directory separators are ignored, and optional suffix is removed.

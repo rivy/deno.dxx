@@ -1,12 +1,9 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import type { GlobOptions } from "../_common/glob_to_reg_exp.ts";
 import { normalize } from "./normalize.ts";
 import { SEPARATOR_PATTERN } from "./constants.ts";
-
 export type { GlobOptions };
-
 /** Like normalize(), but doesn't collapse "**\/.." when `globstar` is true. */
 export function normalizeGlob(
   glob: string,

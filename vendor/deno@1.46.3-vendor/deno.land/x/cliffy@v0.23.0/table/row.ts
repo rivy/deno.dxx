@@ -1,23 +1,19 @@
 import { Cell, Direction, ICell } from "./cell.ts";
-
 /** Row type */
 export type IRow<T extends ICell = ICell> = T[] | Row<T>;
 /** Json row. */
 export type IDataRow = Record<string, string | number>;
-
 /** Row options. */
 export interface IRowOptions {
   indent?: number;
   border?: boolean;
   align?: Direction;
 }
-
 /**
  * Row representation.
  */
 export class Row<T extends ICell = ICell> extends Array<T> {
   protected options: IRowOptions = {};
-
   /**
    * Create a new row. If cells is a row, all cells and options of the row will
    * be copied to the new row.
@@ -30,7 +26,6 @@ export class Row<T extends ICell = ICell> extends Array<T> {
     }
     return row;
   }
-
   /** Clone row recursively with all options. */
   public clone(): Row {
     const row = new Row(
@@ -39,11 +34,9 @@ export class Row<T extends ICell = ICell> extends Array<T> {
     row.options = { ...this.options };
     return row;
   }
-
   /**
    * Setter:
    */
-
   /**
    * Enable/disable cell border.
    * @param enable    Enable/disable cell border.
@@ -55,7 +48,6 @@ export class Row<T extends ICell = ICell> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Align row content.
    * @param direction Align direction.
@@ -67,22 +59,18 @@ export class Row<T extends ICell = ICell> extends Array<T> {
     }
     return this;
   }
-
   /**
    * Getter:
    */
-
   /** Check if row has border. */
   public getBorder(): boolean {
     return this.options.border === true;
   }
-
   /** Check if row or any child cell has border. */
   public hasBorder(): boolean {
     return this.getBorder() ||
       this.some((cell) => cell instanceof Cell && cell.getBorder());
   }
-
   /** Get row alignment. */
   public getAlign(): Direction {
     return this.options.align ?? "left";

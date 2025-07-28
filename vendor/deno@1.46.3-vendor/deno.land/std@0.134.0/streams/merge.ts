@@ -1,7 +1,5 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
-
 import { deferred } from "../async/deferred.ts";
-
 /**
  * Merge multiple streams into a single one, not taking order into account.
  * If a stream ends before other ones, the other will continue adding data,
@@ -31,7 +29,6 @@ export function mergeReadableStreams<T>(
     },
   });
 }
-
 /**
  * Merge multiple streams into a single one, taking order into account, and each stream
  * will wait for a chunk to enqueue before the next stream can append another chunk.

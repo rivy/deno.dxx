@@ -4,7 +4,7 @@
  *
  * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
  */
-import t from "/npm/is-number@7.0.0/+esm";
+import t from "../../../cdn.jsdelivr.net/npm/is-number@7.0.0/+esm.js";
 /*!
  * to-regex-range <https://github.com/micromatch/to-regex-range>
  *
@@ -17,7 +17,9 @@ import t from "/npm/is-number@7.0.0/+esm";
         "toRegexRange: expected the first argument to be a number",
       );
     }
-    if (void 0 === n || t === n) return String(t);
+    if (void 0 === n || t === n) {
+      return String(t);
+    }
     if (!1 === e(n)) {
       throw new TypeError(
         "toRegexRange: expected the second argument to be a number.",
@@ -27,7 +29,9 @@ import t from "/npm/is-number@7.0.0/+esm";
     "boolean" == typeof i.strictZeros && (i.relaxZeros = !1 === i.strictZeros);
     let c = t + ":" + n + "=" + String(i.relaxZeros) + String(i.shorthand) +
       String(i.capture) + String(i.wrap);
-    if (r.cache.hasOwnProperty(c)) return r.cache[c].result;
+    if (r.cache.hasOwnProperty(c)) {
+      return r.cache[c].result;
+    }
     let s = Math.min(t, n), l = Math.max(t, n);
     if (1 === Math.abs(s - l)) {
       let e = t + "|" + n;
@@ -54,10 +58,14 @@ import t from "/npm/is-number@7.0.0/+esm";
       g.result;
   };
 function n(t, e, r) {
-  if (t === e) return { pattern: t, count: [], digits: 0 };
+  if (t === e) {
+    return { pattern: t, count: [], digits: 0 };
+  }
   let n = function (t, e) {
       let r = [];
-      for (let n = 0; n < t.length; n++) r.push([t[n], e[n]]);
+      for (let n = 0; n < t.length; n++) {
+        r.push([t[n], e[n]]);
+      }
       return r;
     }(t, e),
     a = n.length,
@@ -74,7 +82,9 @@ function a(t, e, r, a) {
   let u,
     i = function (t, e) {
       let r = 1, n = 1, a = c(t, r), u = new Set([e]);
-      for (; t <= a && a <= e;) u.add(a), r += 1, a = c(t, r);
+      for (; t <= a && a <= e;) {
+        u.add(a), r += 1, a = c(t, r);
+      }
       for (a = s(e + 1, n) - 1; t < a && a <= e;) {
         u.add(a), n += 1, a = s(e + 1, n) - 1;
       }
@@ -129,7 +139,9 @@ function f(t) {
   return /^-?(0+)\d/.test(t);
 }
 function g(t, e, r) {
-  if (!e.isPadded) return t;
+  if (!e.isPadded) {
+    return t;
+  }
   let n = Math.abs(e.maxLen - String(t).length), a = !1 !== r.relaxZeros;
   switch (n) {
     case 0:

@@ -1,20 +1,13 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import type { GlobOptions } from "./_common/glob_to_reg_exp.ts";
 import { isWindows, type OSType } from "./_os.ts";
-
 import { globToRegExp as posixGlobToRegExp } from "./posix/glob_to_regexp.ts";
-import {
-  globToRegExp as windowsGlobToRegExp,
-} from "./windows/glob_to_regexp.ts";
-
+import { globToRegExp as windowsGlobToRegExp } from "./windows/glob_to_regexp.ts";
 export type { GlobOptions };
-
 export type GlobToRegExpOptions = GlobOptions & {
   os?: OSType;
 };
-
 /** Convert a glob string to a regular expression.
  *
  * Tries to match bash glob expansion as closely as possible.

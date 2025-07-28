@@ -2,13 +2,10 @@ import { Colorer } from "./colorer.ts";
 import { BenchmarkResult, ProgressState } from "./deps.ts";
 import { getPaddedIndicator, getTimeColor } from "./common.ts";
 import { getTimePadSize, num, padEndVisible, usingHrTime } from "./utils.ts";
-
 import type { BenchmarkRunProgress, BenchmarkRunResult } from "./deps.ts";
 import type { BenchIndicator, Thresholds } from "./types.ts";
-
 const headerPadding = "▒▒▒▒▒▒▒▒";
 const c: Colorer = new Colorer();
-
 /** Defines how the resulting output should look like. */
 export interface prettyBenchmarkProgressOptions {
   /** If provided, the results will be colored accordingly */
@@ -27,7 +24,6 @@ export interface prettyBenchmarkProgressOptions {
   /** Overrides the default output function, which is `console.log`. */
   outputFn?: (log: string) => unknown;
 }
-
 /** Returns a function that expects `BenchmarkRunProgress` object, which than prints
  * the benchmarking progress in a nicely formatted way, based on the provided `options`.
  *
@@ -43,12 +39,12 @@ export function prettyBenchmarkProgress(
   /** Defines how the output should look like */
   options?: prettyBenchmarkProgressOptions,
 ) {
-  if (options?.nocolor) c.setColorEnabled(false);
-
+  if (options?.nocolor) {
+    c.setColorEnabled(false);
+  }
   return (progress: BenchmarkRunProgress) =>
     _prettyBenchmarkProgress(progress, options);
 }
-
 function _prettyBenchmarkProgress(
   progress: BenchmarkRunProgress,
   options?: prettyBenchmarkProgressOptions,
@@ -57,39 +53,33 @@ function _prettyBenchmarkProgress(
   const out = typeof options?.outputFn === "function"
     ? options.outputFn
     : console.log;
-
   // Started benching
   if (progress.state === ProgressState.BenchmarkingStart) {
     const line = startBenchingLine(progress, options);
     out(line);
     return;
   }
-
   // Starting bench run
   if (progress.state === ProgressState.BenchStart) {
     const line = startingBenchmarkLine(progress, options);
     out(`${line}\t`);
     return;
   }
-
   // Multiple run bench partial result
   if (progress.state === ProgressState.BenchPartialResult) {
     const line = runningBenchmarkLine(progress, options);
     out(`${up1Line}\r${line}\t`);
     return;
   }
-
   // Bench run result
   if (progress.state === ProgressState.BenchResult) {
     const line = finishedBenchmarkLine(progress, options);
     const appended = typeof options?.rowExtras === "function"
       ? options.rowExtras([...progress.results].reverse()[0], options)
       : "";
-
     out(`${up1Line}\r${line}${appended}`);
     return;
   }
-
   // Finished benching
   if (progress.state === ProgressState.BenchmarkingEnd) {
     if (progress.running) {
@@ -108,7 +98,6 @@ function _prettyBenchmarkProgress(
     return;
   }
 }
-
 function considerPrecise(result: BenchmarkRunResult) {
   if (
     !usingHrTime() &&
@@ -122,7 +111,6 @@ function considerPrecise(result: BenchmarkRunResult) {
     );
   }
 }
-
 function startingBenchmarkLine(
   progress: BenchmarkRunProgress,
   options?: prettyBenchmarkProgressOptions,
@@ -131,10 +119,8 @@ function startingBenchmarkLine(
   const fullTimes = `[${
     c.yellow(progress.running!.runsCount.toString().padStart(7))
   }]`;
-
   return `Running ${fullName} a total of ${fullTimes} times`;
 }
-
 function runningBenchmarkLine(
   progress: BenchmarkRunProgress,
   options?: prettyBenchmarkProgressOptions,
@@ -142,53 +128,38 @@ function runningBenchmarkLine(
   const percent = Math.round(
     progress.running!.measuredRunsMs.length / progress.running!.runsCount * 100,
   );
-
   const fullName = benchNameFormatted(progress.running!.name, options);
-
   const maxBarLength = 48; // needs to be even
   const progressBar = Array(Math.ceil(percent / 100 * maxBarLength)).fill("=")
-    .join("").padEnd(
-      maxBarLength,
-    );
-
+    .join("").padEnd(maxBarLength);
   const inserted = progressBar.substr(0, maxBarLength / 2 - 2) +
     c.white(
       `${percent.toString().padEnd(2)}${
         percent == 100 ? "" : c.green(progressBar.substr(maxBarLength / 2, 1))
       }%`,
     ) + progressBar.substr(maxBarLength / 2 + 2);
-
   const fullProgressBar = `${c.yellow("[")}${c.green(inserted)}${
     c.yellow("]")
   }`;
-
   const progressDone = `${
     progress.running!.measuredRunsMs.length.toString().padStart(6)
   }`;
   const progressTotal = `${progress.running!.runsCount.toString().padStart(6)}`;
   const progressCount = `[${c.green(progressDone)}/${c.yellow(progressTotal)}]`;
-
   return `Running ${fullName} ${progressCount} ${fullProgressBar}`;
 }
-
 function finishedBenchmarkLine(
   progress: BenchmarkRunProgress,
   options?: prettyBenchmarkProgressOptions,
 ): string {
   const result = [...progress.results].reverse()[0];
-
   const fullName = benchNameFormatted(result.name, options);
-
   const fullCount = `Runs: [${
     c.yellow((result.runsCount || 1).toString().padStart(7))
   }]`;
-
   const fullTotalTime = `Total time: [${
-    c.yellow(
-      num(result.totalMs).padStart(getTimePadSize()),
-    )
+    c.yellow(num(result.totalMs).padStart(getTimePadSize()))
   }${c.gray("ms")}]`;
-
   const avgTime = result.measuredRunsAvgMs;
   const paddedAvgTime = num(avgTime, true).padStart(getTimePadSize());
   const colorFn = getTimeColor(
@@ -199,10 +170,8 @@ function finishedBenchmarkLine(
   );
   const coloredTime = colorFn(paddedAvgTime);
   const fullAverage = `Avg: [${coloredTime}${c.gray("ms")}]`;
-
   return `Benched ${fullName} ${fullCount} ${fullTotalTime} ${fullAverage}`;
 }
-
 function startBenchingLine(
   progress: BenchmarkRunProgress,
   options?: prettyBenchmarkProgressOptions,
@@ -214,10 +183,8 @@ function startBenchingLine(
   const fullFiltered = c.gray(
     ` filtered: [${progress.filtered.toString().padStart(5)}]`,
   );
-
   return `\n${cyanHeader} Starting benchmarking\n${cyanHeader} ${fullQueued} ${fullFiltered}\n`;
 }
-
 function benchNameFormatted(
   name: string,
   options?: prettyBenchmarkProgressOptions,
@@ -233,7 +200,6 @@ function benchNameFormatted(
       clb = indicator.color(clb);
     }
   }
-
   return `${
     getPaddedIndicator(name, options?.indicators ? 2 : 0, options?.indicators)
   }` +

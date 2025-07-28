@@ -1,8 +1,6 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /** See the Contributing > Types section in the README for an explanation of this file. */
-
 /** An abstract interface which when implemented provides an interface to read bytes into an array buffer asynchronously. */
 export interface Reader {
   /** Reads up to `p.byteLength` bytes into `p`. It resolves to the number of
@@ -29,7 +27,6 @@ export interface Reader {
    */
   read(p: Uint8Array): Promise<number | null>;
 }
-
 /** An abstract interface which when implemented provides an interface to read bytes into an array buffer synchronously. */
 export interface ReaderSync {
   /** Reads up to `p.byteLength` bytes into `p`. It resolves to the number
@@ -55,7 +52,6 @@ export interface ReaderSync {
    */
   readSync(p: Uint8Array): number | null;
 }
-
 /** An abstract interface which when implemented provides an interface to write bytes from an array buffer to a file/resource asynchronously. */
 export interface Writer {
   /** Writes `p.byteLength` bytes from `p` to the underlying data stream. It
@@ -82,7 +78,6 @@ export interface WriterSync {
    */
   writeSync(p: Uint8Array): number;
 }
-
 /** An abstract interface which when implemented provides an interface to close files/resources that were previously opened. */
 export interface Closer {
   /** Closes the resource, "freeing" the backing file/resource. */

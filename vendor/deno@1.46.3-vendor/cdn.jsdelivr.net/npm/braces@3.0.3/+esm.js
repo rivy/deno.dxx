@@ -4,7 +4,7 @@
  *
  * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
  */
-import e from "/npm/fill-range@7.1.1/+esm";
+import e from "../../../cdn.jsdelivr.net/npm/fill-range@7.1.1/+esm.js";
 var t, n = {};
 (t = n).isInteger = (e) =>
   "number" == typeof e
@@ -58,8 +58,14 @@ var s = (e, t = {}) => {
     if (e.value) {
       return (o || a) && r.isOpenOrClose(e) ? "\\" + e.value : e.value;
     }
-    if (e.value) return e.value;
-    if (e.nodes) { for (const t of e.nodes) p += n(t); }
+    if (e.value) {
+      return e.value;
+    }
+    if (e.nodes) {
+      for (const t of e.nodes) {
+        p += n(t);
+      }
+    }
     return p;
   };
   return n(e);
@@ -72,22 +78,36 @@ var p = (e, t = {}) => {
       l = !0 === s || !0 === p,
       i = !0 === t.escapeInvalid ? "\\" : "";
     let A = "";
-    if (!0 === e.isOpen) return i + e.value;
+    if (!0 === e.isOpen) {
+      return i + e.value;
+    }
     if (!0 === e.isClose) {
       return console.log("node.isClose", i, e.value), i + e.value;
     }
-    if ("open" === e.type) return l ? i + e.value : "(";
-    if ("close" === e.type) return l ? i + e.value : ")";
+    if ("open" === e.type) {
+      return l ? i + e.value : "(";
+    }
+    if ("close" === e.type) {
+      return l ? i + e.value : ")";
+    }
     if ("comma" === e.type) {
       return "comma" === e.prev.type ? "" : l ? e.value : "|";
     }
-    if (e.value) return e.value;
+    if (e.value) {
+      return e.value;
+    }
     if (e.nodes && e.ranges > 0) {
       const n = a.reduce(e.nodes),
         r = o(...n, { ...t, wrap: !1, toRegex: !0, strictZeros: !0 });
-      if (0 !== r.length) return n.length > 1 && r.length > 1 ? `(${r})` : r;
+      if (0 !== r.length) {
+        return n.length > 1 && r.length > 1 ? `(${r})` : r;
+      }
     }
-    if (e.nodes) { for (const t of e.nodes) A += n(t, e); }
+    if (e.nodes) {
+      for (const t of e.nodes) {
+        A += n(t, e);
+      }
+    }
     return A;
   };
   return n(e);
@@ -97,14 +117,23 @@ const l = e,
   A = n,
   u = (e = "", t = "", n = !1) => {
     const r = [];
-    if (e = [].concat(e), !(t = [].concat(t)).length) return e;
-    if (!e.length) return n ? A.flatten(t).map((e) => `{${e}}`) : t;
+    if (e = [].concat(e), !(t = [].concat(t)).length) {
+      return e;
+    }
+    if (!e.length) {
+      return n ? A.flatten(t).map((e) => `{${e}}`) : t;
+    }
     for (const s of e) {
-      if (Array.isArray(s)) { for (const e of s) r.push(u(e, t, n)); }
-      else {for (let e of t) {
+      if (Array.isArray(s)) {
+        for (const e of s) {
+          r.push(u(e, t, n));
+        }
+      } else {
+        for (let e of t) {
           !0 === n && "string" == typeof e && (e = `{${e}}`),
             r.push(Array.isArray(e) ? u(s, e, n) : s + e);
-        }}
+        }
+      }
     }
     return A.flatten(r);
   };
@@ -116,7 +145,9 @@ var R = (e, t = {}) => {
       for (; "brace" !== o.type && "root" !== o.type && o.parent;) {
         o = o.parent, a = o.queue;
       }
-      if (e.invalid || e.dollar) return void a.push(u(a.pop(), i(e, t)));
+      if (e.invalid || e.dollar) {
+        return void a.push(u(a.pop(), i(e, t)));
+      }
       if ("brace" === e.type && !0 !== e.invalid && 2 === e.nodes.length) {
         return void a.push(u(a.pop(), ["{}"]));
       }
@@ -219,7 +250,9 @@ const I = s,
   O = p,
   N = R,
   B = (e, t = {}) => {
-    if ("string" != typeof e) throw new TypeError("Expected a string");
+    if ("string" != typeof e) {
+      throw new TypeError("Expected a string");
+    }
     const n = t || {},
       r = "number" == typeof n.maxLength ? Math.min(_, n.maxLength) : _;
     if (e.length > r) {
@@ -236,7 +269,9 @@ const I = s,
         if (
           "text" === e.type && "dot" === p.type && (p.type = "text"),
             !p || "text" !== p.type || "text" !== e.type
-        ) return a.nodes.push(e), e.parent = a, e.prev = p, p = e, e;
+        ) {
+          return a.nodes.push(e), e.parent = a, e.prev = p, p = e, e;
+        }
         p.value += e.value;
       };
     for (O({ type: "bos" }); u < i;) {
@@ -282,7 +317,9 @@ const I = s,
                             continue;
                           }
                           O({ type: "dot", value: A });
-                        } else O({ type: "text", value: A });
+                        } else {
+                          O({ type: "text", value: A });
+                        }
                       } else {
                         if ("brace" !== a.type) {
                           O({ type: "text", value: A });
@@ -322,7 +359,9 @@ const I = s,
                           break;
                         }
                         A += n;
-                      } else A += n + I();
+                      } else {
+                        A += n + I();
+                      }
                     }
                     O({ type: "text", value: A });
                   }
@@ -335,21 +374,34 @@ const I = s,
                     O({ type: "text", value: A }),
                     a = o[o.length - 1];
                 }
-              } else {a = O({ type: "paren", nodes: [] }),
+              } else {
+                a = O({ type: "paren", nodes: [] }),
                   o.push(a),
-                  O({ type: "text", value: A });}
+                  O({ type: "text", value: A });
+              }
             } else {
               let e;
               for (l++; u < i && (e = I());) {
                 if (A += e, e !== h) {
-                  if (e !== C) { if (e === m && (l--, 0 === l)) break; }
-                  else A += I();
-                } else l++;
+                  if (e !== C) {
+                    if (e === m && (l--, 0 === l)) {
+                      break;
+                    }
+                  } else {
+                    A += I();
+                  }
+                } else {
+                  l++;
+                }
               }
               O({ type: "text", value: A });
             }
-          } else O({ type: "text", value: "\\" + A });
-        } else O({ type: "text", value: (t.keepEscaping ? A : "") + I() });
+          } else {
+            O({ type: "text", value: "\\" + A });
+          }
+        } else {
+          O({ type: "text", value: (t.keepEscaping ? A : "") + I() });
+        }
       }
     }
     do {
@@ -374,7 +426,9 @@ const I = s,
         const e = U.create(r, t);
         Array.isArray(e) ? n.push(...e) : n.push(e);
       }
-    } else n = [].concat(U.create(e, t));
+    } else {
+      n = [].concat(U.create(e, t));
+    }
     return t && !0 === t.expand && !0 === t.nodupes && (n = [...new Set(n)]), n;
   };
 U.parse = (e, t = {}) => B(e, t),

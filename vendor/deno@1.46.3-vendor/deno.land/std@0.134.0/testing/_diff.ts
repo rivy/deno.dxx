@@ -1,30 +1,27 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 interface FarthestPoint {
   y: number;
   id: number;
 }
-
 export enum DiffType {
   removed = "removed",
   common = "common",
   added = "added",
 }
-
 export interface DiffResult<T> {
   type: DiffType;
   value: T;
   details?: Array<DiffResult<T>>;
 }
-
 const REMOVED = 1;
 const COMMON = 2;
 const ADDED = 3;
-
 function createCommon<T>(A: T[], B: T[], reverse?: boolean): T[] {
   const common = [];
-  if (A.length === 0 || B.length === 0) return [];
+  if (A.length === 0 || B.length === 0) {
+    return [];
+  }
   for (let i = 0; i < Math.min(A.length, B.length); i += 1) {
     if (
       A[reverse ? A.length - i - 1 : i] === B[reverse ? B.length - i - 1 : i]
@@ -36,7 +33,6 @@ function createCommon<T>(A: T[], B: T[], reverse?: boolean): T[] {
   }
   return common;
 }
-
 /**
  * Renders the differences between the actual and expected values
  * @param A Actual value
@@ -59,21 +55,23 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
   [A, B] = swapped ? [B, A] : [A, B];
   const M = A.length;
   const N = B.length;
-  if (!M && !N && !suffixCommon.length && !prefixCommon.length) return [];
+  if (!M && !N && !suffixCommon.length && !prefixCommon.length) {
+    return [];
+  }
   if (!N) {
     return [
-      ...prefixCommon.map(
-        (c): DiffResult<typeof c> => ({ type: DiffType.common, value: c }),
-      ),
-      ...A.map(
-        (a): DiffResult<typeof a> => ({
-          type: swapped ? DiffType.added : DiffType.removed,
-          value: a,
-        }),
-      ),
-      ...suffixCommon.map(
-        (c): DiffResult<typeof c> => ({ type: DiffType.common, value: c }),
-      ),
+      ...prefixCommon.map((c): DiffResult<typeof c> => ({
+        type: DiffType.common,
+        value: c,
+      })),
+      ...A.map((a): DiffResult<typeof a> => ({
+        type: swapped ? DiffType.added : DiffType.removed,
+        value: a,
+      })),
+      ...suffixCommon.map((c): DiffResult<typeof c> => ({
+        type: DiffType.common,
+        value: c,
+      })),
     ];
   }
   const offset = N;
@@ -95,7 +93,6 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
   const diffTypesPtrOffset = routes.length / 2;
   let ptr = 0;
   let p = -1;
-
   function backTrace<T>(
     A: T[],
     B: T[],
@@ -113,7 +110,9 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
     let j = routes[current.id];
     let type = routes[current.id + diffTypesPtrOffset];
     while (true) {
-      if (!j && !type) break;
+      if (!j && !type) {
+        break;
+      }
       const prev = j;
       if (type === REMOVED) {
         result.unshift({
@@ -137,7 +136,6 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
     }
     return result;
   }
-
   function createFP(
     slide: FarthestPoint,
     down: FarthestPoint,
@@ -165,7 +163,6 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
       return { y: down.y + 1, id: ptr };
     }
   }
-
   function snake<T>(
     k: number,
     slide: FarthestPoint,
@@ -176,7 +173,9 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
   ): FarthestPoint {
     const M = A.length;
     const N = B.length;
-    if (k < -N || M < k) return { y: -1, id: -1 };
+    if (k < -N || M < k) {
+      return { y: -1, id: -1 };
+    }
     const fp = createFP(slide, down, k, M);
     while (fp.y + k < M && fp.y < N && A[fp.y + k] === B[fp.y]) {
       const prev = fp.id;
@@ -188,7 +187,6 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
     }
     return fp;
   }
-
   while (fp[delta + offset].y < N) {
     p = p + 1;
     for (let k = -p; k < delta; ++k) {
@@ -221,16 +219,17 @@ export function diff<T>(A: T[], B: T[]): Array<DiffResult<T>> {
     );
   }
   return [
-    ...prefixCommon.map(
-      (c): DiffResult<typeof c> => ({ type: DiffType.common, value: c }),
-    ),
+    ...prefixCommon.map((c): DiffResult<typeof c> => ({
+      type: DiffType.common,
+      value: c,
+    })),
     ...backTrace(A, B, fp[delta + offset], swapped),
-    ...suffixCommon.map(
-      (c): DiffResult<typeof c> => ({ type: DiffType.common, value: c }),
-    ),
+    ...suffixCommon.map((c): DiffResult<typeof c> => ({
+      type: DiffType.common,
+      value: c,
+    })),
   ];
 }
-
 /**
  * Renders the differences between the actual and expected strings
  * Partially inspired from https://github.com/kpdecker/jsdiff
@@ -251,7 +250,6 @@ export function diffstr(A: string, B: string) {
         (str) => str === "\r" ? "\\r" : str === "\n" ? "\\n\n" : "\\r\\n\r\n",
       );
   }
-
   function tokenize(string: string, { wordDiff = false } = {}): string[] {
     if (wordDiff) {
       // Split string on whitespace symbols
@@ -259,7 +257,6 @@ export function diffstr(A: string, B: string) {
       // Extended Latin character set
       const words =
         /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C8}-\u{2D7}\u{2DE}-\u{2FF}\u{1E00}-\u{1EFF}]+$/u;
-
       // Join boundary splits that we do not consider to be boundaries and merge empty strings surrounded by word chars
       for (let i = 0; i < tokens.length - 1; i++) {
         if (
@@ -275,12 +272,10 @@ export function diffstr(A: string, B: string) {
     } else {
       // Split string on new lines symbols
       const tokens = [], lines = string.split(/(\n|\r\n)/);
-
       // Ignore final empty token when text ends with a newline
       if (!lines[lines.length - 1]) {
         lines.pop();
       }
-
       // Merge the content and line separators into single tokens
       for (let i = 0; i < lines.length; i++) {
         if (i % 2) {
@@ -292,7 +287,6 @@ export function diffstr(A: string, B: string) {
       return tokens;
     }
   }
-
   // Create details by filtering relevant word-diff for current line
   // and merge "space-diff" if surrounded by word-diff for cleaner displays
   function createDetails(
@@ -311,13 +305,11 @@ export function diffstr(A: string, B: string) {
       return result;
     });
   }
-
   // Compute multi-line diff
   const diffResult = diff(
     tokenize(`${unescape(A)}\n`),
     tokenize(`${unescape(B)}\n`),
   );
-
   const added = [], removed = [];
   for (const result of diffResult) {
     if (result.type === DiffType.added) {
@@ -327,7 +319,6 @@ export function diffstr(A: string, B: string) {
       removed.push(result);
     }
   }
-
   // Compute word-diff
   const aLines = added.length < removed.length ? added : removed;
   const bLines = aLines === removed ? added : removed;
@@ -355,6 +346,5 @@ export function diffstr(A: string, B: string) {
       b.details = createDetails(b, tokens);
     }
   }
-
   return diffResult;
 }

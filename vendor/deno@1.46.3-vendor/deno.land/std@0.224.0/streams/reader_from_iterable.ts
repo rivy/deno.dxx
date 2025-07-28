@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { Buffer } from "../io/buffer.ts";
 import { writeAll } from "../io/write_all.ts";
 import type { Reader } from "../io/types.ts";
-
 /**
  * Create a {@linkcode Reader} from an iterable of {@linkcode Uint8Array}s.
  *
