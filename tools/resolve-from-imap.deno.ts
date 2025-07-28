@@ -2,6 +2,8 @@
 // * resolved imports allow direct CDN import of vendored modules
 // note: idempotent if/when run multiple times
 
+// spell-checker:ignore (env) LOGLEVEL
+// spell-checker:ignore (jargon) globstar positionals templating
 // spell-checker:ignore (people) rivy
 // spell-checker:ignore (shell/cmd) COMSPEC ERRORLEVEL NULLGLOB PATHEXT
 
