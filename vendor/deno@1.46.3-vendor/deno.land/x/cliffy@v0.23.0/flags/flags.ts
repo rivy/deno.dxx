@@ -29,14 +29,12 @@ import { number } from "./types/number.ts";
 import { string } from "./types/string.ts";
 import { validateFlags } from "./validate_flags.ts";
 import { integer } from "./types/integer.ts";
-
 const Types: Record<string, ITypeHandler<unknown>> = {
   [OptionType.STRING]: string,
   [OptionType.NUMBER]: number,
   [OptionType.INTEGER]: integer,
   [OptionType.BOOLEAN]: boolean,
 };
-
 /**
  * Parse command line arguments.
  * @param args  Command line arguments e.g: `Deno.args`
@@ -66,23 +64,17 @@ export function parseFlags<
   // deno-lint-ignore no-explicit-any
   O extends Record<string, any> = Record<string, any>,
   T extends IFlagOptions = IFlagOptions,
->(
-  args: string[],
-  opts: IParseOptions<T> = {},
-): IFlagsResult<O> {
+>(args: string[], opts: IParseOptions<T> = {}): IFlagsResult<O> {
   args = args.slice();
   !opts.flags && (opts.flags = []);
-
   let inLiteral = false;
   let negate = false;
-
   const flags: Record<string, unknown> = {};
   /** Option name mapping: propertyName -> option.name */
   const optionNameMap: Record<string, string> = {};
   let literal: string[] = [];
   let unknown: string[] = [];
   let stopEarly: string | null = null;
-
   opts.flags.forEach((opt) => {
     opt.depends?.forEach((flag) => {
       if (!opts.flags || !getOption(opts.flags, flag)) {
@@ -95,46 +87,34 @@ export function parseFlags<
       }
     });
   });
-
-  for (
-    let argsIndex = 0;
-    argsIndex < args.length;
-    argsIndex++
-  ) {
+  for (let argsIndex = 0; argsIndex < args.length; argsIndex++) {
     let option: IFlagOptions | undefined;
     let optionArgs: IFlagArgument[] | undefined;
     let current: string = args[argsIndex];
     let currentValue: string | undefined;
-
     // literal args after --
     if (inLiteral) {
       literal.push(current);
       continue;
     }
-
     if (current === "--") {
       inLiteral = true;
       continue;
     }
-
     const isFlag = current.length > 1 && current[0] === "-";
     const next = () => currentValue ?? args[argsIndex + 1];
-
     if (isFlag) {
       const isShort = current[1] !== "-";
       const isLong = isShort ? false : current.length > 3 && current[2] !== "-";
-
       if (!isShort && !isLong) {
         throw new InvalidOption(current, opts.flags);
       }
-
       // split value: --foo="bar=baz" => --foo bar=baz
       const equalSignIndex = current.indexOf("=");
       if (equalSignIndex > -1) {
         currentValue = current.slice(equalSignIndex + 1) || undefined;
         current = current.slice(0, equalSignIndex);
       }
-
       // normalize short flags: -abc => -a -b -c
       if (isShort && current.length > 2 && current[2] !== ".") {
         args.splice(argsIndex, 1, ...splitFlags(current));
@@ -143,7 +123,6 @@ export function parseFlags<
         negate = true;
       }
       option = getOption(opts.flags, current);
-
       if (!option) {
         if (opts.flags.length) {
           const name = current.replace(/^-+/g, "");
@@ -160,12 +139,10 @@ export function parseFlags<
           };
         }
       }
-
       const positiveName: string = negate
         ? option.name.replace(/^no-?/, "")
         : option.name;
       const propName: string = paramCaseToCamelCase(positiveName);
-
       if (typeof flags[propName] !== "undefined") {
         if (!opts.flags.length) {
           option.collect = true;
@@ -173,7 +150,6 @@ export function parseFlags<
           throw new DuplicateOption(current);
         }
       }
-
       optionArgs = option.args?.length ? option.args : [{
         type: option.type,
         requiredValue: option.requiredValue,
@@ -182,13 +158,10 @@ export function parseFlags<
         list: option.list,
         separator: option.separator,
       }];
-
       let optionArgsIndex = 0;
       let inOptionalArg = false;
       const previous = flags[propName];
-
       parseNext(option, optionArgs);
-
       if (typeof flags[propName] === "undefined") {
         if (optionArgs[optionArgsIndex].requiredValue) {
           throw new MissingOptionValue(option.name);
@@ -198,22 +171,17 @@ export function parseFlags<
           flags[propName] = true;
         }
       }
-
       if (option.value) {
         flags[propName] = option.value(flags[propName], previous);
       } else if (option.collect) {
         const value: unknown[] = typeof previous !== "undefined"
           ? (Array.isArray(previous) ? previous : [previous])
           : [];
-
         value.push(flags[propName]);
         flags[propName] = value;
       }
-
       optionNameMap[propName] = option.name;
-
       opts.option?.(option as T, flags[propName]);
-
       /** Parse next argument for current option. */
       // deno-lint-ignore no-inner-declarations
       function parseNext(
@@ -221,16 +189,13 @@ export function parseFlags<
         optionArgs: IFlagArgument[],
       ): void {
         const arg: IFlagArgument | undefined = optionArgs[optionArgsIndex];
-
         if (!arg) {
           const flag = next();
           throw new UnknownOption(flag, opts.flags ?? []);
         }
-
         if (!arg.type) {
           arg.type = OptionType.BOOLEAN;
         }
-
         if (option.args?.length) {
           // make all value's required by default
           if (
@@ -251,7 +216,6 @@ export function parseFlags<
             arg.requiredValue = true;
           }
         }
-
         if (arg.requiredValue) {
           if (inOptionalArg) {
             throw new RequiredArgumentFollowsOptionalArgument(option.name);
@@ -259,15 +223,12 @@ export function parseFlags<
         } else {
           inOptionalArg = true;
         }
-
         if (negate) {
           flags[propName] = false;
           return;
         }
-
         let result: unknown;
         let increase = false;
-
         if (arg.list && hasNext(arg)) {
           const parsed: unknown[] = next()
             .split(arg.separator || ",")
@@ -282,7 +243,6 @@ export function parseFlags<
               }
               return value;
             });
-
           if (parsed?.length) {
             result = parsed;
           }
@@ -293,7 +253,6 @@ export function parseFlags<
             result = true;
           }
         }
-
         if (increase && typeof currentValue === "undefined") {
           argsIndex++;
           if (!arg.variadic) {
@@ -302,7 +261,6 @@ export function parseFlags<
             throw new ArgumentFollowsVariadicArgument(next());
           }
         }
-
         if (
           typeof result !== "undefined" &&
           (optionArgs.length > 1 || arg.variadic)
@@ -310,35 +268,28 @@ export function parseFlags<
           if (!flags[propName]) {
             flags[propName] = [];
           }
-
           (flags[propName] as Array<unknown>).push(result);
-
           if (hasNext(arg)) {
             parseNext(option, optionArgs);
           }
         } else {
           flags[propName] = result;
         }
-
         /** Check if current option should have an argument. */
         function hasNext(arg: IFlagArgument): boolean {
           const nextValue = currentValue ?? args[argsIndex + 1];
           if (!currentValue && !nextValue) {
             return false;
           }
-
           if (arg.requiredValue) {
             return true;
           }
-
           if (arg.optionalValue || arg.variadic) {
             return nextValue[0] !== "-" ||
               (arg.type === OptionType.NUMBER && !isNaN(Number(nextValue)));
           }
-
           return false;
         }
-
         /** Parse argument value.  */
         function parseValue(
           option: IFlagOptions,
@@ -354,13 +305,9 @@ export function parseFlags<
               value,
             })
             : parseFlagValue(option, arg, value);
-
-          if (
-            typeof result !== "undefined"
-          ) {
+          if (typeof result !== "undefined") {
             increase = true;
           }
-
           return result;
         }
       }
@@ -372,7 +319,6 @@ export function parseFlags<
       unknown.push(current);
     }
   }
-
   if (stopEarly) {
     const stopEarlyArgIndex: number = args.indexOf(stopEarly);
     if (stopEarlyArgIndex !== -1) {
@@ -386,43 +332,35 @@ export function parseFlags<
       }
     }
   }
-
   validateFlags(opts, flags, optionNameMap);
-
   // convert dotted option keys into nested objects
   const result = Object.keys(flags)
     .reduce((result: Record<string, unknown>, key: string) => {
       if (~key.indexOf(".")) {
-        key.split(".").reduce(
-          (
-            // deno-lint-ignore no-explicit-any
-            result: Record<string, any>,
-            subKey: string,
-            index: number,
-            parts: string[],
-          ) => {
-            if (index === parts.length - 1) {
-              result[subKey] = flags[key];
-            } else {
-              result[subKey] = result[subKey] ?? {};
-            }
-            return result[subKey];
-          },
-          result,
-        );
+        key.split(".").reduce((
+          // deno-lint-ignore no-explicit-any
+          result: Record<string, any>,
+          subKey: string,
+          index: number,
+          parts: string[],
+        ) => {
+          if (index === parts.length - 1) {
+            result[subKey] = flags[key];
+          } else {
+            result[subKey] = result[subKey] ?? {};
+          }
+          return result[subKey];
+        }, result);
       } else {
         result[key] = flags[key];
       }
       return result;
     }, {});
-
   return { flags: result as O, unknown, literal };
 }
-
 function splitFlags(flag: string): Array<string> {
   const normalized: Array<string> = [];
   const flags = flag.slice(1).split("");
-
   if (isNaN(Number(flag[flag.length - 1]))) {
     flags.forEach((val) => normalized.push(`-${val}`));
   } else {
@@ -431,10 +369,8 @@ function splitFlags(flag: string): Array<string> {
       normalized.push(flags.join(""));
     }
   }
-
   return normalized;
 }
-
 function parseFlagValue(
   option: IFlagOptions,
   arg: IFlagArgument,
@@ -442,11 +378,9 @@ function parseFlagValue(
 ): unknown {
   const type: string = arg.type || OptionType.STRING;
   const parseType = Types[type];
-
   if (!parseType) {
     throw new UnknownType(type, Object.keys(Types));
   }
-
   return parseType({
     label: "Option",
     type,

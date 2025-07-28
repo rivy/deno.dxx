@@ -1,7 +1,6 @@
 import type { Command } from "../command.ts";
 import type { IArgument, IOption } from "../types.ts";
 import { FileType } from "../types/file.ts";
-
 /** Generates fish completions script. */
 interface CompleteOptions {
   description?: string;
@@ -11,23 +10,19 @@ interface CompleteOptions {
   standalone?: boolean;
   arguments?: string;
 }
-
 /** Fish completions generator. */
 export class FishCompletionsGenerator {
   /** Generates fish completions script for given command. */
   public static generate(cmd: Command) {
     return new FishCompletionsGenerator(cmd).generate();
   }
-
   private constructor(protected cmd: Command) {}
-
   /** Generates fish completions script. */
   private generate(): string {
     const path = this.cmd.getPath();
     const version: string | undefined = this.cmd.getVersion()
       ? ` v${this.cmd.getVersion()}`
       : "";
-
     return `#!/usr/bin/env fish
 # fish completion support for ${path}${version}
 
@@ -55,11 +50,9 @@ end
 
 ${this.generateCompletions(this.cmd).trim()}`;
   }
-
   private generateCompletions(command: Command): string {
     const parent: Command | undefined = command.getParent();
     let result = ``;
-
     if (parent) {
       // command
       result += "\n" + this.complete(parent, {
@@ -67,7 +60,6 @@ ${this.generateCompletions(this.cmd).trim()}`;
         arguments: command.getName(),
       });
     }
-
     // arguments
     const commandArgs = command.getArguments();
     if (commandArgs.length) {
@@ -77,19 +69,15 @@ ${this.generateCompletions(this.cmd).trim()}`;
           : undefined,
       });
     }
-
     // options
     for (const option of command.getOptions(false)) {
       result += "\n" + this.completeOption(command, option);
     }
-
     for (const subCommand of command.getCommands(false)) {
       result += this.generateCompletions(subCommand);
     }
-
     return result;
   }
-
   private completeOption(command: Command, option: IOption) {
     const shortOption: string | undefined = option.flags
       .find((flag) => flag.length === 2)
@@ -97,7 +85,6 @@ ${this.generateCompletions(this.cmd).trim()}`;
     const longOption: string | undefined = option.flags
       .find((flag) => flag.length > 2)
       ?.replace(/^(-)+/, "");
-
     return this.complete(command, {
       description: option.description,
       shortOption: shortOption,
@@ -110,7 +97,6 @@ ${this.generateCompletions(this.cmd).trim()}`;
         : undefined,
     });
   }
-
   private complete(command: Command, options: CompleteOptions) {
     const cmd = ["complete"];
     cmd.push("-c", this.cmd.getName());
@@ -133,7 +119,6 @@ ${this.generateCompletions(this.cmd).trim()}`;
       cmd.push("-d", `'${options.description.split("\n", 1)[0]}'`);
     return cmd.join(" ");
   }
-
   private getCompletionCommand(cmd: Command, arg: IArgument): string {
     const type = cmd.getType(arg.type);
     if (type && type.handler instanceof FileType) {
@@ -144,7 +129,6 @@ ${this.generateCompletions(this.cmd).trim()}`;
     })'`;
   }
 }
-
 function getCommandFnNames(
   cmd: Command,
   cmds: Array<string> = [],
@@ -155,14 +139,12 @@ function getCommandFnNames(
   });
   return cmds;
 }
-
 function getCompletionsPath(command: Command): string {
   return command.getPath()
     .split(" ")
     .slice(1)
     .join(" ");
 }
-
 function replaceSpecialChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9]/g, "_");
 }

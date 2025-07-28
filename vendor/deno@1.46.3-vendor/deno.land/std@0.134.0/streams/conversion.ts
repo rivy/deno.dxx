@@ -1,16 +1,12 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
-
 import { Buffer } from "../io/buffer.ts";
-
-const DEFAULT_CHUNK_SIZE = 16_640;
+const DEFAULT_CHUNK_SIZE = 16640;
 const DEFAULT_BUFFER_SIZE = 32 * 1024;
-
 function isCloser(value: unknown): value is Deno.Closer {
   return typeof value === "object" && value != null && "close" in value &&
     // deno-lint-ignore no-explicit-any
     typeof (value as Record<string, any>)["close"] === "function";
 }
-
 /** Create a `Deno.Reader` from an iterable of `Uint8Array`s.
  *
  * ```ts
@@ -59,7 +55,6 @@ export function readerFromIterable(
     },
   };
 }
-
 /** Create a `Writer` from a `WritableStreamDefaultWriter`. */
 export function writerFromStreamWriter(
   streamWriter: WritableStreamDefaultWriter<Uint8Array>,
@@ -72,13 +67,11 @@ export function writerFromStreamWriter(
     },
   };
 }
-
 /** Create a `Reader` from a `ReadableStreamDefaultReader`. */
 export function readerFromStreamReader(
   streamReader: ReadableStreamDefaultReader<Uint8Array>,
 ): Deno.Reader {
   const buffer = new Buffer();
-
   return {
     async read(p: Uint8Array): Promise<number | null> {
       if (buffer.empty()) {
@@ -86,15 +79,12 @@ export function readerFromStreamReader(
         if (res.done) {
           return null; // EOF
         }
-
         await writeAll(buffer, res.value);
       }
-
       return buffer.read(p);
     },
   };
 }
-
 export interface WritableStreamFromWriterOptions {
   /**
    * If the `writer` is also a `Deno.Closer`, automatically close the `writer`
@@ -103,14 +93,12 @@ export interface WritableStreamFromWriterOptions {
    * Defaults to `true`. */
   autoClose?: boolean;
 }
-
 /** Create a `WritableStream` from a `Writer`. */
 export function writableStreamFromWriter(
   writer: Deno.Writer,
   options: WritableStreamFromWriterOptions = {},
 ): WritableStream<Uint8Array> {
   const { autoClose = true } = options;
-
   return new WritableStream({
     async write(chunk, controller) {
       try {
@@ -134,7 +122,6 @@ export function writableStreamFromWriter(
     },
   });
 }
-
 /** Create a `ReadableStream` from any kind of iterable.
  *
  * ```ts
@@ -195,22 +182,21 @@ export function readableStreamFromIterable<T>(
     },
   });
 }
-
 export interface ReadableStreamFromReaderOptions {
   /** If the `reader` is also a `Deno.Closer`, automatically close the `reader`
    * when `EOF` is encountered, or a read error occurs.
    *
    * Defaults to `true`. */
   autoClose?: boolean;
-
   /** The size of chunks to allocate to read, the default is ~16KiB, which is
    * the maximum size that Deno operations can currently support. */
   chunkSize?: number;
-
   /** The queuing strategy to create the `ReadableStream` with. */
-  strategy?: { highWaterMark?: number | undefined; size?: undefined };
+  strategy?: {
+    highWaterMark?: number | undefined;
+    size?: undefined;
+  };
 }
-
 /**
  * Create a `ReadableStream<Uint8Array>` from from a `Deno.Reader`.
  *
@@ -231,12 +217,8 @@ export function readableStreamFromReader(
   reader: Deno.Reader | (Deno.Reader & Deno.Closer),
   options: ReadableStreamFromReaderOptions = {},
 ): ReadableStream<Uint8Array> {
-  const {
-    autoClose = true,
-    chunkSize = DEFAULT_CHUNK_SIZE,
-    strategy,
-  } = options;
-
+  const { autoClose = true, chunkSize = DEFAULT_CHUNK_SIZE, strategy } =
+    options;
   return new ReadableStream({
     async pull(controller) {
       const chunk = new Uint8Array(chunkSize);
@@ -264,7 +246,6 @@ export function readableStreamFromReader(
     },
   }, strategy);
 }
-
 /** Read Reader `r` until EOF (`null`) and resolve to the content as
  * Uint8Array`.
  *
@@ -292,7 +273,6 @@ export async function readAll(r: Deno.Reader): Promise<Uint8Array> {
   await buf.readFrom(r);
   return buf.bytes();
 }
-
 /** Synchronously reads Reader `r` until EOF (`null`) and returns the content
  * as `Uint8Array`.
  *
@@ -320,7 +300,6 @@ export function readAllSync(r: Deno.ReaderSync): Uint8Array {
   buf.readFromSync(r);
   return buf.bytes();
 }
-
 /** Write all the content of the array buffer (`arr`) to the writer (`w`).
  *
  * ```ts
@@ -350,7 +329,6 @@ export async function writeAll(w: Deno.Writer, arr: Uint8Array) {
     nwritten += await w.write(arr.subarray(nwritten));
   }
 }
-
 /** Synchronously write all the content of the array buffer (`arr`) to the
  * writer (`w`).
  *
@@ -381,7 +359,6 @@ export function writeAllSync(w: Deno.WriterSync, arr: Uint8Array): void {
     nwritten += w.writeSync(arr.subarray(nwritten));
   }
 }
-
 /** Turns a Reader, `r`, into an async iterator.
  *
  * ```ts
@@ -415,12 +392,9 @@ export function writeAllSync(w: Deno.WriterSync, arr: Uint8Array): void {
  * responsibility to copy contents of the buffer if needed; otherwise the
  * next iteration will overwrite contents of previously returned chunk.
  */
-export async function* iterateReader(
-  r: Deno.Reader,
-  options?: {
-    bufSize?: number;
-  },
-): AsyncIterableIterator<Uint8Array> {
+export async function* iterateReader(r: Deno.Reader, options?: {
+  bufSize?: number;
+}): AsyncIterableIterator<Uint8Array> {
   const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
   const b = new Uint8Array(bufSize);
   while (true) {
@@ -428,11 +402,9 @@ export async function* iterateReader(
     if (result === null) {
       break;
     }
-
     yield b.subarray(0, result);
   }
 }
-
 /** Turns a ReaderSync, `r`, into an iterator.
  *
  * ```ts
@@ -466,12 +438,9 @@ export async function* iterateReader(
  * responsibility to copy contents of the buffer if needed; otherwise the
  * next iteration will overwrite contents of previously returned chunk.
  */
-export function* iterateReaderSync(
-  r: Deno.ReaderSync,
-  options?: {
-    bufSize?: number;
-  },
-): IterableIterator<Uint8Array> {
+export function* iterateReaderSync(r: Deno.ReaderSync, options?: {
+  bufSize?: number;
+}): IterableIterator<Uint8Array> {
   const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
   const b = new Uint8Array(bufSize);
   while (true) {
@@ -479,11 +448,9 @@ export function* iterateReaderSync(
     if (result === null) {
       break;
     }
-
     yield b.subarray(0, result);
   }
 }
-
 /** Copies from `src` to `dst` until either EOF (`null`) is read from `src` or
  * an error occurs. It resolves to the number of bytes copied or rejects with
  * the first error encountered while copying.
@@ -501,13 +468,9 @@ export function* iterateReaderSync(
  * @param dst The destination to copy to
  * @param options Can be used to tune size of the buffer. Default size is 32kB
  */
-export async function copy(
-  src: Deno.Reader,
-  dst: Deno.Writer,
-  options?: {
-    bufSize?: number;
-  },
-): Promise<number> {
+export async function copy(src: Deno.Reader, dst: Deno.Writer, options?: {
+  bufSize?: number;
+}): Promise<number> {
   let n = 0;
   const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
   const b = new Uint8Array(bufSize);

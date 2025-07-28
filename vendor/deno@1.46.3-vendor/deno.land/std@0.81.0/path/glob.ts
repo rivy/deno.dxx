@@ -1,10 +1,8 @@
 // Copyright 2018-2020 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { osType } from "../_util/os.ts";
 import { join, normalize } from "./mod.ts";
 import { SEP, SEP_PATTERN } from "./separator.ts";
-
 export interface GlobOptions {
   /** Extended glob syntax.
    * See https://www.linuxjournal.com/content/bash-extended-globbing. Defaults
@@ -17,13 +15,10 @@ export interface GlobOptions {
   /** Operating system. Defaults to the native OS. */
   os?: typeof Deno.build.os;
 }
-
 export type GlobToRegExpOptions = GlobOptions;
-
 // deno-fmt-ignore
 const regExpEscapeChars = ["!", "$", "(", ")", "*", "+", ".", "=", "?", "[", "\\", "^", "{", "|"];
 const rangeEscapeChars = ["-", "\\", "]"];
-
 /** Convert a glob string to a regular expression.
  *
  * Tries to match bash glob expansion as closely as possible.
@@ -86,7 +81,6 @@ export function globToRegExp(
   if (glob == "") {
     return /(?!)/;
   }
-
   const sep = os == "windows" ? "(?:\\\\|/)+" : "/+";
   const sepMaybe = os == "windows" ? "(?:\\\\|/)*" : "/*";
   const seps = os == "windows" ? ["\\", "/"] : ["/"];
@@ -95,14 +89,11 @@ export function globToRegExp(
     : "(?:[^/]*(?:/|$)+)*";
   const wildcard = os == "windows" ? "[^\\\\/]*" : "[^/]*";
   const escapePrefix = os == "windows" ? "`" : "\\";
-
   // Remove trailing separators.
   let newLength = glob.length;
   for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--);
   glob = glob.slice(0, newLength);
-
   let regExpString = "";
-
   // Terminates correctly. Trust that `j` is incremented every iteration.
   for (let j = 0; j < glob.length;) {
     let segment = "";
@@ -111,7 +102,6 @@ export function globToRegExp(
     let inEscape = false;
     let endsWithSep = false;
     let i = j;
-
     // Terminates with `i` at the non-inclusive end of the current segment.
     for (; i < glob.length && !seps.includes(glob[i]); i++) {
       if (inEscape) {
@@ -120,12 +110,10 @@ export function globToRegExp(
         segment += escapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
         continue;
       }
-
       if (glob[i] == escapePrefix) {
         inEscape = true;
         continue;
       }
-
       if (glob[i] == "[") {
         if (!inRange) {
           inRange = true;
@@ -147,32 +135,44 @@ export function globToRegExp(
           }
           if (glob[k + 1] == ":" && glob[k + 2] == "]") {
             i = k + 2;
-            if (value == "alnum") segment += "\\dA-Za-z";
-            else if (value == "alpha") segment += "A-Za-z";
-            else if (value == "ascii") segment += "\x00-\x7F";
-            else if (value == "blank") segment += "\t ";
-            else if (value == "cntrl") segment += "\x00-\x1F\x7F";
-            else if (value == "digit") segment += "\\d";
-            else if (value == "graph") segment += "\x21-\x7E";
-            else if (value == "lower") segment += "a-z";
-            else if (value == "print") segment += "\x20-\x7E";
-            else if (value == "punct") {
+            if (value == "alnum") {
+              segment += "\\dA-Za-z";
+            } else if (value == "alpha") {
+              segment += "A-Za-z";
+            } else if (value == "ascii") {
+              segment += "\x00-\x7F";
+            } else if (value == "blank") {
+              segment += "\t ";
+            } else if (value == "cntrl") {
+              segment += "\x00-\x1F\x7F";
+            } else if (value == "digit") {
+              segment += "\\d";
+            } else if (value == "graph") {
+              segment += "\x21-\x7E";
+            } else if (value == "lower") {
+              segment += "a-z";
+            } else if (value == "print") {
+              segment += "\x20-\x7E";
+            } else if (value == "punct") {
               segment += "!\"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_‘{|}~";
-            } else if (value == "space") segment += "\\s\v";
-            else if (value == "upper") segment += "A-Z";
-            else if (value == "word") segment += "\\w";
-            else if (value == "xdigit") segment += "\\dA-Fa-f";
+            } else if (value == "space") {
+              segment += "\\s\v";
+            } else if (value == "upper") {
+              segment += "A-Z";
+            } else if (value == "word") {
+              segment += "\\w";
+            } else if (value == "xdigit") {
+              segment += "\\dA-Fa-f";
+            }
             continue;
           }
         }
       }
-
       if (glob[i] == "]" && inRange) {
         inRange = false;
         segment += "]";
         continue;
       }
-
       if (inRange) {
         if (glob[i] == "\\") {
           segment += `\\\\`;
@@ -181,7 +181,6 @@ export function globToRegExp(
         }
         continue;
       }
-
       if (
         glob[i] == ")" && groupStack.length > 0 &&
         groupStack[groupStack.length - 1] != "BRACE"
@@ -195,7 +194,6 @@ export function globToRegExp(
         }
         continue;
       }
-
       if (
         glob[i] == "|" && groupStack.length > 0 &&
         groupStack[groupStack.length - 1] != "BRACE"
@@ -203,21 +201,18 @@ export function globToRegExp(
         segment += "|";
         continue;
       }
-
       if (glob[i] == "+" && extended && glob[i + 1] == "(") {
         i++;
         groupStack.push("+");
         segment += "(?:";
         continue;
       }
-
       if (glob[i] == "@" && extended && glob[i + 1] == "(") {
         i++;
         groupStack.push("@");
         segment += "(?:";
         continue;
       }
-
       if (glob[i] == "?") {
         if (extended && glob[i + 1] == "(") {
           i++;
@@ -228,31 +223,26 @@ export function globToRegExp(
         }
         continue;
       }
-
       if (glob[i] == "!" && extended && glob[i + 1] == "(") {
         i++;
         groupStack.push("!");
         segment += "(?!";
         continue;
       }
-
       if (glob[i] == "{") {
         groupStack.push("BRACE");
         segment += "(?:";
         continue;
       }
-
       if (glob[i] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
         groupStack.pop();
         segment += ")";
         continue;
       }
-
       if (glob[i] == "," && groupStack[groupStack.length - 1] == "BRACE") {
         segment += "|";
         continue;
       }
-
       if (glob[i] == "*") {
         if (extended && glob[i + 1] == "(") {
           i++;
@@ -279,10 +269,8 @@ export function globToRegExp(
         }
         continue;
       }
-
       segment += regExpEscapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
     }
-
     // Check for unclosed groups or a dangling backslash.
     if (groupStack.length > 0 || inRange || inEscape) {
       // Parse failure. Take all characters from this segment literally.
@@ -292,43 +280,38 @@ export function globToRegExp(
         endsWithSep = false;
       }
     }
-
     regExpString += segment;
     if (!endsWithSep) {
       regExpString += i < glob.length ? sep : sepMaybe;
       endsWithSep = true;
     }
-
     // Terminates with `i` at the start of the next segment.
-    while (seps.includes(glob[i])) i++;
-
+    while (seps.includes(glob[i])) {
+      i++;
+    }
     // Check that the next value of `j` is indeed higher than the current value.
     if (!(i > j)) {
       throw new Error("Assertion failure: i > j (potential infinite loop)");
     }
     j = i;
   }
-
   regExpString = `^${regExpString}$`;
   return new RegExp(regExpString);
 }
-
 /** Test whether the given string is a glob */
 export function isGlob(str: string): boolean {
   const chars: Record<string, string> = { "{": "}", "(": ")", "[": "]" };
   const regex =
     /\\(.)|(^!|\*|[\].+)]\?|\[[^\\\]]+\]|\{[^\\}]+\}|\(\?[:!=][^\\)]+\)|\([^|]+\|[^\\)]+\))/;
-
   if (str === "") {
     return false;
   }
-
   let match: RegExpExecArray | null;
-
   while ((match = regex.exec(str))) {
-    if (match[2]) return true;
+    if (match[2]) {
+      return true;
+    }
     let idx = match.index + match[0].length;
-
     // if an open bracket/brace/paren is escaped,
     // set the index to the next closing character
     const open = match[1];
@@ -339,13 +322,10 @@ export function isGlob(str: string): boolean {
         idx = n + 1;
       }
     }
-
     str = str.slice(idx);
   }
-
   return false;
 }
-
 /** Like normalize(), but doesn't collapse "**\/.." when `globstar` is true. */
 export function normalizeGlob(
   glob: string,
@@ -364,7 +344,6 @@ export function normalizeGlob(
   );
   return normalize(glob.replace(badParentPattern, "\0")).replace(/\0/g, "..");
 }
-
 /** Like join(), but doesn't collapse "**\/.." when `globstar` is true. */
 export function joinGlobs(
   globs: string[],
@@ -373,15 +352,22 @@ export function joinGlobs(
   if (!globstar || globs.length == 0) {
     return join(...globs);
   }
-  if (globs.length === 0) return ".";
+  if (globs.length === 0) {
+    return ".";
+  }
   let joined: string | undefined;
   for (const glob of globs) {
     const path = glob;
     if (path.length > 0) {
-      if (!joined) joined = path;
-      else joined += `${SEP}${path}`;
+      if (!joined) {
+        joined = path;
+      } else {
+        joined += `${SEP}${path}`;
+      }
     }
   }
-  if (!joined) return ".";
+  if (!joined) {
+    return ".";
+  }
   return normalizeGlob(joined, { extended, globstar });
 }

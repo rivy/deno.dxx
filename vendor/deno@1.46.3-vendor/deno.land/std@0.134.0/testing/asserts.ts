@@ -1,7 +1,6 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible. Do not rely on good formatting of values
 // for AssertionError messages in browsers.
-
 import {
   bgGreen,
   bgRed,
@@ -13,16 +12,13 @@ import {
   white,
 } from "../fmt/colors.ts";
 import { diff, DiffResult, diffstr, DiffType } from "./_diff.ts";
-
 const CAN_NOT_DISPLAY = "[Cannot display]";
-
 export class AssertionError extends Error {
   override name = "AssertionError";
   constructor(message: string) {
     super(message);
   }
 }
-
 /**
  * Converts the input into a string. Objects, Sets and Maps are sorted so as to
  * make tests less flaky
@@ -41,7 +37,6 @@ export function _format(v: unknown): string {
     })
     : `"${String(v).replace(/(?=["\\])/g, "\\")}"`;
 }
-
 /**
  * Colors the output of assertion diffs
  * @param diffType Difference type, either added or removed
@@ -60,7 +55,6 @@ function createColor(
       return white;
   }
 }
-
 /**
  * Prefixes `+` or `-` in diff output
  * @param diffType Difference type, either added or removed
@@ -75,7 +69,6 @@ function createSign(diffType: DiffType): string {
       return "    ";
   }
 }
-
 function buildMessage(
   diffResult: ReadonlyArray<DiffResult<string>>,
   { stringDiff = false } = {},
@@ -101,14 +94,11 @@ function buildMessage(
   });
   messages.push(...(stringDiff ? [diffMessages.join("")] : diffMessages));
   messages.push("");
-
   return messages;
 }
-
 function isKeyedCollection(x: unknown): x is Set<unknown> {
   return [Symbol.iterator, "size"].every((k) => k in (x as Set<unknown>));
 }
-
 /**
  * Deep equality comparison used in assertions
  * @param c actual value
@@ -148,11 +138,15 @@ export function equal(c: unknown, d: unknown): boolean {
         return false;
       }
       if (a instanceof WeakMap || b instanceof WeakMap) {
-        if (!(a instanceof WeakMap && b instanceof WeakMap)) return false;
+        if (!(a instanceof WeakMap && b instanceof WeakMap)) {
+          return false;
+        }
         throw new TypeError("cannot compare WeakMap instances");
       }
       if (a instanceof WeakSet || b instanceof WeakSet) {
-        if (!(a instanceof WeakSet && b instanceof WeakSet)) return false;
+        if (!(a instanceof WeakSet && b instanceof WeakSet)) {
+          return false;
+        }
         throw new TypeError("cannot compare WeakSet instances");
       }
       if (seen.get(a) === b) {
@@ -165,13 +159,11 @@ export function equal(c: unknown, d: unknown): boolean {
         if (a.size !== b.size) {
           return false;
         }
-
         let unmatchedEntries = a.size;
-
         for (const [aKey, aValue] of a.entries()) {
           for (const [bKey, bValue] of b.entries()) {
             /* Given that Map keys can be references, we need
-             * to ensure that they are also deeply equal */
+                         * to ensure that they are also deeply equal */
             if (
               (aKey === aValue && bKey === bValue && compare(aKey, bKey)) ||
               (compare(aKey, bKey) && compare(aValue, bValue))
@@ -180,7 +172,6 @@ export function equal(c: unknown, d: unknown): boolean {
             }
           }
         }
-
         return unmatchedEntries === 0;
       }
       const merged = { ...a, ...b };
@@ -200,7 +191,9 @@ export function equal(c: unknown, d: unknown): boolean {
       }
       seen.set(a, b);
       if (a instanceof WeakRef || b instanceof WeakRef) {
-        if (!(a instanceof WeakRef && b instanceof WeakRef)) return false;
+        if (!(a instanceof WeakRef && b instanceof WeakRef)) {
+          return false;
+        }
         return compare(a.deref(), b.deref());
       }
       return true;
@@ -208,21 +201,18 @@ export function equal(c: unknown, d: unknown): boolean {
     return false;
   })(c, d);
 }
-
 // deno-lint-ignore ban-types
 function constructorsEqual(a: object, b: object) {
   return a.constructor === b.constructor ||
     a.constructor === Object && !b.constructor ||
     !a.constructor && b.constructor === Object;
 }
-
 /** Make an assertion, error will be thrown if `expr` does not have truthy value. */
 export function assert(expr: unknown, msg = ""): asserts expr {
   if (!expr) {
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Make an assertion that `actual` and `expected` are equal, deeply. If not
  * deeply equal, then throw.
@@ -268,7 +258,6 @@ export function assertEquals(
   }
   throw new AssertionError(message);
 }
-
 /**
  * Make an assertion that `actual` and `expected` are not equal, deeply.
  * If not then throw.
@@ -312,7 +301,6 @@ export function assertNotEquals(
   }
   throw new AssertionError(msg);
 }
-
 /**
  * Make an assertion that `actual` and `expected` are strictly equal. If
  * not then throw.
@@ -331,15 +319,12 @@ export function assertStrictEquals<T>(
   if (actual === expected) {
     return;
   }
-
   let message: string;
-
   if (msg) {
     message = msg;
   } else {
     const actualString = _format(actual);
     const expectedString = _format(expected);
-
     if (actualString === expectedString) {
       const withOffset = actualString
         .split("\n")
@@ -363,10 +348,8 @@ export function assertStrictEquals<T>(
       }
     }
   }
-
   throw new AssertionError(message);
 }
-
 /**
  * Make an assertion that `actual` and `expected` are not strictly equal.
  * If the values are strictly equal then throw.
@@ -395,12 +378,10 @@ export function assertNotStrictEquals(
   if (actual !== expected) {
     return;
   }
-
   throw new AssertionError(
     msg ?? `Expected "actual" to be strictly unequal to: ${_format(actual)}\n`,
   );
 }
-
 /**
  * Make an assertion that `actual` and `expected` are almost equal numbers through
  * a given tolerance. It can be used to take into account IEEE-754 double-precision
@@ -437,13 +418,10 @@ export function assertAlmostEquals(
 delta "${f(delta)}" is greater than "${f(tolerance)}"`,
   );
 }
-
 // deno-lint-ignore no-explicit-any
 type AnyConstructor = new (...args: any[]) => any;
-type GetConstructorType<T extends AnyConstructor> = T extends // deno-lint-ignore no-explicit-any
-new (...args: any) => infer C ? C
-  : never;
-
+type GetConstructorType<T extends AnyConstructor> = T extends
+  new (...args: any) => infer C ? C : never;
 /**
  * Make an assertion that `obj` is an instance of `type`.
  * If not then throw.
@@ -455,7 +433,6 @@ export function assertInstanceOf<T extends AnyConstructor>(
 ): asserts actual is GetConstructorType<T> {
   if (!msg) {
     const expectedTypeStr = expectedType.name;
-
     let actualTypeStr = "";
     if (actual === null) {
       actualTypeStr = "null";
@@ -466,7 +443,6 @@ export function assertInstanceOf<T extends AnyConstructor>(
     } else {
       actualTypeStr = typeof actual;
     }
-
     if (expectedTypeStr == actualTypeStr) {
       msg = `Expected object to be an instance of "${expectedTypeStr}".`;
     } else if (actualTypeStr == "function") {
@@ -479,7 +455,6 @@ export function assertInstanceOf<T extends AnyConstructor>(
   }
   assert(actual instanceof expectedType, msg);
 }
-
 /**
  * Make an assertion that actual is not null or undefined.
  * If not then throw.
@@ -495,7 +470,6 @@ export function assertExists<T>(
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Make an assertion that actual includes expected. If not
  * then throw.
@@ -512,7 +486,6 @@ export function assertStringIncludes(
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Make an assertion that `actual` includes the `expected` values.
  * If not then an error will be thrown.
@@ -564,7 +537,6 @@ export function assertArrayIncludes(
   }
   throw new AssertionError(msg);
 }
-
 /**
  * Make an assertion that `actual` match RegExp `expected`. If not
  * then throw.
@@ -581,7 +553,6 @@ export function assertMatch(
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Make an assertion that `actual` not match RegExp `expected`. If match
  * then throw.
@@ -598,7 +569,6 @@ export function assertNotMatch(
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Make an assertion that `actual` object is a subset of `expected` object, deeply.
  * If not, then throw.
@@ -609,11 +579,9 @@ export function assertObjectMatch(
   expected: Record<PropertyKey, unknown>,
 ): void {
   type loose = Record<PropertyKey, unknown>;
-
   function filter(a: loose, b: loose) {
     const seen = new WeakMap();
     return fn(a, b);
-
     function fn(a: loose, b: loose): loose {
       // Prevent infinite loop with circular references with same filter
       if ((seen.has(a)) && (seen.get(a) === b)) {
@@ -627,7 +595,10 @@ export function assertObjectMatch(
         ...Object.getOwnPropertySymbols(a),
       ]
         .filter((key) => key in b)
-        .map((key) => [key, a[key as string]]) as Array<[string, unknown]>;
+        .map((key) => [key, a[key as string]]) as Array<[
+          string,
+          unknown,
+        ]>;
       for (const [key, value] of entries) {
         // On array references, build a filtered array and filter nested objects inside
         if (Array.isArray(value)) {
@@ -676,14 +647,12 @@ export function assertObjectMatch(
     filter(expected, expected),
   );
 }
-
 /**
  * Forcefully throws a failed assertion
  */
 export function fail(msg?: string): never {
   assert(false, `Failed assertion${msg ? `: ${msg}` : "."}`);
 }
-
 /**
  * Make an assertion that `error` is an `Error`.
  * If not then an error will be thrown.
@@ -716,7 +685,6 @@ export function assertIsError<E extends Error = Error>(
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Executes a function, expecting it to throw.  If it does not, then it
  * throws. An error class and a string that should be included in the
@@ -740,8 +708,7 @@ export function assertThrows<E extends Error = Error>(
   fn: () => unknown,
   errorClassOrCallback?:
     // deno-lint-ignore no-explicit-any
-    | (new (...args: any[]) => E)
-    | ((e: Error) => unknown),
+    (new (...args: any[]) => E) | ((e: Error) => unknown),
   msgIncludesOrMsg?: string,
   msg?: string,
 ): void {
@@ -769,12 +736,7 @@ export function assertThrows<E extends Error = Error>(
     if (error instanceof Error === false) {
       throw new AssertionError("A non-Error object was thrown.");
     }
-    assertIsError(
-      error,
-      ErrorClass,
-      msgIncludes,
-      msg,
-    );
+    assertIsError(error, ErrorClass, msgIncludes, msg);
     if (typeof errorCallback == "function") {
       errorCallback(error);
     }
@@ -785,7 +747,6 @@ export function assertThrows<E extends Error = Error>(
     throw new AssertionError(msg);
   }
 }
-
 /**
  * Executes a function which returns a promise, expecting it to throw or reject.
  * If it does not, then it throws. An error class and a string that should be
@@ -809,8 +770,7 @@ export async function assertRejects<E extends Error = Error>(
   fn: () => Promise<unknown>,
   errorClassOrCallback?:
     // deno-lint-ignore no-explicit-any
-    | (new (...args: any[]) => E)
-    | ((e: Error) => unknown),
+    (new (...args: any[]) => E) | ((e: Error) => unknown),
   msgIncludesOrMsg?: string,
   msg?: string,
 ): Promise<void> {
@@ -838,12 +798,7 @@ export async function assertRejects<E extends Error = Error>(
     if (error instanceof Error === false) {
       throw new AssertionError("A non-Error object was thrown or rejected.");
     }
-    assertIsError(
-      error,
-      ErrorClass,
-      msgIncludes,
-      msg,
-    );
+    assertIsError(error, ErrorClass, msgIncludes, msg);
     if (typeof errorCallback == "function") {
       errorCallback(error);
     }
@@ -854,12 +809,10 @@ export async function assertRejects<E extends Error = Error>(
     throw new AssertionError(msg);
   }
 }
-
 /** Use this to stub out methods that will throw when invoked. */
 export function unimplemented(msg?: string): never {
   throw new AssertionError(msg || "unimplemented");
 }
-
 /** Use this to assert unreachable code. */
 export function unreachable(): never {
   throw new AssertionError("unreachable");

@@ -121,7 +121,13 @@ export type BuiltIn =
 export type MakeReadonly<T> = T extends Map<infer K, infer V>
   ? ReadonlyMap<K, V>
   : T extends Set<infer V> ? ReadonlySet<V>
-  : T extends [infer Head, ...infer Tail] ? readonly [Head, ...Tail]
+  : T extends [
+    infer Head,
+    ...infer Tail,
+  ] ? readonly [
+      Head,
+      ...Tail,
+    ]
   : T extends Array<infer V> ? ReadonlyArray<V>
   : T extends BuiltIn ? T
   : Readonly<T>;
@@ -141,7 +147,12 @@ export type Prettify<T> =
   }
   & {};
 export type NoNeverKeys<T> = {
-  [k in keyof T]: [T[k]] extends [never] ? never : k;
+  [k in keyof T]: [
+    T[k],
+  ] extends [
+    never,
+  ] ? never
+    : k;
 }[keyof T];
 export type NoNever<T> = Identity<
   {
@@ -316,14 +327,14 @@ export type FromCleanMap<T extends schemas.$ZodLooseShape> = {
       : k
   ]: k;
 };
-export declare const NUMBER_FORMAT_RANGES: Record<
-  checks.$ZodNumberFormats,
-  [number, number]
->;
-export declare const BIGINT_FORMAT_RANGES: Record<
-  checks.$ZodBigIntFormats,
-  [bigint, bigint]
->;
+export declare const NUMBER_FORMAT_RANGES: Record<checks.$ZodNumberFormats, [
+  number,
+  number,
+]>;
+export declare const BIGINT_FORMAT_RANGES: Record<checks.$ZodBigIntFormats, [
+  bigint,
+  bigint,
+]>;
 export declare function pick(
   schema: schemas.$ZodObject,
   mask: Record<string, unknown>,

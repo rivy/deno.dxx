@@ -16,7 +16,6 @@ export interface IBorder {
   rightMid: string;
   middle: string;
 }
-
 /** Default border characters. */
 export const border: IBorder = {
   top: "─",

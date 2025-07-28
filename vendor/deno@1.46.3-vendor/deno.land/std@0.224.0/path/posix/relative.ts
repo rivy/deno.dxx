@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { isPosixPathSeparator } from "./_util.ts";
 import { resolve } from "./resolve.ts";
 import { assertArgs } from "../_common/relative.ts";
-
 /**
  * Return the relative path from `from` to `to` based on current working directory.
  *
@@ -13,28 +11,29 @@ import { assertArgs } from "../_common/relative.ts";
  */
 export function relative(from: string, to: string): string {
   assertArgs(from, to);
-
   from = resolve(from);
   to = resolve(to);
-
-  if (from === to) return "";
-
+  if (from === to) {
+    return "";
+  }
   // Trim any leading backslashes
   let fromStart = 1;
   const fromEnd = from.length;
   for (; fromStart < fromEnd; ++fromStart) {
-    if (!isPosixPathSeparator(from.charCodeAt(fromStart))) break;
+    if (!isPosixPathSeparator(from.charCodeAt(fromStart))) {
+      break;
+    }
   }
   const fromLen = fromEnd - fromStart;
-
   // Trim any leading backslashes
   let toStart = 1;
   const toEnd = to.length;
   for (; toStart < toEnd; ++toStart) {
-    if (!isPosixPathSeparator(to.charCodeAt(toStart))) break;
+    if (!isPosixPathSeparator(to.charCodeAt(toStart))) {
+      break;
+    }
   }
   const toLen = toEnd - toStart;
-
   // Compare paths to find the longest common path from root
   const length = fromLen < toLen ? fromLen : toLen;
   let lastCommonSep = -1;
@@ -66,26 +65,33 @@ export function relative(from: string, to: string): string {
     }
     const fromCode = from.charCodeAt(fromStart + i);
     const toCode = to.charCodeAt(toStart + i);
-    if (fromCode !== toCode) break;
-    else if (isPosixPathSeparator(fromCode)) lastCommonSep = i;
+    if (fromCode !== toCode) {
+      break;
+    } else if (isPosixPathSeparator(fromCode)) {
+      lastCommonSep = i;
+    }
   }
-
   let out = "";
   // Generate the relative path based on the path difference between `to`
   // and `from`
   for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
     if (i === fromEnd || isPosixPathSeparator(from.charCodeAt(i))) {
-      if (out.length === 0) out += "..";
-      else out += "/..";
+      if (out.length === 0) {
+        out += "..";
+      } else {
+        out += "/..";
+      }
     }
   }
-
   // Lastly, append the rest of the destination (`to`) path that comes after
   // the common path parts
-  if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
-  else {
+  if (out.length > 0) {
+    return out + to.slice(toStart + lastCommonSep);
+  } else {
     toStart += lastCommonSep;
-    if (isPosixPathSeparator(to.charCodeAt(toStart))) ++toStart;
+    if (isPosixPathSeparator(to.charCodeAt(toStart))) {
+      ++toStart;
+    }
     return to.slice(toStart);
   }
 }

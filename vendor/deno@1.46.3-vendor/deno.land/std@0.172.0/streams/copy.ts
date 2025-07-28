@@ -1,8 +1,6 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import { DEFAULT_BUFFER_SIZE } from "./_common.ts";
 import type { Reader, Writer } from "../types.d.ts";
-
 /** Copies from `src` to `dst` until either EOF (`null`) is read from `src` or
  * an error occurs. It resolves to the number of bytes copied or rejects with
  * the first error encountered while copying.
@@ -20,13 +18,9 @@ import type { Reader, Writer } from "../types.d.ts";
  * @param dst The destination to copy to
  * @param options Can be used to tune size of the buffer. Default size is 32kB
  */
-export async function copy(
-  src: Reader,
-  dst: Writer,
-  options?: {
-    bufSize?: number;
-  },
-): Promise<number> {
+export async function copy(src: Reader, dst: Writer, options?: {
+  bufSize?: number;
+}): Promise<number> {
   let n = 0;
   const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
   const b = new Uint8Array(bufSize);

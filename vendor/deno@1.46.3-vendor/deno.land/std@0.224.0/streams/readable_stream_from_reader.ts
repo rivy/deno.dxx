@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { toReadableStream } from "../io/to_readable_stream.ts";
 import type { Closer, Reader } from "../io/types.ts";
 export type { Closer };
-
 /**
  * Options for {@linkcode readableStreamFromReader}.
  *
@@ -17,15 +15,15 @@ export interface ReadableStreamFromReaderOptions {
    * @default {true}
    */
   autoClose?: boolean;
-
   /** The size of chunks to allocate to read, the default is ~16KiB, which is
    * the maximum size that Deno operations can currently support. */
   chunkSize?: number;
-
   /** The queuing strategy to create the `ReadableStream` with. */
-  strategy?: { highWaterMark?: number | undefined; size?: undefined };
+  strategy?: {
+    highWaterMark?: number | undefined;
+    size?: undefined;
+  };
 }
-
 /**
  * Create a {@linkcode ReadableStream} of {@linkcode Uint8Array}s from a
  * {@linkcode Reader}.

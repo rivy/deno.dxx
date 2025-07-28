@@ -1,6 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /**
  * Copy bytes from the source array to the destination array and returns the
  * number of bytes copied.

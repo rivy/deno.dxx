@@ -1,9 +1,7 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { readerFromStreamReader as _readerFromStreamReader } from "../io/reader_from_stream_reader.ts";
 import type { Reader } from "../io/types.ts";
-
 /**
  * Create a {@linkcode Reader} from a {@linkcode ReadableStreamDefaultReader}.
  *

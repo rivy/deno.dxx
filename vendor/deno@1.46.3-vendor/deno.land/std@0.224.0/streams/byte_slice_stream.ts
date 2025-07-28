@@ -1,8 +1,6 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { assert } from "../assert/assert.ts";
-
 /**
  * A transform stream that only transforms from the zero-indexed `start` and
  * `end` bytes (both inclusive).
@@ -19,7 +17,6 @@ import { assert } from "../assert/assert.ts";
 export class ByteSliceStream extends TransformStream<Uint8Array, Uint8Array> {
   #offsetStart = 0;
   #offsetEnd = 0;
-
   /** Constructs a new instance. */
   constructor(start = 0, end: number = Infinity) {
     super({

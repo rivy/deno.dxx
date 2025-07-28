@@ -76,7 +76,9 @@ function u(e, c, o) {
     : t(c, o);
 }
 u.all = function (r, e) {
-  if (!Array.isArray(r)) throw new Error("first argument should be an array");
+  if (!Array.isArray(r)) {
+    throw new Error("first argument should be an array");
+  }
   return r.reduce(function (r, t) {
     return u(r, t, e);
   }, {});

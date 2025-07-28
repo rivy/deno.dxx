@@ -6,7 +6,6 @@ import {
 import { OptionType } from "../flags/types.ts";
 import type { Command } from "./command.ts";
 import type { IArgument } from "./types.ts";
-
 export function didYouMeanCommand(
   command: string,
   commands: Array<Command>,
@@ -17,10 +16,8 @@ export function didYouMeanCommand(
     .filter((command) => !excludes.includes(command));
   return didYouMean(" Did you mean command", command, commandNames);
 }
-
 const ARGUMENT_REGEX = /^[<\[].+[\]>]$/;
 const ARGUMENT_DETAILS_REGEX = /[<\[:>\]]/;
-
 /**
  * Split options and arguments.
  * @param args Arguments definition: `--color, -c <color1:string> <color2:string>`
@@ -35,24 +32,21 @@ const ARGUMENT_DETAILS_REGEX = /[<\[:>\]]/;
  * }
  * ```
  */
-export function splitArguments(
-  args: string,
-): { flags: string[]; typeDefinition: string } {
+export function splitArguments(args: string): {
+  flags: string[];
+  typeDefinition: string;
+} {
   const parts = args.trim().split(/[, =] */g);
   const typeParts = [];
-
   while (
     parts[parts.length - 1] &&
     ARGUMENT_REGEX.test(parts[parts.length - 1])
   ) {
     typeParts.unshift(parts.pop());
   }
-
   const typeDefinition: string = typeParts.join(" ");
-
   return { flags: parts, typeDefinition };
 }
-
 /**
  * Parse arguments string.
  * @param argsDefinition Arguments definition: `<color1:string> <color2:string>`
@@ -73,17 +67,14 @@ export function parseArgumentsDefinition<T extends boolean>(
   all?: T,
 ): T extends true ? Array<IArgument | string> : Array<IArgument> {
   const argumentDetails: Array<IArgument | string> = [];
-
   let hasOptional = false;
   let hasVariadic = false;
   const parts: string[] = argsDefinition.split(/ +/);
-
   for (const arg of parts) {
     if (validate && hasVariadic) {
       throw new ArgumentFollowsVariadicArgument(arg);
     }
     const parts: string[] = arg.split(ARGUMENT_DETAILS_REGEX);
-
     if (!parts[1]) {
       if (all) {
         argumentDetails.push(parts[0]);
@@ -91,7 +82,6 @@ export function parseArgumentsDefinition<T extends boolean>(
       continue;
     }
     const type: string | undefined = parts[2] || OptionType.STRING;
-
     const details: IArgument = {
       optionalValue: arg[0] === "[",
       requiredValue: arg[0] === "<",
@@ -101,32 +91,24 @@ export function parseArgumentsDefinition<T extends boolean>(
       list: type ? arg.indexOf(type + "[]") !== -1 : false,
       type,
     };
-
     if (validate && !details.optionalValue && hasOptional) {
       throw new RequiredArgumentFollowsOptionalArgument(details.name);
     }
-
     if (arg[0] === "[") {
       hasOptional = true;
     }
-
     if (details.name.length > 3) {
       const istVariadicLeft = details.name.slice(0, 3) === "...";
       const istVariadicRight = details.name.slice(-3) === "...";
-
       hasVariadic = details.variadic = istVariadicLeft || istVariadicRight;
-
       if (istVariadicLeft) {
         details.name = details.name.slice(3);
       } else if (istVariadicRight) {
         details.name = details.name.slice(0, -3);
       }
     }
-
     argumentDetails.push(details);
   }
-
-  return argumentDetails as (
-    T extends true ? Array<IArgument | string> : Array<IArgument>
-  );
+  return argumentDetails as (T extends true ? Array<IArgument | string>
+    : Array<IArgument>);
 }

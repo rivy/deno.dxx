@@ -1,6 +1,5 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 /** Returns the index of the first occurrence of the needle array in the source
  * array, or -1 if it is not present.
  *
@@ -30,7 +29,9 @@ export function indexOfNeedle(
   }
   const s = needle[0];
   for (let i = start; i < source.length; i++) {
-    if (source[i] !== s) continue;
+    if (source[i] !== s) {
+      continue;
+    }
     const pin = i;
     let matched = 1;
     let j = i;
@@ -47,7 +48,6 @@ export function indexOfNeedle(
   }
   return -1;
 }
-
 /** Returns the index of the last occurrence of the needle array in the source
  * array, or -1 if it is not present.
  *
@@ -77,7 +77,9 @@ export function lastIndexOfNeedle(
   }
   const e = needle[needle.length - 1];
   for (let i = start; i >= 0; i--) {
-    if (source[i] !== e) continue;
+    if (source[i] !== e) {
+      continue;
+    }
     const pin = i;
     let matched = 1;
     let j = i;
@@ -94,7 +96,6 @@ export function lastIndexOfNeedle(
   }
   return -1;
 }
-
 /** Returns true if the prefix array appears at the start of the source array,
  * false otherwise.
  *
@@ -109,11 +110,12 @@ export function lastIndexOfNeedle(
  */
 export function startsWith(source: Uint8Array, prefix: Uint8Array): boolean {
   for (let i = 0, max = prefix.length; i < max; i++) {
-    if (source[i] !== prefix[i]) return false;
+    if (source[i] !== prefix[i]) {
+      return false;
+    }
   }
   return true;
 }
-
 /** Returns true if the suffix array appears at the end of the source array,
  * false otherwise.
  *
@@ -132,11 +134,12 @@ export function endsWith(source: Uint8Array, suffix: Uint8Array): boolean {
     sfxi >= 0;
     srci--, sfxi--
   ) {
-    if (source[srci] !== suffix[sfxi]) return false;
+    if (source[srci] !== suffix[sfxi]) {
+      return false;
+    }
   }
   return true;
 }
-
 /** Returns a new Uint8Array composed of `count` repetitions of the `source`
  * array.
  *
@@ -154,30 +157,22 @@ export function repeat(source: Uint8Array, count: number): Uint8Array {
   if (count === 0) {
     return new Uint8Array();
   }
-
   if (count < 0) {
     throw new RangeError("bytes: negative repeat count");
   } else if ((source.length * count) / count !== source.length) {
     throw new Error("bytes: repeat count causes overflow");
   }
-
   const int = Math.floor(count);
-
   if (int !== count) {
     throw new Error("bytes: repeat count must be an integer");
   }
-
   const nb = new Uint8Array(source.length * count);
-
   let bp = copy(source, nb);
-
   for (; bp < nb.length; bp *= 2) {
     copy(nb.slice(0, bp), nb, bp);
   }
-
   return nb;
 }
-
 /** Concatenate the given arrays into a new Uint8Array.
  *
  * ```ts
@@ -191,17 +186,14 @@ export function concat(...buf: Uint8Array[]): Uint8Array {
   for (const b of buf) {
     length += b.length;
   }
-
   const output = new Uint8Array(length);
   let index = 0;
   for (const b of buf) {
     output.set(b, index);
     index += b.length;
   }
-
   return output;
 }
-
 /** Returns true if the source array contains the needle array, false otherwise.
  *
  * A start index can be specified as the third argument that begins the search
@@ -224,7 +216,6 @@ export function includesNeedle(
 ): boolean {
   return indexOfNeedle(source, needle, start) !== -1;
 }
-
 /** Copy bytes from the `src` array to the `dst` array. Returns the number of
  * bytes copied.
  *
@@ -260,5 +251,4 @@ export function copy(src: Uint8Array, dst: Uint8Array, off = 0): number {
   dst.set(src, off);
   return src.byteLength;
 }
-
 export { equals } from "./equals.ts";

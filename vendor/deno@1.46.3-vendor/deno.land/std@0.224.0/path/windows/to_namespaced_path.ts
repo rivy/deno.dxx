@@ -1,6 +1,5 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import {
   CHAR_BACKWARD_SLASH,
   CHAR_COLON,
@@ -9,22 +8,22 @@ import {
 } from "../_common/constants.ts";
 import { isWindowsDeviceRoot } from "./_util.ts";
 import { resolve } from "./resolve.ts";
-
 /**
  * Resolves path to a namespace path
  * @param path to resolve to namespace
  */
 export function toNamespacedPath(path: string): string {
   // Note: this will *probably* throw somewhere.
-  if (typeof path !== "string") return path;
-  if (path.length === 0) return "";
-
+  if (typeof path !== "string") {
+    return path;
+  }
+  if (path.length === 0) {
+    return "";
+  }
   const resolvedPath = resolve(path);
-
   if (resolvedPath.length >= 3) {
     if (resolvedPath.charCodeAt(0) === CHAR_BACKWARD_SLASH) {
       // Possible UNC root
-
       if (resolvedPath.charCodeAt(1) === CHAR_BACKWARD_SLASH) {
         const code = resolvedPath.charCodeAt(2);
         if (code !== CHAR_QUESTION_MARK && code !== CHAR_DOT) {
@@ -34,7 +33,6 @@ export function toNamespacedPath(path: string): string {
       }
     } else if (isWindowsDeviceRoot(resolvedPath.charCodeAt(0))) {
       // Possible device root
-
       if (
         resolvedPath.charCodeAt(1) === CHAR_COLON &&
         resolvedPath.charCodeAt(2) === CHAR_BACKWARD_SLASH
@@ -44,6 +42,5 @@ export function toNamespacedPath(path: string): string {
       }
     }
   }
-
   return path;
 }

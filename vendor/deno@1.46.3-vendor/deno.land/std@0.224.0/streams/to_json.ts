@@ -1,8 +1,6 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 import { toText } from "./to_text.ts";
-
 /**
  * Converts a JSON-formatted {@linkcode ReadableSteam} of strings or
  * {@linkcode Uint8Array}s to an object. Works the same as
@@ -16,8 +14,6 @@ import { toText } from "./to_text.ts";
  * await toJson(stream); // { hello: "world" }
  * ```
  */
-export function toJson(
-  readableStream: ReadableStream,
-): Promise<unknown> {
+export function toJson(readableStream: ReadableStream): Promise<unknown> {
   return toText(readableStream).then(JSON.parse);
 }

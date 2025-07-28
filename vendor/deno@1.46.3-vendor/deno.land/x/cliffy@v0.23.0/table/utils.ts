@@ -6,14 +6,11 @@
  */
 import { Cell, ICell } from "./cell.ts";
 import { stripColor } from "./deps.ts";
-
 export function consumeWords(length: number, content: string): string {
   let consumed = "";
   const words: string[] = content.split("\n")[0]?.split(/ /g);
-
   for (let i = 0; i < words.length; i++) {
     const word: string = words[i];
-
     // consume minimum one word
     if (consumed) {
       const nextLength = strLength(word);
@@ -22,13 +19,10 @@ export function consumeWords(length: number, content: string): string {
         break;
       }
     }
-
     consumed += (i > 0 ? " " : "") + word;
   }
-
   return consumed;
 }
-
 /**
  * Get longest cell from given row index.
  */
@@ -42,21 +36,17 @@ export function longest(
     const cellValue = cell instanceof Cell && cell.getColSpan() > 1
       ? ""
       : cell?.toString() || "";
-
     return cellValue
       .split("\n")
       .map((line: string) => {
         const str = typeof maxWidth === "undefined"
           ? line
           : consumeWords(maxWidth, line);
-
         return strLength(str) || 0;
       });
   }).flat();
-
   return Math.max(...cellLengths);
 }
-
 export const strLength = (str: string): number => {
   str = stripColor(str);
   let length = 0;

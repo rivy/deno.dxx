@@ -1,7 +1,5 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 import type { Writer } from "../types.d.ts";
-
 /** Create a `Writer` from a `WritableStreamDefaultWriter`.
  *
  * @example

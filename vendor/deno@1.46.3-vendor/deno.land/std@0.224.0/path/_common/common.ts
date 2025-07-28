@@ -1,10 +1,8 @@
 // Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
 // This module is browser compatible.
-
 export function _common(paths: string[], sep: string): string {
   const [first = "", ...remaining] = paths;
   const parts = first.split(sep);
-
   let endOfPrefix = parts.length;
   let append = "";
   for (const path of remaining) {
@@ -13,7 +11,6 @@ export function _common(paths: string[], sep: string): string {
       endOfPrefix = compare.length;
       append = "";
     }
-
     for (let i = 0; i < endOfPrefix; i++) {
       if (compare[i] !== parts[i]) {
         endOfPrefix = i;

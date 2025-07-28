@@ -11,7 +11,9 @@ o.toError = i,
       if (t[0]) {
         const { path: e, error: n } = t[0], o = String(n && n.message || n);
         r = e ? `${e.join(".")}: ${o}` : o;
-      } else r = "Unknown Validation Error";
+      } else {
+        r = "Unknown Validation Error";
+      }
     }
     const n = i(r, ...e);
     return n.errors = t, n;
@@ -61,8 +63,12 @@ var u = {
       return "object" != typeof t && "function" != typeof t || null === t;
     },
     deepConcat: function t(...r) {
-      if (r.length < 2) return r[0];
-      if ((r = r.filter((t) => void 0 !== t)).length < 2) return r[0];
+      if (r.length < 2) {
+        return r[0];
+      }
+      if ((r = r.filter((t) => void 0 !== t)).length < 2) {
+        return r[0];
+      }
       let e = r[0];
       if ("object" != typeof e || null === e) {
         for (let t = 1; t < r.length; t += 1) {
@@ -79,13 +85,17 @@ var u = {
           throw new s.ValidationError("Type mismatch on validation concat");
         }
         for (const t in e) {
-          if (!Object.prototype.hasOwnProperty.call(e, t)) continue;
+          if (!Object.prototype.hasOwnProperty.call(e, t)) {
+            continue;
+          }
           const r = e[t];
           void 0 !== r && (n[t] || (n[t] = []), n[t].push(r));
         }
       }
       e = Array.isArray(e) ? [] : {};
-      for (const r in n) e[r] = t(...n[r]);
+      for (const r in n) {
+        e[r] = t(...n[r]);
+      }
       return e;
     },
   },
@@ -109,7 +119,9 @@ n.__esModule = !0,
   },
   n.test = function (t, r) {
     return (...e) => {
-      if (!t(...e)) throw (0, l.toError)(r || "Validation test failed", ...e);
+      if (!t(...e)) {
+        throw (0, l.toError)(r || "Validation test failed", ...e);
+      }
       return e[0];
     };
   },
@@ -158,7 +170,9 @@ n.__esModule = !0,
       }
       return t[0];
     };
-    if (null === t) return e;
+    if (null === t) {
+      return e;
+    }
     return (...n) => {
       const o = e(...n);
       if (o.length !== t) {
@@ -175,7 +189,9 @@ n.__esModule = !0,
       Object.keys(t).filter((t) => isNaN(Number(t))).map((r) => t[r]),
     );
     return (...t) => {
-      if (!e.has(t[0])) throw (0, l.toError)(r || "Unknown enum value", ...t);
+      if (!e.has(t[0])) {
+        throw (0, l.toError)(r || "Unknown enum value", ...t);
+      }
       return t[0];
     };
   };
@@ -185,9 +201,15 @@ var f = {},
     __esModule: !0,
     default: function t(r, e) {
       const { error: n, basePath: o = [], strict: a } = e || {};
-      if ("function" == typeof r) return r;
-      if ("object" != typeof r || null === r) return (0, p.equals)(r, n);
-      if (r instanceof RegExp) return (0, p.regexp)(r, n);
+      if ("function" == typeof r) {
+        return r;
+      }
+      if ("object" != typeof r || null === r) {
+        return (0, p.equals)(r, n);
+      }
+      if (r instanceof RegExp) {
+        return (0, p.regexp)(r, n);
+      }
       let i;
       if (Array.isArray(r)) {
         const t = (0, p.array)(r.length, n);
@@ -261,22 +283,32 @@ var g = {
     __esModule: !0,
     findSwitchKey: function (...t) {
       const r = t[0];
-      if (t.length < 2 || "object" != typeof r || null === r) return null;
+      if (t.length < 2 || "object" != typeof r || null === r) {
+        return null;
+      }
       let e = new Map();
       const n = Object.keys(r).find((n) => {
         const o = r[n];
-        if (!(0, w.isPrimitive)(o)) return !1;
+        if (!(0, w.isPrimitive)(o)) {
+          return !1;
+        }
         e = new Map([[o, 0]]);
         for (let r = 1; r < t.length; r += 1) {
           const o = t[r];
-          if ("object" != typeof o || null === o) return !1;
+          if ("object" != typeof o || null === o) {
+            return !1;
+          }
           const a = o[n];
-          if (!(0, w.isPrimitive)(a) || e.has(a)) return !1;
+          if (!(0, w.isPrimitive)(a) || e.has(a)) {
+            return !1;
+          }
           e.set(a, r);
         }
         return !0;
       });
-      if (void 0 === n) return null;
+      if (void 0 === n) {
+        return null;
+      }
       return [n, e];
     },
     generateSwitch: function (t, r) {
@@ -287,7 +319,9 @@ var g = {
         if ("object" == typeof o && null !== o) {
           const t = o[e];
           a = n.get(t) || 0;
-        } else a = 0;
+        } else {
+          a = 0;
+        }
         return r[a](...t);
       };
     },
@@ -295,9 +329,13 @@ var g = {
   w = u;
 f.__esModule = !0,
   f.either = function (...t) {
-    if (!t.length) throw new RangeError("Expecting at least one argument");
+    if (!t.length) {
+      throw new RangeError("Expecting at least one argument");
+    }
     const r = t.map((t) => (0, v.default)(t)), e = (0, E.findSwitchKey)(...t);
-    if (e) return (0, E.generateSwitch)(e, r);
+    if (e) {
+      return (0, E.generateSwitch)(e, r);
+    }
     return (...e) => {
       let n = 0;
       const o = () => {
@@ -306,12 +344,16 @@ f.__esModule = !0,
         try {
           i = a(...e);
         } catch (r) {
-          if (n >= t.length) throw r;
+          if (n >= t.length) {
+            throw r;
+          }
           return o();
         }
         return (0, b.isPromiseLike)(i)
           ? i.then(null, (r) => {
-            if (n >= t.length) throw r;
+            if (n >= t.length) {
+              throw r;
+            }
             return o();
           })
           : i;
@@ -320,9 +362,13 @@ f.__esModule = !0,
     };
   },
   f.merge = function (...t) {
-    if (!t.length) throw new RangeError("Expecting at least one argument");
+    if (!t.length) {
+      throw new RangeError("Expecting at least one argument");
+    }
     const r = t.map((t) => (0, v.default)(t)), e = r.length;
-    if (1 === e) return r[0];
+    if (1 === e) {
+      return r[0];
+    }
     return (...t) => {
       let n;
       const o = [];
@@ -393,7 +439,8 @@ var S = function (t) {
     return t && t.__esModule ? t : { default: t };
   }(e),
   M = n;
-class j extends S.default {}
+class j extends S.default {
+}
 V.ObjectValidator = j;
 var k = new j((0, M.type)("object")).proxy();
 V.default = k;
@@ -549,7 +596,8 @@ var B = function (t) {
     return t && t.__esModule ? t : { default: t };
   }(e),
   F = n;
-class z extends B.default {}
+class z extends B.default {
+}
 I.BooleanValidator = z;
 var J = new z((0, F.type)("boolean")).proxy();
 I.default = J;
@@ -706,17 +754,23 @@ class vt extends ut.default {
   }
   string(t) {
     return this.transform((r) => {
-      if ("string" == typeof r) return r;
+      if ("string" == typeof r) {
+        return r;
+      }
       if (
         null == r ||
         "object" == typeof r && r.toString === Object.prototype.toString
-      ) throw (0, st.toError)(t || "Expect value to be string", r);
+      ) {
+        throw (0, st.toError)(t || "Expect value to be string", r);
+      }
       return String(r);
     }, ct.StringValidator);
   }
   number(t) {
     return this.transform((r) => {
-      if ("number" == typeof r) return r;
+      if ("number" == typeof r) {
+        return r;
+      }
       const e = Number(r);
       if (isNaN(e) && "NaN" !== r) {
         throw (0, st.toError)(t || "Unknown number value", r);
@@ -726,18 +780,26 @@ class vt extends ut.default {
   }
   boolean(t) {
     return this.transform((r) => {
-      if ("boolean" == typeof r) return r;
+      if ("boolean" == typeof r) {
+        return r;
+      }
       const e = String(r).trim().toLowerCase(), n = yt[e];
-      if (null == n) throw (0, st.toError)(t || "Unknown boolean value", r);
+      if (null == n) {
+        throw (0, st.toError)(t || "Unknown boolean value", r);
+      }
       return n;
     }, dt.BooleanValidator);
   }
   date(t) {
     return this.transform((r) => {
-      if (r instanceof Date) return r;
+      if (r instanceof Date) {
+        return r;
+      }
       if ("number" == typeof r || "string" == typeof r) {
         const t = new Date(r);
-        if (!isNaN(t.getTime())) return t;
+        if (!isNaN(t.getTime())) {
+          return t;
+        }
       }
       throw (0, st.toError)(t || "Unknown date value", r);
     }, gt.DateValidator);

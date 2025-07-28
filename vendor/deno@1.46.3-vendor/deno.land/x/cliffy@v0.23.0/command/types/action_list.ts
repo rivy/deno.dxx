@@ -1,12 +1,10 @@
 import type { Command } from "../command.ts";
 import { StringType } from "./string.ts";
-
 /** Completion list type. */
 export class ActionListType extends StringType {
   constructor(protected cmd: Command) {
     super();
   }
-
   /** Complete action names. */
   public complete(): string[] {
     return this.cmd.getCompletions()

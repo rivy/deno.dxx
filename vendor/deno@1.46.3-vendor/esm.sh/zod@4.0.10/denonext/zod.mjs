@@ -1,7 +1,9 @@
 /* esm.sh - zod@4.0.10 */
 var Fr = Object.defineProperty;
 var V = (e, o) => {
-  for (var t in o) Fr(e, t, { get: o[t], enumerable: !0 });
+  for (var t in o) {
+    Fr(e, t, { get: o[t], enumerable: !0 });
+  }
 };
 var Ge = {};
 V(Ge, {
@@ -413,7 +415,9 @@ var i = r.$constructor(
         configurable: !0,
       }),
       e.meta = (...t) => {
-        if (t.length === 0) return r.globalRegistry.get(e);
+        if (t.length === 0) {
+          return r.globalRegistry.get(e);
+        }
         let n = e.clone();
         return r.globalRegistry.add(n, t[0]), n;
       },
@@ -908,16 +912,22 @@ var b = r.$constructor("ZodEnum", (e, o) => {
   e.extract = (n, c) => {
     let l = {};
     for (let s of n) {
-      if (t.has(s)) l[s] = o.entries[s];
-      else throw new Error(`Key ${s} not found in enum`);
+      if (t.has(s)) {
+        l[s] = o.entries[s];
+      } else {
+        throw new Error(`Key ${s} not found in enum`);
+      }
     }
     return new b({ ...o, checks: [], ...u.normalizeParams(c), entries: l });
   },
     e.exclude = (n, c) => {
       let l = { ...o.entries };
       for (let s of n) {
-        if (t.has(s)) delete l[s];
-        else throw new Error(`Key ${s} not found in enum`);
+        if (t.has(s)) {
+          delete l[s];
+        } else {
+          throw new Error(`Key ${s} not found in enum`);
+        }
       }
       return new b({ ...o, checks: [], ...u.normalizeParams(c), entries: l });
     };
@@ -966,8 +976,9 @@ var Le = r.$constructor("ZodTransform", (e, o) => {
     i.init(e, o),
     e._zod.parse = (t, n) => {
       t.addIssue = (l) => {
-        if (typeof l == "string") t.issues.push(u.issue(l, t.value, o));
-        else {
+        if (typeof l == "string") {
+          t.issues.push(u.issue(l, t.value, o));
+        } else {
           let s = l;
           s.fatal && (s.continue = !1),
             s.code ?? (s.code = "custom"),
@@ -1117,8 +1128,9 @@ function Rr(e, o = {}) {
 }
 function Ar(e) {
   let o = Ur((t) => (t.addIssue = (n) => {
-    if (typeof n == "string") t.issues.push(u.issue(n, t.value, o._zod.def));
-    else {
+    if (typeof n == "string") {
+      t.issues.push(u.issue(n, t.value, o._zod.def));
+    } else {
       let c = n;
       c.fatal && (c.continue = !1),
         c.code ?? (c.code = "custom"),
@@ -1180,8 +1192,12 @@ var ut = (e) => {
       case "number":
         return Number.isNaN(e) ? "NaN" : "number";
       case "object": {
-        if (Array.isArray(e)) return "array";
-        if (e === null) return "null";
+        if (Array.isArray(e)) {
+          return "array";
+        }
+        if (e === null) {
+          return "null";
+        }
         if (Object.getPrototypeOf(e) !== Object.prototype && e.constructor) {
           return e.constructor.name;
         }

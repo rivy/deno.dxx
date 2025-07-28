@@ -11,11 +11,16 @@ export type Params<
   Partial<
     util.EmptyToNever<
       & Omit<T["_zod"]["def"], OmitKeys>
-      & ([IssueTypes] extends [never] ? {} : {
-        error?: string | errors.$ZodErrorMap<IssueTypes> | undefined;
-        /** @deprecated This parameter is deprecated. Use `error` instead. */
-        message?: string | undefined;
-      })
+      & ([
+        IssueTypes,
+      ] extends [
+        never,
+      ] ? {}
+        : {
+          error?: string | errors.$ZodErrorMap<IssueTypes> | undefined;
+          /** @deprecated This parameter is deprecated. Use `error` instead. */
+          message?: string | undefined;
+        })
     >
   >
 >;
@@ -702,7 +707,10 @@ export type $ZodDiscriminatedUnionParams = TypeParams<
   "options" | "discriminator"
 >;
 export declare function _discriminatedUnion<
-  Types extends [$ZodTypeDiscriminable, ...$ZodTypeDiscriminable[]],
+  Types extends [
+    $ZodTypeDiscriminable,
+    ...$ZodTypeDiscriminable[],
+  ],
 >(
   Class: util.SchemaClass<schemas.$ZodDiscriminatedUnion>,
   discriminator: string,
@@ -723,14 +731,20 @@ export declare function _intersection<
 ): schemas.$ZodIntersection<T, U>;
 export type $ZodTupleParams = TypeParams<schemas.$ZodTuple, "items" | "rest">;
 export declare function _tuple<
-  T extends readonly [schemas.$ZodType, ...schemas.$ZodType[]],
+  T extends readonly [
+    schemas.$ZodType,
+    ...schemas.$ZodType[],
+  ],
 >(
   Class: util.SchemaClass<schemas.$ZodTuple>,
   items: T,
   params?: string | $ZodTupleParams,
 ): schemas.$ZodTuple<T, null>;
 export declare function _tuple<
-  T extends readonly [schemas.$ZodType, ...schemas.$ZodType[]],
+  T extends readonly [
+    schemas.$ZodType,
+    ...schemas.$ZodType[],
+  ],
   Rest extends schemas.$ZodType,
 >(
   Class: util.SchemaClass<schemas.$ZodTuple>,

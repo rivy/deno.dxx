@@ -19,7 +19,5 @@ interface XDG {
   /** Returns a preference-ordered array of base directory paths to search for data files (includes `.data()` directory as first entry). */
   dataDirs(): readonly string[];
 }
-
 declare const _: XDG;
-
 export { _ as default, XDG };

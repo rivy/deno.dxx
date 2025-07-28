@@ -1,25 +1,20 @@
 import type { Command } from "../command.ts";
 import type { IArgument, IOption, IType } from "../types.ts";
 import { FileType } from "../types/file.ts";
-
 interface ICompletionAction {
   arg: IArgument;
   label: string;
   name: string;
   cmd: string;
 }
-
 /** Generates zsh completions script. */
 export class ZshCompletionsGenerator {
   private actions: Map<string, ICompletionAction> = new Map();
-
   /** Generates zsh completions script for given command. */
   public static generate(cmd: Command) {
     return new ZshCompletionsGenerator(cmd).generate();
   }
-
   private constructor(protected cmd: Command) {}
-
   /** Generates zsh completions code. */
   private generate(): string {
     const path = this.cmd.getPath();
@@ -27,7 +22,6 @@ export class ZshCompletionsGenerator {
     const version: string | undefined = this.cmd.getVersion()
       ? ` v${this.cmd.getVersion()}`
       : "";
-
     return `#!/usr/bin/env zsh
 # zsh completion support for ${path}${version}
 
@@ -62,7 +56,6 @@ ${this.generateCompletions(this.cmd).trim()}
 
 compdef _${replaceSpecialChars(path)} ${path}`;
   }
-
   /** Generates zsh completions method for given command and child commands. */
   private generateCompletions(command: Command, path = ""): string {
     if (
@@ -71,9 +64,7 @@ compdef _${replaceSpecialChars(path)} ${path}`;
     ) {
       return "";
     }
-
     path = (path ? path + " " : "") + command.getName();
-
     return `# shellcheck disable=SC2154
 (( $+functions[_${replaceSpecialChars(path)}] )) ||
 function _${replaceSpecialChars(path)}() {` +
@@ -93,16 +84,13 @@ function _${replaceSpecialChars(path)}() {` +
         )
         .join("");
   }
-
   private generateCommandCompletions(command: Command, path: string): string {
     const commands = command.getCommands(false);
-
     let completions: string = commands
       .map((subCommand: Command) =>
         `'${subCommand.getName()}:${subCommand.getShortDescription()}'`
       )
       .join("\n      ");
-
     if (completions) {
       completions = `
     local -a commands
@@ -112,7 +100,6 @@ function _${replaceSpecialChars(path)}() {` +
     )
     _describe 'command' commands`;
     }
-
     if (command.hasArguments()) {
       const completionsPath: string = path.split(" ").slice(1).join(" ");
       // @TODO: support multiple arguments zsh completions
@@ -124,14 +111,11 @@ function _${replaceSpecialChars(path)}() {` +
         }_complete ${action.arg.name} ${action.arg.action} ${action.cmd}`;
       }
     }
-
     if (completions) {
       completions = `\n\n  function _commands() {${completions}\n  }`;
     }
-
     return completions;
   }
-
   private generateSubCommandCompletions(
     command: Command,
     path: string,
@@ -145,43 +129,32 @@ function _${replaceSpecialChars(path)}() {` +
           } ;;`
         )
         .join("\n      ");
-
       return `\n
   function _command_args() {
     case "\${words[1]}" in\n      ${actions}\n    esac
   }`;
     }
-
     return "";
   }
-
   private generateArgumentCompletions(command: Command, path: string): string {
     /* clear actions from previously parsed command. */
     this.actions.clear();
-
     const options: string[] = this.generateOptions(command, path);
-
     let argIndex = 0;
     // @TODO: add stop early option: -A "-*"
     // http://zsh.sourceforge.net/Doc/Release/Completion-System.html
     let argsCommand = "\n\n  _arguments -w -s -S -C";
-
     if (command.hasOptions()) {
       argsCommand += ` \\\n    ${options.join(" \\\n    ")}`;
     }
-
     if (
-      command.hasCommands(false) || (
-        command.getArguments()
-          .filter((arg) => command.getCompletion(arg.action)).length
-      )
+      command.hasCommands(false) || (command.getArguments()
+        .filter((arg) => command.getCompletion(arg.action)).length)
     ) {
       argsCommand += ` \\\n    '${++argIndex}: :_commands'`;
     }
-
     if (command.hasArguments() || command.hasCommands(false)) {
       const args: string[] = [];
-
       for (const arg of command.getArguments()) {
         const type = command.getType(arg.type);
         if (type && type.handler instanceof FileType) {
@@ -199,37 +172,29 @@ function _${replaceSpecialChars(path)}() {` +
           );
         }
       }
-
       argsCommand += args.map((arg: string) => `\\\n    '${arg}'`).join("");
-
       if (command.hasCommands(false)) {
         argsCommand += ` \\\n    '*:: :->command_args'`;
       }
     }
-
     return argsCommand;
   }
-
   private generateOptions(command: Command, path: string) {
     const options: string[] = [];
     const cmdArgs: string[] = path.split(" ");
     const _baseName: string = cmdArgs.shift() as string;
     const completionsPath: string = cmdArgs.join(" ");
-
     const excludedFlags: string[] = command.getOptions(false)
       .map((option) => option.standalone ? option.flags : false)
       .flat()
       .filter((flag) => typeof flag === "string") as string[];
-
     for (const option of command.getOptions(false)) {
       options.push(
         this.generateOption(command, option, completionsPath, excludedFlags),
       );
     }
-
     return options;
   }
-
   private generateOption(
     command: Command,
     option: IOption,
@@ -247,7 +212,6 @@ function _${replaceSpecialChars(path)}() {` +
       ...excludedFlags,
       ...flags,
     ];
-
     let args = "";
     for (const arg of option.args) {
       const type = command.getType(arg.type);
@@ -261,21 +225,17 @@ function _${replaceSpecialChars(path)}() {` +
         args += `${arg.optionalValue ? "::" : ":"}${arg.name}:->${action.name}`;
       }
     }
-
     let description: string = option.description
       .trim()
       .split("\n")
       .shift() as string;
-
     // escape brackets and quotes
     description = description
       .replace(/\[/g, "\\[")
       .replace(/]/g, "\\]")
       .replace(/"/g, '\\"')
       .replace(/'/g, "'\"'\"'");
-
     const collect: string = option.collect ? "*" : "";
-
     if (option.standalone) {
       return `'(- *)'{${collect}${flags}}'[${description}]${args}'`;
     } else {
@@ -289,7 +249,6 @@ function _${replaceSpecialChars(path)}() {` +
       }
     }
   }
-
   private getFileCompletions(type: IType) {
     if (!(type.handler instanceof FileType)) {
       return "";
@@ -308,10 +267,8 @@ function _${replaceSpecialChars(path)}() {` +
     // }
     // return fileCompletions;
   }
-
   private addAction(arg: IArgument, cmd: string): ICompletionAction {
     const action = `${arg.name}-${arg.action}`;
-
     if (!this.actions.has(action)) {
       this.actions.set(action, {
         arg: arg,
@@ -320,13 +277,10 @@ function _${replaceSpecialChars(path)}() {` +
         cmd,
       });
     }
-
     return this.actions.get(action) as ICompletionAction;
   }
-
   private generateActions(command: Command): string {
     let actions: string[] = [];
-
     if (this.actions.size) {
       actions = Array
         .from(this.actions)
@@ -336,19 +290,15 @@ function _${replaceSpecialChars(path)}() {` +
           }_complete ${action.arg.name} ${action.arg.action} ${action.cmd} ;;`
         );
     }
-
     if (command.hasCommands(false)) {
       actions.unshift(`command_args) _command_args ;;`);
     }
-
     if (actions.length) {
       return `\n\n  case "$state" in\n    ${actions.join("\n    ")}\n  esac`;
     }
-
     return "";
   }
 }
-
 function replaceSpecialChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9]/g, "_");
 }

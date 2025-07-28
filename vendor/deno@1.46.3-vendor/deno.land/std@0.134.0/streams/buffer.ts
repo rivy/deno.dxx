@@ -1,10 +1,8 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 import { assert } from "../_util/assert.ts";
 import { copy } from "../bytes/mod.ts";
-
 const MAX_SIZE = 2 ** 32 - 2;
-const DEFAULT_CHUNK_SIZE = 16_640;
-
+const DEFAULT_CHUNK_SIZE = 16640;
 /** A variable-sized buffer of bytes with `read()` and `write()` methods.
  *
  * Buffer is almost always used with some I/O like files and sockets. It allows
@@ -51,11 +49,9 @@ export class Buffer {
   get writable() {
     return this.#writable;
   }
-
   constructor(ab?: ArrayBufferLike | ArrayLike<number>) {
     this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
   }
-
   /** Returns a slice holding the unread portion of the buffer.
    *
    * The slice is valid for use only until the next buffer modification (that
@@ -66,26 +62,24 @@ export class Buffer {
    * @param options Defaults to `{ copy: true }`
    */
   bytes(options = { copy: true }): Uint8Array {
-    if (options.copy === false) return this.#buf.subarray(this.#off);
+    if (options.copy === false) {
+      return this.#buf.subarray(this.#off);
+    }
     return this.#buf.slice(this.#off);
   }
-
   /** Returns whether the unread portion of the buffer is empty. */
   empty(): boolean {
     return this.#buf.byteLength <= this.#off;
   }
-
   /** A read only number of bytes of the unread portion of the buffer. */
   get length(): number {
     return this.#buf.byteLength - this.#off;
   }
-
   /** The read only capacity of the buffer's underlying byte slice, that is,
    * the total space allocated for the buffer's data. */
   get capacity(): number {
     return this.#buf.buffer.byteLength;
   }
-
   /** Discards all but the first `n` unread bytes from the buffer but
    * continues to use the same allocated storage. It throws if `n` is
    * negative or greater than the length of the buffer. */
@@ -99,12 +93,10 @@ export class Buffer {
     }
     this.#reslice(this.#off + n);
   }
-
   reset(): void {
     this.#reslice(0);
     this.#off = 0;
   }
-
   #tryGrowByReslice(n: number) {
     const l = this.#buf.byteLength;
     if (n <= this.capacity - l) {
@@ -113,12 +105,10 @@ export class Buffer {
     }
     return -1;
   }
-
   #reslice(len: number) {
     assert(len <= this.#buf.buffer.byteLength);
     this.#buf = new Uint8Array(this.#buf.buffer, 0, len);
   }
-
   #grow(n: number) {
     const m = this.length;
     // If buffer is empty, reset to recover space.
@@ -150,7 +140,6 @@ export class Buffer {
     this.#reslice(Math.min(m + n, MAX_SIZE));
     return m;
   }
-
   /** Grows the buffer's capacity, if necessary, to guarantee space for
    * another `n` bytes. After `.grow(n)`, at least `n` bytes can be written to
    * the buffer without another allocation. If `n` is negative, `.grow()` will
@@ -166,7 +155,6 @@ export class Buffer {
     this.#reslice(m);
   }
 }
-
 /** A TransformStream that will only read & enqueue `size` amount of bytes.
  * This operation is chunk based and not BYOB based,
  * and as such will read more than needed.
@@ -184,7 +172,9 @@ export class Buffer {
 export class LimitedBytesTransformStream
   extends TransformStream<Uint8Array, Uint8Array> {
   #read = 0;
-  constructor(size: number, options: { error?: boolean } = {}) {
+  constructor(size: number, options: {
+    error?: boolean;
+  } = {}) {
     super({
       transform: (chunk, controller) => {
         if ((this.#read + chunk.byteLength) > size) {
@@ -201,7 +191,6 @@ export class LimitedBytesTransformStream
     });
   }
 }
-
 /** A TransformStream that will only read & enqueue `size` amount of chunks.
  *
  * if options.error is set, then instead of terminating the stream,
@@ -215,7 +204,9 @@ export class LimitedBytesTransformStream
  */
 export class LimitedTransformStream<T> extends TransformStream<T, T> {
   #read = 0;
-  constructor(size: number, options: { error?: boolean } = {}) {
+  constructor(size: number, options: {
+    error?: boolean;
+  } = {}) {
     super({
       transform: (chunk, controller) => {
         if ((this.#read + 1) > size) {

@@ -6,7 +6,9 @@ var Kr = Object.getOwnPropertyNames;
 var Lr = Object.getPrototypeOf, Nr = Object.prototype.hasOwnProperty;
 var r = (i, u) => () => (u || i((u = { exports: {} }).exports, u), u.exports),
   Qr = (i, u) => {
-    for (var s in u) v(i, s, { get: u[s], enumerable: !0 });
+    for (var s in u) {
+      v(i, s, { get: u[s], enumerable: !0 });
+    }
   },
   b = (i, u, s, c) => {
     if (u && typeof u == "object" || typeof u == "function") {
@@ -20,11 +22,7 @@ var r = (i, u) => () => (u || i((u = { exports: {} }).exports, u), u.exports),
     return i;
   },
   _ = (i, u, s) => (b(i, u, "default"), s && b(s, u, "default")),
-  j = (
-    i,
-    u,
-    s,
-  ) => (s = i != null ? Ir(Lr(i)) : {},
+  j = (i, u, s) => (s = i != null ? Ir(Lr(i)) : {},
     b(
       u || !i || !i.__esModule
         ? v(s, "default", { value: i, enumerable: !0 })
@@ -287,7 +285,9 @@ var Br = r((n) => {
   Object.defineProperty(n, "__esModule", { value: !0 });
   n.assert = void 0;
   function Rr(i, u = "no additional info provided") {
-    if (!i) throw new Error("Assertion Error: " + u);
+    if (!i) {
+      throw new Error("Assertion Error: " + u);
+    }
   }
   n.assert = Rr;
 });

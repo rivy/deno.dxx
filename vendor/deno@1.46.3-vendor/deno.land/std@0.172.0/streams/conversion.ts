@@ -1,5 +1,4 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/reader_from_iterable.ts` instead.
@@ -22,7 +21,6 @@ export {
    */
   readerFromIterable,
 } from "./reader_from_iterable.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/writer_from_stream_writer.ts` instead.
@@ -49,7 +47,6 @@ export {
    */
   writerFromStreamWriter,
 } from "./writer_from_stream_writer.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/reader_from_stream_reader.ts` instead.
@@ -72,7 +69,6 @@ export {
    */
   readerFromStreamReader,
 } from "./reader_from_stream_reader.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/writable_stream_from_writer.ts` instead.
@@ -82,7 +78,6 @@ export {
   /** @deprecated (will be removed after 0.171.0) Import from `std/streams/writable_stream_from_writer.ts` instead. */
   type WritableStreamFromWriterOptions,
 } from "./writable_stream_from_writer.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/readable_stream_from_iterable.ts` instead.
@@ -125,7 +120,6 @@ export {
    */
   readableStreamFromIterable,
 } from "./readable_stream_from_iterable.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/to_transform_stream.ts` instead.
@@ -154,7 +148,6 @@ export {
    */
   toTransformStream,
 } from "./to_transform_stream.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/readable_stream_from_reader.ts` instead.
@@ -178,7 +171,6 @@ export {
   /** @deprecated (will be removed after 0.171.0) Import from `std/streams/readable_stream_from_reader.ts` instead. */
   type ReadableStreamFromReaderOptions,
 } from "./readable_stream_from_reader.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/read_all.ts` instead.
@@ -233,34 +225,33 @@ export {
    */
   readAllSync,
 } from "./read_all.ts";
-
 export {
   /**
- * @deprecated (will be removed after 0.171.0) Import from `std/streams/write_all.ts` instead.
- *
- * Write all the content of the array buffer (`arr`) to the writer (`w`).
- *
- * ```ts
- * import { Buffer } from "https://deno.land/std@$STD_VERSION/io/buffer.ts";
- * import { writeAll } from "https://deno.land/std@$STD_VERSION/streams/conversion.ts";
+* @deprecated (will be removed after 0.171.0) Import from `std/streams/write_all.ts` instead.
+*
+* Write all the content of the array buffer (`arr`) to the writer (`w`).
+*
+* ```ts
+* import { Buffer } from "https://deno.land/std@$STD_VERSION/io/buffer.ts";
+* import { writeAll } from "https://deno.land/std@$STD_VERSION/streams/conversion.ts";
 
- * // Example writing to stdout
- * let contentBytes = new TextEncoder().encode("Hello World");
- * await writeAll(Deno.stdout, contentBytes);
- *
- * // Example writing to file
- * contentBytes = new TextEncoder().encode("Hello World");
- * const file = await Deno.open('test.file', {write: true});
- * await writeAll(file, contentBytes);
- * file.close();
- *
- * // Example writing to buffer
- * contentBytes = new TextEncoder().encode("Hello World");
- * const writer = new Buffer();
- * await writeAll(writer, contentBytes);
- * console.log(writer.bytes().length);  // 11
- * ```
- */
+* // Example writing to stdout
+* let contentBytes = new TextEncoder().encode("Hello World");
+* await writeAll(Deno.stdout, contentBytes);
+*
+* // Example writing to file
+* contentBytes = new TextEncoder().encode("Hello World");
+* const file = await Deno.open('test.file', {write: true});
+* await writeAll(file, contentBytes);
+* file.close();
+*
+* // Example writing to buffer
+* contentBytes = new TextEncoder().encode("Hello World");
+* const writer = new Buffer();
+* await writeAll(writer, contentBytes);
+* console.log(writer.bytes().length);  // 11
+* ```
+  */
   writeAll,
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/write_all.ts` instead.
@@ -291,7 +282,6 @@ export {
    */
   writeAllSync,
 } from "./write_all.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/iterate_reader.ts` instead.
@@ -326,44 +316,43 @@ export {
    */
   iterateReader,
   /**
- * @deprecated (will be removed after 0.171.0) Import from `std/streams/iterate_reader.ts` instead.
- *
- * Turns a ReaderSync, `r`, into an iterator.
- *
- * ```ts
- * import { iterateReaderSync } from "https://deno.land/std@$STD_VERSION/streams/conversion.ts";
- *
- * let f = Deno.openSync("/etc/passwd");
- * for (const chunk of iterateReaderSync(f)) {
- *   console.log(chunk);
- * }
- * f.close();
- * ```
- *
- * Second argument can be used to tune size of a buffer.
- * Default size of the buffer is 32kB.
- *
- * ```ts
- * import { iterateReaderSync } from "https://deno.land/std@$STD_VERSION/streams/conversion.ts";
+* @deprecated (will be removed after 0.171.0) Import from `std/streams/iterate_reader.ts` instead.
+*
+* Turns a ReaderSync, `r`, into an iterator.
+*
+* ```ts
+* import { iterateReaderSync } from "https://deno.land/std@$STD_VERSION/streams/conversion.ts";
+*
+* let f = Deno.openSync("/etc/passwd");
+* for (const chunk of iterateReaderSync(f)) {
+*   console.log(chunk);
+* }
+* f.close();
+* ```
+*
+* Second argument can be used to tune size of a buffer.
+* Default size of the buffer is 32kB.
+*
+* ```ts
+* import { iterateReaderSync } from "https://deno.land/std@$STD_VERSION/streams/conversion.ts";
 
- * let f = await Deno.open("/etc/passwd");
- * const iter = iterateReaderSync(f, {
- *   bufSize: 1024 * 1024
- * });
- * for (const chunk of iter) {
- *   console.log(chunk);
- * }
- * f.close();
- * ```
- *
- * Iterator uses an internal buffer of fixed size for efficiency; it returns
- * a view on that buffer on each iteration. It is therefore caller's
- * responsibility to copy contents of the buffer if needed; otherwise the
- * next iteration will overwrite contents of previously returned chunk.
- */
+* let f = await Deno.open("/etc/passwd");
+* const iter = iterateReaderSync(f, {
+*   bufSize: 1024 * 1024
+* });
+* for (const chunk of iter) {
+*   console.log(chunk);
+* }
+* f.close();
+* ```
+*
+* Iterator uses an internal buffer of fixed size for efficiency; it returns
+* a view on that buffer on each iteration. It is therefore caller's
+* responsibility to copy contents of the buffer if needed; otherwise the
+* next iteration will overwrite contents of previously returned chunk.
+  */
   iterateReaderSync,
 } from "./iterate_reader.ts";
-
 export {
   /**
    * @deprecated (will be removed after 0.171.0) Import from `std/streams/copy.ts` instead.

@@ -1,5 +1,4 @@
-import { RawSourceMap } from "https://esm.sh/source-map@0.6.1/source-map.d.ts";
-
+import { RawSourceMap } from "../../../esm.sh/source-map@0.6.1/source-map.d.ts";
 /**
  * Output of `retrieveSourceMap()`.
  * The map field may be either a string or the parsed JSON object (i.e.,
@@ -9,9 +8,7 @@ export interface UrlAndMap {
   url?: string | undefined;
   map: string | RawSourceMap;
 }
-
 export type Environment = "auto" | "browser" | "node";
-
 /**
  * Options to install().
  */
@@ -102,24 +99,20 @@ export interface Options {
    */
   retrieveSourceMap?(source: string): UrlAndMap | null;
 }
-
 export interface Position {
   source: string;
   line: number;
   column: number;
 }
-
 export interface State {
   nextPosition: Position | null;
   curPosition: Position | null;
 }
-
 export interface CallSite {
   /**
    * Value of "this"
    */
   getThis(): any;
-
   /**
    * Type of "this" as a string.
    * This is the name of the function stored in the constructor field of
@@ -127,75 +120,61 @@ export interface CallSite {
    * property.
    */
   getTypeName(): string | null;
-
   /**
    * Current function
    */
   getFunction(): ((...args: unknown[]) => any) | undefined;
-
   /**
    * Name of the current function, typically its name property.
    * If a name property is not available an attempt will be made to try
    * to infer a name from the function's context.
    */
   getFunctionName(): string | null;
-
   /**
    * Name of the property [of "this" or one of its prototypes] that holds
    * the current function
    */
   getMethodName(): string | null;
-
   /**
    * Name of the script [if this function was defined in a script]
    */
   getFileName(): string | null;
-
   /**
    * Current line number [if this function was defined in a script]
    */
   getLineNumber(): number | null;
-
   /**
    * Current column number [if this function was defined in a script]
    */
   getColumnNumber(): number | null;
-
   /**
    * A call site object representing the location where eval was called
    * [if this function was created using a call to eval]
    */
   getEvalOrigin(): string | undefined;
-
   /**
    * Is this a toplevel invocation, that is, is "this" the global object?
    */
   isToplevel(): boolean;
-
   /**
    * Does this call take place in code defined by a call to eval?
    */
   isEval(): boolean;
-
   /**
    * Is this call in native V8 code?
    */
   isNative(): boolean;
-
   /**
    * Is this a constructor call?
    */
   isConstructor(): boolean;
-
   getScriptNameOrSourceURL?(): string;
 }
-
 export function wrapCallSite(frame: CallSite, state?: State): CallSite;
 export function getErrorSource(error: Error): string | null;
 export function mapSourcePosition(position: Position): Position;
 export function retrieveSourceMap(source: string): UrlAndMap | null;
 export function resetRetrieveHandlers(): void;
-
 /**
  * Install SourceMap support.
  */
