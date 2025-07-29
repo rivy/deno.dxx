@@ -27,8 +27,8 @@ const MAX_SIZE = 2 ** 32 - 2;
 export class Buffer implements Writer, WriterSync, Reader, ReaderSync {
   #buf: Uint8Array; // contents are the bytes buf[off : len(buf)]
   #off = 0; // read at buf[off], write at buf[buf.byteLength]
-  constructor(ab?: ArrayBufferLike | ArrayLike<number>) {
-    this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
+  constructor(ab?: ArrayBufferLike | SharedArrayBuffer | ArrayLike<number>) {
+    this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab as any);
   }
   /** Returns a slice holding the unread portion of the buffer.
    *

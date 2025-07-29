@@ -53,8 +53,8 @@ export class Buffer {
     return this.#writable;
   }
   /** Constructs a new instance. */
-  constructor(ab?: ArrayBufferLike | ArrayLike<number>) {
-    this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
+  constructor(ab?: ArrayBufferLike | SharedArrayBuffer | ArrayLike<number>) {
+    this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab as any);
   }
   /** Returns a slice holding the unread portion of the buffer.
    *
