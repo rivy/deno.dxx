@@ -59,7 +59,7 @@ import { toText } from 'https://deno.land/std@0.224.0/streams/mod.ts';
 
 import * as $lib from '../src/lib/$shared.ts';
 // $lib.intoPlatformPath();
-import { traversal } from '../src/lib/$shared.ts';
+import { traversal, resolvePath } from '../src/lib/$shared.ts';
 
 //===
 
@@ -458,7 +458,7 @@ async function createTransformer(
 		// Check scope mappings first: if the file's URL starts with a scope key,
 		// then check that scope's mapping for a matching prefix.
 		for (const [scope, scopeImports] of Object.entries(scopes)) {
-			const scopeURL = new URL(scope, importMapURL);
+			const scopeURL = new URL(scope, importMapURL); // use URL relative path semantics
 			// log.trace(`scope=${scopeURL.href}`);
 			// const scopePath = resolve(join(dirname(resolve(importMapURL)), scope));
 			// const scopePrefixURL = new URL(scopePrefix, importMapURL);

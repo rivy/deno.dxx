@@ -385,7 +385,16 @@ export const atImportCWD = (() => {
 	const permit =
 		atImportPermitCWD ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
-	return tryFnSync(() => (permit ? Deno.cwd() : undefined));
+	// return tryFnSync(() => (permit ? Deno.cwd() : undefined));
+	return tryFnSync(() => {
+		let p = permit ? Deno.cwd() : undefined;
+		// WinOS-only, `Deno.cwd()` will in some cases, return the CWD with a leading *lowercase* driver letter
+		// * for consistency, convert the drive letter to uppercase
+		if (isWinOS && p && p.length >= 2 && p[1] === ':') {
+			p = p[0].toUpperCase() + p.substring(1);
+		}
+		return p;
+	});
 })();
 
 // `cwd()`
@@ -401,7 +410,15 @@ export function cwd(options?: PermitOptions) {
 		!guard ||
 		atImportPermissions.read.state === 'granted' ||
 		Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
-	return tryFnSync(() => (useDenoCWD ? Deno.cwd() : undefined));
+	return tryFnSync(() => {
+		let p = useDenoCWD ? Deno.cwd() : undefined;
+		// WinOS-only, `Deno.cwd()` will in some cases, return the CWD with a leading *lowercase* driver letter
+		// * for consistency, convert the drive letter to uppercase
+		if (isWinOS && p && p.length >= 2 && p[1] === ':') {
+			p = p[0].toUpperCase() + p.substring(1);
+		}
+		return p;
+	});
 }
 
 // `cwdOfDrive()`
@@ -413,6 +430,7 @@ export function cwd(options?: PermitOptions) {
 @tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env` or `allow-read=.,DRIVE:`
 */
 export function cwdOfDrive(drive?: string | null, options?: PermitOptions) {
+	if (!isWinOS) return undefined; // WinOS-only; POSIX doesn't have "drives"
 	// when possible, use (faster, but undocumented) environment variable `%=X:%` to peek at the current drive letter path instead of using `chdir('X:')`; using `Deno.env.toObject()['=X:']`
 	// ... ref: <https://superuser.com/questions/1655266/a-complete-list-of-relative-paths-variables-in-windows-explorer-in-windows> @@ <https://archive.is/3hzVa>
 	// ... ref: <https://stackoverflow.com/a/46019856/43774> @@ <https://archive.is/ghmY3>
@@ -454,7 +472,7 @@ export function cwdOfDrive(drive?: string | null, options?: PermitOptions) {
 }
 
 // `chdir()`
-/** Return `true` after successful `Deno.chdir()` or `false` for errors or not allowed access.
+/** Return `true` after successful `Deno.chdir()` or `false` for missing directories, access denied, or other errors.
 * - will *not panic*
 * - will *not prompt* for permission if `options.permitGuard` is `true`
 @param options • `{ permitGuard }` • verify unrestricted CWD access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
@@ -1017,6 +1035,7 @@ const allowRun = atImportPermissions.run.state === 'granted';
 - _Relative `goal` or `base` paths are evaluated as relative to the `atImportCWD` directory_
 @param goal • target path
 @param base • starting path ~ defaults to `$path.toFileUrl((atImportCWD ?? '')+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+@tags `no-panic`, `no-throw` ; `no-prompt`
 */
 export function traversal(
 	goal: string | URL,
@@ -1049,6 +1068,37 @@ export function traversal(
 		);
 	}
 	return url ? url.href : undefined;
+}
+
+// `resolvePath()`
+/** Resolve paths, syntactically with no file system access, from various sources; similar to `path:join()`.
+@returns path or URL of the same type as input (`from`), undefined if `from` is undefined
+@param from • destination path or URL to resolve from
+@param path • path, path segments, or URL paths to apply
+@tags `no-panic`, `no-throw`
+*/
+export function resolvePath(
+	from: string | URL | undefined,
+	path: string | URL | undefined | (string | URL | undefined)[],
+) {
+	if (from == null) return undefined;
+
+	const isFromURL = from instanceof URL;
+	const paths = Array.isArray(path) ? path : [path];
+
+	const fromPath = isFromURL ? pathFromURL(from) : from;
+	let resultPath = fromPath;
+	if (resultPath == null) return undefined;
+	for (const p of paths) {
+		if (p == null || p === '') continue;
+		const isURL = p instanceof URL;
+		const path = isURL ? pathFromURL(p) : p;
+		if (path == null || path === '') continue;
+		// note: `isAbsolute()` is needed b/c `$path.join()` fails when handling some special absolute paths (eg, WinOS device paths)
+		resultPath = isAbsolute(path) ? path : $path.join(resultPath, path);
+	}
+
+	return isFromURL ? intoURL(resultPath) : resultPath;
 }
 
 //===
@@ -1539,6 +1589,7 @@ export * as $logger from './axe/$mod.ts';
 //===
 
 import * as $logger from './axe/$mod.ts';
+import { isAbsolute } from 'node:path/win32';
 
 $logger.logger.suspend(); // initialize common/global logger to 'suspended' state to allow for local module use without unwanted outputs
 export const logger = $logger.logger; // export logger (note: in the *suspended state*)
