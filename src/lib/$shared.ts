@@ -688,7 +688,24 @@ export function isFileURL(url: URL) {
 // `isValidURL()`
 /** Determine if the supplied text string (`s`) is a valid URL, relative to an optional `base` URL. */
 export function isValidURL(s: string, base?: URL, options?: PathAndUrlOptions) {
-	return !!validURL(s, base, options);
+	// return !!validURL(s, base, options);
+
+	options = { ...PathAndUrlOptionsDefault, ...options };
+
+	// * use efficient rule-outs
+	if (s.length === 0 || !s.includes(':')) return false;
+	if (s.startsWith('http:') || s.startsWith('https:') || s.startsWith('file:')) {
+		return true;
+	}
+	// * avoid single character schemes unless explicitly allowed (ie, avoid mis-classifying 'C:' for WinOS)
+	const scheme = (s.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+	const pathIsURL = scheme != null && scheme.length > (options.singleLetterSchemeAsDrive ? 1 : 0);
+
+	// * only use try/catch URL() when the string looks like it might be a URL
+	return tryFnOrSync(() => {
+		new URL(s, base);
+		return true;
+	}, false);
 }
 
 // `validURL()`
@@ -703,8 +720,13 @@ export function validURL(s: string, base?: URL, options?: PathAndUrlOptions) {
 //===
 
 // `pathIsAbsolute()`
-export function pathIsAbsolute(path: string, options?: PathAndUrlOptions) {
+export function pathIsAbsolute(path?: string, options?: PathAndUrlOptions) {
+	if (path == null || path === '') return false;
 	options = { ...PathAndUrlOptionsDefault, ...options };
+	// FixME: ToDO: investigate trying `new URL(path)` to detect URLs which are always absolute
+	// * use `path.includes(':')` as an efficient pre-check to avoid unnecessary calls to `URL()`
+	if (path.includes(':') && tryFnSync(() => new URL(path)) != null) return true; // URLs are always absolute
+	// FixME: DRIVE: paths on WinOS will all be seen as absolute no matter the path unless the above new URL() check is narrowed to only multi-letter schemes
 	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 	const $platformPath = forWinOS ? $path.win32 : $path.posix;
 	if (forWinOS) path = path.replace(/^[/\\][/\\][.?][/\\]/, ''); // remove device prefix for WinOS paths
@@ -795,7 +817,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 
 		const options = {
 			...PathAndUrlOptionsDefault,
-			...ifThen(args?.length > 0, args.shift() as PathAndUrlOptions),
+			...ifThen(args?.length > 0, () => args.shift() as PathAndUrlOptions),
 		};
 		const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 		const $platformPath = forWinOS ? $path.win32 : $path.posix;
@@ -1083,22 +1105,97 @@ export function resolvePath(
 ) {
 	if (from == null) return undefined;
 
+	// note: paths may be relative and therefore are not automatically converted to URLs (URLs always have absolute/fully-specified paths)
+
 	const isFromURL = from instanceof URL;
 	const paths = Array.isArray(path) ? path : [path];
 
-	const fromPath = isFromURL ? pathFromURL(from) : from;
-	let resultPath = fromPath;
+	// const fromPath = isFromURL ? pathFromURL(from) : from;
+	const fromPath = isFromURL ? from.href : from;
+
+	let resultPath: string | undefined = fromPath;
+	let resultURL: URL | undefined = undefined;
+	console.warn('resolvePath():init:', {
+		resultPath,
+		isAbsolute: pathIsAbsolute(resultPath),
+		resultURL,
+	});
 	if (resultPath == null) return undefined;
 	for (const p of paths) {
-		if (p == null || p === '') continue;
+		if (p == null) continue;
 		const isURL = p instanceof URL;
 		const path = isURL ? pathFromURL(p) : p;
-		if (path == null || path === '') continue;
-		// note: `isAbsolute()` is needed b/c `$path.join()` fails when handling some special absolute paths (eg, WinOS device paths)
-		resultPath = isAbsolute(path) ? path : $path.join(resultPath, path);
+		if (path == null || path.length === 0) continue;
+		if (isURL || resultPath == null) {
+			resultPath = path;
+			if (isURL) resultURL = p;
+		} else {
+			// note: `pathIsAbsolute()` is needed b/c `$path.join()` fails when handling some special absolute paths (eg, WinOS device paths)
+			[resultPath, resultURL] = pathIsAbsolute(path)
+				? [path, intoURL(path)]
+				: ((): string | undefined => {
+						if (pathIsAbsolute(resultPath)) {
+							resultURL = intoURL(resultPath);
+							if (resultURL == null) return undefined;
+							resultURL.pathname = $path.join(pathFromURL(resultURL) ?? '', path);
+							return pathFromURL(resultURL);
+						}
+						return $path.join(resultPath, path);
+					})();
+		}
+		console.warn('resolvePath():loop:', { p, path, resultPath });
 	}
+	// const result =
 
 	return isFromURL ? intoURL(resultPath) : resultPath;
+}
+
+/**
+ * Joins path segments together, handling both file paths and URLs.
+ * @param base The base path or URL
+ * @param segments Path segments to join
+ * @returns Joined path or URL (same type as base)
+ */
+export function joinPath(base: string | URL, ...segments: Array<string | URL>): string | URL {
+	const isBaseURL = base instanceof URL;
+
+	// Handle URL base
+	if (isBaseURL) {
+		const result = new URL(base.href);
+		let currentPath = result.pathname;
+
+		for (const segment of segments) {
+			const segmentPath = segment instanceof URL ? segment.pathname : segment;
+
+			if (segmentPath.startsWith('/')) {
+				// Absolute paths replace current path
+				currentPath = segmentPath;
+			} else {
+				// Join relative paths using posix style for URLs
+				currentPath = $path.posix.join(currentPath, segmentPath);
+			}
+		}
+
+		result.pathname = currentPath;
+		return result;
+	}
+
+	// Handle string base
+	let result = base as string;
+
+	for (const segment of segments) {
+		const segmentPath = segment instanceof URL ? pathFromURL(segment) || '' : segment;
+
+		if (pathIsAbsolute(segmentPath)) {
+			// Absolute paths replace the result
+			result = segmentPath;
+		} else {
+			// Join relative paths using platform-specific join
+			result = $path.join(result, segmentPath);
+		}
+	}
+
+	return result;
 }
 
 //===

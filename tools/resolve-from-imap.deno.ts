@@ -25,6 +25,7 @@ import {
 	// encoder,
 	intoURL,
 	pathFromURL,
+	isValidURL,
 } from '../src/lib/$shared.ts';
 
 import {
@@ -504,11 +505,13 @@ async function createTransformer(
 		) {
 			const fullImportFolderPath = dirname(pathFromURL(importMapURL) ?? '');
 			const fullFileFolderPath = dirname(pathFromURL(fileURL) ?? '');
-			const prefix = relative(fullFileFolderPath, fullImportFolderPath);
+			// const prefix = relative(fullFileFolderPath, fullImportFolderPath);
+			const prefix = traversal(fullImportFolderPath, fullFileFolderPath);
 			const importMapFolderURL = new URL('.', importMapURL);
 			const fileFolderURL = new URL('.', fileURL);
 			const traverse = traversal(importMapFolderURL, fileFolderURL);
 			log.debug({
+				finalSpecifier,
 				fullImportFolderPath,
 				fullFileFolderPath,
 				prefix,
@@ -517,8 +520,15 @@ async function createTransformer(
 				fileFolderURL,
 				traverse,
 			});
-			finalSpecifier = $lib.pathToPOSIX(join(prefix, finalSpecifier));
-			if (!(finalSpecifier.startsWith('./') || finalSpecifier.startsWith('../'))) {
+			// finalSpecifier = $lib.pathToPOSIX(join(prefix, finalSpecifier));
+			finalSpecifier = resolvePath(prefix, finalSpecifier) ?? '';
+			if (
+				!(
+					isValidURL(finalSpecifier) ||
+					finalSpecifier.startsWith('./') ||
+					finalSpecifier.startsWith('../')
+				)
+			) {
 				// ensure that the finalSpecifier starts with a relative directory prefix
 				finalSpecifier = `./${finalSpecifier}`;
 			}
@@ -526,7 +536,7 @@ async function createTransformer(
 
 		log.info({ specifierMatched, finalSpecifier });
 
-		finalSpecifier = $lib.pathToPOSIX(finalSpecifier);
+		// finalSpecifier = $lib.pathToPOSIX(finalSpecifier);
 		log.info(
 			`resolveSpecifier(file='${pathFromURL(fileURL)}'; '${specifier}') => ${
 				finalSpecifier === specifier ? '(*NO-CHANGE*) ' : ''
