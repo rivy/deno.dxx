@@ -978,6 +978,9 @@ export function intoURL(
 			// if (pathPlatform == null) return undefined;
 
 			// FixME: clean this up; deal with URL encoding for paths not piped through `toFileUrl()`
+			// - probably default to encode anything that's assumed to be a 'file:' URL as they don't use hashes or other accessory URL parts
+			// - so, file: schemes, drive letter schemes, or no scheme => encode
+			// - ? add an option controlling URL encoding?
 
 			const pathForPlatform = intoPlatformPath(pathResolved, options);
 			console.warn({ pathForPlatform });
