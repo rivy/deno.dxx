@@ -51,13 +51,13 @@ export type ForPathPlatform = 'host' | PathPlatform;
 
 // `type PathAndUrlOptions`
 /** Options for path and URL handling
-@param enablePanicReturns • enable panic returns (ie, throw from functions for errors); defaults to `false`
-@param fileStemMayMatchDevice • allow file stem to match device name
+@property enablePanicReturns • enable panic returns (ie, throw from functions for errors)
+@property fileStemMayMatchDevice • allow file stem to match device name
 	- `true` == inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
 	- `false` == strict matching == only complete file name may match any of `specialDeviceStemNames` (Win11-style [or later] compatible matching)
-	- defaults to `true` (Win10-style matching)
-@param forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to 'host'
-@param singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (needed for Windows-style paths); defaults to `true`
+@property forPlatform • assumed platform for platform/OS-specific path/URL handling
+@property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (needed for Windows-style paths)
+@see `PathAndUrlOptionsDefault` for default values
 */
 export type PathAndUrlOptions = {
 	enablePanicReturns?: boolean; // enable panic returns (ie, throw from functions for errors)
@@ -67,6 +67,14 @@ export type PathAndUrlOptions = {
 	forPlatform?: ForPathPlatform; // assumed platform for platform/OS-specific path/URL handling
 	singleLetterSchemeAsDrive?: boolean | 'WinOS-only'; // interpret single letter URL schemes as drive letters (needed for Windows-style paths)
 };
+// `const PathAndUrlOptionsDefault`
+/** Default options for path and URL handling
+@property enablePanicReturns • enable panic returns (ie, throw from functions for errors); defaults to `false`
+@property fileStemMayMatchDevice • allow file stem to match device name; defaults to `true` (Win10-style matching)
+@property forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to 'host'
+@property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (supports use of Windows-style paths); defaults to `true`
+@see `PathAndUrlOptions` for further property details
+*/
 const PathAndUrlOptionsDefault: Required<PathAndUrlOptions> = {
 	enablePanicReturns: false,
 	fileStemMayMatchDevice: true /* file prefix/stem may match `special devices` (Win10-style) */,
@@ -679,42 +687,91 @@ export async function fetchText(url: URL): Promise<string> {
 
 //===
 
-// `isFileURL()`
-/** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), naming a local file resource. */
-export function isFileURL(url: URL) {
-	return url.protocol === 'file:';
-}
+// notes:
+// * valid URLs
+// - only need a scheme
+//   - `/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/` // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>`
+//   - `scheme` is the text before the first colon `:`; protocol includes the text and the ':'
+// - URLs with a scheme but no authority (host) are valid; called 'opaque' URLs
+// - URLs with a scheme and authority (host) are 'hierarchical' URLs (also referred to as "Authority URLs", "Host-based URLs", or "Origin URLs")
+// - URNs (e.g., 'urn:isbn:0451450523') identify resources by name within a namespace, but don't specify location
+// - 'file:' scheme is also special, as it is hierarchical but may be missing a 'host' if the path is on the localhost
+//   - as a string, it should be `file:///` (with three slashes) to be a valid file URL o/w interpret it as a path (b/c it's a legal path on POSIX systems)
+//   - note: for `new URL(...)`, `deno` and `node` interpret `file:` (and `file:/` and `file://`) as 'file:///' and `file:foo` (and `file:/foo` and `file://foo`) as 'file:///foo'
+
+const urlSchemeRx = /^[A-Za-z][A-Za-z0-9+-.]*(?=:)/ms; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+const urlRejectsRx = /^(?:ftp|https?|wss?):(?:$|\/+$)/i; // quick rule-outs regex for invalid forms of the most common schemes
 
 // `isValidURL()`
-/** Determine if the supplied text string (`s`) is a valid URL, relative to an optional `base` URL. */
-export function isValidURL(s: string, base?: URL, options?: PathAndUrlOptions) {
-	// return !!validURL(s, base, options);
+/** Determine if the supplied text string (`s`) is a valid URL, relative to an optional `base` URL.
+@tags `no-panic`, `no-throw`; `no-prompt`
+*/
+export function isValidURL(s?: string, options?: { base?: URL } & PathAndUrlOptions) {
+	// FixME: likely remove this in favor of just using `validURL() != null` so that URL construction work is preserved for user's use, when desired
+	// options = { ...PathAndUrlOptionsDefault, ...options };
 
-	options = { ...PathAndUrlOptionsDefault, ...options };
+	// // * use efficient initial rule-outs
+	// if (s == null || s.length === 0) {
+	// 	// return ifThenElse(base != null, true, false);
+	// 	return ifThen(base != null, base) ?? false;
+	// }
+	// if (base == null) {
+	// 	if (!s.includes(':')) return false;
+	// 	if (s.startsWith('file:')) return true;
+	// 	// * avoid single character schemes unless explicitly allowed (ie, avoid mis-classifying 'C:...' for WinOS)
+	// 	const scheme = urlSchemeRx.exec(s)?.[0];
+	//  // - FixME: this doesn't handle the case of singleLetterSchemeAsDrive == "WinOS-only"
+	// 	const validScheme =
+	// 		scheme != null && scheme.length > (options.singleLetterSchemeAsDrive ? 1 : 0);
+	// 	if (!validScheme) return false;
+	// }
+	// if (urlRejectsRx.test(s)) return false;
 
-	// * use efficient rule-outs
-	if (s.length === 0 || !s.includes(':')) return false;
-	if (s.startsWith('http:') || s.startsWith('https:') || s.startsWith('file:')) {
-		return true;
-	}
-	// * avoid single character schemes unless explicitly allowed (ie, avoid mis-classifying 'C:' for WinOS)
-	const scheme = (s.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
-	const pathIsURL = scheme != null && scheme.length > (options.singleLetterSchemeAsDrive ? 1 : 0);
-
-	// * only use try/catch URL() when the string looks like it might be a URL
-	return tryFnOrSync(() => {
-		new URL(s, base);
-		return true;
-	}, false);
+	// // // * only use try/catch URL() when the string looks like it might be a URL
+	// // return tryFnOrSync(() => {
+	// // 	new URL(s, base);
+	// // 	return true;
+	// // }, false);
+	// return intoURL(s, base, options) ?? false;
+	// return !!validURL(s ?? '', base, options);
+	return !!validURL(s ?? '', options);
 }
 
 // `validURL()`
-/** Convert the supplied text string (`s`) into a valid URL, relative to an optional `base` URL (`undefined` if `s` [relative to `base`] isn't a valid URL).
+/** Convert the supplied text string (`s`) into a valid URL, relative to an optional `base` URL
+* ; `undefined` if `s` [relative to `base`] isn't a valid URL
 * * `no-throw` ~ function returns `undefined` upon any error
-@tags `no-panic`, `no-throw`, `no-prompt`
+@tags `no-panic`, `no-throw`; `no-prompt`
 */
-export function validURL(s: string, base?: URL, options?: PathAndUrlOptions) {
-	return intoURL(s, base, options);
+export function validURL(s?: string, options?: { base?: URL } & PathAndUrlOptions) {
+	// `validURL()`
+	/** Convert the supplied text string (`s`) into a valid URL, relative to an optional `base` URL
+* ; `undefined` if `s` [relative to `base`] isn't a valid URL
+* * `no-throw` ~ function returns `undefined` upon any error
+@tags `no-panic`, `no-throw`; `no-prompt`
+*/
+	const base = options?.base;
+
+	// ToDO: benchmark/research - this might be premature optimization
+	// * use efficient initial rule-outs
+	if (s == null || s.length === 0) {
+		return ifThen(base != null, base);
+	}
+	if (base == null) {
+		if (!s.includes(':')) return undefined;
+	}
+	if (urlRejectsRx.test(s)) return undefined;
+
+	// * only use `intoURL()` when the string looks like it might be a valid URL
+	return intoURL(s, options);
+}
+
+//===
+
+// `isFileURL()`
+/** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), identifying a file resource (local or network). */
+export function isFileURL(url: URL) {
+	return url.protocol === 'file:'; // ie, URL scheme == 'file' (uses the file system to access the resource)
 }
 
 //===
@@ -725,7 +782,7 @@ export function pathIsAbsolute(path?: string, options?: PathAndUrlOptions) {
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	// FixME: ToDO: investigate trying `new URL(path)` to detect URLs which are always absolute
 	// * use `path.includes(':')` as an efficient pre-check to avoid unnecessary calls to `URL()`
-	if (path.includes(':') && tryFnSync(() => new URL(path)) != null) return true; // URLs are always absolute
+	if (path.includes(':') && tryFnSync(() => path != null && new URL(path)) != null) return true; // URLs are always absolute
 	// FixME: DRIVE: paths on WinOS will all be seen as absolute no matter the path unless the above new URL() check is narrowed to only multi-letter schemes
 	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 	const $platformPath = forWinOS ? $path.win32 : $path.posix;
@@ -786,107 +843,168 @@ export function absolutePath(pathSegments: string | string[], options?: PermitOp
 */
 export function intoPath(path?: string | URL, options?: PathAndUrlOptions) {
 	if (path == null) return undefined;
-	return pathFromURL(path instanceof URL ? path : intoURL(path, undefined, options), options);
+	return pathFromURL(path instanceof URL ? path : intoURL(path, options), options);
 }
+
+const pathDriveRx = /^[A-Za-z]:/;
+// const pathHostRx = /^[/\\][/\\]([^/\\]+)/;
 
 // `intoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
-@param base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+@param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 @param options ~ defaults to `{platform: 'host', singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
-export function intoURL(path?: string, base?: URL, options?: PathAndUrlOptions): URL | undefined;
-export function intoURL(path?: string, ...args: unknown[]) {
+// export function intoURL(path?: string, base?: URL, options?: PathAndUrlOptions): URL | undefined;
+// export function intoURL(path?: string, ...args: unknown[]) {
+export function intoURL(
+	path?: string,
+	options?: { base?: URL } & PathAndUrlOptions,
+): URL | undefined {
+	options = { ...PathAndUrlOptionsDefault, ...options };
+	const base =
+		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
+	console.warn({ path, base, options });
 	try {
-		if (path == null || path === '') return undefined;
+		// const base =
+		// 	args?.length > 0 && args[0] instanceof URL
+		// 		? (args.shift() as URL)
+		// 		: atImportPermitCWD && atImportCWD != null
+		// 			? (() => {
+		// 					try {
+		// 						return $path.toFileUrl(atImportCWD + $path.SEP);
+		// 					} catch {
+		// 						return undefined;
+		// 					}
+		// 				})()
+		// 			: undefined;
+		// // FixME: this type coercion can be wrong; instead, rewrite options as `{base?:URL} & PathAndUrlOptions` or use a duck-type type guard
+		// const options = {
+		// 	...PathAndUrlOptionsDefault,
+		// 	...ifThen(args?.length > 0, () => args.shift() as PathAndUrlOptions),
+		// };
 
-		const base =
-			args?.length > 0 && args[0] instanceof URL
-				? (args.shift() as URL)
-				: atImportPermitCWD && atImportCWD != null
-					? (() => {
-							try {
-								return $path.toFileUrl(atImportCWD + $path.SEP);
-							} catch {
-								return undefined;
-							}
-						})()
-					: undefined;
-
-		const options = {
-			...PathAndUrlOptionsDefault,
-			...ifThen(args?.length > 0, () => args.shift() as PathAndUrlOptions),
-		};
+		// * use efficient initial return(s)
+		if (path == null || path.length === 0) {
+			return ifThen(base != null, base);
+		}
 		const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 		const $platformPath = forWinOS ? $path.win32 : $path.posix;
 		const singleLetterSchemeAsDrive =
 			(options.singleLetterSchemeAsDrive === 'WinOS-only' && forWinOS) ||
 			!!options.singleLetterSchemeAsDrive;
 
-		// console.warn({ path, forWinOS });
-		if (!forWinOS) return new URL(path, base); // for POSIX-like platform; no further processing required
-
-		// * for WinOS
-
-		const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
-		const pathIsURL = scheme != null && scheme.length > (singleLetterSchemeAsDrive ? 1 : 0);
+		const scheme = urlSchemeRx.exec(path)?.[0];
+		const pathHasSchemeAsDrive = scheme != null && singleLetterSchemeAsDrive && scheme.length == 1;
+		// const hasUrlScheme = scheme != null && scheme.length > (singleLetterSchemeAsDrive ? 1 : 0);
+		const pathHasUrlScheme = scheme != null && !pathHasSchemeAsDrive;
 		// const pathIsFileURL = scheme === 'file';
-		// console.warn({ path, base, options, scheme, pathIsURL });
-		// console.warn({ path, pathIsURL });
-		if (pathIsURL) return new URL(path, base);
+		// console.warn({ path, base, options, scheme, hasDrive, hasUrlScheme, forWinOS });
 
-		const pathDrive = path.match(/^[A-Za-z]:/)?.[0];
-		const pathHost = path.match(/^[/\\][/\\]([^/\\]+)/)?.[1];
-		// console.warn({ path, pathDrive, pathHost });
-		if (pathDrive == null && pathHost == null) return new URL(path, base);
+		let url: URL | undefined = undefined;
+		if (!forWinOS && pathHasUrlScheme) url = new URL(path, base);
 
-		let pathname = (() => {
-			// const pathIsAbsolute = $platformPath.isAbsolute(path);
-			// if (pathIsAbsolute && pathDrive == null && pathHost == null) {
-			// 	// * path is absolute and has no leading drive letter or host name
-			// 	return path;
-			// }
-			// console.warn({ base });
-			if (base == null) return undefined;
-			const basePath = base.protocol === 'file:' ? $platformPath.fromFileUrl(base) : base.pathname;
-			const baseDrive = basePath.match(/^[A-Za-z]:/)?.[0];
-			// console.warn({ basePath, baseDrive });
-			// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
-			const finalDrive = pathDrive ?? baseDrive /*  ?? cwd()?.match(/^[A-Za-z]:/)?.[0] */;
-			// const CWD = ifThen(finalDrive != null, cwd());
-			// const CWDDrive = CWD?.match(/^[A-Za-z]:/)?.[0];
-			// console.warn({ base, basePath, baseDrive, pathDrive, finalDrive /* CWD, CWDDrive */ });
-			// const finalDriveCWDNeeded =
-			// 	CWD != null &&
-			// 	finalDrive != null &&
-			// 	CWDDrive?.toLocaleUpperCase() != finalDrive?.toLocaleUpperCase();
-			// const finalDriveCWD = (finalDriveCWDNeeded ? cwdOfDrive(finalDrive) : undefined) ?? '';
-			const finalDriveCWD = cwdOfDrive(finalDrive) ?? '';
-			const resolved = /* pathIsAbsolute
-				? $platformPath.resolve(path)
-				:  */ $platformPath.resolve(basePath, finalDriveCWD, path);
-			return resolved;
-		})();
-		// console.warn({ pathname });
-		if (pathname == null) return undefined;
+		if (forWinOS) {
+			// const pathDrive = path.match(/^[A-Za-z]:/)?.[0];
+			// const pathHost = path.match(/^[/\\][/\\]([^/\\]+)/)?.[1];
+			// const pathHost = pathHostRx.exec(path)?.[1];
 
-		// NOTE: UNC paths of the form `\\localhost\...` will fail conversion to a file-URL with a TypeError (invalid hostname) => convert to `\\.\UNC\localhost\...`
-		pathname = pathname.replace(/^([/\\][/\\]localhost[/\\])/, '\\\\.\\UNC$1');
+			const pathDrive = pathDriveRx.exec(path)?.[0];
+			// const pathWithoutDrive = ifThen(pathDrive != null, () => path.replace(pathDriveRx, 'ZZZ'));
+			const pathWithoutDrive = ifThenElse(pathDrive != null, () => path.slice(2), path);
+			const pathIsAbsolute =
+				(pathWithoutDrive?.startsWith('/') || pathWithoutDrive?.startsWith('\\')) ?? false;
 
-		// encode any path starting with '\\?\...' into an alternate path ('\\.\?\...')
-		// * [why] ~ WinOS device paths may be in the form of `\\?\...`, but '?' is an invalid URL host name
-		// *   ... so, encode any path starting with '\\?\...' into an alternate "pseudo-device" path ('\\.\?\...' [which is otherwise invalid/unused by WinOS])
-		// *   ... platform restriction is not needed as valid POSIX-like paths should never have this prefix
-		// *   ... this does require decoding when the path is retrieved from the URL (ie, using `pathFromURL()`)
-		pathname = pathname.replace(/^([/\\][/\\])[?]([/\\])/, '$1.$2?$2');
+			console.warn({ path, pathDrive, pathWithoutDrive, pathIsAbsolute });
 
-		const url = $platformPath.toFileUrl(pathname);
+			const pathResolved = (() => {
+				if (pathDrive == null || pathIsAbsolute) {
+					return path;
+				}
+				if (pathWithoutDrive == null) return undefined;
+				const pathDriveCWD = cwdOfDrive(pathDrive);
+				if (pathDriveCWD == null) return undefined;
+				console.warn({ pathDriveCWD, pathWithoutDrive });
+				return $platformPath.join(pathDriveCWD, pathWithoutDrive);
+			})();
+			console.warn({ pathResolved });
+			if (pathResolved == null) return undefined;
 
-		// console.warn({ pathIsURL, path, pathname, url });
+			// // // console.warn({ path, pathDrive, pathHost });
+			// // if (forWinOS && pathDrive == null && pathHost == null) url = new URL(path, base);
+
+			// let pathname = (() => {
+			// 	// const pathIsAbsolute = $platformPath.isAbsolute(path);
+			// 	// if (pathIsAbsolute && pathDrive == null && pathHost == null) {
+			// 	// 	// * path is absolute and has no leading drive letter or host name
+			// 	// 	return path;
+			// 	// }
+			// 	// console.warn({ base });
+			// 	if (base == null) return undefined;
+			// 	const basePath = base.protocol === 'file:' ? $platformPath.fromFileUrl(base) : base.pathname;
+			// 	const baseDrive = pathDriveRx.exec(basePath)?.[0];
+			// 	// console.warn({ basePath, baseDrive });
+			// 	// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
+			// 	const finalDrive = pathDrive ?? baseDrive /*  ?? cwd()?.match(/^[A-Za-z]:/)?.[0] */;
+			// 	// const CWD = ifThen(finalDrive != null, cwd());
+			// 	// const CWDDrive = CWD?.match(/^[A-Za-z]:/)?.[0];
+			// 	// console.warn({ base, basePath, baseDrive, pathDrive, finalDrive /* CWD, CWDDrive */ });
+			// 	// const finalDriveCWDNeeded =
+			// 	// 	CWD != null &&
+			// 	// 	finalDrive != null &&
+			// 	// 	CWDDrive?.toLocaleUpperCase() != finalDrive?.toLocaleUpperCase();
+			// 	// const finalDriveCWD = (finalDriveCWDNeeded ? cwdOfDrive(finalDrive) : undefined) ?? '';
+			// 	const finalDriveCWD = cwdOfDrive(finalDrive) ?? '';
+			// 	const resolved = /* pathIsAbsolute
+			// 		? $platformPath.resolve(path)
+			// 		:  */ $platformPath.resolve(basePath, finalDriveCWD, path);
+			// 	return resolved;
+			// })();
+			// console.warn({ pathname });
+			// if (pathname == null) return undefined;
+
+			// // NOTE: UNC paths of the form `\\localhost\...` will fail conversion to a file-URL with a TypeError (invalid hostname) => convert to `\\.\UNC\localhost\...`
+			// pathResolved = pathResolved.replace(/^([/\\][/\\]localhost[/\\])/, '\\\\.\\UNC$1');
+
+			// // encode any path starting with '\\?\...' into an alternate path ('\\.\?\...')
+			// // * [why] ~ WinOS device paths may be in the form of `\\?\...`, but '?' is an invalid URL host name
+			// // *   ... so, encode any path starting with '\\?\...' into an alternate "pseudo-device" path ('\\.\?\...' [which is otherwise invalid/unused by WinOS])
+			// // *   ... platform restriction is not needed as valid POSIX-like paths should never have this prefix
+			// // *   ... this does require decoding when the path is retrieved from the URL (ie, using `pathFromURL()`)
+			// pathResolved = pathResolved.replace(/^([/\\][/\\])[?]([/\\])/, '$1.$2?$2');
+			// const pathPlatform = intoPlatformPath(pathResolved);
+			// if (pathPlatform == null) return undefined;
+
+			// FixME: clean this up; deal with URL encoding for paths not piped through `toFileUrl()`
+
+			const pathForPlatform = intoPlatformPath(pathResolved, options);
+			console.warn({ pathForPlatform });
+			if (pathForPlatform == null) return undefined;
+			const finalScheme = urlSchemeRx.exec(pathForPlatform)?.[0];
+			const finalHasSchemeAsDrive =
+				finalScheme != null && singleLetterSchemeAsDrive && finalScheme.length == 1;
+			const finalHasUrlScheme = finalScheme != null && !finalHasSchemeAsDrive;
+			console.warn({ finalScheme, finalHasSchemeAsDrive, finalHasUrlScheme });
+			const pathWithScheme = finalHasUrlScheme
+				? pathForPlatform
+				: // : `file://${pathToPOSIX(pathForPlatform)}`;
+					// `file://${pathForPlatform}`;
+					pathIsAbsolute
+					? $path.toFileUrl(pathForPlatform)
+					: // : `file://${$platformPath.resolve(base?.pathname ?? '', pathForPlatform)}`;
+						'file:' + pathForPlatform;
+			console.warn({ pathWithScheme });
+			// url = new URL($platformPath.toFileUrl(pathPlatform), base);
+			url = new URL(pathWithScheme, base);
+			console.warn({ url });
+
+			// console.warn({ pathIsURL, path, pathname, url });
+		}
 		return url;
 	} catch (_error) {
+		console.warn('caught panic', { _error });
 		return undefined;
 		// throw _error;
 	}
@@ -1037,7 +1155,7 @@ export function ensureAsPath(path?: string | URL, options?: PathAndUrlOptions) {
 */
 export function ensureAsURL(path: string | URL, options?: PathAndUrlOptions) {
 	if (path instanceof URL) return path;
-	const url = intoURL(path, undefined, options);
+	const url = intoURL(path, options);
 	if (url == null) throw new Deno.errors.InvalidData('Invalid URL');
 	return url;
 }
@@ -1156,7 +1274,10 @@ export function resolvePath(
  * @param segments Path segments to join
  * @returns Joined path or URL (same type as base)
  */
-export function joinPath(base: string | URL, ...segments: Array<string | URL>): string | URL {
+export function joinPath(
+	base: string | URL,
+	...segments: Array<string | URL>
+): string | URL | undefined {
 	const isBaseURL = base instanceof URL;
 
 	// Handle URL base
@@ -1165,14 +1286,20 @@ export function joinPath(base: string | URL, ...segments: Array<string | URL>): 
 		let currentPath = result.pathname;
 
 		for (const segment of segments) {
-			const segmentPath = segment instanceof URL ? segment.pathname : segment;
-
-			if (segmentPath.startsWith('/')) {
-				// Absolute paths replace current path
-				currentPath = segmentPath;
+			// * absolute paths replace currentPath; relative paths are `join()`ed
+			if (segment instanceof URL) {
+				// URL paths are always absolute/fully-specified
+				result.href = segment.href;
+				currentPath = result.pathname;
+			} else if (isValidURL(segment)) {
+				// URL paths are always absolute/fully-specified
+				result.href = segment;
+				currentPath = result.pathname;
+			} else if (pathIsAbsolute(segment)) {
+				currentPath = segment;
 			} else {
-				// Join relative paths using posix style for URLs
-				currentPath = $path.posix.join(currentPath, segmentPath);
+				// join relative paths using posix style for URLs
+				currentPath = $path.posix.join(currentPath, segment);
 			}
 		}
 
@@ -1181,17 +1308,27 @@ export function joinPath(base: string | URL, ...segments: Array<string | URL>): 
 	}
 
 	// Handle string base
-	let result = base as string;
+	let result: string | undefined = base as string;
 
 	for (const segment of segments) {
-		const segmentPath = segment instanceof URL ? pathFromURL(segment) || '' : segment;
-
-		if (pathIsAbsolute(segmentPath)) {
-			// Absolute paths replace the result
-			result = segmentPath;
+		if (segment instanceof URL) {
+			// URL paths are always absolute/fully-specified
+			result = pathFromURL(segment);
+		} else if (isValidURL(segment)) {
+			// URL paths are always absolute/fully-specified
+			result = segment;
+		} else if (pathIsAbsolute(segment)) {
+			result = segment;
 		} else {
-			// Join relative paths using platform-specific join
-			result = $path.join(result, segmentPath);
+			if (result == null) {
+				result = segment;
+			} else {
+				if (isValidURL(result)) {
+					const u = new URL(result);
+					u.pathname = $path.posix.join(u.pathname, segment);
+					result = u.href;
+				} else result = $path.join(result, segment);
+			}
 		}
 	}
 
@@ -1686,7 +1823,7 @@ export * as $logger from './axe/$mod.ts';
 //===
 
 import * as $logger from './axe/$mod.ts';
-import { isAbsolute } from 'node:path/win32';
+// import { isAbsolute } from 'node:path/win32';
 
 $logger.logger.suspend(); // initialize common/global logger to 'suspended' state to allow for local module use without unwanted outputs
 export const logger = $logger.logger; // export logger (note: in the *suspended state*)

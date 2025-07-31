@@ -359,7 +359,7 @@ if (yargs.mapFrom == null) {
 
 //===
 
-const scriptDirURL = intoURL('./', intoURL(import.meta.url));
+const scriptDirURL = intoURL('./', { base: intoURL(import.meta.url) });
 
 const importMapName = 'import_map.json';
 
@@ -370,7 +370,7 @@ const [importMapURL, maybeImportMapText] = await (async () => {
 		return [undefined, undefined];
 	}
 	if (mapFromURL.pathname.endsWith('/')) {
-		const url = intoURL(importMapName, mapFromURL);
+		const url = intoURL(importMapName, { base: mapFromURL });
 		return [url, undefined];
 	}
 	const text = await tryFn(() => fetchText(mapFromURL));
@@ -385,7 +385,7 @@ const [importMapURL, maybeImportMapText] = await (async () => {
 		return [mapFromURL, text];
 	}
 	mapFromURL.pathname += '/'; // force mapFromURL to be a folder
-	return [intoURL(importMapName, mapFromURL), undefined];
+	return [intoURL(importMapName, { base: mapFromURL }), undefined];
 })();
 
 await log.debug({
