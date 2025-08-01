@@ -1347,9 +1347,8 @@ export function joinPath(
 
 //===
 
-export function isEmpty(x: unknown) {
+export function isEmpty(x: unknown): boolean {
 	if (x == null) return true;
-	if (typeof x === 'function') return true;
 	if (typeof x === 'object') {
 		if (x.constructor === Object && Object.keys(x).length === 0) {
 			return true;
