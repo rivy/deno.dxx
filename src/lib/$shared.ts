@@ -857,6 +857,7 @@ const pathDriveRx = /^[A-Za-z]:/;
 @param options ~ defaults to `{platform: 'host', singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
+// FixME: ? add urlStringEncoding option; true/'all', 'fileScheme-only', 'fileOrNoScheme-only' (default), 'noScheme-only', false/'none'
 // export function intoURL(path?: string, base?: URL, options?: PathAndUrlOptions): URL | undefined;
 // export function intoURL(path?: string, ...args: unknown[]) {
 export function intoURL(
@@ -866,6 +867,7 @@ export function intoURL(
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	const base =
 		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
+	const urlStringEncodeSchemes: 'all' | string[] = ['', 'file'];
 	console.warn({ path, base, options });
 	try {
 		// const base =
@@ -896,15 +898,20 @@ export function intoURL(
 			(options.singleLetterSchemeAsDrive === 'WinOS-only' && forWinOS) ||
 			!!options.singleLetterSchemeAsDrive;
 
-		const scheme = urlSchemeRx.exec(path)?.[0];
-		const pathHasSchemeAsDrive = scheme != null && singleLetterSchemeAsDrive && scheme.length == 1;
+		const maybeScheme = urlSchemeRx.exec(path)?.[0].toLocaleLowerCase();
+		const pathScheme: string =
+			maybeScheme != null && maybeScheme.length > (singleLetterSchemeAsDrive ? 1 : 0)
+				? maybeScheme
+				: '';
+		const pathHasSchemeAsDrive =
+			maybeScheme != null && singleLetterSchemeAsDrive && maybeScheme.length == 1;
 		// const hasUrlScheme = scheme != null && scheme.length > (singleLetterSchemeAsDrive ? 1 : 0);
-		const pathHasUrlScheme = scheme != null && !pathHasSchemeAsDrive;
+		const pathHasUrlScheme = maybeScheme != null && !pathHasSchemeAsDrive;
 		// const pathIsFileURL = scheme === 'file';
 		// console.warn({ path, base, options, scheme, hasDrive, hasUrlScheme, forWinOS });
 
 		let url: URL | undefined = undefined;
-		if (!forWinOS && pathHasUrlScheme) url = new URL(path, base);
+		if (!forWinOS && pathScheme != '') url = new URL(path, base);
 
 		if (forWinOS) {
 			// const pathDrive = path.match(/^[A-Za-z]:/)?.[0];
