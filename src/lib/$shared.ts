@@ -1365,19 +1365,24 @@ const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off'];
 
 export type Truthy = false | string;
 // `isFalsey()`
-export function isFalsey(s: string): boolean {
-	return toTruthy(s) == false;
+export function isFalsey(x: boolean | number | string | null | undefined): boolean {
+	return toTruthy(x) == false;
 }
 // `isTruthy()`
-export function isTruthy(s?: string): boolean {
-	return toTruthy(s) != false;
+export function isTruthy(x: boolean | number | string | null | undefined): boolean {
+	return toTruthy(x) != false;
 }
 // `toTruthy()`
-export function toTruthy(s?: string): Truthy {
-	if (!s || falseyValues.includes(s)) {
-		return false;
+export function toTruthy(x: unknown): Truthy {
+	if (x == null) return false;
+	if (typeof x === 'boolean') return x ? 'true' : false;
+	if (typeof x === 'number') return x !== 0 ? 'true' : false;
+	if (typeof x === 'string') {
+		if (falseyValues.includes(x)) {
+			return false;
+		}
 	}
-	return s;
+	return 'true';
 }
 
 //===
