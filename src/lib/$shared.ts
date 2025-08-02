@@ -881,8 +881,6 @@ export function xIntoURL(
 	options?: { base?: URL } & PathAndUrlOptions,
 ): URL | undefined {
 	options = { ...PathAndUrlOptionsDefault, ...options };
-	// const base =
-	// 	options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
 	const base =
 		options?.base ??
 		tryFnSync(
@@ -1150,6 +1148,8 @@ export function intoURL(
 
 			// // NOTE: UNC paths of the form `\\localhost\...` will fail conversion to a file-URL with a TypeError (invalid hostname) => convert to `\\.\UNC\localhost\...`
 			// pathResolved = pathResolved.replace(/^([/\\][/\\]localhost[/\\])/, '\\\\.\\UNC$1');
+			// * `ls '\\localhost\c$'` == `ls '\\.\UNC\localhost\c$'`; network shares
+			// * `ls '\\.\c:\'` == `ls '//./C:/'` == `ls '\\?\c:\'` == `ls '//?/C:/'`; windows devices
 
 			// // encode any path starting with '\\?\...' into an alternate path ('\\.\?\...')
 			// // * [why] ~ WinOS device paths may be in the form of `\\?\...`, but '?' is an invalid URL host name
