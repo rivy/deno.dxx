@@ -892,6 +892,10 @@ export function xIntoURL(
 		return ifThen(base != null, base);
 	}
 
+	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
+	console.warn({ forWinOS, forPlatform: options.forPlatform });
+	const $platformPath = forWinOS ? $path.win32 : $path.posix;
+
 	const baseProtocol = base?.protocol;
 	const baseHost = base?.host;
 	const basePathname = base?.pathname;
@@ -902,24 +906,53 @@ export function xIntoURL(
 		maybeProtocol != null && maybeProtocol.length > (options.singleLetterSchemeAsDrive ? 2 : 0)
 			? maybeProtocol
 			: '';
-	const [, , pathHost, pathPathname] =
-		path.slice(pathProtocol.length).match(pathProtocolHostPathnameRx) ?? [];
-	console.warn({ maybeProtocol, pathProtocol, pathHost, pathPathname });
+	const [, maybeHost, pathPathname] =
+		path.slice(pathProtocol.length).match(pathHostPathnameRx) ?? [];
+	const pathHost = maybeHost ?? '';
+	console.warn({
+		maybeProtocol,
+		pathProtocol,
+		path,
+		pathAfterSlice: path.slice(pathProtocol.length),
+		maybeHost,
+		pathHost,
+		pathPathname,
+	});
 
 	let u: URL | undefined = undefined;
 	let p: string | undefined = undefined;
 	// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
 	// FixME: WinOS (and file scheme only) will require special handling of drive letters b/c Deno join will not handle relative paths with drive letters correctly
 	// FixME: * which will require a working isAbsolutePath() function
-	p = pathToPOSIX(pathPathname); // URLs all use POSIX paths
+	p = tryFnSync(() => pathToPOSIX(pathPathname)); // URLs all use POSIX paths
 	if (
 		(pathProtocol === '' || pathProtocol === baseProtocol) &&
 		(pathHost === '' || pathHost === baseHost)
 	) {
-		console.warn('1', { pathProtocol, pathHost });
-		if (base == null) return undefined;
-		u = base;
-		u.pathname = encodeURI($path.posix.join(base.pathname, p));
+		// path and base have equivalent protocol/scheme and host
+		// * use base as the origin and simply join the path pathname to base pathname
+		console.warn('1-[path/base equivalent proto and host\n', { pathProtocol, pathHost });
+		const protocol = base?.protocol ?? 'file:';
+		console.warn({ protocol });
+		if (protocol === 'file:') {
+			u = tryFnSync(() => new URL('file:///'));
+			if (u == null) return undefined;
+			console.warn({ forWinOS });
+			if (forWinOS) {
+				console.warn({ p });
+				const pathDrive = p?.match(pathDriveRx)?.[0];
+				console.warn({ pathDrive });
+				if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
+				console.warn({ p });
+			}
+
+			// p = encodeURI(p ?? '');
+		}
+		if (base != null) {
+			u = base;
+			/* hostname already set; copied from base */
+			u.pathname = $platformPath.resolve(base.pathname, p ?? '');
+		}
 	} else if (pathProtocol === '') {
 		console.warn('2', { pathProtocol, pathHost });
 		if (base == null) return undefined;
