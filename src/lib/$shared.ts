@@ -51,7 +51,7 @@ export type ForPathPlatform = 'host' | PathPlatform;
 
 // `type PathAndUrlOptions`
 /** Options for path and URL handling
-@property enablePanicReturns • enable panic returns (ie, throw from functions for errors)
+@property mayPanic • allow panics from function (ie, throw for errors)
 @property fileStemMayMatchDevice • allow file stem to match device name
 	- `true` == inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
 	- `false` == strict matching == only complete file name may match any of `specialDeviceStemNames` (Win11-style [or later] compatible matching)
@@ -60,7 +60,7 @@ export type ForPathPlatform = 'host' | PathPlatform;
 @see `PathAndUrlOptionsDefault` for default values
 */
 export type PathAndUrlOptions = {
-	enablePanicReturns?: boolean; // enable panic returns (ie, throw from functions for errors)
+	mayPanic?: boolean; // enable panic returns (ie, throw from functions for errors)
 	// * options.fileStemMayMatchDevice == true ~ inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
 	// * options.fileStemMayMatchDevice == false ~ strict matching == only complete file name may match any of `specialDeviceStemNames` (Win11-style [or later] compatible matching)
 	fileStemMayMatchDevice?: boolean; // allow file stem to match device name (eg, 'C:' or '\\\\server\\share')
@@ -69,14 +69,14 @@ export type PathAndUrlOptions = {
 };
 // `const PathAndUrlOptionsDefault`
 /** Default options for path and URL handling
-@property enablePanicReturns • enable panic returns (ie, throw from functions for errors); defaults to `false`
+@property mayPanic • allow panics from function (ie, throw for errors)
 @property fileStemMayMatchDevice • allow file stem to match device name; defaults to `true` (Win10-style matching)
 @property forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to 'host'
 @property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (supports use of Windows-style paths); defaults to `true`
 @see `PathAndUrlOptions` for further property details
 */
 const PathAndUrlOptionsDefault: Required<PathAndUrlOptions> = {
-	enablePanicReturns: false,
+	mayPanic: false,
 	fileStemMayMatchDevice: true /* file prefix/stem may match `special devices` (Win10-style) */,
 	forPlatform: 'host',
 	singleLetterSchemeAsDrive: true,
@@ -629,36 +629,38 @@ export function ifThen<T>(condition: boolean, ifTrue: T | (() => T)) {
 	return ifThenElse(condition, ifTrue, undefined);
 }
 
-export function tryFnOr<T>(fn: () => Promise<T>, fallback: T) {
-	return tryFnOrAsync(fn, fallback);
+export function tryFnOr<T>(fn: () => Promise<T>, fallback: T, mayPanic?: boolean) {
+	return tryFnOrAsync(fn, fallback, mayPanic);
 }
 
-export async function tryFnOrAsync<T>(fn: () => Promise<T>, fallback: T) {
+export async function tryFnOrAsync<T>(fn: () => Promise<T>, fallback: T, mayPanic?: boolean) {
 	try {
 		return await fn();
-	} catch (_) {
-		return fallback;
+	} catch (e) {
+		if (!mayPanic) return fallback;
+		throw e;
 	}
 }
 
-export function tryFnOrSync<T>(fn: () => T, fallback: T) {
+export function tryFnOrSync<T>(fn: () => T, fallback: T, mayPanic?: boolean) {
 	try {
 		return fn();
-	} catch (_) {
-		return fallback;
+	} catch (e) {
+		if (!mayPanic) return fallback;
+		throw e;
 	}
 }
 
-export function tryFn<T>(fn: () => Promise<T>) {
-	return tryFnAsync(fn);
+export function tryFn<T>(fn: () => Promise<T>, mayPanic?: boolean) {
+	return tryFnAsync(fn, mayPanic);
 }
 
-export function tryFnAsync<T>(fn: () => Promise<T>) {
-	return tryFnOrAsync(fn, undefined);
+export function tryFnAsync<T>(fn: () => Promise<T>, mayPanic?: boolean) {
+	return tryFnOrAsync(fn, undefined, mayPanic);
 }
 
-export function tryFnSync<T>(fn: () => T) {
-	return tryFnOrSync(fn, undefined);
+export function tryFnSync<T>(fn: () => T, mayPanic?: boolean) {
+	return tryFnOrSync(fn, undefined, mayPanic);
 }
 
 //===
@@ -699,7 +701,8 @@ export async function fetchText(url: URL): Promise<string> {
 //   - as a string, it should be `file:///` (with three slashes) to be a valid file URL o/w interpret it as a path (b/c it's a legal path on POSIX systems)
 //   - note: for `new URL(...)`, `deno` and `node` interpret `file:` (and `file:/` and `file://`) as 'file:///' and `file:foo` (and `file:/foo` and `file://foo`) as 'file:///foo'
 
-const urlSchemeRx = /^[A-Za-z][A-Za-z0-9+-.]*(?=:)/ms; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+// const urlSchemeRx = /^[A-Za-z][A-Za-z0-9+-.]*(?=:)/ms; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+const urlProtocolRx = /^[A-Za-z][A-Za-z0-9+-.]*:/ms; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 const urlRejectsRx = /^(?:ftp|https?|wss?):(?:$|\/+$)/i; // quick rule-outs regex for invalid forms of the most common schemes
 
 // `isValidURL()`
@@ -780,10 +783,10 @@ export function isFileURL(url: URL) {
 export function pathIsAbsolute(path: string | null | undefined, options?: PathAndUrlOptions) {
 	if (path == null || path === '') return false;
 	options = { ...PathAndUrlOptionsDefault, ...options };
-	// FixME: ToDO: investigate trying `new URL(path)` to detect URLs which are always absolute
-	// * use `path.includes(':')` as an efficient pre-check to avoid unnecessary calls to `URL()`
-	if (path.includes(':') && tryFnSync(() => path != null && new URL(path)) != null) return true; // URLs are always absolute
-	// FixME: DRIVE: paths on WinOS will all be seen as absolute no matter the path unless the above new URL() check is narrowed to only multi-letter schemes
+	// // FixME: ToDO: investigate trying `new URL(path)` to detect URLs which are always absolute
+	// // * use `path.includes(':')` as an efficient pre-check to avoid unnecessary calls to `URL()`
+	// if (path.includes(':') && tryFnSync(() => path != null && new URL(path)) != null) return true; // URLs are always absolute
+	// // FixME: DRIVE: paths on WinOS will all be seen as absolute no matter the path unless the above new URL() check is narrowed to only multi-letter schemes
 	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 	const $platformPath = forWinOS ? $path.win32 : $path.posix;
 	if (forWinOS) path = path.replace(/^[/\\][/\\][.?][/\\]/, ''); // remove device prefix for WinOS paths
@@ -841,8 +844,6 @@ export function absolutePath(pathSegments: string | string[], options?: PermitOp
 	return currentPath;
 }
 
-encode;
-
 // `intoPath()`
 /** Extract the "path", in normalized (Deno-compatible) form, from a path string or URL.
 * * `no-throw` ~ function returns `undefined` upon any error
@@ -855,7 +856,14 @@ export function intoPath(path?: string | URL, options?: PathAndUrlOptions) {
 }
 
 const pathDriveRx = /^[A-Za-z]:/;
-const pathHostAndPathnameRx = /^([/\\][/\\]([^/\\]+)(?=[/\\](?:[^/\\]|$)))?(.*)/;
+// per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+const pathHostPathnameRx = /^(?:[/\\][/\\]([^/\\]+)?(?=[/\\](?:[^/\\]|$)))?(.*)/;
+// const pathSchemeHostPathnameRx =
+// 	/^(?:([A-Za-z][A-Za-z0-9+-.]*):)?(?:[/\\][/\\]([^/\\]+)?(?=[/\\](?:[^/\\]|$)))?(.*)/;
+const pathProtocolHostPathnameRx =
+	/^([A-Za-z][A-Za-z0-9+-.]*:)?(?:[/\\][/\\]([^/\\]+)?(?=[/\\](?:[^/\\]|$)))?(.*)/;
+
+// import { pathToFileURL } from 'node:url';
 
 // `posixIntoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
@@ -865,42 +873,66 @@ const pathHostAndPathnameRx = /^([/\\][/\\]([^/\\]+)(?=[/\\](?:[^/\\]|$)))?(.*)/
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
-export function posixIntoURL(
+export function xIntoURL(
 	path: string | null | undefined,
 	options?: { base?: URL } & PathAndUrlOptions,
 ): URL | undefined {
 	options = { ...PathAndUrlOptionsDefault, ...options };
+	// const base =
+	// 	options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
 	const base =
-		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
+		options?.base ??
+		tryFnSync(
+			() => ifThen(atImportCWD != null, $path.toFileUrl(atImportCWD + $path.SEP)),
+			options.mayPanic,
+		);
 	console.warn({ path, base, options });
 
 	if (path == null || path.length === 0) {
 		return ifThen(base != null, base);
 	}
 
-	const baseScheme = base?.protocol.slice(0, -1); // remove trailing ':'
-	const maybeScheme = urlSchemeRx.exec(path)?.[0].toLocaleLowerCase();
-	const [pathScheme, pathname]: [string, string] = (() => {
-		const s =
-			maybeScheme != null && maybeScheme.length > (options.singleLetterSchemeAsDrive ? 1 : 0)
-				? maybeScheme
-				: '';
-		const p = path.slice(s.length > 0 ? s.length + 1 : 0);
-		return [s === '' ? 'file' : s, p]; // no scheme is assumed to be 'file' scheme
-	})();
+	const baseProtocol = base?.protocol;
+	const baseHost = base?.host;
+	const basePathname = base?.pathname;
+	console.warn({ baseProtocol, baseHost });
+
+	const [, maybeProtocol, _host, _pathname] = path.match(pathProtocolHostPathnameRx) ?? [];
+	const pathProtocol =
+		maybeProtocol != null && maybeProtocol.length > (options.singleLetterSchemeAsDrive ? 2 : 0)
+			? maybeProtocol
+			: '';
+	const [, , pathHost, pathPathname] =
+		path.slice(pathProtocol.length).match(pathProtocolHostPathnameRx) ?? [];
+	console.warn({ maybeProtocol, pathProtocol, pathHost, pathPathname });
 
 	let u: URL | undefined = undefined;
-	if (base && pathScheme === baseScheme) {
-		let p = pathToPOSIX(pathname);
-		p = $path.posix.join(p, base.pathname);
-	}
-	if (pathScheme === 'file') {
-		u = new URL('file:///');
-		u.pathname = encodeURI(pathname);
-	}
+	let p: string | undefined = undefined;
+	// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
+	// FixME: WinOS (and file scheme only) will require special handling of drive letters b/c Deno join will not handle relative paths with drive letters correctly
+	// FixME: * which will require a working isAbsolutePath() function
+	p = pathToPOSIX(pathPathname); // URLs all use POSIX paths
+	if (
+		(pathProtocol === '' || pathProtocol === baseProtocol) &&
+		(pathHost === '' || pathHost === baseHost)
+	) {
+		console.warn('1', { pathProtocol, pathHost });
+		if (base == null) return undefined;
+		u = base;
+		u.pathname = encodeURI($path.posix.join(base.pathname, p));
+	} else if (pathProtocol === '') {
+		console.warn('2', { pathProtocol, pathHost });
+		if (base == null) return undefined;
+		u = base;
+		u.hostname = (pathHost ? pathHost : baseHost) ?? '';
+		u.pathname = (p ? pathPathname : basePathname) ?? '';
+	} else u = tryFnSync(() => new URL(path, base), options?.mayPanic);
 
 	return u;
 }
+// `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('file:x/y'); x = new URL('file:x/y'); console.log({x});"`
+// `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('f:///////x/y'); const y = new URL('file://///f://///a/x/y'); console.log({x, y});"`
+// `deno eval "import * as $ from './src/lib/$shared.ts'; const U = new URL('scheme:foo#bar'); const result = $.xIntoURL('y', { base: U }); console.log({result});"`
 
 // `intoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
@@ -951,10 +983,10 @@ export function intoURL(
 			(options.singleLetterSchemeAsDrive === 'WinOS-only' && forWinOS) ||
 			!!options.singleLetterSchemeAsDrive;
 
-		const maybeScheme = urlSchemeRx.exec(path)?.[0].toLocaleLowerCase();
-		const pathScheme: string =
-			maybeScheme != null && maybeScheme.length > (singleLetterSchemeAsDrive ? 1 : 0)
-				? maybeScheme
+		const maybeProtocol = urlProtocolRx.exec(path)?.[0].toLocaleLowerCase();
+		const pathProtocol: string =
+			maybeProtocol != null && maybeProtocol.length > (singleLetterSchemeAsDrive ? 1 : 0)
+				? maybeProtocol
 				: '';
 		// const pathHasSchemeAsDrive =
 		// 	maybeScheme != null && singleLetterSchemeAsDrive && maybeScheme.length == 1;
@@ -972,7 +1004,7 @@ export function intoURL(
 			// const pathHost = pathHostRx.exec(path)?.[1];
 
 			const pathDrive = pathDriveRx.exec(path)?.[0];
-			const [pathHost, pathPathname] = pathHostAndPathnameRx.exec(path)?.slice(2) ?? [];
+			const [pathHost, pathPathname] = pathHostPathnameRx.exec(path)?.slice(2) ?? [];
 			// const pathWithoutDrive = ifThen(pathDrive != null, () => path.replace(pathDriveRx, 'ZZZ'));
 			const pathWithoutDrive = ifThenElse(
 				pathDrive != null,
@@ -982,7 +1014,15 @@ export function intoURL(
 			const pathIsAbsolute =
 				(pathWithoutDrive?.startsWith('/') || pathWithoutDrive?.startsWith('\\')) ?? false;
 
-			console.warn({ path, pathDrive, pathHost, pathPathname, pathWithoutDrive, pathIsAbsolute });
+			console.warn({
+				path,
+				pathProtocol,
+				pathDrive,
+				pathHost,
+				pathPathname,
+				pathWithoutDrive,
+				pathIsAbsolute,
+			});
 
 			const pathResolved = (() => {
 				if (pathDrive == null || pathIsAbsolute) {
@@ -1050,7 +1090,7 @@ export function intoURL(
 			const pathForPlatform = intoPlatformPath(pathResolved, options);
 			console.warn({ pathForPlatform });
 			if (pathForPlatform == null) return undefined;
-			const finalScheme = urlSchemeRx.exec(pathForPlatform)?.[0];
+			const finalScheme = urlProtocolRx.exec(pathForPlatform)?.[0];
 			const finalHasSchemeAsDrive =
 				finalScheme != null && singleLetterSchemeAsDrive && finalScheme.length == 1;
 			const finalHasUrlScheme = finalScheme != null && !finalHasSchemeAsDrive;
@@ -1101,7 +1141,7 @@ export function pathFromURL(url?: URL, options?: PathAndUrlOptions) {
 		// console.warn('pathFromURL:', { path, intoPlatformPath: intoPlatformPath(path) });
 		return intoPlatformPath(path, options);
 	} catch (_error) {
-		if (options?.enablePanicReturns) {
+		if (options?.mayPanic) {
 			throw _error;
 		}
 		return undefined;
