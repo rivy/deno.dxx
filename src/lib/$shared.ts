@@ -777,7 +777,7 @@ export function isFileURL(url: URL) {
 //===
 
 // `pathIsAbsolute()`
-export function pathIsAbsolute(path?: string, options?: PathAndUrlOptions) {
+export function pathIsAbsolute(path: string | null | undefined, options?: PathAndUrlOptions) {
 	if (path == null || path === '') return false;
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	// FixME: ToDO: investigate trying `new URL(path)` to detect URLs which are always absolute
@@ -789,11 +789,17 @@ export function pathIsAbsolute(path?: string, options?: PathAndUrlOptions) {
 	if (forWinOS) path = path.replace(/^[/\\][/\\][.?][/\\]/, ''); // remove device prefix for WinOS paths
 	return $platformPath.isAbsolute(path);
 }
-export function pathIsAbsoluteWithDrive(path: string, options?: PathAndUrlOptions) {
-	return path.match(/^[A-Za-z]:/) && pathIsAbsolute(path, options);
+export function pathIsAbsoluteWithDrive(
+	path: string | null | undefined,
+	options?: PathAndUrlOptions,
+) {
+	return path?.match(/^[A-Za-z]:/) && pathIsAbsolute(path, options);
 }
-export function pathIsRelativeWithDrive(path: string, options?: PathAndUrlOptions) {
-	return path.match(/^[A-Za-z]:/) && !pathIsAbsolute(path, options);
+export function pathIsRelativeWithDrive(
+	path: string | null | undefined,
+	options?: PathAndUrlOptions,
+) {
+	return path?.match(/^[A-Za-z]:/) && !pathIsAbsolute(path, options);
 }
 
 // `absolutePath()`
@@ -835,6 +841,8 @@ export function absolutePath(pathSegments: string | string[], options?: PermitOp
 	return currentPath;
 }
 
+encode;
+
 // `intoPath()`
 /** Extract the "path", in normalized (Deno-compatible) form, from a path string or URL.
 * * `no-throw` ~ function returns `undefined` upon any error
@@ -847,7 +855,52 @@ export function intoPath(path?: string | URL, options?: PathAndUrlOptions) {
 }
 
 const pathDriveRx = /^[A-Za-z]:/;
-// const pathHostRx = /^[/\\][/\\]([^/\\]+)/;
+const pathHostAndPathnameRx = /^([/\\][/\\]([^/\\]+)(?=[/\\](?:[^/\\]|$)))?(.*)/;
+
+// `posixIntoURL()`
+/** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
+* * `no-throw` ~ function returns `undefined` upon any error
+@param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
+@param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+@param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
+@tags `no-panic`, `no-throw` ; `no-prompt`
+*/
+export function posixIntoURL(
+	path: string | null | undefined,
+	options?: { base?: URL } & PathAndUrlOptions,
+): URL | undefined {
+	options = { ...PathAndUrlOptionsDefault, ...options };
+	const base =
+		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
+	console.warn({ path, base, options });
+
+	if (path == null || path.length === 0) {
+		return ifThen(base != null, base);
+	}
+
+	const baseScheme = base?.protocol.slice(0, -1); // remove trailing ':'
+	const maybeScheme = urlSchemeRx.exec(path)?.[0].toLocaleLowerCase();
+	const [pathScheme, pathname]: [string, string] = (() => {
+		const s =
+			maybeScheme != null && maybeScheme.length > (options.singleLetterSchemeAsDrive ? 1 : 0)
+				? maybeScheme
+				: '';
+		const p = path.slice(s.length > 0 ? s.length + 1 : 0);
+		return [s === '' ? 'file' : s, p]; // no scheme is assumed to be 'file' scheme
+	})();
+
+	let u: URL | undefined = undefined;
+	if (base && pathScheme === baseScheme) {
+		let p = pathToPOSIX(pathname);
+		p = $path.posix.join(p, base.pathname);
+	}
+	if (pathScheme === 'file') {
+		u = new URL('file:///');
+		u.pathname = encodeURI(pathname);
+	}
+
+	return u;
+}
 
 // `intoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
@@ -861,13 +914,13 @@ const pathDriveRx = /^[A-Za-z]:/;
 // export function intoURL(path?: string, base?: URL, options?: PathAndUrlOptions): URL | undefined;
 // export function intoURL(path?: string, ...args: unknown[]) {
 export function intoURL(
-	path?: string,
+	path: string | null | undefined,
 	options?: { base?: URL } & PathAndUrlOptions,
 ): URL | undefined {
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	const base =
 		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
-	const urlStringEncodeSchemes: 'all' | string[] = ['', 'file'];
+	// const urlStringEncodeSchemes: 'all' | string[] = ['', 'file'];
 	console.warn({ path, base, options });
 	try {
 		// const base =
@@ -903,15 +956,15 @@ export function intoURL(
 			maybeScheme != null && maybeScheme.length > (singleLetterSchemeAsDrive ? 1 : 0)
 				? maybeScheme
 				: '';
-		const pathHasSchemeAsDrive =
-			maybeScheme != null && singleLetterSchemeAsDrive && maybeScheme.length == 1;
+		// const pathHasSchemeAsDrive =
+		// 	maybeScheme != null && singleLetterSchemeAsDrive && maybeScheme.length == 1;
 		// const hasUrlScheme = scheme != null && scheme.length > (singleLetterSchemeAsDrive ? 1 : 0);
-		const pathHasUrlScheme = maybeScheme != null && !pathHasSchemeAsDrive;
+		// const pathHasUrlScheme = maybeScheme != null && !pathHasSchemeAsDrive;
 		// const pathIsFileURL = scheme === 'file';
 		// console.warn({ path, base, options, scheme, hasDrive, hasUrlScheme, forWinOS });
 
 		let url: URL | undefined = undefined;
-		if (!forWinOS && pathScheme != '') url = new URL(path, base);
+		// if (!forWinOS && pathScheme != '') url = new URL(path, base);
 
 		if (forWinOS) {
 			// const pathDrive = path.match(/^[A-Za-z]:/)?.[0];
@@ -919,12 +972,17 @@ export function intoURL(
 			// const pathHost = pathHostRx.exec(path)?.[1];
 
 			const pathDrive = pathDriveRx.exec(path)?.[0];
+			const [pathHost, pathPathname] = pathHostAndPathnameRx.exec(path)?.slice(2) ?? [];
 			// const pathWithoutDrive = ifThen(pathDrive != null, () => path.replace(pathDriveRx, 'ZZZ'));
-			const pathWithoutDrive = ifThenElse(pathDrive != null, () => path.slice(2), path);
+			const pathWithoutDrive = ifThenElse(
+				pathDrive != null,
+				() => path.slice(pathDrive?.length),
+				path,
+			);
 			const pathIsAbsolute =
 				(pathWithoutDrive?.startsWith('/') || pathWithoutDrive?.startsWith('\\')) ?? false;
 
-			console.warn({ path, pathDrive, pathWithoutDrive, pathIsAbsolute });
+			console.warn({ path, pathDrive, pathHost, pathPathname, pathWithoutDrive, pathIsAbsolute });
 
 			const pathResolved = (() => {
 				if (pathDrive == null || pathIsAbsolute) {
