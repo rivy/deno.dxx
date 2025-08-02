@@ -865,7 +865,7 @@ const pathProtocolHostPathnameRx =
 
 // import { pathToFileURL } from 'node:url';
 
-// `posixIntoURL()`
+// `xIntoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
@@ -873,6 +873,9 @@ const pathProtocolHostPathnameRx =
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
+// FixME: add options to parse and copy hash and query strings from `path` to the resulting URL; defaults to false == 'ignore' hash and query text
+// * as paths may contain both/either '#' and/or '?' as path elements, we will default to ignoring both of them
+// * so, pre-parse `path` to remove any hash and query strings, if needed, prior to presenting to xIntoURL for URL construction
 export function xIntoURL(
 	path: string | null | undefined,
 	options?: { base?: URL } & PathAndUrlOptions,
@@ -896,10 +899,10 @@ export function xIntoURL(
 	console.warn({ forWinOS, forPlatform: options.forPlatform });
 	const $platformPath = forWinOS ? $path.win32 : $path.posix;
 
-	const baseProtocol = base?.protocol;
-	const baseHost = base?.host;
-	const basePathname = base?.pathname;
-	console.warn({ baseProtocol, baseHost });
+	const baseProtocol = base?.protocol ?? '';
+	const baseHost = base?.host ?? '';
+	const basePathname = base?.pathname ?? '';
+	console.warn({ baseProtocol, baseHost, basePathname });
 
 	const [, maybeProtocol, _host, _pathname] = path.match(pathProtocolHostPathnameRx) ?? [];
 	const pathProtocol =
@@ -919,23 +922,42 @@ export function xIntoURL(
 		pathPathname,
 	});
 
+	const protocol = [pathProtocol, baseProtocol].find((v) => v.length > 0) ?? 'file:'; // default to 'file:' protocol if no protocol is specified
+	const hostname = ifThenElse(protocol === baseProtocol, baseHost, pathHost);
+
 	let u: URL | undefined = undefined;
 	let p: string | undefined = undefined;
 	// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
 	// FixME: WinOS (and file scheme only) will require special handling of drive letters b/c Deno join will not handle relative paths with drive letters correctly
 	// FixME: * which will require a working isAbsolutePath() function
-	p = tryFnSync(() => pathToPOSIX(pathPathname)); // URLs all use POSIX paths
+	p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
+	if (protocol === 'file:') {
+		console.warn({ forWinOS });
+		if (forWinOS) {
+			console.warn({ p });
+			const pathDrive = p?.match(pathDriveRx)?.[0];
+			console.warn({ pathDrive });
+			if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
+			console.warn({ p });
+			p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
+		}
+	}
 	if (
-		(pathProtocol === '' || pathProtocol === baseProtocol) &&
-		(pathHost === '' || pathHost === baseHost)
+		u == null &&
+		protocol === baseProtocol &&
+		hostname === baseHost &&
+		p != null &&
+		base != null
 	) {
 		// path and base have equivalent protocol/scheme and host
 		// * use base as the origin and simply join the path pathname to base pathname
-		console.warn('1-[path/base equivalent proto and host\n', { pathProtocol, pathHost });
-		const protocol = base?.protocol ?? 'file:';
-		console.warn({ protocol });
+		console.warn('1-[path/base equivalent proto and host]\n', { pathProtocol, pathHost });
+		console.warn({ protocol, hostname });
+		u = base;
+		/* protocol and hostname have been copied from base */
+		u.hostname = hostname;
 		if (protocol === 'file:') {
-			u = tryFnSync(() => new URL('file:///'));
+			u = tryFnSync(() => new URL('file:///'), options?.mayPanic);
 			if (u == null) return undefined;
 			console.warn({ forWinOS });
 			if (forWinOS) {
@@ -945,22 +967,45 @@ export function xIntoURL(
 				if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
 				console.warn({ p });
 			}
-
 			// p = encodeURI(p ?? '');
 		}
-		if (base != null) {
-			u = base;
-			/* hostname already set; copied from base */
-			u.pathname = $platformPath.resolve(base.pathname, p ?? '');
-		}
-	} else if (pathProtocol === '') {
-		console.warn('2', { pathProtocol, pathHost });
-		if (base == null) return undefined;
+		u.pathname = $platformPath.resolve(basePathname, p ?? '');
+		u.hash = '';
+		u.search = '';
+	}
+	if (
+		u == null &&
+		(pathProtocol === '' || pathProtocol === baseProtocol) &&
+		pathHost !== baseHost &&
+		base != null
+	) {
+		console.warn('2-[path/base equivalent proto]\n', { pathProtocol, pathHost, baseHost });
+		console.warn({ protocol });
 		u = base;
-		u.hostname = (pathHost ? pathHost : baseHost) ?? '';
-		u.pathname = (p ? pathPathname : basePathname) ?? '';
-	} else u = tryFnSync(() => new URL(path, base), options?.mayPanic);
-
+		/* protocol has been copied from base */
+		u.hostname = hostname;
+		if (protocol === 'file:') {
+			u = tryFnSync(() => new URL('file:///'), options.mayPanic);
+			if (u == null) return undefined;
+			console.warn({ forWinOS });
+			if (forWinOS) {
+				console.warn({ p });
+				const pathDrive = p?.match(pathDriveRx)?.[0];
+				console.warn({ pathDrive });
+				if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
+				console.warn({ p });
+			}
+			u.pathname = p ?? '';
+		}
+	}
+	if (u == null) {
+		console.warn('3-[path/base no common equivalent proto]\n', {
+			pathProtocol,
+			pathHost,
+			baseHost,
+		});
+		u = tryFnSync(() => new URL(path, base), options?.mayPanic);
+	}
 	return u;
 }
 // `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('file:x/y'); x = new URL('file:x/y'); console.log({x});"`
