@@ -1425,20 +1425,34 @@ export function traversal(
 	return url ? url.href : undefined;
 }
 
-// `resolvePath()`
+// `normalizeToPath()`
 /** Resolve paths, syntactically with no file system access, from various sources; similar to `path:join()`.
 @returns path or URL of the same type as input (`from`), undefined if `from` is undefined
-@param from • destination path or URL to resolve from
-@param path • path, path segments, or URL paths to apply
+@param from • initial path or URL to resolve from
+@param path • path, path segments, or URL path(s) to apply
 @tags `no-panic`, `no-throw`
 */
-export function resolvePath(
+export function normalizeToPath(
+	from: string | URL | undefined,
+	path: string | URL | undefined | (string | URL | undefined)[],
+) {
+	return intoPath(normalizePath(from, path));
+}
+
+// `normalizePath()`
+/** Normalize paths, syntactically with no file system access, from various sources; similar to `path:join()`.
+@returns path or URL of the same type as input (`from`), undefined if `from` is undefined
+@param from • initial path or URL to resolve from
+@param path • path, path segments, or URL path(s) to apply
+@tags `no-panic`, `no-throw`
+*/
+export function normalizePath(
 	from: string | URL | undefined,
 	path: string | URL | undefined | (string | URL | undefined)[],
 ) {
 	if (from == null) return undefined;
 
-	// note: paths may be relative and therefore are not automatically converted to URLs (URLs always have absolute/fully-specified paths)
+	// note: paths may be relative and therefore are not automatically converted to URLs (some URLs require absolute/fully-specified paths)
 
 	const isFromURL = from instanceof URL;
 	const paths = Array.isArray(path) ? path : [path];
@@ -1448,7 +1462,7 @@ export function resolvePath(
 
 	let resultPath: string | undefined = fromPath;
 	let resultURL: URL | undefined = undefined;
-	console.warn('resolvePath():init:', {
+	console.warn('normalizePath():init:', {
 		resultPath,
 		isAbsolute: pathIsAbsolute(resultPath),
 		resultURL,
@@ -1476,7 +1490,7 @@ export function resolvePath(
 						return [$path.join(resultPath, path), resultURL];
 					})();
 		}
-		console.warn('resolvePath():loop:', { p, path, resultPath });
+		console.warn('normalizePath():loop:', { p, path, resultPath });
 	}
 	// const result =
 
