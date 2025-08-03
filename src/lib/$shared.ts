@@ -1669,15 +1669,15 @@ export function pathNormalizeSlashes(path: string) {
 	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
 }
 
-export function pathToOS(p: string) {
+export function pathToOS(p?: string) {
 	return isWinOS ? pathToWinOS(p) : pathToPOSIX(p);
 }
-export function pathToPOSIX(p: string) {
+export function pathToPOSIX(p?: string) {
 	// ToDO: convert to use of $path.SEP_PATTERN
-	return p.replace(/\\/g, $path.posix.sep);
+	return p?.replace(/\\/g, $path.posix.sep);
 }
-export function pathToWinOS(p: string) {
-	return p.replace(/\//g, $path.win32.sep);
+export function pathToWinOS(p?: string) {
+	return p?.replace(/\//g, $path.win32.sep);
 }
 
 export function pathEquivalent(a?: string, b?: string) {
