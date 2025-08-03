@@ -689,7 +689,13 @@ export async function fetchText(url: URL): Promise<string> {
 
 //===
 
-// notes:
+// NOTES
+// * review KB and references for Unicode notes and MSDN documentation of file naming and namespaces
+//   - kb-Unicode-UNC-&-portable-paths.mkd
+//   - kb-path-length-&-unicode.mkd
+//   - [MS/learn ~ Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/TtpI2>
+//   - [MSDN ~ Paths and Namespaces](http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx) @@ <https://archive.today/DgH7i>
+//   - [MSDN - Windows: Naming Files, Paths, and Namespaces](http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx) @@ <https://archive.today/DgH7i>
 // * valid URLs
 // - only need a scheme
 //   - `/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/` // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>`
@@ -737,7 +743,7 @@ export function isValidURL(s?: string, options?: { base?: URL } & PathAndUrlOpti
 	// // }, false);
 	// return intoURL(s, base, options) ?? false;
 	// return !!validURL(s ?? '', base, options);
-	return !!validURL(s ?? '', options);
+	return !!validURL(s, options);
 }
 
 // `validURL()`
@@ -779,29 +785,46 @@ export function isFileURL(url: URL) {
 
 //===
 
+// Unicode character codes
+// * can be used for micro-optimization of comparisons during path functions
+export const CHAR_FORWARD_SLASH = 47; /* / */
+export const CHAR_UPPERCASE_A = 65; /* A */
+export const CHAR_UPPERCASE_Z = 90; /* Z */
+export const CHAR_BACKWARD_SLASH = 92; /* \ */
+export const CHAR_LOWERCASE_A = 97; /* a */
+export const CHAR_LOWERCASE_Z = 122; /* z */
+
 // `pathIsAbsolute()`
-export function pathIsAbsolute(path: string | null | undefined, options?: PathAndUrlOptions) {
-	if (path == null || path === '') return false;
-	options = { ...PathAndUrlOptionsDefault, ...options };
+/** Determine whether the provided path (filesystem/hierarchical) is in an absolute form
+@param path • path to examine
+@param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
+ */
+export function pathIsAbsolute(
+	path: string | URL | undefined,
+	options?: { base?: URL | null | undefined } & PathAndUrlOptions,
+) {
+	if (path instanceof URL) path = path.pathname;
+	if (path == null || path.length === 0) return false;
+	if (path.startsWith($path.posix.sep)) return true; // absolute path for POSIX or WinOS in all variations
+
+	// options = { ...PathAndUrlOptionsDefault, ...options };
+	// const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
 	// // FixME: ToDO: investigate trying `new URL(path)` to detect URLs which are always absolute
 	// // * use `path.includes(':')` as an efficient pre-check to avoid unnecessary calls to `URL()`
 	// if (path.includes(':') && tryFnSync(() => path != null && new URL(path)) != null) return true; // URLs are always absolute
+	// if (path.includes(':') && tryFnSync(() => path != null && new URL(path)) != null) return true; // URLs are always absolute
 	// // FixME: DRIVE: paths on WinOS will all be seen as absolute no matter the path unless the above new URL() check is narrowed to only multi-letter schemes
-	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
-	const $platformPath = forWinOS ? $path.win32 : $path.posix;
-	if (forWinOS) path = path.replace(/^[/\\][/\\][.?][/\\]/, ''); // remove device prefix for WinOS paths
-	return $platformPath.isAbsolute(path);
+	// const $platformPath = forWinOS ? $path.win32 : $path.posix;
+	// if (forWinOS) path = path.replace(/^[/\\][/\\][.?][/\\]/, ''); // remove device prefix for WinOS paths
+	// return $platformPath.isAbsolute(path);
+
+	const url = pathIntoURL(path, options);
+	return url?.pathname.startsWith($path.posix.sep) ?? false; // URL.pathname is in POSIX form
 }
-export function pathIsAbsoluteWithDrive(
-	path: string | null | undefined,
-	options?: PathAndUrlOptions,
-) {
+export function pathIsAbsoluteWithDrive(path: string | undefined, options?: PathAndUrlOptions) {
 	return path?.match(/^[A-Za-z]:/) && pathIsAbsolute(path, options);
 }
-export function pathIsRelativeWithDrive(
-	path: string | null | undefined,
-	options?: PathAndUrlOptions,
-) {
+export function pathIsRelativeWithDrive(path: string | undefined, options?: PathAndUrlOptions) {
 	return path?.match(/^[A-Za-z]:/) && !pathIsAbsolute(path, options);
 }
 
@@ -865,7 +888,7 @@ const pathProtocolHostPathnameRx =
 
 // import { pathToFileURL } from 'node:url';
 
-// `xIntoURL()`
+// `pathIntoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
@@ -873,34 +896,38 @@ const pathProtocolHostPathnameRx =
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
+// FixME: [2025-08-03; rivy] Opaque URLs (ie, 'foo:bar') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as currently used here, won't work.
 // FixME: add options to parse and copy hash and query strings from `path` to the resulting URL; defaults to false == 'ignore' hash and query text
 // * as paths may contain both/either '#' and/or '?' as path elements, we will default to ignoring both of them
 // * so, pre-parse `path` to remove any hash and query strings, if needed, prior to presenting to xIntoURL for URL construction
-export function xIntoURL(
-	path: string | null | undefined,
-	options?: { base?: URL } & PathAndUrlOptions,
+export function pathIntoURL(
+	path: string | undefined,
+	options?: { base?: URL | null | undefined } & PathAndUrlOptions,
 ): URL | undefined {
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	const base =
-		options?.base ??
-		tryFnSync(
-			() => ifThen(atImportCWD != null, $path.toFileUrl(atImportCWD + $path.SEP)),
-			options.mayPanic,
-		);
-	console.warn({ path, base, options });
+		options?.base === null
+			? null
+			: options?.base ??
+				tryFnSync(
+					() => ifThen(atImportCWD != null, $path.toFileUrl(atImportCWD + $path.SEP)),
+					options.mayPanic,
+				);
+	const consoleWARN_on = false;
+	const consoleWARN = consoleWARN_on ? console.warn : () => {};
+	consoleWARN('pathIntoURL():', { path, base, options });
 
 	if (path == null || path.length === 0) {
-		return ifThen(base != null, base);
+		return base ?? undefined;
 	}
 
 	const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
-	console.warn({ forWinOS, forPlatform: options.forPlatform });
-	const $platformPath = forWinOS ? $path.win32 : $path.posix;
+	consoleWARN('pathIntoURL():', { forWinOS, forPlatform: options.forPlatform });
 
 	const baseProtocol = base?.protocol ?? '';
 	const baseHost = base?.host ?? '';
 	const basePathname = base?.pathname ?? '';
-	console.warn({ baseProtocol, baseHost, basePathname });
+	consoleWARN('pathIntoURL():', { baseProtocol, baseHost, basePathname });
 
 	const [, maybeProtocol, _host, _pathname] = path.match(pathProtocolHostPathnameRx) ?? [];
 	const pathProtocol =
@@ -910,7 +937,7 @@ export function xIntoURL(
 	const [, maybeHost, pathPathname] =
 		path.slice(pathProtocol.length).match(pathHostPathnameRx) ?? [];
 	const pathHost = maybeHost ?? '';
-	console.warn({
+	consoleWARN('pathIntoURL():', {
 		maybeProtocol,
 		pathProtocol,
 		path,
@@ -923,69 +950,86 @@ export function xIntoURL(
 	const protocol = [pathProtocol, baseProtocol].find((v) => v.length > 0) ?? 'file:'; // default to 'file:' protocol if no protocol is specified
 	const hostname = ifThenElse(protocol === baseProtocol, baseHost, pathHost);
 
-	let u: URL | undefined = undefined;
+	let result: URL | undefined = undefined;
 	let p: string | undefined = undefined;
-	// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
+
 	// FixME: WinOS (and file scheme only) will require special handling of drive letters b/c Deno join will not handle relative paths with drive letters correctly
 	// FixME: * which will require a working isAbsolutePath() function
 	p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
-	console.warn({ p });
-	if (protocol === 'file:') {
-		console.warn({ forWinOS });
-		if (forWinOS) {
-			console.warn({ p });
-			const pathDrive = p?.match(pathDriveRx)?.[0];
-			console.warn({ pathDrive });
-			if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p ?? '');
-			console.warn({ p });
-			p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
-		}
-	}
-	console.warn({ p });
+	consoleWARN('pathIntoURL():', { p });
+	// if (protocol === 'file:') {
+	// 	consoleWARN('pathIntoURL():', { forWinOS });
+	// 	if (forWinOS) {
+	// 		consoleWARN('pathIntoURL():', { p });
+	// 		const pathDrive = p?.match(pathDriveRx)?.[0];
+	// 		consoleWARN('pathIntoURL():', { pathDrive });
+	// 		if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p ?? '');
+	// 		consoleWARN('pathIntoURL():', { p });
+	// 		p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
+	// 	}
+	// }
+	// consoleWARN('pathIntoURL():', { p });
+
 	if (
-		u == null &&
+		result == null &&
 		protocol === baseProtocol &&
 		hostname === baseHost &&
 		p != null &&
 		base != null
 	) {
+		// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
 		// path and base have equivalent protocol/scheme and host
 		// * use base as the origin and simply join the path pathname to base pathname
-		console.warn('1-[path/base equivalent proto and host]\n', { pathProtocol, pathHost });
-		console.warn({ protocol, hostname });
-		u = base;
+		consoleWARN('pathIntoURL():', '1-[path/base equivalent proto and host]\n', {
+			pathProtocol,
+			pathHost,
+		});
+		consoleWARN('pathIntoURL():', { protocol, hostname });
+		result = base;
 		/* protocol and hostname have been copied from base */
-		u.hostname = hostname;
-		console.warn({ basePathname, p });
-		u.pathname = $path.posix.join(basePathname, p ?? '');
+		result.hostname = hostname;
+		consoleWARN('pathIntoURL():', { basePathname, p });
+		const maybePath = pathToPOSIX(absolutePath([basePathname, p])); // URLs all use POSIX paths
+		if (maybePath == null) return undefined;
+		result.pathname = maybePath;
 	}
+
 	if (
-		u == null &&
+		result == null &&
 		(pathProtocol === '' || pathProtocol === baseProtocol) &&
 		pathHost !== baseHost &&
 		base != null
 	) {
-		console.warn('2-[path/base equivalent proto]\n', { pathProtocol, pathHost, baseHost });
-		console.warn({ protocol });
-		u = base;
-		/* protocol has been copied from base */
-		u.hostname = hostname;
-		u.pathname = p ?? '';
-	}
-	if (u == null) {
-		console.warn('3-[path/base no common equivalent proto]\n', {
+		// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
+		consoleWARN('pathIntoURL():', '2-[path/base equivalent proto]\n', {
 			pathProtocol,
 			pathHost,
 			baseHost,
 		});
-		u = tryFnSync(() => new URL(path, base), options?.mayPanic);
+		consoleWARN('pathIntoURL():', { protocol });
+		result = base;
+		/* protocol has been copied from base */
+		result.hostname = hostname;
+		if (p == null) return undefined;
+		result.pathname = p;
 	}
 
-	if (u != null) {
-		u.hash = '';
-		u.search = '';
+	if (result == null) {
+		consoleWARN('3-[path/base no common equivalent proto]\n', {
+			pathProtocol,
+			pathHost,
+			baseHost,
+		});
+		result = tryFnSync(() => new URL(path, base ?? undefined), options?.mayPanic);
 	}
-	return u;
+
+	if (result != null) {
+		result.hash = '';
+		result.search = '';
+	}
+
+	consoleWARN('pathIntoURL():', { result });
+	return result;
 }
 // `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('file:x/y'); x = new URL('file:x/y'); console.log({x});"`
 // `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('f:///////x/y'); const y = new URL('file://///f://///a/x/y'); console.log({x, y});"`
@@ -1014,7 +1058,7 @@ export function intoURL(
 	const base =
 		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
 	// const urlStringEncodeSchemes: 'all' | string[] = ['', 'file'];
-	console.warn({ path, base, options });
+	// console.warn('intoURL():', { path, base, options });
 	try {
 		// const base =
 		// 	args?.length > 0 && args[0] instanceof URL
@@ -1045,7 +1089,7 @@ export function intoURL(
 			!!options.singleLetterSchemeAsDrive;
 
 		const maybeProtocol = urlProtocolRx.exec(path)?.[0].toLocaleLowerCase();
-		const pathProtocol: string =
+		const _pathProtocol: string =
 			maybeProtocol != null && maybeProtocol.length > (singleLetterSchemeAsDrive ? 1 : 0)
 				? maybeProtocol
 				: '';
@@ -1065,7 +1109,7 @@ export function intoURL(
 			// const pathHost = pathHostRx.exec(path)?.[1];
 
 			const pathDrive = pathDriveRx.exec(path)?.[0];
-			const [pathHost, pathPathname] = pathHostPathnameRx.exec(path)?.slice(2) ?? [];
+			const [_pathHost, _pathPathname] = pathHostPathnameRx.exec(path)?.slice(2) ?? [];
 			// const pathWithoutDrive = ifThen(pathDrive != null, () => path.replace(pathDriveRx, 'ZZZ'));
 			const pathWithoutDrive = ifThenElse(
 				pathDrive != null,
@@ -1075,15 +1119,15 @@ export function intoURL(
 			const pathIsAbsolute =
 				(pathWithoutDrive?.startsWith('/') || pathWithoutDrive?.startsWith('\\')) ?? false;
 
-			console.warn({
-				path,
-				pathProtocol,
-				pathDrive,
-				pathHost,
-				pathPathname,
-				pathWithoutDrive,
-				pathIsAbsolute,
-			});
+			// console.warn({
+			// 	path,
+			// 	pathProtocol,
+			// 	pathDrive,
+			// 	pathHost,
+			// 	pathPathname,
+			// 	pathWithoutDrive,
+			// 	pathIsAbsolute,
+			// });
 
 			const pathResolved = (() => {
 				if (pathDrive == null || pathIsAbsolute) {
@@ -1092,10 +1136,10 @@ export function intoURL(
 				if (pathWithoutDrive == null) return undefined;
 				const pathDriveCWD = cwdOfDrive(pathDrive);
 				if (pathDriveCWD == null) return undefined;
-				console.warn({ pathDriveCWD, pathWithoutDrive });
+				// console.warn({ pathDriveCWD, pathWithoutDrive });
 				return $platformPath.join(pathDriveCWD, pathWithoutDrive);
 			})();
-			console.warn({ pathResolved });
+			// console.warn({ pathResolved });
 			if (pathResolved == null) return undefined;
 
 			// // // console.warn({ path, pathDrive, pathHost });
@@ -1151,13 +1195,13 @@ export function intoURL(
 			// - ? add an option controlling URL encoding?
 
 			const pathForPlatform = intoPlatformPath(pathResolved, options);
-			console.warn({ pathForPlatform });
+			// console.warn({ pathForPlatform });
 			if (pathForPlatform == null) return undefined;
 			const finalScheme = urlProtocolRx.exec(pathForPlatform)?.[0];
 			const finalHasSchemeAsDrive =
 				finalScheme != null && singleLetterSchemeAsDrive && finalScheme.length == 1;
 			const finalHasUrlScheme = finalScheme != null && !finalHasSchemeAsDrive;
-			console.warn({ finalScheme, finalHasSchemeAsDrive, finalHasUrlScheme });
+			// console.warn({ finalScheme, finalHasSchemeAsDrive, finalHasUrlScheme });
 			const pathWithScheme = finalHasUrlScheme
 				? pathForPlatform
 				: // : `file://${pathToPOSIX(pathForPlatform)}`;
@@ -1166,10 +1210,10 @@ export function intoURL(
 					? $path.toFileUrl(pathForPlatform)
 					: // : `file://${$platformPath.resolve(base?.pathname ?? '', pathForPlatform)}`;
 						'file:' + pathForPlatform;
-			console.warn({ pathWithScheme });
+			// console.warn({ pathWithScheme });
 			// url = new URL($platformPath.toFileUrl(pathPlatform), base);
 			url = new URL(pathWithScheme, base);
-			console.warn({ url });
+			// console.warn({ url });
 
 			// console.warn({ pathIsURL, path, pathname, url });
 		}
