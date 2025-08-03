@@ -929,17 +929,19 @@ export function xIntoURL(
 	// FixME: WinOS (and file scheme only) will require special handling of drive letters b/c Deno join will not handle relative paths with drive letters correctly
 	// FixME: * which will require a working isAbsolutePath() function
 	p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
+	console.warn({ p });
 	if (protocol === 'file:') {
 		console.warn({ forWinOS });
 		if (forWinOS) {
 			console.warn({ p });
 			const pathDrive = p?.match(pathDriveRx)?.[0];
 			console.warn({ pathDrive });
-			if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
+			if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p ?? '');
 			console.warn({ p });
 			p = tryFnSync(() => pathToPOSIX(pathPathname), options.mayPanic); // URLs all use POSIX paths
 		}
 	}
+	console.warn({ p });
 	if (
 		u == null &&
 		protocol === baseProtocol &&
@@ -954,22 +956,8 @@ export function xIntoURL(
 		u = base;
 		/* protocol and hostname have been copied from base */
 		u.hostname = hostname;
-		if (protocol === 'file:') {
-			u = tryFnSync(() => new URL('file:///'), options?.mayPanic);
-			if (u == null) return undefined;
-			console.warn({ forWinOS });
-			if (forWinOS) {
-				console.warn({ p });
-				const pathDrive = p?.match(pathDriveRx)?.[0];
-				console.warn({ pathDrive });
-				if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
-				console.warn({ p });
-			}
-			// p = encodeURI(p ?? '');
-		}
-		u.pathname = $platformPath.resolve(basePathname, p ?? '');
-		u.hash = '';
-		u.search = '';
+		console.warn({ basePathname, p });
+		u.pathname = $path.posix.join(basePathname, p ?? '');
 	}
 	if (
 		u == null &&
@@ -982,19 +970,7 @@ export function xIntoURL(
 		u = base;
 		/* protocol has been copied from base */
 		u.hostname = hostname;
-		if (protocol === 'file:') {
-			u = tryFnSync(() => new URL('file:///'), options.mayPanic);
-			if (u == null) return undefined;
-			console.warn({ forWinOS });
-			if (forWinOS) {
-				console.warn({ p });
-				const pathDrive = p?.match(pathDriveRx)?.[0];
-				console.warn({ pathDrive });
-				if (pathDrive != null) p = $path.win32.resolve(cwdOfDrive(pathDrive) ?? '', p);
-				console.warn({ p });
-			}
-			u.pathname = p ?? '';
-		}
+		u.pathname = p ?? '';
 	}
 	if (u == null) {
 		console.warn('3-[path/base no common equivalent proto]\n', {
@@ -1004,11 +980,20 @@ export function xIntoURL(
 		});
 		u = tryFnSync(() => new URL(path, base), options?.mayPanic);
 	}
+
+	if (u != null) {
+		u.hash = '';
+		u.search = '';
+	}
 	return u;
 }
 // `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('file:x/y'); x = new URL('file:x/y'); console.log({x});"`
 // `deno eval "import * as $ from 'file://C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH/src/lib/$shared.ts'; let x = $.posixIntoURL('f:///////x/y'); const y = new URL('file://///f://///a/x/y'); console.log({x, y});"`
 // `deno eval "import * as $ from './src/lib/$shared.ts'; const U = new URL('scheme:foo#bar'); const result = $.xIntoURL('y', { base: U }); console.log({result});"`
+// * test cases:
+// xIntoURL('y', { base: new URL('http://host/path/file') }); => 'http://host/path/file/y'
+// xIntoURL('y', { base: new URL('http://host/path/') }); => 'http://host/path/y'
+// xIntoURL('y', { base: new URL('http://host/path') }); => 'http://host/path/y'
 
 // `intoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
