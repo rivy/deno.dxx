@@ -764,6 +764,22 @@ export function parseGlob(s: string) {
 			s = m[2] ? m[2] : '';
 		}
 	}
+	// for 'windows' or portable, handle leading drive in drive relative paths (eg, `C:foo/bar`)
+	// * this should always be a path with leading drive letter followed by a colon and then a non-path-separator
+	if (!options.os || options.os === 'windows') {
+		const m = s.match(/^([A-Za-z]:)([^/\\].*)/);
+		if (m) {
+			prefix = m[1] ? m[1] : '';
+			s = m[2] ? m[2] : '';
+		}
+	}
+
+	// ToDO: revise these comments after the code works
+	// - NOTE: `c:foo*` (essentially equivalent to `c:./foo*`) has a "hidden" path separator, so the prefix is `c:` and the glob is `*`, but this Rx unavoidably parses it as `c:*` (no prefix, all glob)
+	// ... special handling w/n the regex becomes too complex, so special handling post match is done to split it correctly
+	// FixME: revise to correctly handle path separators as newly optional in the regex
+	// ! likely, use look-ahead to terminate the ${nonGlobQSepReS}+ token fragment
+	// * try `deno run -A eg\args.ts .vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml} d:*` // spell-checker:ignore pell
 
 	// de-quote all quoted path separators
 	const re_quotes = new RegExp(`(${DQStringReS}|${SQStringStrictReS})`, 'gmsu');
@@ -779,13 +795,10 @@ export function parseGlob(s: string) {
 	});
 	// console.warn({ s });
 
-	// FixME: revise to correctly handle path separators as newly optional in the regex
-	// ! likely, use look-ahead to terminate the ${nonGlobQSepReS}+ token fragment
-	// * try `deno run -A eg\args.ts .vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml} d:*`
+	// * RegExp == match repeated fragments (DQ [may end with EOL], strict-SQ strings, or non-glob character strings) which end on either a path separator or EOL
+	// - all found/parsed fragments are concatenated to the prefix
 	const re = new RegExp(
-		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+(?=$|${pathSepReS}|${globCharsReS}|${QReS}))*(?:${pathSepReS}+|$)?)(.*$)`, // `d:*` fails
-		// `^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
-		// `^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+|${pathSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`,
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
