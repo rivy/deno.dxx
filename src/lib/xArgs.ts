@@ -548,6 +548,7 @@ export async function* globExpandIter(
 		// const resolvedPrefix = pathToOS($path.win32.resolve(deQuote(parsed.prefix) ?? parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// const resolvedPrefix = pathToOS(absolutePath(parsed.prefix) ?? ''); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if (await $fs.exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
@@ -778,13 +779,16 @@ export function parseGlob(s: string) {
 	});
 	// console.warn({ s });
 
+	// FixME: revise to correctly handle path separators as newly optional in the regex
 	const re = new RegExp(
-		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`,
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`, // `d:*` fails
+		// `^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
+		// `^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+|${pathSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
 		const m = s.match(re);
-		// console.warn('xArgs.parseGlob()', { s, m });
+		console.warn('xArgs.parseGlob()', { s, m });
 		if (m) {
 			prefix += m[1] ? m[1] : '';
 			maybeGlob = m[2];
@@ -793,7 +797,7 @@ export function parseGlob(s: string) {
 			maybeGlob = s || '';
 			s = '';
 		}
-		// console.warn('xArgs.parseGlob()', { prefix, maybeGlob });
+		console.warn('xArgs.parseGlob()', { prefix, maybeGlob });
 	}
 	prefix = deQuote(prefix) ?? prefix; // ToDO: revisit and test
 	const glob = maybeGlob;
@@ -876,7 +880,7 @@ export function globToReS(s: string) {
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
-		// console.warn('xArgs.globToReS()', { s, m });
+		console.warn('xArgs.globToReS()', { s, m });
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
