@@ -780,17 +780,17 @@ export function parseGlob(s: string) {
 	// console.warn({ s });
 
 	// FixME: revise to correctly handle path separators as newly optional in the regex
-	// ! likely, use look-ahead to terminate the ${nonGlobQSepReS}+ fragment
+	// ! likely, use look-ahead to terminate the ${nonGlobQSepReS}+ token fragment
 	// * try `deno run -A eg\args.ts .vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml} d:*`
 	const re = new RegExp(
-		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+))(.*$)`, // `d:*` fails
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+(?=$|${pathSepReS}|${globCharsReS}|${QReS}))*(?:${pathSepReS}+|$)?)(.*$)`, // `d:*` fails
 		// `^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
 		// `^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+|${pathSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
 		const m = s.match(re);
-		console.warn('xArgs.parseGlob()', { s, m });
+		// console.warn('xArgs.parseGlob()', { s, m });
 		if (m) {
 			prefix += m[1] ? m[1] : '';
 			maybeGlob = m[2];
@@ -799,7 +799,7 @@ export function parseGlob(s: string) {
 			maybeGlob = s || '';
 			s = '';
 		}
-		console.warn('xArgs.parseGlob()', { prefix, maybeGlob });
+		// console.warn('xArgs.parseGlob()', { prefix, maybeGlob });
 	}
 	prefix = deQuote(prefix) ?? prefix; // ToDO: revisit and test
 	const glob = maybeGlob;
@@ -882,7 +882,7 @@ export function globToReS(s: string) {
 	let text = '';
 	while (s) {
 		const m = s.match(tokenRe);
-		console.warn('xArgs.globToReS()', { s, m });
+		// console.warn('xArgs.globToReS()', { s, m });
 		if (m) {
 			let matchStr = m[1];
 			if (matchStr.length > 0) {
