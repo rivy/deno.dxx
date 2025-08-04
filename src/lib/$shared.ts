@@ -896,6 +896,7 @@ const pathProtocolHostPathnameRx =
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
+// FixME: ? add resolveWinOSDriveRelative (default to `true`; note: will only occur on WinOS hosts [b/c undefinable on POSIX hosts])
 // FixME: [2025-08-03; rivy] Opaque URLs (ie, 'foo:bar') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as currently used here, won't work.
 // FixME: add options to parse and copy hash and query strings from `path` to the resulting URL; defaults to false == 'ignore' hash and query text
 // * as paths may contain both/either '#' and/or '?' as path elements, we will default to ignoring both of them
