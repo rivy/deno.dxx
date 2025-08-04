@@ -780,6 +780,7 @@ export function parseGlob(s: string) {
 	// console.warn({ s });
 
 	// FixME: revise to correctly handle path separators as newly optional in the regex
+	// ! likely, use look-ahead to terminate the ${nonGlobQSepReS}+ fragment
 	// * try `deno run -A eg\args.ts .vscode/{,.}c[sS]pell{.json,.config{.js,.cjs,.json,.yaml,.yml},.yaml,.yml} d:*`
 	const re = new RegExp(
 		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+))(.*$)`, // `d:*` fails
