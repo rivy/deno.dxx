@@ -43,7 +43,9 @@
 // ref: <https://jspm.org/docs/cdn>
 
 import { $fs, $osPaths, $path, assert } from './$deps.ts';
-import { absolutePath, deQuote, env } from './$shared.ts';
+import { deQuote, env } from './$shared.ts';
+
+// import { absolutePath } from './$shared.ts';
 
 import { walk, walkSync } from './xWalk.ts';
 
@@ -544,8 +546,8 @@ export async function* globExpandIter(
 		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.globScan.base)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// const resolvedPrefix = pathToOS($path.win32.resolve(deQuote(parsed.prefix) ?? parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
-		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
-		const resolvedPrefix = pathToOS(absolutePath(parsed.prefix) ?? ''); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		// const resolvedPrefix = pathToOS(absolutePath(parsed.prefix) ?? ''); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if (await $fs.exists(resolvedPrefix)) {
 			const resolvedHasTrailingSep = resolvedPrefix.match(/[\\/]$/msu);
@@ -639,8 +641,8 @@ export function* globExpandIterSync(
 		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.globScan.base)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 		// const resolvedPrefix = pathToOS($path.win32.resolve(deQuote(parsed.prefix) ?? parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
-		// const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
-		const resolvedPrefix = pathToOS(absolutePath(parsed.prefix) ?? ''); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		const resolvedPrefix = pathToOS($path.win32.resolve(parsed.prefix)); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
+		// const resolvedPrefix = pathToOS(absolutePath(parsed.prefix) ?? ''); // `pathToOS($path.win32.resolve(...))` is used as it handles both back and forward slashes and then converts to OS-preferred path style
 
 		// console.warn('xArgs.globExpandIter()', { parsed, resolvedPrefix });
 		if ($fs.existsSync(resolvedPrefix)) {
@@ -777,7 +779,7 @@ export function parseGlob(s: string) {
 	// console.warn({ s });
 
 	const re = new RegExp(
-		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$)?)(.*$)`,
+		`^((?:${DQStringReS}|${SQStringStrictReS}|${nonGlobQSepReS}+)*(?:${pathSepReS}+|$))(.*$)`,
 	);
 	// console.warn('xArgs.parseGlob()', { re });
 	while (s) {
