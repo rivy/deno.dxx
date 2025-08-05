@@ -1,5 +1,14 @@
 //== * SHARED exports
 
+// FixME: [2025-08-04; rivy] review, revise, and document path functions (absolute, canonicalize [or realpath], join, normalize, resolve)
+//    ... normalize (syntactic-only; may possibly access env [or file system] on WinOS to resolve drive relative paths)
+//    ... resolve (? may follow file system symbolic links)
+//    ... decide on exact nomenclature for conversion functions; from rust ideas for
+//        - `as...` (cheap conversion, eg, via reference)
+//        - `to...` (conversion via copy, maybe more expensive)
+//  		  - `into...` (conversion via move, consuming the original, more efficient than `to...`)
+// FixME: [2025-08-04; rivy] review, revise, and document all `tryFn*` functions to ensure consistent behavior and documentation
+
 // spell-checker:ignore (fns) chdir
 // spell-checker:ignore (env) WSL WSLENV
 // spell-checker:ignore (jargon) CWDs distro falsey truthy
@@ -795,7 +804,9 @@ export const CHAR_LOWERCASE_A = 97; /* a */
 export const CHAR_LOWERCASE_Z = 122; /* z */
 
 // `pathIsAbsolute()`
-/** Determine whether the provided path (filesystem/hierarchical) is in an absolute form
+/** Determine whether the provided path (of filesystem/hierarchical type) is in an absolute form.
+* Notably, "opaque"-type URLs (eg, `mailto:`, `data:`, `urn:`) will generally *not* have absolute paths,
+in the hierarchical sense, even if fully and *absolutely* specified (eg, `mailto:santa@northpole.com`).
 @param path • path to examine
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
  */
@@ -830,7 +841,7 @@ export function pathIsRelativeWithDrive(path: string | undefined, options?: Path
 
 // `absolutePath()`
 /** Join all path segments, returning an absolute, syntactically normalized path.
-* * Normalization is done solely syntactically, *without* considering/resolving file system symlinks.
+* * Normalization is done syntactically, *without* considering/resolving file system symlinks.
 * * `no-throw` ~ will *not panic* (function returns `undefined` upon any error)
 @param pathSegments • path segment (string or string[])
 @param options • { `permitGuard` } • passed to `cwd()`
@@ -879,6 +890,7 @@ export function intoPath(path?: string | URL, options?: PathAndUrlOptions) {
 }
 
 const pathDriveRx = /^[A-Za-z]:/;
+const pathDriveRelativeRx = /^[A-Za-z]:[^/\\]?/;
 // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 const pathHostPathnameRx = /^(?:[/\\][/\\]([^/\\]+)?(?=[/\\](?:[^/\\]|$)))?(.*)/;
 // const pathSchemeHostPathnameRx =
@@ -896,7 +908,7 @@ const pathProtocolHostPathnameRx =
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
-// FixME: ? add resolveWinOSDriveRelative (default to `true`; note: will only occur on WinOS hosts [b/c undefinable on POSIX hosts])
+// FixME: ? add resolveWinOSDriveRelative (default to `true`; note: will only occur on WinOS hosts [b/c unresolvable on POSIX hosts])
 // FixME: [2025-08-03; rivy] Opaque URLs (ie, 'foo:bar') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as currently used here, won't work.
 // FixME: add options to parse and copy hash and query strings from `path` to the resulting URL; defaults to false == 'ignore' hash and query text
 // * as paths may contain both/either '#' and/or '?' as path elements, we will default to ignoring both of them
@@ -1427,7 +1439,7 @@ export function traversal(
 }
 
 // `normalizeToPath()`
-/** Resolve paths, syntactically with no file system access, from various sources; similar to `path:join()`.
+/** Resolve paths, syntactically, generally without any file system access, from various sources; similar to `path:join()`.
 @returns path or URL of the same type as input (`from`), undefined if `from` is undefined
 @param from • initial path or URL to resolve from
 @param path • path, path segments, or URL path(s) to apply
