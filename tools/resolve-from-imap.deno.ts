@@ -60,7 +60,7 @@ import { toText } from 'https://deno.land/std@0.224.0/streams/mod.ts';
 
 // import * as $lib from '../src/lib/$shared.ts';
 // $lib.intoPlatformPath();
-import { traversal, normalizeToPath } from '../src/lib/$shared.ts';
+import { traversal, normalizePath } from '../src/lib/$shared.ts';
 
 //===
 
@@ -521,7 +521,7 @@ async function createTransformer(
 				traverse,
 			});
 			// finalSpecifier = $lib.pathToPOSIX(join(prefix, finalSpecifier));
-			finalSpecifier = normalizeToPath(prefix, finalSpecifier) ?? '';
+			finalSpecifier = normalizePath(prefix, finalSpecifier) ?? '';
 			if (
 				!(
 					isValidURL(finalSpecifier) ||
