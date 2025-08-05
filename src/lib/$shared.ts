@@ -29,9 +29,10 @@ export const fnIsWinOS: () => boolean = () => {
 	// deno-lint-ignore no-explicit-any
 	const global: any = globalThis;
 	return (
-		global.Deno?.build.os === 'windows' ||
-		global.navigator?.platform?.startsWith('Win') ||
-		global.process?.platform?.startsWith('win') ||
+		/* Deno */ global.Deno?.build.os === 'windows' ||
+		/* Bun */ global.Bun?.platform === 'win32' ||
+		/* NodeJS */ global.process?.platform?.startsWith('win') ||
+		/* browser (web/DOM) */ global.navigator?.platform?.startsWith('Win') ||
 		false
 	);
 };
