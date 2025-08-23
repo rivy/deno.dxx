@@ -891,7 +891,7 @@ export function intoPath(path?: string | URL, options?: PathAndUrlOptions) {
 }
 
 const pathDriveRx = /^[A-Za-z]:/;
-const pathDriveRelativeRx = /^[A-Za-z]:[^/\\]?/;
+const _pathDriveRelativeRx = /^[A-Za-z]:[^/\\]?/;
 // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 const pathHostPathnameRx = /^(?:[/\\][/\\]([^/\\]+)?(?=[/\\](?:[^/\\]|$)))?(.*)/;
 // const pathSchemeHostPathnameRx =
