@@ -24,6 +24,16 @@ import { atImportPermissions, atImportPermitCWD } from './$shared.TLA.ts';
 
 //===
 
+// Types
+
+// * utility types
+export type Optional<T> = T | undefined;
+export type Nullable<T> = T | null | undefined;
+// * path type
+export type PathLike = string | URL;
+
+//===
+
 /** Indicates whether host platform is a Windows OS. */
 export const fnIsWinOS: () => boolean = () => {
 	// deno-lint-ignore no-explicit-any
@@ -1407,8 +1417,8 @@ const allowRun = atImportPermissions.run.state === 'granted';
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
 export function traversal(
-	goal: string | URL,
-	base: string | URL = allowRead ? $path.toFileUrl((atImportCWD ?? '') + $path.SEP) : '',
+	goal: PathLike,
+	base: PathLike = allowRead ? $path.toFileUrl((atImportCWD ?? '') + $path.SEP) : '',
 ) {
 	const url = goal instanceof URL ? goal : intoURL(goal);
 	const baseURL = base instanceof URL ? base : intoURL(base);
@@ -1447,8 +1457,8 @@ export function traversal(
 @tags `no-panic`, `no-throw`
 */
 export function normalizeToPath(
-	from: string | URL | undefined,
-	path: string | URL | undefined | (string | URL | undefined)[],
+	from: Optional<PathLike>,
+	path: Optional<PathLike> | Optional<PathLike>[],
 ) {
 	return intoPath(normalizePath(from, path));
 }
@@ -1461,8 +1471,8 @@ export function normalizeToPath(
 @tags `no-panic`, `no-throw`
 */
 export function normalizePath(
-	from: string | URL | undefined,
-	path: string | URL | undefined | (string | URL | undefined)[],
+	from: Optional<PathLike>,
+	path: Optional<PathLike> | Optional<PathLike>[],
 ) {
 	if (from == null) return undefined;
 
@@ -1517,10 +1527,7 @@ export function normalizePath(
  * @param segments Path segments to join
  * @returns Joined path or URL (same type as base)
  */
-export function joinPath(
-	base: string | URL,
-	...segments: Array<string | URL>
-): string | URL | undefined {
+export function joinPath(base: PathLike, ...segments: Array<PathLike>): Optional<PathLike> {
 	const isBaseURL = base instanceof URL;
 
 	// Handle URL base
