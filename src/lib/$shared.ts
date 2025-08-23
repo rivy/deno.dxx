@@ -1477,15 +1477,33 @@ export function normalizeToPath(
 
 // `normalizePath()`
 /** Normalize paths, syntactically with no file system access, from various sources; similar to `path:join()`.
-@returns path or URL of the same type as input (`from`), undefined if `from` is undefined
+@returns path or URL of the same type as input (`from`), undefined if `from` is null or undefined
 @param from • initial path or URL to resolve from
 @param path • path, path segments, or URL path(s) to apply
 @tags `no-panic`, `no-throw`
 */
+// Function overloads to specify return types
 export function normalizePath(
 	from: Optional<PathLike>,
 	path: Optional<PathLike> | Optional<PathLike>[],
-) {
+): PathLike | undefined;
+export function normalizePath(
+	from: string,
+	path: Optional<PathLike> | Optional<PathLike>[],
+): string | undefined;
+export function normalizePath(
+	from: URL,
+	path: Optional<PathLike> | Optional<PathLike>[],
+): URL | undefined;
+export function normalizePath(
+	from: undefined,
+	path: Optional<PathLike> | Optional<PathLike>[],
+): undefined;
+//
+export function normalizePath(
+	from: Optional<PathLike>,
+	path: Optional<PathLike> | Optional<PathLike>[],
+): string | URL | undefined {
 	if (from == null) return undefined;
 
 	// note: paths may be relative and therefore are not automatically converted to URLs (some URLs require absolute/fully-specified paths)
