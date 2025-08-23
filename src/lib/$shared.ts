@@ -7,6 +7,13 @@
 //        - `as...` (cheap conversion, eg, via reference)
 //        - `to...` (conversion via copy, maybe more expensive)
 //  		  - `into...` (conversion via move, consuming the original, more efficient than `to...`)
+//    ... should `pathIntoURL()` assume that the input path is `file:`-centric (eg, assume its a file path and maybe query and hash portions are disallowed)?
+//    ... if so, do we need an `intoURL()` function which is more general-purpose and allows for any URL scheme?
+
+// FixME: [2025-08-23; rivy] define and test various cases with URLs containing hash and search portions
+// ! * `file:` paths should probably not have either, but as a special case, allowing construction of URLs with search and hash portions
+// ! * per AI, only the origin and path from the base are considered for resolution; username, password, query, and hash are always dropped
+
 // FixME: [2025-08-04; rivy] review, revise, and document all `tryFn*` functions to ensure consistent behavior and documentation
 
 // spell-checker:ignore (fns) chdir
@@ -921,7 +928,9 @@ const pathProtocolHostPathnameRx =
 */
 // FixME: ? add resolveWinOSDriveRelative (default to `true`; note: will only occur on WinOS hosts [b/c unresolvable on POSIX hosts])
 // FixME: [2025-08-03; rivy] Opaque URLs (ie, 'foo:bar') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as currently used here, won't work.
+// FixME: [2025-08-23; rivy] define semantics for paths relative to an Opaque base URL (AI says path portion should always replace the opaque path, keeping origin/host/hostname the same with URL remaining Opaque, never converted to Hierarchical)
 // FixME: add options to parse and copy hash and query strings from `path` to the resulting URL; defaults to false == 'ignore' hash and query text
+// FixME: [2025-08-23; rivy] revisit the default for `singleLetterSchemeAsDrive` on POSIX systems; maybe should default to `false` for POSIX systems
 // * as paths may contain both/either '#' and/or '?' as path elements, we will default to ignoring both of them
 // * so, pre-parse `path` to remove any hash and query strings, if needed, prior to presenting to xIntoURL for URL construction
 export function pathIntoURL(
@@ -1001,7 +1010,7 @@ export function pathIntoURL(
 		p != null &&
 		base != null
 	) {
-		// FixME: 'opaque' URLs (eg, without a 'host') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
+		// FixME: 'opaque' URLs (eg, non-hierarchical [with a "null" 'origin', empty 'host' and 'hostname') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as used here, won't work
 		// path and base have equivalent protocol/scheme and host
 		// * use base as the origin and simply join the path pathname to base pathname
 		consoleWARN('pathIntoURL():', '1-[path/base equivalent proto and host]\n', {
@@ -1449,6 +1458,9 @@ export function traversal(
 	return url ? url.href : undefined;
 }
 
+// FixME: [2025-08-23; rivy] revise semantics to either return the type of `from` or revise the docs to note that it always returns a string path
+// !  ... will this then require `intoPath()` to be revised to return a URL or string path depending on argument type?
+// !  ... should there be a string path type
 // `normalizeToPath()`
 /** Resolve paths, syntactically, generally without any file system access, from various sources; similar to `path:join()`.
 @returns path or URL of the same type as input (`from`), undefined if `from` is undefined
