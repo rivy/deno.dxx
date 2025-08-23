@@ -915,7 +915,7 @@ const pathProtocolHostPathnameRx =
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
-@param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+@param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: always uses *file path semantics* (not URL path semantics) for paths relative to `base` (ie, any trailing separators for `base` are irrelevant)
 @param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
