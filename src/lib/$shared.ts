@@ -1133,14 +1133,14 @@ export function resolvePath(
 			// note: `pathIsAbsolute()` is needed b/c `$path.join()` fails when handling some special absolute paths (eg, WinOS device paths)
 			[resultPath, resultURL] = pathIsAbsolute(path)
 				? [path, intoURL(path)]
-				: ((): string | undefined => {
+				: ((): [string | undefined, URL | undefined] => {
 						if (pathIsAbsolute(resultPath)) {
 							resultURL = intoURL(resultPath);
-							if (resultURL == null) return undefined;
+							if (resultURL == null) return [resultPath, resultURL];
 							resultURL.pathname = $path.join(pathFromURL(resultURL) ?? '', path);
-							return pathFromURL(resultURL);
+							return [pathFromURL(resultURL), resultURL];
 						}
-						return $path.join(resultPath, path);
+						return [$path.join(resultPath, path), resultURL];
 					})();
 		}
 		console.warn('resolvePath():loop:', { p, path, resultPath });
