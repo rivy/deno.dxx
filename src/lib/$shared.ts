@@ -897,7 +897,7 @@ export function absolutePath(pathSegments: string | string[], options?: PermitOp
 }
 
 // `intoPath()`
-/** Extract the "path", in normalized (Deno-compatible) form, from a path string or URL.
+/** Extract the "path", in normalized (Deno and OS/Platform API compatible) string form, from a path string or URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL format [ie, 'file://...']) or URL
 @tags `no-panic`, `no-throw`
@@ -1463,7 +1463,7 @@ export function traversal(
 // !  ... should there be a string path type
 // `normalizeToPath()`
 /** Resolve paths, syntactically, generally without any file system access, from various sources; similar to `path:join()`.
-@returns path or URL of the same type as input (`from`), undefined if `from` is undefined
+@returns normalized path (in string form) constructed from `from` with applied `path`
 @param from • initial path or URL to resolve from
 @param path • path, path segments, or URL path(s) to apply
 @tags `no-panic`, `no-throw`
