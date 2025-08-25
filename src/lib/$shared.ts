@@ -1503,6 +1503,9 @@ export function normalizePath(
 	from: Optional<PathLike>,
 	path: Optional<PathLike> | Optional<PathLike>[],
 ): string | URL | undefined {
+	const consoleWARN_on = false;
+	const consoleWARN = consoleWARN_on ? console.warn : () => {};
+
 	if (from == null) return undefined;
 
 	// note: paths may be relative and therefore are not automatically converted to URLs (some URLs require absolute/fully-specified paths)
@@ -1515,7 +1518,7 @@ export function normalizePath(
 
 	let resultPath: string | undefined = fromPath;
 	let resultURL: URL | undefined = undefined;
-	console.warn('normalizePath():init:', {
+	consoleWARN('normalizePath():init:', {
 		resultPath,
 		isAbsolute: pathIsAbsolute(resultPath),
 		resultURL,
@@ -1543,7 +1546,7 @@ export function normalizePath(
 						return [$path.join(resultPath, path), resultURL];
 					})();
 		}
-		console.warn('normalizePath():loop:', { p, path, resultPath });
+		consoleWARN('normalizePath():loop:', { p, path, resultPath });
 	}
 	// const result =
 
