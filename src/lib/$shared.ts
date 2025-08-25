@@ -99,14 +99,14 @@ export type PathAndUrlOptions = {
 @property mayPanic • allow panics from function (ie, throw for errors)
 @property fileStemMayMatchDevice • allow file stem to match device name; defaults to `true` (Win10-style matching)
 @property forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to 'host'
-@property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (supports use of Windows-style paths); defaults to `true`
+@property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (supports use of Windows-style paths); defaults to 'WinOS-only'
 @see `PathAndUrlOptions` for further property details
 */
 const PathAndUrlOptionsDefault: Required<PathAndUrlOptions> = {
 	mayPanic: false,
 	fileStemMayMatchDevice: true /* file prefix/stem may match `special devices` (Win10-style) */,
 	forPlatform: 'host',
-	singleLetterSchemeAsDrive: true,
+	singleLetterSchemeAsDrive: 'WinOS-only',
 };
 
 //===
@@ -826,7 +826,7 @@ export const CHAR_LOWERCASE_Z = 122; /* z */
 * Notably, "opaque"-type URLs (eg, `mailto:`, `data:`, `urn:`) will generally *not* have absolute paths,
 in the hierarchical sense, even if fully and *absolutely* specified (eg, `mailto:santa@northpole.com`).
 @param path • path to examine
-@param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
+@param options ~ defaults to `{singleLetterSchemeAsDrive: 'WinOS-only'}`
  */
 export function pathIsAbsolute(
 	path: string | URL | undefined,
@@ -923,14 +923,13 @@ const pathProtocolHostPathnameRx =
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
 @param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: always uses *file path semantics* (not URL path semantics) for paths relative to `base` (ie, any trailing separators for `base` are irrelevant)
-@param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
+@param options ~ defaults to `{singleLetterSchemeAsDrive: 'WinOS-only'}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
 // FixME: ? add resolveWinOSDriveRelative (default to `true`; note: will only occur on WinOS hosts [b/c unresolvable on POSIX hosts])
 // FixME: [2025-08-03; rivy] Opaque URLs (ie, 'foo:bar') have read-only properties, except `href` which can be changed, so direct manipulation of 'host' and 'pathname', as currently used here, won't work.
 // FixME: [2025-08-23; rivy] define semantics for paths relative to an Opaque base URL (AI says path portion should always replace the opaque path, keeping origin/host/hostname the same with URL remaining Opaque, never converted to Hierarchical)
 // FixME: add options to parse and copy hash and query strings from `path` to the resulting URL; defaults to false == 'ignore' hash and query text
-// FixME: [2025-08-23; rivy] revisit the default for `singleLetterSchemeAsDrive` on POSIX systems; maybe should default to `false` for POSIX systems
 // * as paths may contain both/either '#' and/or '?' as path elements, we will default to ignoring both of them
 // * so, pre-parse `path` to remove any hash and query strings, if needed, prior to presenting to xIntoURL for URL construction
 export function pathIntoURL(
