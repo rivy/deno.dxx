@@ -122,7 +122,8 @@ const excludeDirsRxs = [
 	'vendor',
 ];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
-const crlfFileExtRxs = '[.](?i:(bat|cmd|sln|vcproj|vcxproj))';
+const crlfFileExtRxs = '[.](?i:(bat|cmd|sln|vcproj|vcxproj))'; // NOTE: `deno` doesn't support (?i:...) syntax using new RegExp(...), must use `/pattern/` instead; NodeJS supports syntax at v23+
+// !ToDO: add issue to Deno repo (for runtime difference between `/.../` and `new RegExp()`)
 const _tabbedFileExtRxs = '[.](?i:(bat|cmd))';
 
 // ToDO: instead, use `git ls -r` for project files
@@ -381,11 +382,14 @@ test('style ~ non-binary project files (when non-empty) end with a newline', () 
 });
 
 test('style ~ non-binary project files (when non-empty) use LF as newline by default', () => {
+	const rxCRLFExt = new RegExp(crlfFileExtRxs);
 	const flaws = projectNonBinaryFiles.flatMap((file) => {
 		console.log({
 			file,
 			ext: $path.extname(file),
 			match: $path.extname(file).match(new RegExp(crlfFileExtRxs)),
+			matchRX: $path.extname(file).match(rxCRLFExt),
+			rxExec: rxCRLFExt.exec($path.extname(file)),
 		});
 		if ($path.extname(file).match(new RegExp(crlfFileExtRxs))) return [];
 		const content = Deno.readTextFileSync(file);
