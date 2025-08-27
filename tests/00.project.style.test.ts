@@ -122,8 +122,8 @@ const excludeDirsRxs = [
 	'vendor',
 ];
 const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
-const crlfFilesRxs = '[.](bat|cmd|sln|vcproj|vcxproj)';
-const _tabbedFilesRxs = '[.](bat|cmd)';
+const crlfFileExtRxs = '[.](?i:(bat|cmd|sln|vcproj|vcxproj))';
+const _tabbedFileExtRxs = '[.](?i:(bat|cmd))';
 
 // ToDO: instead, use `git ls -r` for project files
 
@@ -382,7 +382,12 @@ test('style ~ non-binary project files (when non-empty) end with a newline', () 
 
 test('style ~ non-binary project files (when non-empty) use LF as newline by default', () => {
 	const flaws = projectNonBinaryFiles.flatMap((file) => {
-		if ($path.extname(file).match(new RegExp(crlfFilesRxs, isWinOS ? 'i' : ''))) return [];
+		console.log({
+			file,
+			ext: $path.extname(file),
+			match: $path.extname(file).match(new RegExp(crlfFileExtRxs)),
+		});
+		if ($path.extname(file).match(new RegExp(crlfFileExtRxs))) return [];
 		const content = Deno.readTextFileSync(file);
 		const lines: string[] = content.length > 0 ? content.split(/(?<=\r?\n)/) : []; // CRLF | LF | CR
 		// const content = Deno.readTextFileSync(file).split(/(?<=\r?\n|\r)/); // CRLF | LF | CR // ref: https://runkit.com/rivy/6146e4954b13950008d994ca
