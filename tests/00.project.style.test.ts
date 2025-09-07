@@ -121,10 +121,11 @@ const excludeDirsRxs = [
 	'[.]gpg',
 	'vendor',
 ];
-const binaryFileExtRxs = '[.](cache|dll|exe|gif|gz|lib|zip|xz)';
-const crlfFileExtRxs = '[.](?i:(bat|cmd|sln|vcproj|vcxproj))'; // NOTE: `deno` doesn't support (?i:...) syntax using new RegExp(...), must use `/pattern/` instead; NodeJS supports syntax at v23+
+// NOTE: more atomic/specific '(?i:...)' syntax would be preferable but `deno` doesn't support that style of syntax when using `new RegExp(...)`, must use `/pattern/` instead; though NodeJS does support syntax for v23+
+const binaryFileExtRx = /[.](cache|dll|exe|gif|gz|lib|zip|xz)/i;
+const crlfFileExtRx = /[.](bat|cmd|sln|vcproj|vcxproj)/i;
 // !ToDO: add issue to Deno repo (for runtime difference between `/.../` and `new RegExp()`)
-const _tabbedFileExtRxs = '[.](?i:(bat|cmd))';
+const _tabbedFileExtRxs = /[.](bat|cmd)/i;
 
 // ToDO: instead, use `git ls -r` for project files
 
@@ -133,20 +134,18 @@ const projectPotentialPaths = args(
 )
 	.filter(
 		(path) =>
-			!$path
-				.relative(projectPath, path)
-				.match(
-					new RegExp(
-						`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
-						isWinOS ? 'i' : '',
-					),
+			!$path.relative(projectPath, path).match(
+				new RegExp(
+					`(^|${$path.SEP_PATTERN})${excludeDirsRxs.join('|')}(${$path.SEP_PATTERN}|$)`,
+					// isWinOS ? 'i' : '',
 				),
+			),
 	)
 	.flatMap((path) => intoPlatformPath(path) ?? []);
 
 const projectFiles = projectPotentialPaths.filter((path) => Deno.lstatSync(path).isFile);
 const projectNonBinaryFiles = projectFiles.filter(
-	(file) => !$path.extname(file).match(new RegExp(binaryFileExtRxs, isWinOS ? 'i' : '')),
+	(file) => !$path.extname(file).match(binaryFileExtRx),
 );
 // const projectDirs = projectPaths.filter((s) => Deno.lstatSync(s).isDirectory);
 
@@ -382,16 +381,16 @@ test('style ~ non-binary project files (when non-empty) end with a newline', () 
 });
 
 test('style ~ non-binary project files (when non-empty) use LF as newline by default', () => {
-	const rxCRLFExt = new RegExp(crlfFileExtRxs);
+	// const rxCRLFExt = new RegExp(crlfFileExtRxs);
 	const flaws = projectNonBinaryFiles.flatMap((file) => {
-		console.log({
-			file,
-			ext: $path.extname(file),
-			match: $path.extname(file).match(new RegExp(crlfFileExtRxs)),
-			matchRX: $path.extname(file).match(rxCRLFExt),
-			rxExec: rxCRLFExt.exec($path.extname(file)),
-		});
-		if ($path.extname(file).match(new RegExp(crlfFileExtRxs))) return [];
+		// console.log({
+		// 	file,
+		// 	ext: $path.extname(file),
+		// 	// match: $path.extname(file).match(new RegExp(crlfFileExtRxs)),
+		// 	// matchRX: $path.extname(file).match(rxCRLFExt),
+		// 	// rxExec: rxCRLFExt.exec($path.extname(file)),
+		// });
+		if ($path.extname(file).match(crlfFileExtRx)) return [];
 		const content = Deno.readTextFileSync(file);
 		const lines: string[] = content.length > 0 ? content.split(/(?<=\r?\n)/) : []; // CRLF | LF | CR
 		// const content = Deno.readTextFileSync(file).split(/(?<=\r?\n|\r)/); // CRLF | LF | CR // ref: https://runkit.com/rivy/6146e4954b13950008d994ca

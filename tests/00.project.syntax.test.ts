@@ -112,7 +112,7 @@ test(`syntax ~ all code files compile/reload w/o warnings (${projectCodeFiles.le
 				'--circular',
 				'--no-spinner',
 			].concat(files);
-			console.log({ files });
+			console.log({ projectCodeFiles, files });
 
 			const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 			const [status, out, err] = await Promise.all([
