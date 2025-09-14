@@ -1692,11 +1692,16 @@ export function isTruthy(x: boolean | number | string | null | undefined): boole
 export function toTruthy(x: unknown): Truthy {
 	if (x == null) return false;
 	if (typeof x === 'boolean') return x ? 'true' : false;
-	if (typeof x === 'number') return x !== 0 ? 'true' : false;
+	if (typeof x === 'number') {
+		if (x === 0) return false;
+		if (isNaN(x)) return false;
+	}
+	if (typeof x === 'bigint') {
+		if (x === 0n) return false;
+	}
 	if (typeof x === 'string') {
-		if (falseyValues.includes(x)) {
-			return false;
-		}
+		// ToDO: testing ~ assert that all elements of `falseyValues` are ANSI and in lower case, so that `x.toLowerCase()` is safe
+		return falseyValues.includes(x.toLowerCase()) ? false : x;
 	}
 	return 'true';
 }
