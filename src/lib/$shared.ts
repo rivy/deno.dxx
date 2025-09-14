@@ -919,7 +919,7 @@ const pathProtocolHostPathnameRx =
 // import { pathToFileURL } from 'node:url';
 
 // `pathIntoURL()`
-/** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
+/** Convert a string `path` into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
 @param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: always uses *file path semantics* (not URL path semantics) for paths relative to `base` (ie, any trailing separators for `base` are irrelevant)
@@ -1052,6 +1052,7 @@ export function pathIntoURL(
 			pathHost,
 			baseHost,
 		});
+		// ToDO: test assertion that this always has "file semantics" for relative paths; if not, revise
 		result = tryFnSync(() => new URL(path, base ?? undefined), options?.mayPanic);
 	}
 
