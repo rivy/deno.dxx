@@ -1638,14 +1638,39 @@ export function joinPath(base: PathLike, ...segments: Array<PathLike>): Optional
 
 //===
 
+// `isEmpty()`
+/** Determine if `x` is "empty" (ie, has no content or members).
+- Note: the current implementation can correctly evaluate `x` as a `string`, `Array`, `Map`, `Set`, plain object, or any array-like object with a numeric `length` property
+; and otherwise, returns `false`. Iterable "emptiness" is *not* evaluated as iterables cannot be checked without consuming at least the first item.
+*/
+// ToDO: examine possible ways to check for empty iterables; see <https://stackoverflow.com/questions/61164230/how-to-peek-at-the-next-value-in-a-javascript-iterator> @@ <https://archive.is/Bz68e>
 export function isEmpty(x: unknown): boolean {
 	if (x == null) return true;
+	if (typeof x === 'function') return false;
+	if (typeof x === 'string') {
+		return x.length === 0;
+	}
 	if (typeof x === 'object') {
-		if (x.constructor === Object && Object.keys(x).length === 0) {
-			return true;
+		// Arrays
+		if (Array.isArray(x)) {
+			return x.length === 0;
+		}
+		// Map and Set
+		if (x instanceof Map || x instanceof Set) {
+			return x.size === 0;
+		}
+		// ArrayLike with `length` property === 0
+		// * includes `arguments`
+		// * note: a `Buffer` is only "empty" when it has no allocated memory (ie, `length === 0`; contents do not matter)
+		if ('length' in x) {
+			const lengthIsNumber = ['bigint', 'number'].includes(typeof (x as { length: unknown }));
+			if (lengthIsNumber && (x as { length: bigint | number }).length === 0) return true;
+		}
+		// Plain objects with no keys/properties
+		if (Object.prototype.toString.call(x) === '[object Object]') {
+			if (Reflect.ownKeys(x).length === 0) return true;
 		}
 	}
-	if ((x as { length: number }).length === 0) return true;
 	return false;
 }
 
