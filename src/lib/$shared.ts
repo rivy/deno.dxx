@@ -1701,11 +1701,35 @@ export function toTruthy(x: unknown): Truthy {
 		if (x === 0n) return false;
 	}
 	if (typeof x === 'string') {
-		// ToDO: testing ~ assert that all elements of `falseyValues` are ANSI and in lower case, so that `x.toLowerCase()` is safe
 		return falseyValues.includes(x.toLowerCase()) ? false : x;
 	}
 	return 'true';
 }
+
+// ToDO: testing ~ assert that all elements of `falseyValues` are ANSI and in lower case, so that `x.toLowerCase()` is safe
+// // ... ? how to integrate here within the module (import testing functions) vs in `tests` which would require exporting `falseyValues`
+import { assert } from '../../tests/$deps.ts';
+import { test } from '../../tests/$shared.ts';
+test('falseyValues: all values are ANSI and lowercase', () => {
+	falseyValues.forEach((value, index) => {
+		const isANSI = [...value].every((char) => {
+			const code = char.charCodeAt(0);
+			return code >= 0 && code <= 126;
+		});
+		assert(isANSI, `falseyValues[${index}] "${value}" contains non-ANSI characters`);
+
+		// Test lowercase
+		const isLowercase = value === value.toLowerCase();
+		assert(isLowercase, `falseyValues[${index}] "${value}" is not lowercase`);
+
+		// // Additional safety check - ensure toLowerCase() comparison is safe
+		// assertEquals(
+		// 	value,
+		// 	value.toLowerCase(),
+		// 	`falseyValues[${index}] "${value}" toLowerCase() comparison unsafe`,
+		// );
+	});
+});
 
 //===
 
