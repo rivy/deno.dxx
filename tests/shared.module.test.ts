@@ -3,16 +3,19 @@
 import { assert, assertEquals, $path } from './$deps.ts';
 import { test } from './$shared.ts';
 
-import { callersFromStackTrace, pathIntoURL } from '../src/lib/$shared.ts';
+// import { callersFromStackTrace, pathIntoURL } from './$shared.ts';
 
 // //===
 // await panicIfMissingPermits(['env', 'read']);
 // //===
 
+//===
 // review: [SO ~ (JS) determine current line number](https://stackoverflow.com/questions/2343343/how-can-i-determine-the-current-line-number-in-javascript) @@ <https://archive.is/vw4eN>
 
+import { callersFromStackTrace } from './$shared.ts';
 test('callersFromStack', () => {
-	const [callers, calledFromLine] = [callersFromStackTrace(), 15];
+	const callers = callersFromStackTrace();
+	const calledFromLine = 17; // line number of `callersFromStackTrace()` call just above
 	const calledFromURL = import.meta.url;
 	console.log({ calledFromLine, calledFromURL, callers });
 	// pop off Deno implementation detail callers
@@ -24,7 +27,37 @@ test('callersFromStack', () => {
 	assert(callers[callers.length - 1]?.startsWith(`${calledFromURL}:${calledFromLine}`));
 });
 
+//===
+
+// Truthy
+// ToDO: explore options for true unit testing within the module so that we can hide internal data structures which aren't in the public API
+import { falseyValues } from './$shared.ts';
+
+test('falseyValues: all values are ANSI and lowercase', () => {
+	falseyValues.forEach((value, index) => {
+		const isANSI = [...value].every((char) => {
+			const code = char.charCodeAt(0);
+			return code >= 0 && code <= 126;
+		});
+		assert(isANSI, `falseyValues[${index}] "${value}" contains non-ANSI characters`);
+
+		// Test lowercase
+		const isLowercase = value === value.toLowerCase();
+		assert(isLowercase, `falseyValues[${index}] "${value}" is not lowercase`);
+
+		// // Additional safety check - ensure toLowerCase() comparison is safe
+		// assertEquals(
+		// 	value,
+		// 	value.toLowerCase(),
+		// 	`falseyValues[${index}] "${value}" toLowerCase() comparison unsafe`,
+		// );
+	});
+});
+
+//===
+
 // pathIntoURL()
+import { pathIntoURL } from './$shared.ts';
 
 test('pathIntoURL: valid file path', () => {
 	const path = 'C:\\Users\\Morpheus\\file.ext';
