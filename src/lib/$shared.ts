@@ -1677,7 +1677,7 @@ export function isEmpty(x: unknown): boolean {
 
 //===
 
-const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off'];
+export const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'no', 'off'];
 // const falseyValues: string[] = ['', '0', 'f', 'false', 'n', 'never', 'no', 'none', 'off'];
 
 export type Truthy = false | string;
@@ -1705,31 +1705,6 @@ export function toTruthy(x: unknown): Truthy {
 	}
 	return 'true';
 }
-
-// ToDO: testing ~ assert that all elements of `falseyValues` are ANSI and in lower case, so that `x.toLowerCase()` is safe
-// // ... ? how to integrate here within the module (import testing functions) vs in `tests` which would require exporting `falseyValues`
-import { assert } from '../../tests/$deps.ts';
-import { test } from '../../tests/$shared.ts';
-test('falseyValues: all values are ANSI and lowercase', () => {
-	falseyValues.forEach((value, index) => {
-		const isANSI = [...value].every((char) => {
-			const code = char.charCodeAt(0);
-			return code >= 0 && code <= 126;
-		});
-		assert(isANSI, `falseyValues[${index}] "${value}" contains non-ANSI characters`);
-
-		// Test lowercase
-		const isLowercase = value === value.toLowerCase();
-		assert(isLowercase, `falseyValues[${index}] "${value}" is not lowercase`);
-
-		// // Additional safety check - ensure toLowerCase() comparison is safe
-		// assertEquals(
-		// 	value,
-		// 	value.toLowerCase(),
-		// 	`falseyValues[${index}] "${value}" toLowerCase() comparison unsafe`,
-		// );
-	});
-});
 
 //===
 
