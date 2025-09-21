@@ -1144,7 +1144,7 @@ export function intoURL(
 	const base =
 		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
 	// const urlStringEncodeSchemes: 'all' | string[] = ['', 'file'];
-	console.warn('intoURL():', { path, base, options });
+	// console.warn('intoURL():', { path, base, options });
 	try {
 		// const base =
 		// 	args?.length > 0 && args[0] instanceof URL
@@ -1185,16 +1185,16 @@ export function intoURL(
 		// const pathHasUrlScheme = maybeScheme != null && !pathHasSchemeAsDrive;
 		// const pathIsFileURL = scheme === 'file';
 
-		console.warn({
-			path,
-			base,
-			options,
-			/* scheme,
-			hasDrive,
-			hasUrlScheme,
-			 */ forWinOS,
-			maybeProtocol,
-		});
+		// console.warn({
+		// 	path,
+		// 	base,
+		// 	options,
+		// 	/* scheme,
+		// 	hasDrive,
+		// 	hasUrlScheme,
+		// 	 */ forWinOS,
+		// 	maybeProtocol,
+		// });
 
 		let url: URL | undefined = undefined;
 		// if (!forWinOS && pathScheme != '') url = new URL(path, base);
@@ -1244,7 +1244,7 @@ export function intoURL(
 				// console.warn({ pathDriveCWD, pathWithoutDrive });
 				return $platformPath.join(pathDriveCWD, pathWithoutDrive);
 			})();
-			console.warn({ pathResolved });
+			// console.warn({ pathResolved });
 			if (pathResolved == null) return undefined;
 
 			// // // console.warn({ path, pathDrive, pathHost });
@@ -1300,7 +1300,7 @@ export function intoURL(
 			// - ? add an option controlling URL encoding?
 
 			const pathForPlatform = intoPlatformPath(pathResolved, options);
-			console.warn({ pathForPlatform });
+			// console.warn({ pathForPlatform });
 			if (pathForPlatform == null) return undefined;
 			const finalScheme = urlProtocolRx.exec(pathForPlatform)?.[0];
 			const finalHasSchemeAsDrive =
@@ -1315,10 +1315,10 @@ export function intoURL(
 					? $path.toFileUrl(pathForPlatform)
 					: // : `file://${$platformPath.resolve(base?.pathname ?? '', pathForPlatform)}`;
 						'file:' + pathForPlatform;
-			console.warn({ pathWithScheme });
+			// console.warn({ pathWithScheme });
 			// url = new URL($platformPath.toFileUrl(pathPlatform), base);
 			url = new URL(pathWithScheme, base);
-			console.warn({ url });
+			// console.warn({ url });
 
 			// console.warn({ pathIsURL, path, pathname, url });
 		}
@@ -1508,7 +1508,7 @@ export function traversal(
 		baseURL &&
 		url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0 &&
 		url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0;
-	console.warn({ goal, url, base, baseURL, commonOrigin });
+	// console.warn({ goal, url, base, baseURL, commonOrigin });
 	const basePath = pathFromURL(baseURL);
 	const goalPath = pathFromURL(url);
 	if (commonOrigin && basePath && goalPath) {
@@ -1517,11 +1517,11 @@ export function traversal(
 			mightUseFileSystemCase() ? basePath : toCommonCase(basePath),
 			mightUseFileSystemCase() ? goalPath : toCommonCase(goalPath),
 		).replace(/[^\/]*$/, '');
-		console.warn({ basePath, goalPath, commonPathPrefix });
-		console.warn({
-			basePathSlice: basePath.slice(commonPathPrefix.length),
-			goalPathSlice: goalPath.slice(commonPathPrefix.length),
-		});
+		// console.warn({ basePath, goalPath, commonPathPrefix });
+		// console.warn({
+		// 	basePathSlice: basePath.slice(commonPathPrefix.length),
+		// 	goalPathSlice: goalPath.slice(commonPathPrefix.length),
+		// });
 		return $path.relative(
 			basePath.slice(commonPathPrefix.length),
 			goalPath.slice(commonPathPrefix.length),
