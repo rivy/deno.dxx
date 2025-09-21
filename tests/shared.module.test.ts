@@ -3,8 +3,6 @@
 import { assert, assertEquals, $path } from './$deps.ts';
 import { test } from './$shared.ts';
 
-// import { callersFromStackTrace, pathIntoURL } from './$shared.ts';
-
 // //===
 // await panicIfMissingPermits(['env', 'read']);
 // //===
@@ -12,10 +10,19 @@ import { test } from './$shared.ts';
 //===
 // review: [SO ~ (JS) determine current line number](https://stackoverflow.com/questions/2343343/how-can-i-determine-the-current-line-number-in-javascript) @@ <https://archive.is/vw4eN>
 
-import { callersFromStackTrace } from './$shared.ts';
-test('callersFromStack', () => {
-	const callers = callersFromStackTrace();
-	const calledFromLine = 17; // line number of `callersFromStackTrace()` call just above
+function currentLineNumber(): number {
+	const stack = new Error('stack trace from `currentLineNumber()`').stack;
+	// console.debug('currentLineNumber():', { stack });
+	const line = stack?.split('\n')[2]; // skip `Error: ...` line and `currentLineNumber()` call frame
+	const match = line?.match(/^.*:(\d+):\d+[)]?$/m);
+	return match ? parseInt(match[1]) : 0;
+}
+
+import { currentCallStack } from './$shared.ts';
+
+test('currentCallStack', () => {
+	const callers = currentCallStack();
+	const calledFromLine = currentLineNumber() - 1; // line number of call to `currentCallStack()`
 	const calledFromURL = import.meta.url;
 	console.log({ calledFromLine, calledFromURL, callers });
 	// pop off Deno implementation detail callers
