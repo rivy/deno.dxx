@@ -147,52 +147,105 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //=== * stack inspection functions
 
-function getFramesFromError(error: Error): Array<string> {
+function stackTraceFromError(error: Error) {
+	// ref: <https://stackoverflow.com/questions/591857/how-can-i-get-a-javascript-stack-trace-when-i-throw-an-exception>
+	// ref: [`get-current-line`](https://github.com/bevry/get-current-line/blob/9364df5392c89e9540314787493dbe142e8ce99d/source/index.ts)
 	let stack: Error['stack'] | null = null;
-	let frames: string[];
-	// // retrieve stack from `Error`
-	// // ref: <https://github.com/winstonjs/winston/issues/401#issuecomment-61913086>
+	let trace: string[];
+
+	// retrieve stack from `Error`
+	// * error stack retrieval (protect against panics from custom/legacy implementations or security restrictions)
+	try {
+		stack = error.stack; // standard error stack retrieval (try/catch is for paranoid safety)
+	} catch (_) {
+		stack = undefined;
+	}
+
+	// // * chaining (add if/when needed)
+	// // legacy chaining
 	// try {
-	stack = error.stack;
-	// } catch (e) {
-	// 	try {
-	// 		const previous = e?.__previous__ || e?.__previous;
-	// 		stack = previous && previous.stack;
-	// 	} catch (_) {
-	// 		stack = null;
+	// 	if (stack != null && ('__previous' in error || '__previous__' in error)) {
+	// 		let previous = error.__previous__ || error.__previous;
+	// 		while (stack == null && previous instanceof Error) {
+	// 			if (previous.stack) stack = previous.stack;
+	// 			previous = previous.__previous__ || previous.__previous;
+	// 		}
+	// 	}
+	// } catch (_) {
+	// 	stack = undefined;
+	// }
+	// // ES2002+ chaining; fallback to cause chain
+	// if (stack == null && 'cause' in error) {
+	// 	let current = error.cause;
+	// 	while (stack == null && current instanceof Error) {
+	// 		if (current.stack) stack = current.stack;
+	// 		current = current.cause;
 	// 	}
 	// }
 
-	// handle different stack formats
-	if (stack) {
+	// handle different possible stack formats (allowance for some custom implementations or polyfills)
+	if (stack?.length > 0) {
 		if (Array.isArray(stack)) {
-			frames = Array(stack);
+			trace = Array.from(stack);
 		} else {
-			frames = stack.toString().split('\n');
+			trace = stack.toString().split('\n');
 		}
 	} else {
-		frames = [];
+		trace = [];
 	}
 
 	// console.debug({ stack, frames });
-	return frames;
+	return trace;
 }
 
-function stackTrace() {
-	// ref: <https://stackoverflow.com/questions/591857/how-can-i-get-a-javascript-stack-trace-when-i-throw-an-exception>
-	// ref: [`get-current-line`](https://github.com/bevry/get-current-line/blob/9364df5392c89e9540314787493dbe142e8ce99d/source/index.ts)
-	return getFramesFromError(new Error('stack trace'));
-}
+// `callStackFromError()`
+/** Return a normalized call stack based on the supplied `error`.
 
-export function callersFromStackTrace() {
-	const callers = stackTrace()
-		.slice(1)
+Call stack entries are normalized to `LOCATION:LINE:COLUMN`.
+* - will *not panic*
+* - will *not prompt* for permission
+@param error • supplied constructed Error object
+@tags `no-panic`, `no-throw` ; `no-prompt`
+*/
+export function callStackFromError(error: Error) {
+	const stackTrace = stackTraceFromError(error);
+	let callers: string[] | null = stackTrace;
+	if (stackTrace.length > 0 && stackTrace[0].startsWith('Error: ')) {
+		/* V8 (Chrome, Deno, NodeJS) format */
+		/* remove any leading "Error: (...)" line */
+		callers = callers.slice(1);
+	}
+	// console.debug('callStackFromError():pre-normalized', { callers });
+	callers = callers
 		.map((s) => {
-			const match = s.match(/^.*\s[(]?(.*?)[)]?$/m);
-			if (!match) return undefined;
-			return match[1];
+			/*
+			V8 (Chrome, Deno, NodeJS) format == `at functionName (<location>:<line>:<column>)` or `at <location>:<line>:<column>`
+			or Firefox/Safari formats format == `functionName@<location>:<line>:<column>`
+			*/
+			let match = s.match(/\s[(](.*)(:\d+:\d+)[)]\s*$/m);
+			if (match) return `${match[1]}${match[2]}`;
+			match = s.match(/at\s(.*)(:\d+:\d+)\s*$/m);
+			if (match) return `${match[1]}${match[2]}`;
+			match = s.match(/@(.*)(:\d+:\d+)\s*$/m);
+			if (match) return `${match[1]}${match[2]}`;
+			return undefined;
 		})
 		.filter(Boolean);
+	// console.debug('callStackFromError():post', { callers });
+	return callers;
+}
+
+// `callStackFromError()`
+/** Return the normalized current call stack.
+
+Call stack entries are normalized to `LOCATION:LINE:COLUMN`.
+* - will *not panic*
+* - will *not prompt* for permission
+@tags `no-panic`, `no-throw` ; `no-prompt`
+*/
+export function currentCallStack() {
+	let callers = callStackFromError(new Error('stack trace (from `currentCallStack()`'));
+	if (callers.length > 0) callers = callers.slice(1); /* remove self from call stack */
 	return callers;
 }
 
