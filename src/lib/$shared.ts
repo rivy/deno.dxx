@@ -379,7 +379,7 @@ export async function abortIfMissingPermits(
 ) {
 	options = options != null ? options : {};
 	options.exitCode ??= 1;
-	// const callers = callersFromStackTrace();
+	// const callers = currentCallStack();
 	// const top = callers[callers.length - 1];
 	// const url = top?.replace(/(:\d+:\d+)$/, ''); // remove trailing position info (LINE_N:CHAR_POSITION)
 	// const name = $path.parse(url ?? '').name;
@@ -406,7 +406,7 @@ export function abortIfMissingPermitsSync(
 ) {
 	options = options != null ? options : {};
 	options.exitCode ??= 1;
-	// const callers = callersFromStackTrace();
+	// const callers = currentCallStack();
 	// const top = callers[callers.length - 1];
 	// const url = top?.replace(/(:\d+:\d+)$/, ''); // remove trailing position info (LINE_N:CHAR_POSITION)
 	// const name = $path.parse(url ?? '').name;
