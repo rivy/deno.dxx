@@ -193,7 +193,7 @@ function stackTraceFromError(error: Error) {
 	// }
 
 	// handle different possible stack formats (allowance for some custom implementations or polyfills)
-	if (stack?.length > 0) {
+	if (stack?.length != null && stack?.length > 0) {
 		if (Array.isArray(stack)) {
 			trace = Array.from(stack);
 		} else {
