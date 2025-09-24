@@ -299,7 +299,7 @@ const yargs = (() => {
 		if (e instanceof Error) log.error(e.message);
 		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		appExitValue = 1;
-		return;
+		return undefined;
 	}
 })();
 
