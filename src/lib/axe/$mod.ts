@@ -789,6 +789,7 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		} else {
 			return super.write(args);
 		}
+		return undefined;
 	}
 
 	/** Alias for `log()` which prefixes the 'error' log level. */
