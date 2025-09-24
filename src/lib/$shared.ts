@@ -1834,6 +1834,7 @@ export function firstPathContaining(goal: string, paths: string[]) {
 		const p = $path.join(path, goal);
 		if (existsSync(p)) return path;
 	}
+	return undefined;
 }
 
 //===
