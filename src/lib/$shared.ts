@@ -543,7 +543,7 @@ export function cwdOfDrive(drive?: string | null, options?: PermitOptions) {
 		const env = tryFnSync(() => Deno.env.toObject());
 		if (env != null) {
 			const containsDriveCWDs = Object.keys(env)?.find((v) => v.match(/^[=]?[A-Z]:$/)) != null;
-			const path = containsDriveCWDs ? env[`=${drive}:`] ?? `${drive}:\\` : undefined;
+			const path = containsDriveCWDs ? (env[`=${drive}:`] ?? `${drive}:\\`) : undefined;
 			if (path != null) {
 				return path;
 			}
@@ -1013,11 +1013,11 @@ export function pathIntoURL(
 	const base =
 		options?.base === null
 			? null
-			: options?.base ??
+			: (options?.base ??
 				tryFnSync(
 					() => ifThen(atImportCWD != null, $path.toFileUrl(atImportCWD + $path.SEP)),
 					options.mayPanic,
-				);
+				));
 	const consoleWARN_on = false;
 	const consoleWARN = consoleWARN_on ? console.warn : () => {};
 	consoleWARN('pathIntoURL():', { path, base, options });

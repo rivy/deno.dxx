@@ -39,7 +39,7 @@ const denoMainModule = permittedRead ? Deno.mainModule : undefined;
 const caseSensitiveFiles = !isWinOS;
 
 const execPathExtensions = isWinOS
-	? (await envAsync('PATHEXT'))?.split($path.delimiter).filter(Boolean).map(toCommonCase) ?? []
+	? ((await envAsync('PATHEXT'))?.split($path.delimiter).filter(Boolean).map(toCommonCase) ?? [])
 	: undefined;
 
 // const pathsOfPATH = env('PATH')?.split($path.delimiter) ?? [];
@@ -286,7 +286,7 @@ export const pathURL =
 	(isEnhancedShimTarget ? intoURL(deQuote(shim.scriptName))?.href : undefined) ??
 	(isDirectExecution
 		? denoExecPath
-		: intoURL(deQuote(commandLineParts.scriptName))?.href ?? denoMainModule);
+		: (intoURL(deQuote(commandLineParts.scriptName))?.href ?? denoMainModule));
 
 /** * base name (eg, NAME.EXT) of main script file (from best guess path) */
 const pathUrlBase = $path.parse(pathURL || '').base;

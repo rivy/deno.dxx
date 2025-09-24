@@ -618,11 +618,11 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 	/** Alias for {@link logLevelDetail} using the configured logger levels. */
 	logLevelDetail(value?: number | string) {
 		return value != undefined
-			? rfcGetLogLevel(value, this.#context.levels) ??
+			? (rfcGetLogLevel(value, this.#context.levels) ??
 					(typeof value === 'string'
 						? rfcGetLogLevel(value.toLocaleLowerCase(), this.#context.levels)
 						: undefined) ??
-					undefined
+					undefined)
 			: undefined;
 	}
 
