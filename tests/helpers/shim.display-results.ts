@@ -80,7 +80,7 @@ for (let i = 0; i < Deno.args.length; i++) {
 	const appNameVersion = 'shim-helper 1.0';
 
 	const contentsUpdated = ((contents) => {
-		if (contents === undefined) return;
+		if (contents === undefined) return undefined;
 		if (contents.slice(0, 2) === '#!') {
 			// matches POSIX-style shebang shim
 			return eol.LF(
