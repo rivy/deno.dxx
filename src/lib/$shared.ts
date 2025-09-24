@@ -16,6 +16,9 @@
 
 // FixME: [2025-08-04; rivy] review, revise, and document all `tryFn*` functions to ensure consistent behavior and documentation
 
+// NOTE: (from `rust) ~ `as...()` functions are cheap conversions (minimal compute/memory)
+//   ... `to...() / into...()` functions are more expensive and `into...()` might modify the input arguments to the function
+
 // spell-checker:ignore (fns) chdir
 // spell-checker:ignore (env) WSL WSLENV
 // spell-checker:ignore (jargon) CWDs distro falsey truthy
@@ -83,8 +86,11 @@ export type ForPathPlatform = 'host' | PathPlatform;
 	- `true` == inclusive, non-strict matching == will match if file prefix/stem matches any of `specialDeviceStemNames` (Win10-style [or earlier] compatible matching)
 	- `false` == strict matching == only complete file name may match any of `specialDeviceStemNames` (Win11-style [or later] compatible matching)
 @property forPlatform • assumed platform for platform/OS-specific path/URL handling
+  - `host` == use host platform/OS
+  - `POSIX` == use POSIX-style path/URL handling
+  - `WinOS` == use Windows-style path/URL handling
 @property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (needed for Windows-style paths)
-@see `PathAndUrlOptionsDefault` for default values
+@see {@link PathAndUrlOptionsDefault} for default values
 */
 export type PathAndUrlOptions = {
 	mayPanic?: boolean; // enable panic returns (ie, throw from functions for errors)
@@ -96,11 +102,11 @@ export type PathAndUrlOptions = {
 };
 // `const PathAndUrlOptionsDefault`
 /** Default options for path and URL handling
-@property mayPanic • allow panics from function (ie, throw for errors)
+@property mayPanic • allow panics from function (ie, throw for errors); defaults to `false`
 @property fileStemMayMatchDevice • allow file stem to match device name; defaults to `true` (Win10-style matching)
-@property forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to 'host'
-@property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (supports use of Windows-style paths); defaults to 'WinOS-only'
-@see `PathAndUrlOptions` for further property details
+@property forPlatform • assumed platform for platform/OS-specific path/URL handling; defaults to `'host'`
+@property singleLetterSchemeAsDrive • interpret single letter URL schemes as drive letters (supports use of Windows-style paths); defaults to `'WinOS-only'`
+@see {@link PathAndUrlOptions} for further property details
 */
 const PathAndUrlOptionsDefault: Required<PathAndUrlOptions> = {
 	mayPanic: false,
@@ -147,6 +153,9 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 
 //=== * stack inspection functions
 
+// `stackTraceFromError()`
+/** Return the stack trace lines from the supplied `error`, as an array of strings.
+ */
 function stackTraceFromError(error: Error) {
 	// ref: <https://stackoverflow.com/questions/591857/how-can-i-get-a-javascript-stack-trace-when-i-throw-an-exception>
 	// ref: [`get-current-line`](https://github.com/bevry/get-current-line/blob/9364df5392c89e9540314787493dbe142e8ce99d/source/index.ts)
@@ -200,10 +209,10 @@ function stackTraceFromError(error: Error) {
 
 // `callStackFromError()`
 /** Return a normalized call stack based on the supplied `error`.
-
+*
 Call stack entries are normalized to `LOCATION:LINE:COLUMN`.
-* - will *not panic*
-* - will *not prompt* for permission
+- will *not panic*
+- will *not prompt* for permission
 @param error • supplied constructed Error object
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
@@ -876,11 +885,11 @@ export const CHAR_LOWERCASE_Z = 122; /* z */
 
 // `pathIsAbsolute()`
 /** Determine whether the provided path (of filesystem/hierarchical type) is in an absolute form.
-* Notably, "opaque"-type URLs (eg, `mailto:`, `data:`, `urn:`) will generally *not* have absolute paths,
+Notably, "opaque"-type URLs (eg, `mailto:`, `data:`, `urn:`) will generally *not* have absolute paths,
 in the hierarchical sense, even if fully and *absolutely* specified (eg, `mailto:santa@northpole.com`).
-@param path • path to examine
+@param path • path (as a path/URL-string or URL) to examine
 @param options ~ defaults to `{singleLetterSchemeAsDrive: 'WinOS-only'}`
- */
+*/
 export function pathIsAbsolute(
 	path: string | URL | undefined,
 	options?: { base?: URL | null | undefined } & PathAndUrlOptions,
@@ -912,8 +921,8 @@ export function pathIsRelativeWithDrive(path: string | undefined, options?: Path
 
 // `absolutePath()`
 /** Join all path segments, returning an absolute, syntactically normalized path.
-* * Normalization is done syntactically, *without* considering/resolving file system symlinks.
-* * `no-throw` ~ will *not panic* (function returns `undefined` upon any error)
+- Normalization is done syntactically, *without* considering/resolving file system symlinks.
+- `no-throw` ~ will *not panic* (function returns `undefined` upon any error)
 @param pathSegments • path segment (string or string[])
 @param options • { `permitGuard` } • passed to `cwd()`
 @tags `no-panic`, `no-throw`
@@ -951,8 +960,8 @@ export function absolutePath(pathSegments: string | string[], options?: PermitOp
 
 // `intoPath()`
 /** Extract the "path", in normalized (Deno and OS/Platform API compatible) string form, from a path string or URL.
-* * `no-throw` ~ function returns `undefined` upon any error
-@param path • path/URL-string (may already be in URL format [ie, 'file://...']) or URL
+* * `no-throw` ~ function returns `undefined` upon empty input or any error
+@param path • path/URL-string (`path` may already be in URL format [ie, 'file://...']) or URL
 @tags `no-panic`, `no-throw`
 */
 export function intoPath(path?: string | URL, options?: PathAndUrlOptions) {
@@ -972,10 +981,10 @@ const pathProtocolHostPathnameRx =
 // import { pathToFileURL } from 'node:url';
 
 // `pathIntoURL()`
-/** Convert a string `path` into a standard `URL` object, relative to an optional `base` reference URL.
+/** Convert a path-string `path` into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
 @param path • path/URL-string (may already be in URL href/string format [ie, 'scheme://...'])
-@param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: always uses *file path semantics* (not URL path semantics) for paths relative to `base` (ie, any trailing separators for `base` are irrelevant)
+@param options.base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: *file path semantics* (not URL path semantics) are always used for paths relative to `base` (ie, `base` is treated as a 'folder' and any trailing separators are irrelevant)
 @param options ~ defaults to `{singleLetterSchemeAsDrive: 'WinOS-only'}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
@@ -1535,7 +1544,7 @@ export function traversal(
 // !  ... should there be a string path type
 // `normalizeToPath()`
 /** Resolve paths, syntactically, generally without any file system access, from various sources; similar to `path:join()`.
-@returns normalized path (in string form) constructed from `from` with applied `path`
+@returns normalized path-string constructed from `from` with applied `path`
 @param from • initial path or URL to resolve from
 @param path • path, path segments, or URL path(s) to apply
 @tags `no-panic`, `no-throw`
