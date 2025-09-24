@@ -718,11 +718,19 @@ export function ifThen<T>(condition: boolean, ifTrue: T | (() => T)) {
 	return ifThenElse(condition, ifTrue, undefined);
 }
 
-export function tryFnOr<T>(fn: () => Promise<T>, fallback: T, mayPanic?: boolean) {
-	return tryFnOrAsync(fn, fallback, mayPanic);
+export async function tryFnOr<T>(
+	fn: () => Promise<T>,
+	fallback?: T,
+	mayPanic?: boolean,
+): Promise<T | undefined> {
+	return await tryFnOrAsync(fn, fallback, mayPanic);
 }
 
-export async function tryFnOrAsync<T>(fn: () => Promise<T>, fallback: T, mayPanic?: boolean) {
+export async function tryFnOrAsync<T>(
+	fn: () => Promise<T>,
+	fallback?: T,
+	mayPanic?: boolean,
+): Promise<T | undefined> {
 	try {
 		return await fn();
 	} catch (e) {
@@ -731,7 +739,7 @@ export async function tryFnOrAsync<T>(fn: () => Promise<T>, fallback: T, mayPani
 	}
 }
 
-export function tryFnOrSync<T>(fn: () => T, fallback: T, mayPanic?: boolean) {
+export function tryFnOrSync<T>(fn: () => T, fallback?: T, mayPanic?: boolean): T | undefined {
 	try {
 		return fn();
 	} catch (e) {
@@ -740,15 +748,18 @@ export function tryFnOrSync<T>(fn: () => T, fallback: T, mayPanic?: boolean) {
 	}
 }
 
-export function tryFn<T>(fn: () => Promise<T>, mayPanic?: boolean) {
-	return tryFnAsync(fn, mayPanic);
+export async function tryFn<T>(fn: () => Promise<T>, mayPanic?: boolean): Promise<T | undefined> {
+	return await tryFnAsync(fn, mayPanic);
 }
 
-export function tryFnAsync<T>(fn: () => Promise<T>, mayPanic?: boolean) {
-	return tryFnOrAsync(fn, undefined, mayPanic);
+export async function tryFnAsync<T>(
+	fn: () => Promise<T>,
+	mayPanic?: boolean,
+): Promise<T | undefined> {
+	return await tryFnOrAsync(fn, undefined, mayPanic);
 }
 
-export function tryFnSync<T>(fn: () => T, mayPanic?: boolean) {
+export function tryFnSync<T>(fn: () => T, mayPanic?: boolean): T | undefined {
 	return tryFnOrSync(fn, undefined, mayPanic);
 }
 
