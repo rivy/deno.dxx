@@ -218,7 +218,7 @@ Call stack entries are normalized to `LOCATION:LINE:COLUMN`.
 */
 export function callStackFromError(error: Error) {
 	const stackTrace = stackTraceFromError(error);
-	let callers: string[] | null = stackTrace;
+	let callers = stackTrace;
 	if (stackTrace.length > 0 && stackTrace[0].startsWith('Error: ')) {
 		/* V8 (Chrome, Deno, NodeJS) format */
 		/* remove any leading "Error: (...)" line */
@@ -226,18 +226,18 @@ export function callStackFromError(error: Error) {
 	}
 	// console.debug('callStackFromError():pre-normalized', { callers });
 	callers = callers
-		.map((s) => {
-			/*
-			V8 (Chrome, Deno, NodeJS) format == `at functionName (<location>:<line>:<column>)` or `at <location>:<line>:<column>`
-			or Firefox/Safari formats format == `functionName@<location>:<line>:<column>`
-			*/
+		.flatMap((s) => {
+			// normalize call site info to `LOCATION:LINE:COLUMN`
+			// * V8 (Chrome, Deno, NodeJS) format == `at functionName (<location>:<line>:<column>)` or `at <location>:<line>:<column>`
 			let match = s.match(/\s[(](.*)(:\d+:\d+)[)]\s*$/m);
-			if (match) return `${match[1]}${match[2]}`;
+			if (match) return [`${match[1]}${match[2]}`];
 			match = s.match(/at\s(.*)(:\d+:\d+)\s*$/m);
-			if (match) return `${match[1]}${match[2]}`;
+			if (match) return [`${match[1]}${match[2]}`];
+			// * Firefox/Safari format == `functionName@<location>:<line>:<column>`
 			match = s.match(/@(.*)(:\d+:\d+)\s*$/m);
-			if (match) return `${match[1]}${match[2]}`;
-			return undefined;
+			if (match) return [`${match[1]}${match[2]}`];
+			// ToDO: [2025-09-24; rivy] * Bun format == ...
+			return [];
 		})
 		.filter(Boolean);
 	// console.debug('callStackFromError():post', { callers });
