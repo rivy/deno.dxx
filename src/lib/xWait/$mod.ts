@@ -44,7 +44,7 @@ function streamToSpinnerStream(stream: SpinnerStream | typeof Deno.stdout): Spin
 	// add `isTerminal() => bool` method to stream if it doesn't already have one (eg, Deno-v1 stdout)
 	if (!hasIsTerminalMethod(s)) {
 		(s as SpinnerStream).isTerminal = function () {
-			return this.rid !== undefined ? DenoV1?.isatty(this.rid) ?? false : false;
+			return this.rid !== undefined ? (DenoV1?.isatty(this.rid) ?? false) : false;
 		};
 	}
 	return s as SpinnerStream;
