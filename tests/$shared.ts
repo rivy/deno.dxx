@@ -13,7 +13,7 @@ import { Deprecated } from '../src/lib/$deprecated.ts';
 import { $colors, $path } from './$deps.ts';
 
 import {
-	callersFromStackTrace,
+	currentCallStack,
 	decode,
 	intoPath,
 	isWinOS,
@@ -167,9 +167,9 @@ export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
 export function createTestFn(testFilePath?: string | URL) {
 	const pathOfTestFile = testFilePath && intoPath(testFilePath);
 	function test(description: string, fn: () => void | Promise<void>, options = {} as TestOptions) {
-		const callers = callersFromStackTrace();
+		const callers = currentCallStack();
 		// console.debug({ callers });
-		// ToDO: [2023-10-10; rivy] to avoid quiet failures, add testing to confirm that `callersFromStackTrace()` contains the expected data
+		// ToDO: [2023-10-10; rivy] to avoid quiet failures, add testing to confirm that `currentCallStack()` contains the expected data
 		// Deno 1.33.0+ adds at least one extra caller level (ie, `ext:core/01_core.js:166:11`) to the stack trace; remove it/them
 		while (callers.length > 0 && callers[callers.length - 1]?.startsWith('ext:')) {
 			const _ = callers.pop();
