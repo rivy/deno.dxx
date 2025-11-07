@@ -1,7 +1,8 @@
 {
 	// `dprint` configuration; ref: <https://dprint.dev/config>
-	// v2024.07.13 [rivy]
-	// spell-checker:ignore () commitlint dprint remarkrc rustfmt (people) Rivy Ivy III * rivy
+	// v2025.09.21 [rivy]
+	// note: update plugins using `dprint config update`
+	// spell-checker:ignore () commitlint dprint remarkrc rustfmt (people) Roy Ivy III * rivy
 	//
 	// * "$schema": "https://dprint.dev/schemas/v0.json",
 	// * "projectType": "openSource",
@@ -74,23 +75,23 @@
 		"module.sortImportDeclarations": "caseInsensitive",
 		"module.sortExportDeclarations": "caseInsensitive"
 	},
-	"yaml": { "quotes": "preferSingle", "useTabs": false },
+	"yaml": { "quotes": "preferSingle" },
 	//
 	"plugins": [
 		// ref: <https://plugins.dprint.dev>
-		// * plugins are in priority order (ie, 'biome, typescript, json' means that typescript and json plugins will not be used [unless overriden by 'associations'])
-		"https://plugins.dprint.dev/exec-0.5.0.json@8d9972eee71fa1590e04873540421f3eda7674d0f1aae3d7c788615e7b7413d0",
-		"https://plugins.dprint.dev/biome-0.6.0.wasm",
-		"https://plugins.dprint.dev/typescript-0.91.3.wasm",
-		"https://plugins.dprint.dev/json-0.19.3.wasm",
-		"https://plugins.dprint.dev/markdown-0.17.1.wasm",
-		"https://plugins.dprint.dev/toml-0.6.2.wasm",
-		"https://plugins.dprint.dev/g-plane/pretty_yaml-v0.3.0.wasm",
-		"https://plugins.dprint.dev/dockerfile-0.3.2.wasm",
-		"https://plugins.dprint.dev/g-plane/malva-v0.5.1.wasm",
-		"https://plugins.dprint.dev/g-plane/markup_fmt-v0.10.0.wasm",
-		"https://plugins.dprint.dev/ruff-0.3.9.wasm",
-		"https://plugins.dprint.dev/jupyter-0.1.4.wasm",
+		// * plugins are in priority order (ie, 'biome, typescript, json' means that typescript and json plugins will not be used [unless overridden by 'associations'])
+		"https://plugins.dprint.dev/exec-0.6.0.json@a054130d458f124f9b5c91484833828950723a5af3f8ff2bd1523bd47b83b364",
+		"https://plugins.dprint.dev/biome-0.10.3.wasm",
+		"https://plugins.dprint.dev/typescript-0.95.11.wasm",
+		"https://plugins.dprint.dev/json-0.20.0.wasm",
+		"https://plugins.dprint.dev/markdown-0.19.0.wasm",
+		"https://plugins.dprint.dev/toml-0.7.0.wasm",
+		"https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.1.wasm",
+		"https://plugins.dprint.dev/dockerfile-0.3.3.wasm",
+		"https://plugins.dprint.dev/g-plane/malva-v0.14.3.wasm",
+		"https://plugins.dprint.dev/g-plane/markup_fmt-v0.23.4.wasm",
+		"https://plugins.dprint.dev/ruff-0.5.0.wasm",
+		"https://plugins.dprint.dev/jupyter-0.2.0.wasm",
 		// ref: <https://github.com/dprint/dprint-plugin-roslyn/releases>
 		"https://plugins.dprint.dev/roslyn-0.18.0.json@9586754a7e586ccda5dba4e694c0f225aabde63720c905dd85e02453b6f5e5de",
 		// ref: <https://github.com/dprint/dprint-plugin-rustfmt/releases>
@@ -102,6 +103,6 @@
 		// "https://plugins.dprint.dev/prettier-0.9.0.json@76c20538ea4231b3daa9b62059f90ec144200cab5477b7e95b730cbb3ed48957"
 		// "https://plugins.dprint.dev/prettier-0.10.0.json@ca9a97de84cbb2cd60534eb72c0455f3ca8704743917569ace70499136cf5c9c"
 		// "https://plugins.dprint.dev/prettier-0.39.0.json@896b70f29ef8213c1b0ba81a93cee9c2d4f39ac2194040313cd433906db7bc7c"
-		"https://plugins.dprint.dev/prettier-0.40.0.json@68c668863ec834d4be0f6f5ccaab415df75336a992aceb7eeeb14fdf096a9e9c"
+		"https://plugins.dprint.dev/prettier-0.58.2.json@2fd8cc9c9773364848dc93735b01a00d55fcfa78a56a9230b4b63c014964c82d"
 	]
 }
