@@ -25,6 +25,7 @@ import {
 	// encoder,
 	intoURL,
 	pathFromURL,
+	isValidURL,
 } from '../src/lib/$shared.ts';
 
 import {
@@ -51,15 +52,15 @@ import {
 	dirname,
 	fromFileUrl,
 	join,
-	relative,
+	// relative,
 	resolve,
 	// toFileUrl,
 } from 'https://deno.land/std@0.224.0/path/mod.ts';
 import { toText } from 'https://deno.land/std@0.224.0/streams/mod.ts';
 
-import * as $lib from '../src/lib/$shared.ts';
+// import * as $lib from '../src/lib/$shared.ts';
 // $lib.intoPlatformPath();
-import { traversal } from '../src/lib/$shared.ts';
+import { traversal, normalizeToPath } from '../src/lib/$shared.ts';
 
 //===
 
@@ -298,7 +299,7 @@ const yargs = (() => {
 		if (e instanceof Error) log.error(e.message);
 		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		appExitValue = 1;
-		return;
+		return undefined;
 	}
 })();
 
@@ -358,7 +359,7 @@ if (yargs.mapFrom == null) {
 
 //===
 
-const scriptDirURL = intoURL('./', intoURL(import.meta.url));
+const scriptDirURL = intoURL('./', { base: intoURL(import.meta.url) });
 
 const importMapName = 'import_map.json';
 
@@ -369,7 +370,7 @@ const [importMapURL, maybeImportMapText] = await (async () => {
 		return [undefined, undefined];
 	}
 	if (mapFromURL.pathname.endsWith('/')) {
-		const url = intoURL(importMapName, mapFromURL);
+		const url = intoURL(importMapName, { base: mapFromURL });
 		return [url, undefined];
 	}
 	const text = await tryFn(() => fetchText(mapFromURL));
@@ -384,7 +385,7 @@ const [importMapURL, maybeImportMapText] = await (async () => {
 		return [mapFromURL, text];
 	}
 	mapFromURL.pathname += '/'; // force mapFromURL to be a folder
-	return [intoURL(importMapName, mapFromURL), undefined];
+	return [intoURL(importMapName, { base: mapFromURL }), undefined];
 })();
 
 await log.debug({
@@ -458,7 +459,7 @@ async function createTransformer(
 		// Check scope mappings first: if the file's URL starts with a scope key,
 		// then check that scope's mapping for a matching prefix.
 		for (const [scope, scopeImports] of Object.entries(scopes)) {
-			const scopeURL = new URL(scope, importMapURL);
+			const scopeURL = new URL(scope, importMapURL); // use URL relative path semantics
 			// log.trace(`scope=${scopeURL.href}`);
 			// const scopePath = resolve(join(dirname(resolve(importMapURL)), scope));
 			// const scopePrefixURL = new URL(scopePrefix, importMapURL);
@@ -504,11 +505,13 @@ async function createTransformer(
 		) {
 			const fullImportFolderPath = dirname(pathFromURL(importMapURL) ?? '');
 			const fullFileFolderPath = dirname(pathFromURL(fileURL) ?? '');
-			const prefix = relative(fullFileFolderPath, fullImportFolderPath);
+			// const prefix = relative(fullFileFolderPath, fullImportFolderPath);
+			const prefix = traversal(fullImportFolderPath, fullFileFolderPath);
 			const importMapFolderURL = new URL('.', importMapURL);
 			const fileFolderURL = new URL('.', fileURL);
 			const traverse = traversal(importMapFolderURL, fileFolderURL);
 			log.debug({
+				finalSpecifier,
 				fullImportFolderPath,
 				fullFileFolderPath,
 				prefix,
@@ -517,8 +520,15 @@ async function createTransformer(
 				fileFolderURL,
 				traverse,
 			});
-			finalSpecifier = $lib.pathToPOSIX(join(prefix, finalSpecifier));
-			if (!(finalSpecifier.startsWith('./') || finalSpecifier.startsWith('../'))) {
+			// finalSpecifier = $lib.pathToPOSIX(join(prefix, finalSpecifier));
+			finalSpecifier = normalizeToPath(prefix, finalSpecifier) ?? '';
+			if (
+				!(
+					isValidURL(finalSpecifier) ||
+					finalSpecifier.startsWith('./') ||
+					finalSpecifier.startsWith('../')
+				)
+			) {
 				// ensure that the finalSpecifier starts with a relative directory prefix
 				finalSpecifier = `./${finalSpecifier}`;
 			}
@@ -526,7 +536,7 @@ async function createTransformer(
 
 		log.info({ specifierMatched, finalSpecifier });
 
-		finalSpecifier = $lib.pathToPOSIX(finalSpecifier);
+		// finalSpecifier = $lib.pathToPOSIX(finalSpecifier);
 		log.info(
 			`resolveSpecifier(file='${pathFromURL(fileURL)}'; '${specifier}') => ${
 				finalSpecifier === specifier ? '(*NO-CHANGE*) ' : ''
