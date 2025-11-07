@@ -104,7 +104,7 @@ const argv = (() => {
 	} catch (e) {
 		if (e instanceof Error) console.warn(e.message);
 		else console.warn(`ERROR: Unknown error parsing arguments (${String(e)})`);
-		return;
+		return undefined;
 	}
 })();
 

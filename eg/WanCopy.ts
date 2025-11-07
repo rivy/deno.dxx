@@ -216,7 +216,7 @@ const argv =
 		} catch (e) {
 			if (e instanceof Error) log.error(e.message);
 			else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
-			return;
+			return undefined;
 		}
 	})() || ({} as YargsArguments);
 
