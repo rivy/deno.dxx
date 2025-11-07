@@ -34,6 +34,8 @@ import { default as LodashM } from 'https://cdn.jsdelivr.net/npm/lodash-es@4.17.
 import { type LoDashStatic as LodashT } from '../../vendor/@types/lodash@4.17.15/index.d.ts'; // use locally vendored (and modified) types
 export const $lodash = LodashM as unknown as Omit<LodashT, 'noConflict' | 'runInContext'>; // JSDelivr ESM module is missing `noConflict` and `runInContext` methods
 
+// export * as $regex from 'https://cdn.jsdelivr.net/npm/regex@6.0.1/dist/esm/regex.js';
+
 // export { default as $yargs } from 'https://deno.land/x/yargs@v17.3.0-deno/deno.ts';
 
 //=== features (functions, objects, and/or values)
