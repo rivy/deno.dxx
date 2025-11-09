@@ -9,7 +9,7 @@
 
 // import Schema, { array, number, string, unknown } from 'esm.sh/v45/computed-types@1.6.0';
 // import { string, unknown } from 'https://esm.sh/v45/computed-types@1.6.0';
-import { string, unknown } from '../vendor/deno@1.44.4-vendor/esm.sh/v45/computed-types@1.6.0.js';
+import { string, unknown } from 'https://cdn.jsdelivr.net/npm/computed-types@1.6.0/+esm';
 // import {
 // 	string,
 // 	unknown,
@@ -39,10 +39,10 @@ import { string, unknown } from '../vendor/deno@1.44.4-vendor/esm.sh/v45/compute
 // import chai from '../vendor/deno@1.44.4-vendor/esm.sh/v135/chai@4.3.4.js'; // *don't import directly* from deno-vendor directory as it may change; use a GH import from a stable commit if needed
 // import chaiM from 'https://cdn.jsdelivr.net/npm/chai@4.5.0/+esm';
 // import chaiT from '../vendor/@types/chai@~4.3/index.d.ts'; // use locally vendored (and modified) types
-import * as chai from 'https://cdn.jsdelivr.net/npm/chai@4.5.0/+esm';
+// import * as chai from 'https://cdn.jsdelivr.net/npm/chai@4.5.0/+esm';
 // import { z } from 'https://esm.sh/v135/zod@3.9.8';
 // import { z } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8.js'; // *don't import directly* from deno-vendor directory as it may change; use a GH import from a stable commit if needed
-import { z } from 'https://cdn.jsdelivr.net/npm/zod@4.0.10/+esm';
+// import { z } from 'https://cdn.jsdelivr.net/npm/zod@4.0.10/+esm';
 // import { zM } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/zod@3.24.2/+esm';
 // import type { default as zT } from 'https://denoporter.sirjosh.workers.dev/v1/cdn.jsdelivr.net/npm/zod@3.24.2/lib/index.d.ts';
 // const z = zM as typeof zT;
@@ -51,11 +51,21 @@ import { z } from 'https://cdn.jsdelivr.net/npm/zod@4.0.10/+esm';
 // import { default as chaiT } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/@types/chai@4.3.20/index.d.ts';
 // const chai = chaiM as unknown as typeof chaiT;
 // const z = zM as unknown as typeof zT;
-// import { z as zM } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8/denonext/zod.mjs';
-// import { default as zT } from '../vendor/deno@1.44.4-vendor/esm.sh/v135/zod@3.9.8/lib/index.d.ts';
+// import { z as zM } from '../vendor/deno@1.46.3-vendor/esm.sh/v135/zod@3.9.8/denonext/zod.mjs';
+// import { default as zT } from '../vendor/deno@1.46.3-vendor/esm.sh/v135/zod@3.9.8/lib/index.d.ts';
 // const z = zM as unknown as typeof zT;
+// import { z as zM } from '../vendor/deno@1.46.3-vendor/esm.sh/v135/zod@3.9.8/denonext/zod.mjs';
+// import { default as zT } from '../vendor/deno@1.46.3-vendor/esm.sh/v135/zod@3.9.8/lib/index.d.ts';
+// const z = zM as unknown as typeof zT;
+// import z from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@984a40c5f2/vendor/deno@1.46.3-vendor/esm.sh/v135/zod@3.9.8.js';
 
 // import $chai from 'https://cdn.jsdelivr.net/npm/chai@4.3.4/+esm';
+
+import chai from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@8ab91d389b/vendor/deno@1.46.3-vendor/esm.sh/chai@4.5.0.js';
+// import { z } from 'https://cdn.jsdelivr.net/gh/rivy-t/deno.vendor-storage@8ab91d389b/vendor/deno@1.46.3-vendor/esm.sh/zod@3.9.8.js';
+// import { z } from 'https://cdn.jsdelivr.net/npm/zod@4.0.10/+esm'; // typings are incorrect/missing
+import { z } from 'https://esm.sh/zod@4.0.10'; // * works
+// import { z } from 'npm:zod@4.0.10'; // * works
 
 import { test } from './$shared.ts';
 
@@ -76,9 +86,23 @@ const assertType = (v: ValidatorType, value: unknown) => {
 
 import * as Parse from '../src/lib/xArgs.ts';
 
-// const e = new TextEncoder();
+// ref: <https://stackoverflow.com/questions/44595658/chai-test-array-of-objects-to-contain-something-like-an-object-submatch>
+// ref: <https://stackoverflow.com/questions/42113776/chai-check-if-array-of-strings-has-one-with-a-subset-string>
 
-test('parse', () => {
+test('parse (using chai)', () => {
+	// ref: [chai ~ docs (expect/should)](https://www.chaijs.com/api/bdd)
+
+	chai.expect(Parse.wordSplitCLText('')).to.be.an('array').lengthOf(0);
+	// chai.assert.isArray(Parse.wordSplitCLText(''));
+	// chai.assert.lengthOf(Parse.wordSplitCLText(''), 0);
+	// assertType(chai.assert. ... unknown.array().of(string).max(0), Parse.wordSplitCLText(''));
+	// assertType(chai.assert. ... unknown.array().of(string), Parse.wordSplitCLText('test this'));
+});
+
+test('parse (using computed-types)', () => {
+	// ref: [computed-types ~ docs](https://www.npmjs.com/package/computed-types#usage)
+
+	// const e = new TextEncoder();
 	// writeAllSync(Deno.stdout, e.encode('['));
 
 	// let actual;
@@ -93,23 +117,13 @@ test('parse', () => {
 	// actual = Parse.wordSplitCLText('test this');
 	// assertType(unknown.array().of(string), Parse.wordSplitCLText('test this'));
 	// assertEquals(['test', 'this'], actual);
-	assertType(unknown.array().of(string), Parse.wordSplitCLText('test this'));
+	assertType(unknown.array().of(string).between(2, 2), Parse.wordSplitCLText('test this'));
 
 	// writeAllSync(Deno.stdout, e.encode('] '));
 });
 
-// ref: <https://stackoverflow.com/questions/44595658/chai-test-array-of-objects-to-contain-something-like-an-object-submatch>
-// ref: <https://stackoverflow.com/questions/42113776/chai-check-if-array-of-strings-has-one-with-a-subset-string>
-
-test('parse (using chai)', () => {
-	chai.expect(Parse.wordSplitCLText('')).to.be.an('array').lengthOf(0);
-	// chai.assert.isArray(Parse.wordSplitCLText(''));
-	// chai.assert.lengthOf(Parse.wordSplitCLText(''), 0);
-	// assertType(chai.assert. ... unknown.array().of(string).max(0), Parse.wordSplitCLText(''));
-	// assertType(chai.assert. ... unknown.array().of(string), Parse.wordSplitCLText('test this'));
-});
-
 test('parse (using zod)', () => {
+	// ref: [zod ~ docs](https://zod.dev)
 	z.array(z.string()).length(0).parse(Parse.wordSplitCLText(''));
-	z.array(z.string()).parse(Parse.wordSplitCLText('test this'));
+	z.array(z.string()).length(2).parse(Parse.wordSplitCLText('test this'));
 });
