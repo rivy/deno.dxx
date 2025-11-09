@@ -62,7 +62,7 @@ export function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolea
 
 // utility functions
 
-function tryFnOr<T>(fn: () => T, fallback: T) {
+function tryFnOrSync<T>(fn: () => T, fallback: T) {
 	try {
 		return fn();
 	} catch (_) {
@@ -70,8 +70,8 @@ function tryFnOr<T>(fn: () => T, fallback: T) {
 	}
 }
 
-function tryFn<T>(fn: () => T) {
-	return tryFnOr(fn, undefined);
+function tryFnSync<T>(fn: () => T) {
+	return tryFnOrSync(fn, undefined);
 }
 
 //
@@ -153,10 +153,10 @@ export const DenoVx = {
 	): boolean => {
 		if (id == null) return false;
 		if (hasIsTerminalMethod(id)) {
-			return tryFn(() => id.isTerminal()) ?? false;
+			return tryFnSync(() => id.isTerminal()) ?? false;
 		}
 		const rid = typeof id === 'number' ? id : id.rid;
-		return tryFn(() => DenoV1?.isatty(rid)) ?? false;
+		return tryFnSync(() => DenoV1?.isatty(rid)) ?? false;
 	},
 
 	/**
