@@ -446,13 +446,15 @@ if (!hasDenoGlobalOption && $semver.satisfies(denoVersion, '>=1.42.0')) {
 
 const denoArgs = ['install', ...filteredDelegatedDenoArgs].filter(Boolean);
 
-await log.trace({
-	quietShim,
-	hasDenoHelpOption,
-	denoArgs,
-	delegatedDenoArgs,
-	filteredDelegatedDenoArgs,
-});
+await spinnerForInstall.deferTo(() =>
+	log.trace({
+		quietShim,
+		hasDenoHelpOption,
+		denoArgs,
+		delegatedDenoArgs,
+		filteredDelegatedDenoArgs,
+	}),
+);
 
 // # spell-checker:ignore () preinstall GOBIN swaggo jinyaoMa Dload Xferd
 // # `pnpm` exemplar display output...
@@ -476,7 +478,7 @@ const runOptions: Deprecated.Deno.RunOptions = {
 	stderr: 'piped',
 	stdout: 'piped',
 };
-await log.debug({ runOptions });
+await spinnerForInstall.deferTo(() => log.debug({ runOptions }));
 
 const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
 // spinnerForInstall.clearAllLines();
@@ -557,7 +559,7 @@ const installDuration = performanceDuration('install.deno-install');
 // );
 msg += `└─ ${status.success ? $colors.green('Done') : $colors.red('Failed')}${
 	installDuration ? ` in ${formatDuration(installDuration, { maximumFractionDigits: 3 })}` : ''
-}`;
+}\n`;
 spinnerForInstall.stopAndPersist({ text: msg });
 if (!status.success) await log.error('`deno install ...` failed');
 
@@ -579,6 +581,7 @@ const shimPath = (() => {
 	const outLines = out.split(anyNewline).filter(Boolean); // split output and remove empty lines
 	const successLineIndex = outLines.findIndex((line) => /^.+\s+Successfully installed/i.test(line));
 	// return outLines.length > 2 ? outLines.slice(isWinOS ? -2 : -1)[0] : undefined;
+
 	return outLines.length > successLineIndex ? outLines.slice(successLineIndex + 1)[0] : undefined;
 })();
 
