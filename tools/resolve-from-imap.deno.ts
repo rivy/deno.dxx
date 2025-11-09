@@ -59,7 +59,7 @@ import { toText } from 'https://deno.land/std@0.224.0/streams/mod.ts';
 
 import * as $lib from '../src/lib/$shared.ts';
 // $lib.intoPlatformPath();
-// import { traversal } from '../src/lib/$shared.ts';
+import { traversal } from '../src/lib/$shared.ts';
 
 //===
 
@@ -436,6 +436,11 @@ async function createTransformer(
 	// ref: [JS Import Maps, Part 1](https://spidermonkey.dev/blog/2023/02/23/javascript-import-maps-part-1-introduction.html) @@ <https://archive.is/EkKuc>
 	// ref: [JS Import Maps, Part 2 (In-Depth Exploration)](https://spidermonkey.dev/blog/2023/03/02/javascript-import-maps-part-2-in-depth-exploration.html) @@ <https://archive.is/1z1NO>
 
+	// FixME: ToDO: revise matching and URL rewrite to take into account possible remote import-map locations; likely will need traversal() and a reconsideration of using file paths and URLs together
+	// ? should file:// URLs be treated differently from http(s):// URLs?
+	// ? do we need to maintain trailing '/'
+	// FixME: traversal semantics need to be well documented (with specifics)
+
 	// Helper: Given a module specifier string, return its rewritten version if applicable.
 	function resolveSpecifier(specifier: string): string {
 		log.suspend();
@@ -445,7 +450,7 @@ async function createTransformer(
 			throw new Error(`Missing import map URL`);
 		}
 		// console.warn(`resolveSpecifier(${specifier}) for file='${fileURL.href}'`);
-		// log.trace(`resolveSpecifier(${specifier}) for file='${fileURL.href}'`);
+		log.trace(`resolveSpecifier(${specifier}) for file='${fileURL.href}'`);
 
 		let finalSpecifier = specifier;
 
@@ -458,8 +463,9 @@ async function createTransformer(
 			// const scopePath = resolve(join(dirname(resolve(importMapURL)), scope));
 			// const scopePrefixURL = new URL(scopePrefix, importMapURL);
 			// log.trace(`scopePrefix=${scopePrefixURL.href}`);
-			log.trace({ scope: scopeURL.href, specifierMatched });
+			log.debug({ scope: scopeURL.href, specifierMatched });
 			if (fileURL.href.startsWith(scopeURL.href)) {
+				log.debug({ file: fileURL.href, scope: scopeURL.href });
 				// entries sorted by longest common prefix
 				for (const [remote, local] of Object.entries(scopeImports).sort(
 					([a], [b]) => b.length - a.length,
@@ -468,22 +474,29 @@ async function createTransformer(
 					if (finalSpecifier.startsWith(remote)) {
 						specifierMatched = true;
 						finalSpecifier = finalSpecifier.replace(remote, local);
+						break;
 					}
 				}
 			}
 		}
+
+		log.debug({ specifierMatched, finalSpecifier });
+
 		if (!specifierMatched) {
 			// Fall back to the global imports mapping.
 			for (const [remote, local] of Object.entries(imports).sort(
 				([a], [b]) => b.length - a.length,
 			)) {
-				log.trace('resolveSpecifier()/imports:', { remote, local });
+				log.debug('resolveSpecifier()/imports:', { remote, local });
 				if (finalSpecifier.startsWith(remote)) {
 					specifierMatched = true;
 					finalSpecifier = finalSpecifier.replace(remote, local);
+					break;
 				}
 			}
 		}
+
+		log.debug({ specifierMatched, finalSpecifier });
 
 		if (
 			finalSpecifier !== specifier &&
@@ -492,12 +505,26 @@ async function createTransformer(
 			const fullImportFolderPath = dirname(pathFromURL(importMapURL) ?? '');
 			const fullFileFolderPath = dirname(pathFromURL(fileURL) ?? '');
 			const prefix = relative(fullFileFolderPath, fullImportFolderPath);
+			const importMapFolderURL = new URL('.', importMapURL);
+			const fileFolderURL = new URL('.', fileURL);
+			const traverse = traversal(importMapFolderURL, fileFolderURL);
+			log.debug({
+				fullImportFolderPath,
+				fullFileFolderPath,
+				prefix,
+				importMapURL,
+				importMapFolderURL,
+				fileFolderURL,
+				traverse,
+			});
 			finalSpecifier = $lib.pathToPOSIX(join(prefix, finalSpecifier));
 			if (!(finalSpecifier.startsWith('./') || finalSpecifier.startsWith('../'))) {
 				// ensure that the finalSpecifier starts with a relative directory prefix
 				finalSpecifier = `./${finalSpecifier}`;
 			}
 		}
+
+		log.info({ specifierMatched, finalSpecifier });
 
 		finalSpecifier = $lib.pathToPOSIX(finalSpecifier);
 		log.info(
