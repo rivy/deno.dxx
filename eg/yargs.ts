@@ -102,7 +102,8 @@ const argv = (() => {
 	try {
 		return app.parse(Deno.args) as YargsArguments;
 	} catch (e) {
-		console.warn(e.message);
+		if (e instanceof Error) console.warn(e.message);
+		else console.warn(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		return;
 	}
 })();

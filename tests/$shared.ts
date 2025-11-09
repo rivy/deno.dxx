@@ -205,6 +205,7 @@ export function createTestFn(testFilePath?: string | URL) {
 				try {
 					await fn();
 				} catch (e) {
+					const error = e instanceof Error ? e : new Error('unknown error');
 					const logText = testLog.flatMap(([n, v]) =>
 						n === testName ? [typeof v === 'function' ? (v as () => string)() : v] : [],
 					);
@@ -214,10 +215,10 @@ export function createTestFn(testFilePath?: string | URL) {
 						// logText.unshift($colors.dim('# ---- test log:begin > ----') + ` ${testName}`);
 						// logText.push($colors.dim(`# ---- test log:end . ------`) + ` ${testName}`);
 					}
-					const err = new Error([''].concat(logText).concat([e.toString()]).join('\n'));
+					const err = new Error([''].concat(logText).concat([error.toString()]).join('\n'));
 					// deno-lint-ignore no-explicit-any
 					(err as any).original = e;
-					err.stack = e.stack;
+					err.stack = error.stack;
 					throw err;
 				}
 			},
@@ -354,12 +355,14 @@ export const haveDPrint = () => {
 			stderr: 'null',
 			stdout: 'null',
 		});
-		return process
-			.status()
-			.then((status) => status.success)
+		return Promise.all([process.status()])
+			.then(([status /* , out */]) => {
+				// console.debug({ status: status, out: decode(out) });
+				return status?.success;
+			})
 			.finally(() => process.close());
 	} catch (_) {
-		return Promise.resolve(false);
+		return Promise.resolve(undefined);
 	}
 };
 
@@ -398,12 +401,14 @@ export const haveGit = () => {
 			stderr: 'null',
 			stdout: 'null',
 		});
-		return process
-			.status()
-			.then((status) => status.success)
+		return Promise.all([process.status()])
+			.then(([status /* , out */]) => {
+				// console.debug({ status: status, out: decode(out) });
+				return status?.success;
+			})
 			.finally(() => process.close());
 	} catch (_) {
-		return Promise.resolve(false);
+		return Promise.resolve(undefined);
 	}
 };
 
@@ -443,12 +448,14 @@ export const isGitRepo = async (path = projectPath) => {
 				stderr: 'null',
 				stdout: 'null',
 			});
-			return process
-				.status()
-				.then((status) => status.success)
+			return Promise.all([process.status()])
+				.then(([status /* , out */]) => {
+					// console.debug({ status: status, out: decode(out) });
+					return status?.success;
+				})
 				.finally(() => process.close());
 		} catch (_) {
-			return Promise.resolve(false);
+			return Promise.resolve(undefined);
 		}
 	} else return Promise.resolve(undefined);
 };

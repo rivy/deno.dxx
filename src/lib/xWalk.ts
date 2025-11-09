@@ -18,8 +18,10 @@ export function _createWalkEntrySync(path: string): WalkEntry {
 	try {
 		info = Deno.statSync(path);
 	} catch (e) {
-		error = e;
-		info = undefined;
+		if (e instanceof Error) {
+			error = e;
+			info = undefined;
+		} else throw e;
 	}
 	return {
 		errors: error ? [error] : [],
@@ -40,8 +42,10 @@ export async function _createWalkEntry(path: string): Promise<WalkEntry> {
 	try {
 		info = await Deno.stat(path);
 	} catch (e) {
-		error = e;
-		info = undefined;
+		if (e instanceof Error) {
+			error = e;
+			info = undefined;
+		} else throw e; // * panic *
 	}
 	return {
 		errors: error ? [error] : [],
@@ -155,7 +159,8 @@ export async function* walk(
 		}
 	} catch (_error) {
 		/* swallow any Deno.readDir() errors */
-		errors.push(_error);
+		if (_error instanceof Error) errors.push(_error);
+		// else throw _error; // * panic *
 	}
 }
 
@@ -213,6 +218,7 @@ export function* walkSync(
 		}
 	} catch (_error) {
 		/* swallow any Deno.readDirSync() errors */
-		errors.push(_error);
+		if (_error instanceof Error) errors.push(_error);
+		// else throw _error; // * panic *
 	}
 }

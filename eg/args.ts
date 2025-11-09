@@ -44,7 +44,7 @@ abortIfMissingPermitsSync(
 	([] as Deno.PermissionName[]).concat(
 		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
 		['read'], // required for shim targeting of argument expansion and 'yargs'
-		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// ['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
 	),
 );
 
@@ -213,7 +213,8 @@ const argv = (() => {
 	try {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
-		log.error(e.message);
+		if (e instanceof Error) log.error(e.message);
+		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		appExitValue = 1;
 		return;
 	}

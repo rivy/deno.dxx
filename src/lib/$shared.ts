@@ -54,20 +54,20 @@ export const encode = (input?: string): Uint8Array => encoder.encode(input);
 //=== * stack inspection functions
 
 function getFramesFromError(error: Error): Array<string> {
-	let stack: Error['stack'] | null;
+	let stack: Error['stack'] | null = null;
 	let frames: string[];
-	// retrieve stack from `Error`
-	// ref: <https://github.com/winstonjs/winston/issues/401#issuecomment-61913086>
-	try {
-		stack = error.stack;
-	} catch (e) {
-		try {
-			const previous = e.__previous__ || e.__previous;
-			stack = previous && previous.stack;
-		} catch (_) {
-			stack = null;
-		}
-	}
+	// // retrieve stack from `Error`
+	// // ref: <https://github.com/winstonjs/winston/issues/401#issuecomment-61913086>
+	// try {
+	stack = error.stack;
+	// } catch (e) {
+	// 	try {
+	// 		const previous = e?.__previous__ || e?.__previous;
+	// 		stack = previous && previous.stack;
+	// 	} catch (_) {
+	// 		stack = null;
+	// 	}
+	// }
 
 	// handle different stack formats
 	if (stack) {
@@ -110,9 +110,20 @@ function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	return c;
 }
 
-export function permitsSync(
-	names: Deno.PermissionName[] = ['env', 'ffi', 'hrtime', 'net', 'read', 'run', 'write'],
-) {
+const isDenoPreV2 = Deno.version.deno.split('.').map(Number)[0] < 2;
+const DenoPermissionNames: Deno.PermissionName[] = [
+	'env',
+	'ffi',
+	'net',
+	'read',
+	'run',
+	'write',
+	isDenoPreV2 ? 'hrtime' : undefined,
+].filter((e) => e != null) as Deno.PermissionName[];
+
+// FixME: [2024-09-25; rivy] revise permits functions to allow for optional configuration parameters for each permission
+
+export function permitsSync(names: Deno.PermissionName[] = DenoPermissionNames) {
 	const permits: Record<Deno.PermissionName, Deno.PermissionStatus> = zip(
 		names,
 		names

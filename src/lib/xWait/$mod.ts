@@ -10,6 +10,7 @@
 // * [ora](https://www.npmjs.com/package/ora) ; [repo](https://github.com/sindresorhus/ora); MIT
 // further ideas from [progress](https://deno.land/x/progress@v1.2.4); [repo](https://github.com/deno-library/progress); MIT
 
+import { Deprecated } from '../$deprecated.ts';
 import { $colors, $tty } from '../$deps.ts';
 import { encode } from '../$shared.ts';
 
@@ -43,7 +44,7 @@ export interface SpinnerOptions {
 	hideCursor?: boolean;
 	indent?: number;
 	interval?: number;
-	stream?: Deno.WriterSync & { rid: number };
+	stream?: Deprecated.Deno.WriterSync & { rid: number };
 	enabled?: boolean;
 	discardStdin?: boolean;
 	symbols?: typeof Symbols;
@@ -79,7 +80,7 @@ export class Spinner {
 
 	isSpinning: boolean;
 
-	#stream: Deno.WriterSync & { rid: number };
+	#stream: Deprecated.Deno.WriterSync & { rid: number };
 	indent: number;
 	interval: number;
 

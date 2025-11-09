@@ -26,6 +26,9 @@ function WStringToString(arr?: WString) {
 
 const isWinOS = Deno.build.os === 'windows';
 
+const atImportAllowFFI =
+	((await Deno.permissions?.query({ name: 'ffi' }))?.state ?? 'granted') === 'granted';
+
 const unstable = (() => {
 	const u = {
 		dlopen: Deno.dlopen, // unstable API (as of v1.12+)
@@ -40,16 +43,17 @@ const _fns: /* Record<string, Deno.ForeignFunction> */ Deno.ForeignLibraryInterf
 	GetCommandLineA: { parameters: [], result: 'pointer' },
 	GetCommandLineW: { parameters: [], result: 'pointer' },
 };
-const dll = isWinOS
-	? unstable?.dlopen(
-			'kernel32.dll',
-			/* fns */
-			{
-				GetCommandLineA: { parameters: [], result: 'pointer' },
-				GetCommandLineW: { parameters: [], result: 'pointer' },
-			},
-		)
-	: undefined;
+const dll =
+	isWinOS && atImportAllowFFI
+		? unstable?.dlopen(
+				'kernel32.dll',
+				/* fns */
+				{
+					GetCommandLineA: { parameters: [], result: 'pointer' },
+					GetCommandLineW: { parameters: [], result: 'pointer' },
+				},
+			)
+		: undefined;
 
 //===
 

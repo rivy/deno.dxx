@@ -11,9 +11,12 @@ import { readableStreamFromIterable } from 'https://deno.land/std@0.134.0/stream
 
 const originalFetch = globalThis.fetch;
 
-function isDenoProcessStatus(x: unknown): x is Deno.ProcessStatus {
+function isDenoProcessStatus(x: unknown): x is Deprecated.Deno.ProcessStatus {
 	return (
-		(x as Deno.ProcessStatus).success !== undefined && (x as Deno.ProcessStatus).code !== undefined
+		typeof x === 'object' &&
+		x != null &&
+		(x as Deprecated.Deno.ProcessStatus)?.success !== undefined &&
+		(x as Deprecated.Deno.ProcessStatus)?.code !== undefined
 	);
 }
 

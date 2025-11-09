@@ -203,7 +203,8 @@ const argv = (() => {
 	try {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
-		log.error(e.message);
+		if (e instanceof Error) log.error(e.message);
+		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		return;
 	}
 })();
@@ -300,7 +301,7 @@ const haveDprintConfig = dprintConfigPath.length > 0;
 
 await log.trace({ denoVersion, dprintVersion });
 
-const runOptions: Partial<{ [key in 'deno' | 'dprint']: Deno.RunOptions }> = {};
+const runOptions: Partial<{ [key in 'deno' | 'dprint']: Deprecated.Deno.RunOptions }> = {};
 
 runOptions['deno'] = {
 	cmd: ['deno', 'fmt'].concat(
