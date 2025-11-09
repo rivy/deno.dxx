@@ -357,25 +357,38 @@ export function chdir(directory?: string | URL, options?: { guard: boolean }) {
 
 //===
 
+let envObject: Record<string, string> | undefined = undefined;
+
 // `env()`
 /** Return the value of the environment variable `varName` (or `undefined` if non-existent or not allowed access).
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
 @param options `{ guard }` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
-@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env`
+@tags `no-panic`, `no-throw` ; `no-prompt`
+@tags `allow-env[=...]`
 */
 export function env(varName: string, options?: { guard: boolean }) {
 	const guard = options != null ? options.guard : true;
-	const useDenoGet =
+	const permit =
 		!guard ||
 		atImportPermissions.env.state === 'granted' ||
-		((Deno.permissions?.querySync?.({ name: 'env', variable: varName })).state ?? 'granted') ===
-			'granted';
-	try {
-		return useDenoGet ? Deno.env.get(varName) : undefined;
-	} catch (_) {
-		return undefined;
+		Deno.permissions?.querySync?.({ name: 'env', variable: varName })?.state === 'granted';
+	const permitEnvAll =
+		!guard ||
+		atImportPermissions.env.state === 'granted' ||
+		Deno.permissions?.querySync?.({ name: 'env' })?.state === 'granted';
+	if (permit) {
+		return tryFnOr(
+			() => Deno.env.get(varName),
+			permitEnvAll
+				? tryFn(() => {
+						if (envObject == null) envObject = Deno.env.toObject();
+						return envObject[varName];
+					})
+				: undefined,
+		);
 	}
+	return undefined;
 }
 
 // `envAsync()`
@@ -383,20 +396,31 @@ export function env(varName: string, options?: { guard: boolean }) {
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
 @param options `{ guard }` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
-@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env`
+@tags `no-panic`, `no-throw` ; `no-prompt`
+@tags `allow-env[=...]`
 */
 export async function envAsync(varName: string, options?: { guard: boolean }) {
 	const guard = options != null ? options.guard : true;
-	const useDenoGet =
+	const permit =
 		!guard ||
-		((await Deno.permissions?.query({ name: 'env', variable: varName })).state ?? 'granted') ===
-			'granted';
-	// console.warn({ varName, options, guard, useDenoGet });
-	try {
-		return useDenoGet ? Deno.env.get(varName) : undefined;
-	} catch (_) {
-		return undefined;
+		atImportPermissions.env.state === 'granted' ||
+		(await Deno.permissions?.query?.({ name: 'env', variable: varName }))?.state === 'granted';
+	const permitEnvAll =
+		!guard ||
+		atImportPermissions.env.state === 'granted' ||
+		(await Deno.permissions?.query?.({ name: 'env' }))?.state === 'granted';
+	if (permit) {
+		return tryFnOr(
+			() => Deno.env.get(varName),
+			permitEnvAll
+				? tryFn(() => {
+						if (envObject == null) envObject = Deno.env.toObject();
+						return envObject[varName];
+					})
+				: undefined,
+		);
 	}
+	return undefined;
 }
 
 //===
@@ -497,6 +521,39 @@ function tryFn<T>(fn: () => T) {
 
 //===
 
+// `pathIsAbsolute()`
+export function pathIsAbsolute(path: string) {
+	path = path.replace(/^[/\\][/\\][.?][/\\]/, '');
+	return $path.isAbsolute(path);
+}
+export function pathIsAbsoluteWithDrive(path: string) {
+	return path.match(/^[A-Za-z]:/) && pathIsAbsolute(path);
+}
+export function pathIsRelativeWithDrive(path: string) {
+	return path.match(/^[A-Za-z]:/) && !pathIsAbsolute(path);
+}
+
+// `resolvePath()`
+export function resolvePath(...pathSegments: string[]) {
+	if (pathSegments.length === 0) return undefined;
+	// let cwd: string | undefined = undefined;
+	// let currentDrive: string | undefined = undefined;
+	// let cwdByDrive: Record<string, string> = {};
+
+	// for (const segment of pathSegments) {
+	// 	if (pathIsAbsoluteWithDrive(segment)) {
+	// 		const [prefix, drive, path] =
+	// 			segment?.match(/^([/\\][/\\][.?][/\\])?([A-Za-z]:)?(.*)$/) ?? [];
+	// 		if (!$path.isAbsolute(path)) {
+	// 		}
+
+	// 		cwdByDrive[currentDrive] = segment;
+	// 	}
+	// }
+
+	return $path.resolve(...pathSegments);
+}
+
 // `intoPath()`
 /** Extract the "path", in normalized (Deno-compatible) form, from a path string or URL.
 * * `no-throw` ~ function returns `undefined` upon any error
@@ -510,23 +567,23 @@ export function intoPath(path?: string | URL) {
 
 // ref: <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier> , <https://stackoverflow.com/questions/48953298/whats-the-difference-between-a-scheme-and-a-protocol-in-a-url>
 export type IntoUrlOptions = {
-	driveLetterSchemes?: boolean; // interpret single letter URL schemes as drive letters for Windows-style paths
+	singleLetterSchemeAsDrive?: boolean; // interpret single letter URL schemes as drive letters for Windows-style paths
 };
-const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: true };
+const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { singleLetterSchemeAsDrive: true };
 
 // `intoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
-@param path • path/URL-string (may already be in URL file format [ie, 'file://...'])
+@param path • path/URL-string (may already be in URL format [ie, 'scheme://...'])
 @param base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
-@param options ~ defaults to `{driveLetterSchemes: true}`
+@param options ~ defaults to `{singleLetterSchemeAsDrive: true}`
 @tags `panic/throw` possible
 @tags `no-prompt`
 */
 export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
 export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
 export function intoURL(path?: string, ...args: unknown[]) {
-	if (path == null) return undefined;
+	if (path == null || path === '') return undefined;
 	const base =
 		args?.length > 0 && args[0] instanceof URL
 			? (args.shift() as URL)
@@ -544,7 +601,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 		...ifThen(args?.length > 0, args.shift() as IntoUrlOptions),
 	};
 	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
-	const pathIsURL = scheme != null && scheme.length > (options.driveLetterSchemes ? 1 : 0);
+	const pathIsURL = scheme != null && scheme.length > (options.singleLetterSchemeAsDrive ? 1 : 0);
 	const pathIsFileURL = scheme === 'file';
 	// console.warn({ path, base, options, scheme, pathIsURL, pathIsFileURL });
 	try {
@@ -567,6 +624,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 				// console.warn({ base, basePath, baseDrive, pathDrive, finalDrive, cwd, cwdDrive });
 				// ToDO: [2024-10-07; rivy] attempt to use (undocumented) environment variable `%=X:%` to peek at the current drive letter path instead of using `chdir('X:')`; using `Deno.env.toObject()['=X:']`
 				//   ... ref: <https://superuser.com/questions/1655266/a-complete-list-of-relative-paths-variables-in-windows-explorer-in-windows> @@ <https://archive.is/3hzVa>
+				//   ... ref: <https://stackoverflow.com/a/46019856/43774> @@ <https://archive.is/ghmY3>
 				const chdirNeeded =
 					cwd != null &&
 					finalDrive != null &&
@@ -580,9 +638,11 @@ export function intoURL(path?: string, ...args: unknown[]) {
 				return resolved;
 			})();
 			if (pathname == null) return undefined;
+
 			// WinOS ~ '?' is an invalid URL host name; so, encode any path starting with '\\?\...' into an alternate "pseudo-device" path ('\\.\?\...' [which is invalid/unused otherwise])
 			//    ... this does require decoding when the path is retrieved from the URL (ie, using `pathFromURL()`)
 			const url = $path.toFileUrl(pathname.replace(/^([/\\][/\\])[?]([/\\])/, '$1.$2?$2'));
+
 			// console.warn({ pathIsURL, path, pathname, url });
 			return url;
 		}
@@ -612,18 +672,19 @@ export function pathFromURL(url?: URL) {
 			return undefined;
 		}
 	}
-	return sanitizePath(path);
+	return intoSanePath(path);
 }
 
 // `isWinOsDeviceName()`
 export function isWinOsDeviceName(path: string, options?: { strict?: boolean }) {
+	// ref: [WinOS Paths](https://chrisdenton.github.io/omnipath/print.html) @@ <https://archive.is/90Elx>
 	if (path.length === 0) return false;
 	if (Deno.build.os !== 'windows') return false; // WinOS-only
-	if (path.match(/^[/\\][/\\][.?][/\\]/)) return false;
+	// if (path.match(/^[/\\][/\\][.?][/\\]/)) return false;
 
 	options = options ?? { strict: false }; // default: non-strict matching
-	// * non-strict matching == file prefix/stem matches any of `specialDevicePrefixes` (Win10 [or earlier] compatible matching)
-	// * strict matching == complete file name matches any of `specialDevicePrefixes` (Win11 [or later] compatible matching)
+	// * options.strict == true ~ strict matching == complete file name matches any of `specialDevicePrefixes` (more sensible [least surprise] Win11-style [or later] compatible matching)
+	// * options.strict == false ~ non-strict matching == file prefix/stem matches any of `specialDevicePrefixes` (Win10-style [or earlier] compatible matching)
 
 	const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
 	const specialDevicePrefixes = ([] as string[]).concat(
@@ -632,14 +693,14 @@ export function isWinOsDeviceName(path: string, options?: { strict?: boolean }) 
 		['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
 	);
 	const fileBaseName = $path.basename(path).toLocaleUpperCase(); // include any extension
-	const filePrefix = fileBaseName.replace(/[.].*$/, '');
+	const filePrefix = fileBaseName.replace(/[.].*$/, '').trimEnd();
 	const prelimMatch =
 		specialDeviceBaseNames.includes(fileBaseName) || specialDevicePrefixes.includes(filePrefix);
 	return prelimMatch && (!options.strict || path === filePrefix);
 }
 
 // `sanitizePath()`
-export function sanitizePath(path: string) {
+export function intoSanePath(path: string) {
 	const isWinOS = Deno.build.os === 'windows';
 	if (!isWinOS) return path; // only WinOS paths require special handling/sanitization
 
@@ -656,18 +717,23 @@ export function sanitizePath(path: string) {
 		// * note: this translation is explicitly equivalent to the more sensible (and least surprise) Win11 version, keeping the full file name in the path
 		//     ... Win10 (surprisingly) ignores text past the filePrefix for legacy device names; eg Win10 sees 'CON.txt' as '\\.\CON'
 		const fileBaseName = $path.basename(path).toLocaleUpperCase();
-		const filePrefix = fileBaseName.replace(/[.].*$/, '');
-		const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
-		const specialDevicePrefixes = ([] as string[]).concat(
-			['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
-			['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
-			['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
-		);
-		if (
-			specialDeviceBaseNames.includes(fileBaseName) ||
-			specialDevicePrefixes.includes(filePrefix)
-		) {
-			path = `\\\\?\\${path}`;
+		const filePrefix = fileBaseName.replace(/[.].*$/, '').trimEnd();
+		// const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
+		// const specialDevicePrefixes = ([] as string[]).concat(
+		// 	['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
+		// 	['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
+		// 	['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
+		// );
+		// if (
+		// 	specialDeviceBaseNames.includes(fileBaseName) ||
+		// 	specialDevicePrefixes.includes(filePrefix)
+		// ) {
+		// 	path = `\\\\?\\${path}`;
+		// }
+		if (isWinOsDeviceName(fileBaseName, { strict: false })) {
+			if (filePrefix === path) {
+				path = `${$path.SEP}${$path.SEP}?${$path.SEP}\\${path}`;
+			}
 		}
 	}
 	// `\\?\...` is likely the more "correct" prefix as it skips further Windows normalization via `GetFullPathName()`; but Deno and the standard URL class do not support it
