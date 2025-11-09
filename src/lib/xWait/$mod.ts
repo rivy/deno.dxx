@@ -258,6 +258,18 @@ export class Spinner {
 			}, 0);
 	}
 
+	// `.deferTo( fn )`
+	/**	Run the provided function; the spinner is stopped prior to execution, and then restarted.
+	* - can be used to prevent disordered access to resources (eg, the console)
+	@param {Function} fn - The function to run.
+	*/
+	async deferTo<T>(fn: () => Promise<T> | T) {
+		this.stop();
+		const result = await fn();
+		this.start();
+		return result;
+	}
+
 	stop() {
 		if (!this.#enabled) return;
 		clearInterval(this.#id);
@@ -276,8 +288,9 @@ export class Spinner {
 		const fullText = typeof text === 'string' ? `${text}` : '';
 
 		this.stop();
-		// https://github.com/denoland/deno/issues/6001
-		console.log(`${fullPrefix}${options.symbol || ''}${fullText}`);
+		// // https://github.com/denoland/deno/issues/6001
+		// console.log(`${fullPrefix}${options.symbol || ''}${fullText}`);
+		this.write(`${fullPrefix}${options.symbol || ''}${fullText}`);
 	}
 
 	succeed(text?: string) {
