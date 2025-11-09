@@ -6,7 +6,7 @@
 	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
 	"formatter": {
 		"ignore": [
-			// format-sensitive files
+			// format sensitive files
 			".vscode",
 			// JS files that use `prettier`
 			".commitlint.config.js",
@@ -45,24 +45,23 @@
 			"correctness": {
 				"noEmptyCharacterClassInRegex": "off",
 				"noUnnecessaryContinue": "off",
-				"noUnsafeOptionalChaining": "off",
-				"noVoidTypeReturn": "off" /* disable; unneeded as TypeScript enforces correct return types */
+				"noUnsafeOptionalChaining": "off"
 			},
 			"style": {
 				"useNodejsImportProtocol": "off" /* "node:..." imports would o/w force Deno-v1.16.0+, NodeJS-v14.18.0+ */,
 				//
 				"useNumberNamespace": "off" /* not needed for ES5+ as globals are also read-only; see <https://stackoverflow.com/questions/8522400/infinity-vs-number-positive-infinity> @@ <https://archive.is/X7q3B> */,
 				//
-				"noParameterAssign": "off" /* disable; used for reassignment to fallback defaults for null/undefined function parameters */,
+				"noParameterAssign": "off", // "to "warn"
 				//
 				"noInferrableTypes": "off",
-				// "noUnusedTemplateLiteral": "off",
-				// "noUselessElse": "off",
-				// "useExponentiationOperator": "off",
-				// "useImportType": "off",
-				"useShorthandFunctionType": "off"
-				// "useSingleVarDeclarator": "off",
-				// "useTemplate": "off"
+				"noUnusedTemplateLiteral": "off",
+				"noUselessElse": "off",
+				"useExponentiationOperator": "off",
+				"useImportType": "off",
+				"useShorthandFunctionType": "off",
+				"useSingleVarDeclarator": "off",
+				"useTemplate": "off"
 			},
 			"suspicious": {
 				"noAssignInExpressions": "off",
