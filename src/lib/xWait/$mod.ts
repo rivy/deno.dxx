@@ -41,7 +41,7 @@ export interface SpinnerOptions {
 	prefix?: string;
 	spinner?: string | SpinnerAnimation;
 	color?: string | ColorFunction;
-	hideCursor?: boolean;
+	hideCursor?: boolean | 'hideDuringRender';
 	indent?: number;
 	interval?: number;
 	stream?: Deprecated.Deno.WriterSync & { rid?: number };
@@ -88,8 +88,8 @@ export class Spinner {
 
 	#enabled: boolean;
 	#frameIndex: number;
-	#linesToClear: number;
-	#linesCount: number;
+	#linePosition: number;
+	#lineDisplayCount: number;
 
 	constructor(opts: Required<SpinnerOptions>) {
 		this.#opts = opts;
@@ -107,8 +107,8 @@ export class Spinner {
 
 		this.isSpinning = false;
 		this.#frameIndex = 0;
-		this.#linesToClear = 0;
-		this.#linesCount = 1;
+		this.#linePosition = 0; // line position relative to origin position
+		this.#lineDisplayCount = 0; // number of lines the spinner is displaying
 
 		this.#enabled =
 			typeof opts.enabled === 'boolean' ? opts.enabled : DenoVx.isatty(this.#stream.rid);
@@ -154,7 +154,7 @@ export class Spinner {
 
 	set text(value: string) {
 		this.#text = value;
-		this.updateLines();
+		this.updateLineDisplayCount();
 	}
 
 	get text() {
@@ -163,7 +163,7 @@ export class Spinner {
 
 	set prefix(value: string) {
 		this.#prefix = value;
-		this.updateLines();
+		this.updateLineDisplayCount();
 	}
 
 	get prefix() {
@@ -171,7 +171,11 @@ export class Spinner {
 	}
 
 	private write(data: string) {
-		this.#stream.writeSync(encode(data));
+		const arr = encode(data);
+		let nWritten = 0;
+		while (nWritten < arr.length) {
+			nWritten += this.#stream.writeSync(arr.subarray(nWritten));
+		}
 	}
 
 	start(): Spinner {
@@ -194,10 +198,12 @@ export class Spinner {
 	}
 
 	render(): void {
-		this.clear();
-		this.write(`${this.frame()}\n`);
-		this.updateLines();
-		this.#linesToClear = this.#linesCount;
+		// this.clearAllLines();
+		this.positionToOrigin();
+		const text = `${this.frame()}\n`.replaceAll('\n', $tty.ESC + $tty.CLEAR_RIGHT + '\n');
+		this.write(text);
+		this.updateLineDisplayCount(text);
+		this.#linePosition = this.#lineDisplayCount - 1;
 	}
 
 	frame(): string {
@@ -214,23 +220,38 @@ export class Spinner {
 		return fullPrefixText + frame + fullText;
 	}
 
-	clear(): void {
+	clearAllLines(): void {
 		if (!this.#enabled) return;
 
-		for (let i = 0; i < this.#linesToClear; i++) {
+		// clear from bottom of spinner up to the origin position
+		const linesToBottom = this.#lineDisplayCount - this.#linePosition;
+		if (linesToBottom > 0) $tty.goDownSync(linesToBottom, this.#stream);
+
+		for (let i = 0; i < this.#linePosition; i++) {
 			$tty.goUpSync(1, this.#stream);
 			$tty.clearLineSync(this.#stream);
 			$tty.goRightSync(this.indent - 1, this.#stream);
 		}
 
-		this.#linesToClear = 0;
+		this.#linePosition = 0;
 	}
 
-	updateLines(): void {
+	positionToOrigin(): void {
+		if (!this.#enabled) return;
+		if (this.#linePosition > 0) $tty.goUpSync(this.#linePosition, this.#stream);
+		this.#linePosition = 0;
+	}
+
+	updateLineDisplayCount(text?: string): void {
 		const columns = $consoleSize.consoleSizeSync(this.#stream.rid)?.columns || 80;
-		const fullPrefixText = typeof this.prefix === 'string' ? `${this.prefix}-` : '';
-		this.#linesCount = $colors
-			.stripColor(`${fullPrefixText}--${this.text}`)
+		if (text == null) {
+			const fullPrefixText = typeof this.prefix === 'string' ? `${this.prefix} ` : '';
+			const frameSpacer = '-'.repeat(this.#spinner.frames[0].length);
+			const fullText = typeof this.text === 'string' ? ` ${this.text}` : '';
+			text = `${fullPrefixText}${frameSpacer}${fullText}`;
+		}
+		const stripAnsiEscapes = $colors.stripColor;
+		this.#lineDisplayCount = stripAnsiEscapes(text)
 			.split('\n')
 			.reduce((count, line) => {
 				return count + Math.max(1, Math.ceil($tty.wcswidth(line) / columns));
@@ -242,7 +263,7 @@ export class Spinner {
 		clearInterval(this.#id);
 		this.#id = -1;
 		this.#frameIndex = 0;
-		this.clear();
+		this.clearAllLines();
 		if (this.#opts.hideCursor) {
 			$tty.showCursorSync(this.#stream);
 		}
@@ -252,11 +273,11 @@ export class Spinner {
 		const prefix = options.prefix || this.prefix;
 		const fullPrefix = typeof prefix === 'string' && prefix !== '' ? `${prefix} ` : '';
 		const text = options.text || this.text;
-		const fullText = typeof text === 'string' ? ` ${text}` : '';
+		const fullText = typeof text === 'string' ? `${text}` : '';
 
 		this.stop();
 		// https://github.com/denoland/deno/issues/6001
-		console.log(`${fullPrefix}${options.symbol || ' '}${fullText}`);
+		console.log(`${fullPrefix}${options.symbol || ''}${fullText}`);
 	}
 
 	succeed(text?: string) {
