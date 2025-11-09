@@ -612,34 +612,62 @@ export function pathFromURL(url?: URL) {
 			return undefined;
 		}
 	}
-	// console.warn('pathFromURL:', { url, path });
+	return sanitizePath(path);
+}
+
+// `isWinOsDeviceName()`
+export function isWinOsDeviceName(path: string, options?: { strict?: boolean }) {
+	if (path.length === 0) return false;
+	if (Deno.build.os !== 'windows') return false; // WinOS-only
+	if (path.match(/^[/\\][/\\][.?][/\\]/)) return false;
+
+	options = options ?? { strict: false }; // default: non-strict matching
+	// * non-strict matching == file prefix/stem matches any of `specialDevicePrefixes` (Win10 [or earlier] compatible matching)
+	// * strict matching == complete file name matches any of `specialDevicePrefixes` (Win11 [or later] compatible matching)
+
+	const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
+	const specialDevicePrefixes = ([] as string[]).concat(
+		['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
+		['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
+		['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
+	);
+	const fileBaseName = $path.basename(path).toLocaleUpperCase(); // include any extension
+	const filePrefix = fileBaseName.replace(/[.].*$/, '');
+	const prelimMatch =
+		specialDeviceBaseNames.includes(fileBaseName) || specialDevicePrefixes.includes(filePrefix);
+	return prelimMatch && (!options.strict || path === filePrefix);
+}
+
+// `sanitizePath()`
+export function sanitizePath(path: string) {
 	const isWinOS = Deno.build.os === 'windows';
-	if (isWinOS) {
-		// WinOS ~ handle special device paths
-		// ref: [File path formats](https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/0shPL>
-		// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/mQOTg>
+	if (!isWinOS) return path; // only WinOS paths require special handling/sanitization
 
-		// * decode any device path of the form '\\.\?\...' (otherwise invalid/unused) back into the standard '\\?\...' path
-		path = path.replace(/^([/\\][/\\])[.][/\\][?]([/\\])/, '$1?$2');
+	// * WinOS-only ~ decode any device path of the form '\\.\?\...' (otherwise invalid/unused) back into the standard '\\?\...' path
+	path = path.replace(/^([/\\][/\\])[.][/\\][?]([/\\])/, '$1?$2');
 
-		// * no further processing for paths with device prefixes (eg, '\\.\', '\\?\')
-		if (!path.match(/^[/\\][/\\][.?][/\\]/)) {
-			// * note: this translation is explicitly equivalent to the more sensible (and least surprise) Win11 version, keeping the full file name in the path
-			//     ... Win10 (surprisingly) ignores text past the filePrefix for legacy device names; eg Win10 sees 'CON.txt' as '\\.\CON'
-			const fileBaseName = $path.basename(path).toLocaleUpperCase();
-			const filePrefix = fileBaseName.replace(/[.].*$/, '');
-			const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
-			const specialDevicePrefixes = ([] as string[]).concat(
-				['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
-				['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
-				['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
-			);
-			if (
-				specialDeviceBaseNames.includes(fileBaseName) ||
-				specialDevicePrefixes.includes(filePrefix)
-			) {
-				path = `\\\\?\\${path}`;
-			}
+	// WinOS ~ handle special device paths
+
+	// ref: [File path formats](https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/0shPL>
+	// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/mQOTg>
+
+	// * no further processing for paths with device prefixes (eg, '\\.\', '\\?\')
+	if (!path.match(/^[/\\][/\\][.?][/\\]/)) {
+		// * note: this translation is explicitly equivalent to the more sensible (and least surprise) Win11 version, keeping the full file name in the path
+		//     ... Win10 (surprisingly) ignores text past the filePrefix for legacy device names; eg Win10 sees 'CON.txt' as '\\.\CON'
+		const fileBaseName = $path.basename(path).toLocaleUpperCase();
+		const filePrefix = fileBaseName.replace(/[.].*$/, '');
+		const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
+		const specialDevicePrefixes = ([] as string[]).concat(
+			['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
+			['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
+			['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
+		);
+		if (
+			specialDeviceBaseNames.includes(fileBaseName) ||
+			specialDevicePrefixes.includes(filePrefix)
+		) {
+			path = `\\\\?\\${path}`;
 		}
 	}
 	// `\\?\...` is likely the more "correct" prefix as it skips further Windows normalization via `GetFullPathName()`; but Deno and the standard URL class do not support it
