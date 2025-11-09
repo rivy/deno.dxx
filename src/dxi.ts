@@ -2,7 +2,7 @@
 
 // ToDO: [2024-10-09; rivy] change from internal `xWait` spinner to `rivy/deno.progress` (or update xWait to similar capabilities)
 
-import { Deprecated } from './lib/$deprecated.ts';
+// import { Deprecated } from './lib/$deprecated.ts';
 import {
 	$colors,
 	$lodash,
@@ -472,26 +472,27 @@ await spinnerForInstall.deferTo(() =>
 // │ 100  457k  100  457k    0     0   475k      0 --:--:-- --:--:-- --:--:-- 8435k
 // └─ Done in 9s
 
-const runOptions: Deprecated.Deno.RunOptions = {
-	cmd: ['deno', ...denoArgs, '--', ...args],
-	stdin: 'null',
-	stderr: 'piped',
-	stdout: 'piped',
-};
-await spinnerForInstall.deferTo(() => log.debug({ runOptions }));
+// const runOptions: Deprecated.Deno.RunOptions = {
+// 	cmd: ['deno', ...denoArgs, '--', ...args],
+// 	stdin: 'null',
+// 	stderr: 'piped',
+// 	stdout: 'piped',
+// };
+// await spinnerForInstall.deferTo(() => log.debug({ runOptions }));
+const cmdArgs: [string, Deno.CommandOptions] = [
+	'deno',
+	{ args: [...denoArgs, '--', ...args], stdin: 'null', stderr: 'piped', stdout: 'piped' },
+];
+await spinnerForInstall.deferTo(() => log.debug({ cmdArgs }));
 
-const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
+// const spinnerText = `$ ${runOptions.cmd.join(' ')}`;
+const spinnerText = `$ ${[cmdArgs[0], ...(cmdArgs[1].args ?? [])].join(' ')}`;
 // spinnerForInstall.clearAllLines();
 spinnerForInstall.text = spinnerText;
 // spinnerForInstall.render();
 
-const process = Deprecated.Deno.run(runOptions);
-const cmd = new Deno.Command('deno', {
-	args: [...denoArgs, '--', ...args],
-	stdin: 'null',
-	stderr: 'piped',
-	stdout: 'piped',
-});
+// const process = Deprecated.Deno.run(runOptions);
+const cmd = new Deno.Command(...cmdArgs);
 const child = cmd.spawn();
 // const z = y.stderr
 // const mergedOutput = mergeReadableStreams(
@@ -585,7 +586,7 @@ const shimPath = (() => {
 	return outLines.length > successLineIndex ? outLines.slice(successLineIndex + 1)[0] : undefined;
 })();
 
-await log.trace({ status, process, out });
+await log.trace({ status, /* process, */ out });
 await log.trace({ count: out.split('\n').length, outTail30: out.split('\n').slice(-30) });
 await log.debug({ shimPath });
 
