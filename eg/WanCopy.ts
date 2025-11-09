@@ -1,6 +1,6 @@
 // spell-checker:ignore (names) Deno ; (vars) ARGX LOGLEVEL PATHEXT arr defaultCDNforNPM gmsu ; (utils) dprint dprintrc ; (yargs) nargs positionals
 
-import { Deprecated } from '../src/lib/$deprecated.ts';
+import { DenoVx } from '../src/lib/$deprecated.ts';
 
 import {
 	copy as streamCopy,
@@ -327,7 +327,7 @@ const TARGET = await (async () => {
 	if (argv._?.length) argv._ = [];
 	if (!appState.usageError && target.length < 1) {
 		// note: isTerminal() added to stderr, stdin, and stdout in Deno v1.40.0 ; added to Deno.FsFile in Deno v1.41.0
-		if (!Deprecated.Deno.isatty(Deprecated.Deno.stdout.rid)) {
+		if (!DenoVx.isatty(Deno.stdout)) {
 			target.push('-');
 		} else {
 			appState.usageError = true;
