@@ -33,13 +33,13 @@ export function isDenoV1RID(id: unknown): id is DenoV1NS.RID {
 	return typeof id === 'number';
 }
 
-function hasIsTerminalMethod(id: unknown): id is { isTerminal: () => boolean } {
+function hasIsTerminalMethod(x: unknown): x is { isTerminal: () => boolean } {
 	return (
-		typeof id === 'object' &&
-		id != null &&
-		'isTerminal' in id &&
-		typeof id?.isTerminal === 'function' &&
-		typeof id.isTerminal() === 'boolean'
+		typeof x === 'object' &&
+		x != null &&
+		'isTerminal' in x &&
+		typeof x?.isTerminal === 'function' &&
+		typeof x.isTerminal() === 'boolean'
 	);
 }
 
@@ -106,16 +106,36 @@ export const DenoVx = {
 	},
 };
 
+// FixME: [2024-09-25; rivy] -- import { Deno as denoV1 } from 'https://github.com/denoland/deno/blob/e27a19c02c537626d7874f7521f4e39d6dfad0af/cli/tsc/dts/lib.deno.unstable.d.ts';
+// import * as denoV1T from 'https://cdn.jsdelivr.net/gh/denoland/deno@e27a19c02c537626d7874f7521f4e39d6dfad0af/cli/tsc/dts/lib.deno.unstable.d.ts';
+// import _denoV1 = denoV1T.Deno;
+// import * as BracesT from 'https://cdn.jsdelivr.net/gh/DefinitelyTyped/DefinitelyTyped@7121cbff79/types/braces/index.d.ts';
+
+import type { Reader as DenoReader } from 'jsr:@std/io/types';
+import type { Writer as DenoWriter } from 'jsr:@std/io/types';
+import type { WriterSync as DenoWriterSync } from 'jsr:@std/io/types';
+
 export namespace Deprecated {
 	export namespace Deno {
 		// deprecated since: ...
 		// use instead: ...
 		// remove with: Deno v2.0.0
+
+		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2
 		export const stderr = { rid: globalThis.Deno.stderr.rid };
+		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2
 		export const stdin = { rid: globalThis.Deno.stdin.rid };
+		// @ts-ignore -- `rid` properties are "soft-removed" in Deno v2
 		export const stdout = { rid: globalThis.Deno.stdout.rid };
 
+		// @ts-ignore -- `run` is "soft-removed" in Deno v2
 		export const run = DenoV1?.run ?? globalThis.Deno.run;
+		export type RunOptions = DenoV1NS.Deno.RunOptions;
+		export type ProcessStatus = DenoV1NS.Deno.ProcessStatus;
+
+		export type Reader = DenoReader;
+		export type Writer = DenoWriter;
+		export type WriterSync = DenoWriterSync;
 	}
 }
 

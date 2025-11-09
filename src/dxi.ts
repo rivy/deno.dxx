@@ -198,7 +198,8 @@ const argv = (() => {
 	try {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
-		log.error(e.message);
+		if (e instanceof Error) log.error(e.message);
+		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		return;
 	}
 })();
@@ -462,7 +463,7 @@ await log.trace({
 // │ 100  457k  100  457k    0     0   475k      0 --:--:-- --:--:-- --:--:-- 8435k
 // └─ Done in 9s
 
-const runOptions: Deno.RunOptions = {
+const runOptions: Deprecated.Deno.RunOptions = {
 	cmd: ['deno', ...denoArgs, '--', ...args],
 	stdin: 'null',
 	stderr: 'piped',

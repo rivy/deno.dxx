@@ -46,7 +46,9 @@ export function env(varName: string, options?: { guard: boolean }) {
 
 //===
 
-async function writeAll(writer: Deno.Writer, data: Uint8Array): Promise<number> {
+import type { Writer as DenoWriter } from 'jsr:@std/io/types';
+
+async function writeAll(writer: DenoWriter, data: Uint8Array): Promise<number> {
 	let bytesWritten = 0;
 	while (bytesWritten < data.byteLength) {
 		bytesWritten += await writer.write(data.subarray(bytesWritten));
@@ -636,7 +638,7 @@ export class Logger<O = LogEntry> extends TransformWriter<LoggerInT, O> {
 		await this.#suspensionQueue.onIdle();
 	}
 
-	/** @override */ chain<T>(t: TransformWriter<O, T>): Logger<T> {
+	/** @override */ override chain<T>(t: TransformWriter<O, T>): Logger<T> {
 		// deno-lint-ignore no-this-alias
 		const f = this;
 		const g = t;

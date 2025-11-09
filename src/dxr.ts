@@ -69,9 +69,10 @@ await abortIfMissingPermitsSync(
 	([] as Deno.PermissionName[]).concat(
 		['env'], // required shim/process argument expansion and environmental controls (eg, using DEBUG, LOG_LEVEL, NO_COLOR, NO_UNICODE, NULLGLOB, ...)
 		['read'], // required for shim targeting of argument expansion and 'yargs'
-		['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
+		// ['run'], // (optional) required for consoleSize fallback when stdin and stderr are both redirected
 		// * script specific requirements
-		['run'], // required to run `deno` (to execute the target SCRIPT)
+		// FixME: add query params support to `abortIfMissingPermits...()`
+		// ['run'], // required to run `deno` (to execute the target SCRIPT)
 	),
 );
 
@@ -201,7 +202,8 @@ const argv = (() => {
 	try {
 		return app.parse(optionArgs) as YargsArguments;
 	} catch (e) {
-		log.error(e.message);
+		if (e instanceof Error) log.error(e.message);
+		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		return;
 	}
 })();
@@ -325,7 +327,7 @@ if (SHIM_ARGS.length > max_shim_args_size) {
 	);
 	Deno.exit(1);
 }
-const runOptions: Deno.RunOptions = {
+const runOptions: Deprecated.Deno.RunOptions = {
 	// note: `Deno.run` automatically quotes any `cmd` elements which contain spaces
 	cmd: ['deno', ...denoArgs, targetPath, ...targetArgs],
 	stderr: 'inherit',

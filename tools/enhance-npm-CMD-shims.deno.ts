@@ -304,7 +304,10 @@ async function* findExecutable(
 				try {
 					return [undefined, await Deno.lstat(p)];
 				} catch (e) {
-					return [typeof e === 'object' && e instanceof Error ? e : new Error(e), undefined];
+					return [
+						typeof e === 'object' && e instanceof Error ? e : new Error(String(e)),
+						undefined,
+					];
 				}
 			})();
 			if (err) {

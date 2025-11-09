@@ -142,7 +142,8 @@ const argv = (() => {
 	try {
 		return app.parse(bakedArgs) as YargsArguments;
 	} catch (e) {
-		log.error(e.message);
+		if (e instanceof Error) log.error(e.message);
+		else log.error(`ERROR: Unknown error parsing arguments (${String(e)})`);
 		return;
 	}
 })();

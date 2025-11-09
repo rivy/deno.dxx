@@ -40,8 +40,10 @@ const isWinOS = Deno.build.os === 'windows';
 
 const atImportAllowRead =
 	((await Deno.permissions?.query({ name: 'read' }))?.state ?? 'granted') === 'granted';
-const atImportAllowRun =
-	((await Deno.permissions?.query({ name: 'run' }))?.state ?? 'granted') === 'granted';
+const atImportAllowRun = true; // FixME: [rivy; 2024-09-25] revise this to use synchronous permission checks as needed in each function below
+// const atImportAllowRun =
+// 	((await Deno.permissions?.query({ name: 'run', command: 'deno' }))?.state ?? 'granted') ===
+// 	'granted';
 
 type ConsoleSizeMemoKey = string;
 const consoleSizeCache = new Map<ConsoleSizeMemoKey, ConsoleSize | undefined>();
@@ -203,7 +205,7 @@ export function consoleSizeViaDenoAPI(
 		const fallbackFileName = isWinOS ? 'CONOUT$' : '/dev/tty';
 		const file = denoOpenSyncNT(fallbackFileName);
 		// console.warn(`fallbackFileName = ${fallbackFileName}; isatty(...) = ${file && Deno.isatty(file.rid)}`);
-		size = file && denoConsoleSizeNT(file.rid);
+		size = file && denoConsoleSizeNT((file as { rid?: number }).rid);
 		// note: Deno.FsFile added (with close()) in Deno v1.19.0
 		file && DenoVx.close(file);
 	}
@@ -228,7 +230,7 @@ export function consoleSizeViaDenoAPI(
  * @param rid ~ resource ID
  */
 export function consoleSizeAsync(
-	rid: number = Deprecated.Deno.stdout.rid,
+	rid: number | undefined = Deprecated.Deno.stdout.rid,
 	options_: Partial<ConsoleSizeOptions> = {},
 ): Promise<ConsoleSize | undefined> {
 	const options = {
@@ -267,7 +269,7 @@ export function consoleSizeAsync(
 				consoleSizeViaTPUT().then((size) => (size != null ? size : Promise.reject(undefined))),
 				consoleSizeViaXargsSTTY().then((size) => (size != null ? size : Promise.reject(undefined))),
 				consoleSizeViaXargsTPUT().then((size) => (size != null ? size : Promise.reject(undefined))),
-				consoleSizeViaShXargsTPUT().then((size) =>
+				consoleSizeViaXargsTPUTbyShEnv().then((size) =>
 					size != null ? size : Promise.reject(undefined),
 				),
 			])
@@ -484,15 +486,16 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 	if (isWinOS) return Promise.resolve(undefined);
 	if (!atImportAllowRun) return Promise.resolve(undefined); // requires 'run' permission; note: avoids any 'run' permission prompts
 	if (!atImportAllowRead) return Promise.resolve(undefined); // requires 'read' permission; note: avoids any 'read' permission prompts
-	const devTtyPath = isWinOS ? 'CONIN$' : '/dev/tty';
+	const devTtyPath = isWinOS ? '//./CONIN$' : '/dev/tty';
 	// open TTY devices with read and write permissions to avoid mis-categorization of TTYs; ref: [🐛(WinOS) Deno.isatty() sometimes returns incorrect false result for 'CONOUT$'](https://github.com/denoland/deno/issues/18168)
 	const devTTY = denoOpenSyncNT(devTtyPath, { read: true /* , write: true */ });
 	if (devTTY == null) return Promise.resolve(undefined);
+	if ((devTTY as { rid?: number }).rid == null) return Promise.resolve(undefined);
 	const colsOutput = (() => {
 		try {
 			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'cols'],
-				stdin: devTTY.rid,
+				stdin: (devTTY as unknown as { rid: number }).rid,
 				stderr: 'piped',
 				stdout: 'piped',
 			});
@@ -511,7 +514,7 @@ export function consoleSizeViaTPUT(): Promise<ConsoleSize | undefined> {
 		try {
 			const process = Deprecated.Deno.run({
 				cmd: ['tput', 'lines'],
-				stdin: devTTY.rid,
+				stdin: (devTTY as unknown as { rid: number }).rid,
 				stderr: 'piped',
 				stdout: 'piped',
 			});
@@ -726,7 +729,7 @@ export function consoleSizeViaXargsTPUT(): Promise<ConsoleSize | undefined> {
  *
  * @tags non-winos-only
  */
-export function consoleSizeViaShXargsTPUT(): Promise<ConsoleSize | undefined> {
+export function consoleSizeViaXargsTPUTbyShEnv(): Promise<ConsoleSize | undefined> {
 	// * note: `tput` is resilient to STDIN, STDOUT, and STDERR redirects, but requires at least one to be a TTY, and requires two system shell calls
 	// ... seems to be false, requiring STDIN to be a TTY (similar to `stty size`) for correct results
 	// ... more modern (non-BSD) `tput` versions will output cols and lines in one call and no longer requires two system shell calls
