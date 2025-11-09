@@ -1,4 +1,4 @@
-import _ = require("../index.d.ts");
+import _ from "../index.d.ts";
 // eslint-disable-next-line @definitelytyped/strict-export-declare-modifiers
 type GlobalPartial<T> = Partial<T>;
 export const uniqueSymbol: unique symbol;

@@ -1,4 +1,4 @@
-import _ = require("../index.d.ts");
+import _ from "../index.d.ts";
 // eslint-disable-next-line @definitelytyped/strict-export-declare-modifiers, @typescript-eslint/no-unsafe-function-type
 type GlobalFunction = Function;
 declare module "../index.d.ts" {
