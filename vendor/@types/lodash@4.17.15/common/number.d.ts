@@ -1,4 +1,4 @@
-import _ = require("../index.d.ts");
+import _ from "../index.d.ts";
 declare module "../index.d.ts" {
     // clamp
     interface LoDashStatic {
