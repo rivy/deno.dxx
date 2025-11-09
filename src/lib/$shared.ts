@@ -6,11 +6,12 @@
 // spell-checker:ignore (js/ts) gmsu
 // spell-checker:ignore (names) Alacritty Cmder ConEmu Deno EditorConfig JSdelivr
 // spell-checker:ignore (modules) stringz
+// spell-checker:ignore (shell/WinOS) CONIN CONOUT
 // spell-checker:ignore (yargs) positionals
 
 import { DenoVx, Deprecated } from './$deprecated.ts';
 import { $colors, $fs, $path } from './$deps.ts';
-import { atImportPermissions } from './$shared.TLA.ts';
+import { atImportPermissions, atImportPermitCWD } from './$shared.TLA.ts';
 
 //===
 
@@ -110,7 +111,7 @@ function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	return c;
 }
 
-const DenoPermissionNames: Deno.PermissionName[] = DenoVx.DenoPermissionNames();
+const DenoPermissionNames: Deno.PermissionName[] = DenoVx.PermissionNames();
 
 // FixME: [2024-09-25; rivy] revise permits functions to allow for optional configuration parameters for each permission
 
@@ -312,15 +313,64 @@ export function deQuote(s?: string) {
 
 //===
 
-// `env()`
-/** Return the value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
+export const atImportCWD = (() => {
+	const permit =
+		atImportPermitCWD ||
+		Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
+	return tryFn(() => (permit ? Deno.cwd() : undefined));
+})();
+
+// `cwd()`
+/** Return the value of the current working directory (or `undefined` for errors or not allowed access).
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
-@param `options``.guard` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@param options `{ guard }` • verify unrestricted CWD access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read`
+*/
+export function cwd(options?: { guard: boolean }) {
+	const guard = options != null ? options.guard : true;
+	const useDenoCWD =
+		!guard || Deno?.permissions?.querySync?.({ name: 'read', path: '.' })?.state === 'granted';
+	return tryFn(() => (useDenoCWD ? Deno.cwd() : undefined));
+}
+
+// `chdir()`
+/** Return `true` after successful `Deno.chdir()` or `false` for errors or not allowed access.
+* - will *not panic*
+* - will *not prompt* for permission if `options.guard` is `true`
+@param options `{ guard }` • verify unrestricted CWD access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-read`
+*/
+export function chdir(directory?: string | URL, options?: { guard: boolean }) {
+	directory = intoPath(directory);
+	if (directory == null || directory === '') return false;
+	const guard = options != null ? options.guard : true;
+	const permit =
+		!guard ||
+		Deno?.permissions?.querySync?.({ name: 'read', path: directory })?.state === 'granted';
+	return tryFnOr(() => {
+		if (!permit) return false;
+		Deno.chdir(directory);
+		return true;
+	}, false);
+}
+
+//===
+
+// `env()`
+/** Return the value of the environment variable `varName` (or `undefined` if non-existent or not allowed access).
+* - will *not panic*
+* - will *not prompt* for permission if `options.guard` is `true`
+@param options `{ guard }` • verify unrestricted environment access permission *at time of module import* prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env`
 */
 export function env(varName: string, options?: { guard: boolean }) {
 	const guard = options != null ? options.guard : true;
-	const useDenoGet = !guard || atImportPermissions.env.state === 'granted';
+	const useDenoGet =
+		!guard ||
+		atImportPermissions.env.state === 'granted' ||
+		((Deno.permissions?.querySync?.({ name: 'env', variable: varName })).state ?? 'granted') ===
+			'granted';
 	try {
 		return useDenoGet ? Deno.env.get(varName) : undefined;
 	} catch (_) {
@@ -329,10 +379,11 @@ export function env(varName: string, options?: { guard: boolean }) {
 }
 
 // `envAsync()`
-/** Return the current value of the environment variable `varName` (or `undefined` if non-existent or not-allowed access).
+/** Return the current value of the environment variable `varName` (or `undefined` if non-existent or not allowed access).
 * - will *not panic*
 * - will *not prompt* for permission if `options.guard` is `true`
-@param `options``.guard` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@param options `{ guard }` • verify current and name-specific environment access permission prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env`
 */
 export async function envAsync(varName: string, options?: { guard: boolean }) {
 	const guard = options != null ? options.guard : true;
@@ -350,6 +401,54 @@ export async function envAsync(varName: string, options?: { guard: boolean }) {
 
 //===
 
+// `denoOpenSyncNT()`
+/** Open a file specified by `path`, using `options`.
+*
+* `path` is normalized prior to use.
+*
+* - will *not panic*
+* - will *not prompt* for permission if `options.guard` is `true` (which is the default)
+*
+* * _`no-throw`_ function (returns `undefined` upon any error)
+*
+* * _NOTE_: for WinOS, the _`--allow-all`_ permission is required for access to network/UNC and device paths; [2024-10-05; rivy] refs: <https://github.com/denoland/deno/pull/25132> , <https://github.com/denoland/deno/issues/24703>.
+*
+@param options `{ guard }` • verify read/write permissions prior to access attempt (avoids Deno prompts/panics); defaults to `true`
+@tags `no-panic`, `no-throw` ; `no-prompt` ; `allow-env`
+*/
+export function denoOpenSyncNT(
+	path?: string | URL,
+	options?: Deno.OpenOptions & { guard?: boolean },
+) {
+	// no-throw `Deno.openSync(..)`
+	path = intoPath(path);
+	options = options ?? { read: true };
+	const guard = options.guard ?? true;
+	if (path == null || path === '') return undefined;
+	if (
+		!guard &&
+		options.read &&
+		Deno.permissions?.querySync?.({ name: 'read', path })?.state !== 'granted'
+	)
+		return undefined;
+	if (
+		!guard &&
+		(options.write || options.append) &&
+		Deno.permissions?.querySync?.({ name: 'write', path })?.state !== 'granted'
+	)
+		return undefined;
+	// console.warn({ path, options, guard });
+	try {
+		return Deno.openSync(path, options);
+	} catch {
+		// avoid panics
+		// * includes catching 'NotCapable' panics (eg, for network/UNC or device paths on WinOS without `--allow-all`); ref: <https://github.com/denoland/deno/issues/26045>
+		return undefined;
+	}
+}
+
+//===
+
 // `isFileURL()`
 /** Determine if `url` is a file-type URL (ie, uses the 'file:' protocol), naming a local file resource. */
 export function isFileURL(url: URL) {
@@ -357,26 +456,51 @@ export function isFileURL(url: URL) {
 }
 
 // `isValidURL()`
-/** Determine if the supplied text string (`s`) is a valid URL. */
-export function isValidURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
+/** Determine if the supplied text string (`s`) is a valid URL, relative to an optional `base` URL. */
+export function isValidURL(s: string, base?: URL) {
 	return !!validURL(s, base);
 }
 
 // `validURL()`
-/** Convert the supplied text string (`s`) into a valid URL (or `undefined` if `s` [relative to `base`] isn't a valid URL).
+/** Convert the supplied text string (`s`) into a valid URL, relative to an optional `base` URL (`undefined` if `s` [relative to `base`] isn't a valid URL).
 * * `no-throw` ~ function returns `undefined` upon any error
-@tags `no-throw`
+@tags `no-panic`, `no-throw`, `no-prompt`
 */
-export function validURL(s: string, base: URL = $path.toFileUrl(Deno.cwd() + $path.SEP)) {
+export function validURL(s: string, base?: URL) {
 	return intoURL(s, base);
 }
 
 //===
 
+export function ifThenElse<T>(condition: boolean, ifTrue: T | (() => T), ifFalse: T | (() => T)) {
+	if (condition) {
+		return typeof ifTrue === 'function' ? (ifTrue as () => T)() : ifTrue;
+	}
+	return typeof ifFalse === 'function' ? (ifFalse as () => T)() : ifFalse;
+}
+
+export function ifThen<T>(condition: boolean, ifTrue: T | (() => T)) {
+	return ifThenElse(condition, ifTrue, undefined);
+}
+
+function tryFnOr<T>(fn: () => T, fallback: T) {
+	try {
+		return fn();
+	} catch (_) {
+		return fallback;
+	}
+}
+
+function tryFn<T>(fn: () => T) {
+	return tryFnOr(fn, undefined);
+}
+
+//===
+
 // `intoPath()`
-/** Extract the "path" from a path string (as an identity function) or URL.
+/** Extract the "path", in normalized (Deno-compatible) form, from a path string or URL.
 * * `no-throw` ~ function returns `undefined` upon any error
-@param [path] • path/URL-string (may already be in URL format [ie, 'file://...']) or URL
+@param path • path/URL-string (may already be in URL format [ie, 'file://...']) or URL
 @tags `no-throw`
 */
 export function intoPath(path?: string | URL) {
@@ -393,10 +517,11 @@ const IntoUrlOptionsDefault: Required<IntoUrlOptions> = { driveLetterSchemes: tr
 // `intoURL()`
 /** Convert a `path` string into a standard `URL` object, relative to an optional `base` reference URL.
 * * `no-throw` ~ function returns `undefined` upon any error
-@param [path] • path/URL-string (may already be in URL file format [ie, 'file://...'])
-@param [base] • baseline URL reference point ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
-@param [options] ~ defaults to `{driveLetterSchemes: true}`
-@tags `no-throw`
+@param path • path/URL-string (may already be in URL file format [ie, 'file://...'])
+@param base • baseline URL reference point ~ defaults to `$path.toFileUrl(atImportCWD + $path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+@param options ~ defaults to `{driveLetterSchemes: true}`
+@tags `panic/throw` possible
+@tags `no-prompt`
 */
 export function intoURL(path?: string, base?: URL, options?: IntoUrlOptions): URL | undefined;
 export function intoURL(path: string, options: IntoUrlOptions): URL | undefined;
@@ -405,10 +530,10 @@ export function intoURL(path?: string, ...args: unknown[]) {
 	const base =
 		args?.length > 0 && args[0] instanceof URL
 			? (args.shift() as URL)
-			: allowRead
+			: atImportPermitCWD && atImportCWD != null
 				? (() => {
 						try {
-							return $path.toFileUrl(Deno.cwd() + $path.SEP);
+							return $path.toFileUrl(atImportCWD + $path.SEP);
 						} catch {
 							return undefined;
 						}
@@ -416,7 +541,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 				: undefined;
 	const options = {
 		...IntoUrlOptionsDefault,
-		...(args?.length > 0 ? (args.shift() as IntoUrlOptions) : {}),
+		...ifThen(args?.length > 0, args.shift() as IntoUrlOptions),
 	};
 	const scheme = (path.match(/^[A-Za-z][A-Za-z0-9+-.]*(?=:)/) || [])[0]; // per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
 	const pathIsURL = scheme != null && scheme.length > (options.driveLetterSchemes ? 1 : 0);
@@ -428,7 +553,7 @@ export function intoURL(path?: string, ...args: unknown[]) {
 				const pathDrive = path.match(/^[A-Za-z]:/)?.[0];
 				const pathHost = path.match(/^[/\\][/\\]([^/\\]+)/)?.[1];
 				const pathIsAbsolute = $path.isAbsolute(path);
-				// console.warn({ path, pathDrive, pathHost, pathIsAbsolute });
+				// console.warn({ path, pathDrive, pathHost, pathIsAbsolute, base });
 				if (pathIsAbsolute && (!isWinOS || pathDrive != null || pathHost != null)) {
 					return path;
 				}
@@ -436,15 +561,26 @@ export function intoURL(path?: string, ...args: unknown[]) {
 				const basePath = $path.fromFileUrl(base);
 				const baseDrive = basePath.match(/^[A-Za-z]:/)?.[0];
 				// * work-around for `Deno.std::path.resolve()` not handling drive letters correctly
-				const finalDrive = isWinOS ? pathDrive ?? baseDrive : undefined;
-				const cwd = finalDrive != null ? Deno.cwd() : undefined;
-				if (finalDrive != null) Deno.chdir(finalDrive);
+				const finalDrive = ifThen(isWinOS, pathDrive ?? baseDrive);
+				const cwd = ifThen(finalDrive != null, atImportCWD);
+				const cwdDrive = cwd?.match(/^[A-Za-z]:/)?.[0];
+				// console.warn({ base, basePath, baseDrive, pathDrive, finalDrive, cwd, cwdDrive });
+				const chdirNeeded =
+					cwd != null &&
+					finalDrive != null &&
+					cwdDrive?.toLocaleUpperCase() != finalDrive?.toLocaleUpperCase();
+				if (chdirNeeded) {
+					if (!chdir(cwd)) return undefined; // prove `chdir(cwd)` succeeds before changing to a new drive/directory
+					if (!chdir(finalDrive)) return undefined;
+				}
 				const resolved = pathIsAbsolute ? $path.resolve(path) : $path.resolve(basePath, path);
-				if (cwd != null) Deno.chdir(cwd);
+				if (chdirNeeded) chdir(cwd);
 				return resolved;
 			})();
 			if (pathname == null) return undefined;
-			const url = $path.toFileUrl(pathname);
+			// WinOS ~ '?' is an invalid URL host name; so, encode any path starting with '\\?\...' into an alternate "pseudo-device" path ('\\.\?\...' [which is invalid/unused otherwise])
+			//    ... this does require decoding when the path is retrieved from the URL (ie, using `pathFromURL()`)
+			const url = $path.toFileUrl(pathname.replace(/^([/\\][/\\])[?]([/\\])/, '$1.$2?$2'));
 			// console.warn({ pathIsURL, path, pathname, url });
 			return url;
 		}
@@ -460,19 +596,53 @@ export function intoURL(path?: string, ...args: unknown[]) {
 // `pathFromURL()`
 /** Extract the "path" (absolute file path for 'file://' URLs, otherwise the href URL-string) from the `url`.
 * * `no-throw` ~ function returns `undefined` upon any error
-@param [url] • URL for path extraction
+@param url • URL for path extraction
 @tags `no-throw`
 */
 export function pathFromURL(url?: URL) {
 	if (url == null) return undefined;
 	let path = url.href;
+	// console.warn('pathFromURL:', { url, path });
 	if (url.protocol === 'file:') {
 		try {
-			path = $path.fromFileUrl(url);
+			path = $path.fromFileUrl(path);
 		} catch (_error) {
 			return undefined;
 		}
 	}
+	// console.warn('pathFromURL:', { url, path });
+	const isWinOS = Deno.build.os === 'windows';
+	if (isWinOS) {
+		// WinOS ~ handle special device paths
+		// ref: [File path formats](https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats) @@ <https://archive.is/0shPL>
+		// ref: [Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) @@ <https://archive.is/mQOTg>
+
+		// * decode any device path of the form '\\.\?\...' (otherwise invalid/unused) back into the standard '\\?\...' path
+		path = path.replace(/^([/\\][/\\])[.][/\\][?]([/\\])/, '$1?$2');
+
+		// * no further processing for paths with device prefixes (eg, '\\.\', '\\?\')
+		if (!path.match(/^[/\\][/\\][.?][/\\]/)) {
+			// * note: this translation is explicitly equivalent to the more sensible (and least surprise) Win11 version, keeping the full file name in the path
+			//     ... Win10 (surprisingly) ignores text past the filePrefix for legacy device names; eg Win10 sees 'CON.txt' as '\\.\CON'
+			const fileBaseName = $path.basename(path).toLocaleUpperCase();
+			const filePrefix = fileBaseName.replace(/[.].*$/, '');
+			const specialDeviceBaseNames = ['CONIN$', 'CONOUT$'];
+			const specialDevicePrefixes = ([] as string[]).concat(
+				['CON', 'PRN', 'AUX', 'NUL'], // legacy device names
+				['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'], // legacy COM device names
+				['LPT0', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'], // legacy LPT device names
+			);
+			if (
+				specialDeviceBaseNames.includes(fileBaseName) ||
+				specialDevicePrefixes.includes(filePrefix)
+			) {
+				path = `\\\\?\\${path}`;
+			}
+		}
+	}
+	// `\\?\...` is likely the more "correct" prefix as it skips further Windows normalization via `GetFullPathName()`; but Deno and the standard URL class do not support it
+	// * instead use the usually equivalent `\\.\` prefix for better compatibility with Deno and the standard URL class
+	path = path.replace(/^[/\\][/\\][?][/\\]/, `${$path.SEP}${$path.SEP}.${$path.SEP}`);
 	return path;
 }
 
@@ -480,7 +650,7 @@ export function pathFromURL(url?: URL) {
 
 // `ensureAsPath()`
 /** Ensure "path" is a valid path/URL-string (by conversion if needed) or *panic*.
-@param [path] • path/URL-string (may already be in URL file format [ie, 'file://...']) or URL
+@param path • path/URL-string (may already be in URL file format [ie, 'file://...']) or URL
 @tags `may-panic` • may throw `Deno.errors.InvalidData` if `path` is not valid
 */
 export function ensureAsPath(path?: string | URL) {
@@ -491,7 +661,7 @@ export function ensureAsPath(path?: string | URL) {
 
 // `ensureAsURL()`
 /** Ensure "path" is a valid URL (by conversion if needed) or *panic*.
-@param [path] • path/URL-string (may already be in URL file format [ie, 'file://...']) or URL
+@param path • path/URL-string (may already be in URL file format [ie, 'file://...']) or URL
 @tags `may-panic` • may throw `Deno.errors.InvalidData` if `path` is not a valid URL
 */
 export function ensureAsURL(path: string | URL) {
@@ -513,13 +683,13 @@ const allowRun = atImportPermissions.run.state === 'granted';
 // `traversal()`
 /** Determine the traversal path to `goal` from `base`.
 - _Returned path will be relative to `base` iff `goal` shares a common origin/prefix with `base`, o/w it will be an absolute path_
-- _Relative `goal` or `base` paths are evaluated as relative to the `Deno.cwd()` directory_
-@param [goal] • target path
-@param [base] • starting path ~ defaults to `$path.toFileUrl(Deno.cwd()+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
+- _Relative `goal` or `base` paths are evaluated as relative to the `atImportCWD` directory_
+@param goal • target path
+@param base • starting path ~ defaults to `$path.toFileUrl((atImportCWD ?? '')+$path.SEP)`; _note_: per usual relative URL rules, if `base` does not have a trailing separator, determination of path is relative the _the parent of `base`_
 */
 export function traversal(
 	goal: string | URL,
-	base: string | URL = allowRead ? $path.toFileUrl(Deno.cwd() + $path.SEP) : '',
+	base: string | URL = allowRead ? $path.toFileUrl((atImportCWD ?? '') + $path.SEP) : '',
 ) {
 	const url = goal instanceof URL ? goal : intoURL(goal);
 	const baseURL = base instanceof URL ? base : intoURL(base);
@@ -643,24 +813,24 @@ export function firstPathContaining(goal: string, paths: string[]) {
 	}
 }
 
-// function _firstExisting(base: string, paths: string[]) {
-// 	for (const path of paths) {
-// 		const p = $path.join(path, base);
-// 		if (existsSync(p)) return p;
-// 	}
-// }
+//===
 
-// function pathToPOSIX(path: string) {
-// 	// normalize to POSIX-type separators (forward slashes)
-// 	return path.replaceAll('\\', '/');
-// }
+export function pathNormalizeSlashes(path: string) {
+	// * replace all doubled-slashes with singles except for leading (for WinOS network paths) and those following schemes
+	// * note: 'scheme' is defined per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
+	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
+}
 
-// function pathNormalizeSlashes(path: string) {
-// 	// normalize to POSIX-type separators (forward slashes)
-// 	// * replace all doubled-slashes with singles except for leading (for WinOS network paths) and those following schemes
-// 	// * note: 'scheme' is defined per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.1) @@ <https://archive.md/qMjTD#26.25%>
-// 	return path.replaceAll(/(?<!^|[A-Za-z][A-Za-z0-9+-.]*:\/?)([\\\/])[\\\/]+/gmsu, '$1');
-// }
+export function pathToOS(p: string) {
+	return isWinOS ? pathToWinOS(p) : pathToPOSIX(p);
+}
+export function pathToPOSIX(p: string) {
+	// ToDO: convert to use of $path.SEP_PATTERN
+	return p.replace(/\\/g, $path.posix.sep);
+}
+export function pathToWinOS(p: string) {
+	return p.replace(/\//g, $path.win32.sep);
+}
 
 export function pathEquivalent(a?: string, b?: string) {
 	// console.warn({ a, b });
@@ -929,3 +1099,11 @@ import * as $logger from './axe/$mod.ts';
 
 $logger.logger.suspend(); // initialize common/global logger to 'suspended' state to allow for local module use without unwanted outputs
 export const logger = $logger.logger; // export logger (note: in the *suspended state*)
+
+// console.warn({ atImportPermitCWD, atImportCWD });
+// console.warn({ url_cwd: intoURL('.') });
+// console.warn({ url_abs: intoURL('file:///C:/Users/Roy/AARK/Projects/deno/dxx/repo.GH') }); // spell-checker:ignore AARK
+// console.warn({ url_rel: intoURL('relative_dir/file.foo') });
+// console.warn({ url_rel_drive: intoURL('c:relative_dir/file.foo') });
+// console.warn({ url_rel_drive_alt: intoURL('d:relative_dir/file.foo') });
+// Deno.openSync('//hoard/vault', { read: true, write: true });
