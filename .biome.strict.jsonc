@@ -1,0 +1,46 @@
+// `biome` configuration/settings
+// ref: <https://biomejs.dev/reference/configuration>
+// v2024.07.13 [rivy]
+// spell-checker:ignore () prettierrc remarkrc
+{
+	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+	"formatter": {
+		"ignore": [
+			// format sensitive files
+			".vscode",
+			// JS files that use `prettier`
+			".commitlint.config.js",
+			".eslintrc.js",
+			".prettierrc.js",
+			".remarkrc.js",
+			// third-party code
+			"node_modules",
+			"vendor"
+		],
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineWidth": 100
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"jsxQuoteStyle": "single",
+			"semicolons": "always",
+			"trailingCommas": "all"
+		}
+	},
+	"json": { "parser": { "allowComments": true /* , "allowTrailingCommas": true */ } },
+	"linter": {
+		"enabled": true,
+		"ignore": [".vscode", "node_modules", "vendor"],
+		"rules": {
+			"recommended": true,
+			"style": {
+				"useNodejsImportProtocol": "off" /* "node:..." imports would o/w force Deno-v1.16.0+, NodeJS-v14.18.0+ */,
+				"useNumberNamespace": "off" /* not needed for ES5+ as globals are also read-only; see <https://stackoverflow.com/questions/8522400/infinity-vs-number-positive-infinity> @@ <https://archive.is/X7q3B> */
+			}
+		}
+	},
+	"organizeImports": { "enabled": false },
+	"vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true }
+}
