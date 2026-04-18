@@ -2,6 +2,15 @@
 @::# --* typescript *--
 @::# (emacs/sublime) -*- mode: typescript; coding: dos; -*-
 @::# spell-checker:ignore (names) Deno ; (shell/CMD) ERRORLEVEL delims
+@::
+@::* To self-run, this script must be copied into a parallel file with a deno-compatible extension (ts, tsx, js, jsx, mts, mjs, cts, cjs) for correct parsing/execution.
+@::* ## [why]
+@::* Deno, on WinOS, is unable to execute scripts which have unknown extensions, as the script flavor is unknown and the script therefore unparsable.
+@::* Neither `deno eval --ext=ts SCRIPT_CODE ...` nor `deno run SCRIPT_FILE ...` have the ability to read the SCRIPT from STDIN.
+@::* So, this script is copied into a parallel file (SHIM_TARGET) which is created with the appropriate extension (ie, .ts).
+@::* Currently, the SHIM_TARGET is created as a sibling file which preserves the parent folder context. But the sibling creation/execution may fail in restricted/read-only environments.
+@::* Alternatively, the parallel file may be created within the %TEMP% folder which generally has more relaxed permissions. In that instance, SHIM_ARG0 and SHIM_ORIGIN can be used as pointers to the original parent folder and execution context.
+@::
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive avoidance of any prior pinned value)
 @set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL, upon script completion, will be equal to final ERRORLEVEL; * side-effect of proper return of process and script error levels
 @setLocal
