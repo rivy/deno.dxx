@@ -149,12 +149,12 @@ Usage:\n  ${appRunAs} [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGU
 	.alias('version', 'V')
 	// * (boilerplate) logging options
 	.option('log-level', {
-		alias: ['\b\b\b\b LOG_LEVEL'], // fixme/hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
+		alias: ['\b\b\b\b LOG_LEVEL'], // fixme:hack: display option argument description (see <https://github.com/yargs/yargs/issues/833#issuecomment-982657645>)
 		describe: 'Set logging level to LOG_LEVEL (overrides any prior setting)',
 		type: 'string',
 		choices: ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace'], // required for help display of choices
 	})
-	.choices('logLevel', ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace']) // fixme/hack: required for correct error handling of incorrect choices by Yargs
+	.choices('logLevel', ['error', 'warning', 'warn', 'note', 'info', 'debug', 'trace']) // fixme:hack: required for correct error handling of incorrect choices by Yargs
 	.option('silent', {
 		describe: `Silent mode; suppress non-error output (sets 'error' level logging)`,
 		type: 'boolean',
