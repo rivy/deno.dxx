@@ -13,7 +13,8 @@
 			".eslintrc.js",
 			".prettierrc.js",
 			".remarkrc.js",
-			// third-party code
+			// third-party code/tools
+			".trunk",
 			"node_modules",
 			"vendor"
 		],
@@ -32,7 +33,7 @@
 	"json": { "parser": { "allowComments": true /* , "allowTrailingCommas": true */ } },
 	"linter": {
 		"enabled": true,
-		"ignore": [".vscode", "node_modules", "vendor"],
+		"ignore": [".trunk", ".vscode", "node_modules", "vendor"],
 		"rules": {
 			"recommended": true,
 			"complexity": {
