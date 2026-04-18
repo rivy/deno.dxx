@@ -1,7 +1,8 @@
 {
 	"deno.enable": true,
+	"deno.disablePaths": ["@coverage", "vendor"],
 	"deno.lint": true,
-	"deno.unstable": true,
+	// "deno.unstable": true,
 	"editor.formatOnSave": true,
 	"files.exclude": {
 		"**/.git": true,
@@ -13,11 +14,6 @@
 		".history": true,
 		".nyc_output": true
 	},
-	"indentRainbow.ignoreLinePatterns": [
-		"/[\t]+[ ]/g" // TAB indentaion with space alignment
-		// "/[ \t]* [*]/g",
-		// "/[ \t]+[/]{2}/g"
-	],
 	"todo-tree.filtering.excludeGlobs": [
 		"build",
 		"dist",
@@ -25,5 +21,6 @@
 	],
 	// remove `"typescript.validate.enable": false` when 'denoland/vscode_deno' issue is resolved
 	// ref: <https://github.com/denoland/vscode_deno/issues/455>, <https://github.com/denoland/vscode_deno/issues/581>
-	"typescript.validate.enable": false
+	// [2026-04-18; rivy]; DISABLED on a trial basis
+	// "typescript.validate.enable": false
 }
