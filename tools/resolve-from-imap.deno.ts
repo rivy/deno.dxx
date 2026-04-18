@@ -437,7 +437,7 @@ async function createTransformer(
 	// ref: [JS Import Maps, Part 1](https://spidermonkey.dev/blog/2023/02/23/javascript-import-maps-part-1-introduction.html) @@ <https://archive.is/EkKuc>
 	// ref: [JS Import Maps, Part 2 (In-Depth Exploration)](https://spidermonkey.dev/blog/2023/03/02/javascript-import-maps-part-2-in-depth-exploration.html) @@ <https://archive.is/1z1NO>
 
-	// FixME: ToDO: revise matching and URL rewrite to take into account possible remote import-map locations; likely will need traversal() and a reconsideration of using file paths and URLs together
+	// FixME: ToDO ~ revise matching and URL rewrite to take into account possible remote import-map locations; likely will need traversal() and a reconsideration of using file paths and URLs together
 	// ? should file:// URLs be treated differently from http(s):// URLs?
 	// ? do we need to maintain trailing '/'
 	// FixME: traversal semantics need to be well documented (with specifics)

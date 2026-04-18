@@ -492,7 +492,7 @@ export function shellDeQuote(s: string) {
 export function tildeExpand(s: string): string {
 	// tilde expand a string
 	// * any leading whitespace is removed
-	// ToDO?: handle `~USERNAME` for other users
+	// ToDO:? handle `~USERNAME` for other users
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
 	// console.warn('xArgs.tildeExpand()', { s });
 	// const sepReS = portablePathSepReS;
