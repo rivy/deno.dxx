@@ -418,6 +418,18 @@ const filteredDelegatedDenoArgs = delegatedDenoArgs.flatMap((arg) => {
 	return [arg];
 });
 
+// determine if `--config` or `--no-config` is present in the delegatedArgs
+const hasDenoConfigOption =
+	filteredDelegatedDenoArgs.find((arg) => {
+		if (arg === '--config') {
+			return true;
+		}
+		if (arg === '--no-config') {
+			return true;
+		}
+		return false;
+	}) != null;
+
 // determine if `--help` or `-h` is present in the delegatedArgs
 const hasDenoHelpOption =
 	filteredDelegatedDenoArgs.find((arg) => {
@@ -451,6 +463,11 @@ const hasDenoGlobalOption =
 		}
 		return false;
 	}) != null;
+
+// suppress deno behaviors change warning about `--config` option (for Deno v2.1.8+)
+if (!hasDenoConfigOption && $semver.satisfies(denoVersion, '>=2.1.8')) {
+	const _ = filteredDelegatedDenoArgs.unshift('--no-config');
+}
 
 // suppress deno behaviors change warning about `--global` option (for Deno v1.42.0+)
 if (!hasDenoGlobalOption && $semver.satisfies(denoVersion, '>=1.42.0')) {
