@@ -509,9 +509,14 @@ await spinnerForInstall.deferTo(() =>
 // 	stdout: 'piped',
 // };
 // await spinnerForInstall.deferTo(() => log.debug({ runOptions }));
+// Deno V2.6.0+ *insists* on CMD to be placed before `--` leading the shimmed arguments (if it/they exist)
+const _sizeDenoArgs = denoArgs.push(args.shift() || '');
+if (args.length > 0) {
+	args.unshift('--');
+}
 const cmdArgs: [string, Deno.CommandOptions] = [
 	'deno',
-	{ args: [...denoArgs, '--', ...args], stdin: 'null', stderr: 'piped', stdout: 'piped' },
+	{ args: [...denoArgs, ...args], stdin: 'null', stderr: 'piped', stdout: 'piped' },
 ];
 await spinnerForInstall.deferTo(() => log.debug({ cmdArgs }));
 
