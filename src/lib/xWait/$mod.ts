@@ -99,7 +99,7 @@ export class Spinner {
 	indent: number;
 	interval: number;
 
-	#id: number = 0;
+	#intervalID?: ReturnType<typeof setInterval> = undefined;
 
 	#enabled: boolean;
 	#frameIndex: number;
@@ -211,7 +211,7 @@ export class Spinner {
 		}
 
 		this.render();
-		this.#id = setInterval(this.render.bind(this), this.interval);
+		this.#intervalID = setInterval(this.render.bind(this), this.interval);
 		return this;
 	}
 
@@ -290,8 +290,8 @@ export class Spinner {
 
 	stop() {
 		if (!this.#enabled) return;
-		clearInterval(this.#id);
-		this.#id = -1;
+		clearInterval(this.#intervalID);
+		this.#intervalID = undefined;
 		this.#frameIndex = 0;
 		this.clearAllLines();
 		if (this.#opts.hideCursor) {
