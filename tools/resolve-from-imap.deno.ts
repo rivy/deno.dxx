@@ -598,6 +598,7 @@ async function createTransformer(
 				const declarations = node.declarationList.declarations;
 				let modified = false;
 				// Create new declarations array with updated import specifiers
+				// @ts-ignore // Deno increasing lint complaints // ToDO: [2026-05-26] improve typings (tsTypes) with more definitive type resolutions
 				const newDeclarations = declarations.map((decl) => {
 					// // Debug the structure
 					// if (decl.initializer && ts.isCallExpression(decl.initializer)) {
