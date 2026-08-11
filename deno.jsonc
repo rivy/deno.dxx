@@ -9,7 +9,12 @@
 		"proseWrap": "never"
 	},
 	"lint": { "rules": { "exclude": ["no-import-prefix"] } },
-	"lock": false
+	"lock": false,
 	// "nodeModulesDir": "none" // not needed; default for Deno-2 with no *package.json* file
 	// , "importMap": "./vendor/import_map.json"
+	"tasks": {
+		"test": "deno run -A .tasks/test.deno.ts",
+		"test_via_denoEval": "deno test -A | deno eval 'for await (const chunk of Deno.stdin.readable.pipeThrough(new TextDecoderStream())){ await Deno.stdout.write( new TextEncoder().encode(chunk.replace(/\\\\x1b(\\[[0-9;]*m)/g, \"\\x1b$1\"),),); } '",
+		"test_via_perl": "deno test -A | perl -pe 'BEGIN { $| = 1 } s/\\\\x1b(\\[[0-9;]*m)/\\e$1/g'"
+	}
 }
