@@ -1,6 +1,6 @@
 # git ignore config file
-# v2024-04-30 [rivy]
-# spell-checker:ignore () yarnrc (jargon) globstar (names) deno dlang (people) Roy Ivy III * rivy
+# v2026-05-11 [rivy]
+# spell-checker:ignore () npmignore yarnrc (jargon) globstar (names) deno dlang (people) Roy Ivy III * rivy
 
 # NOTE: Git GLOBSTAR syntax [see `git help gitignore`]
 # * ref: [.gitignore] http://git-scm.com/docs/gitignore @@ http://archive.is/Rk6rO
@@ -13,7 +13,8 @@
 /target
 # note: `git add --force dist && git commit -m 'change: add updated dist artifacts'` will still add any desired distribution artifacts
 # note: `git status --ignored -- build dist target` will still show changes (for release testing)
-# * project cache directories
+# * project/tool cache directories
+/.cache
 /.*-cache
 /zig-cache
 
@@ -33,15 +34,16 @@
 
 # JS/TS
 # * ignore JS import/package-related files
-/node_modules
-/package-lock.json
-/yarn.lock
+# note: `npm pack` will ignore based on `.gitignore` if no `.npmignore` is present
+deno.lock
+node_modules
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 # * allow packaging of lock files into '.deps-lock'
-!/.deps-lock/package-lock.json
-!/.deps-lock/yarn.lock
+!/.deps-lock/*
 # * ignore `yarn`-related files (allows use of "modern" v2+ `yarn`)
 # - ref: <https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored> @@ <https://archive.is/Sc1Ab>
-.pnp.*
 /.yarn/*
 !/.yarn/patches
 !/.yarn/plugins
