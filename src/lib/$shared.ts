@@ -1530,7 +1530,7 @@ export function traversal(
 		baseURL &&
 		url.origin.localeCompare(baseURL.origin, undefined, { sensitivity: 'accent' }) == 0 &&
 		url.protocol.localeCompare(baseURL.protocol, undefined, { sensitivity: 'accent' }) == 0;
-	// console.warn({ goal, url, base, baseURL, commonOrigin });
+	// console.warn('traversal()', { goal, url, base, baseURL, commonOrigin });
 	const basePath = pathFromURL(baseURL);
 	const goalPath = pathFromURL(url);
 	if (commonOrigin && basePath && goalPath) {
