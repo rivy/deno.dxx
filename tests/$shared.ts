@@ -120,24 +120,38 @@ export function format(...args: unknown[]) {
 type TestName = string;
 const testLog: [TestName, (() => string) | string][] = [];
 const testFilePathLineCounts: Map<string, number> = new Map();
+const testDefinitionBasePath = Deno.cwd();
+const testDefinitionBasePathFileURL = $path.toFileUrl(testDefinitionBasePath);
 
 function lineCount(filePath: string) {
-	if (!testFilePathLineCounts.has(filePath)) {
+	// const _resolvedComparison = $path.resolve(testDefinitionBasePath, intoPath(filePath) ?? filePath);
+	const traverse = traversal(filePath, testDefinitionBasePathFileURL);
+	const resolvedFilePath = intoPath(traverse) ?? '';
+	if (!testFilePathLineCounts.has(resolvedFilePath)) {
 		try {
 			testFilePathLineCounts.set(
-				filePath,
-				Deno.readTextFileSync(traversal(filePath) ?? '')
+				resolvedFilePath,
+				Deno.readTextFileSync(resolvedFilePath)
 					.replace(/\r?\n$/ms, '')
 					.split(/\n/).length,
 			);
-		} catch (_) {
-			// console.error('`lineCount()`: error happened');
+		} catch (_error) {
+			console.error('`lineCount()`: error happened', { _error, filePath, resolvedFilePath });
 			// cache negative count as an error signal
-			testFilePathLineCounts.set(filePath, -1);
+			testFilePathLineCounts.set(resolvedFilePath, -1);
 		}
 	}
-	const count = testFilePathLineCounts.get(filePath);
-	// console.error('`lineCount()`', { filePath, count });
+	const count = testFilePathLineCounts.get(resolvedFilePath);
+	// console.debug('`lineCount()`', {
+	// 	filePath,
+	// 	cwd: Deno.cwd(),
+	// 	testDefinitionBasePath,
+	// 	testDefinitionBasePathFileURL,
+	// 	traverse,
+	// 	resolvedFilePath,
+	// 	_resolvedComparison,
+	// 	count,
+	// });
 	return count != undefined && count >= 0 ? count : undefined;
 }
 
@@ -156,10 +170,14 @@ function composeTestName(
 			? [...maxLines.toString()].length - [...tagLine.toString()].length
 			: 0;
 	})();
+	// const filePathText = tag
+	// 	? `${$colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s))} `
+	// 	: '';
+	// return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
 	const filePathText = tag
-		? `${$colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s))} `
+		? `${$path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)} `
 		: '';
-	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
+	return filePathText + (options.ignore ? '--' : '::') + ' ' + description;
 }
 
 export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;

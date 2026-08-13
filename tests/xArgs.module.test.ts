@@ -41,7 +41,7 @@ const projectPath = maybeProjectPath;
 //===
 
 const fixturePath = 'tests/fixtures';
-Deno.chdir($path.join(projectPath, fixturePath)); // * `chdir` causes a global/non-scoped change
+Deno.chdir($path.join(projectPath, fixturePath)); // * NOTE: `chdir` causes a *global/non-scoped change*
 
 let shellExpandDuelWarnings = 0;
 async function shellExpandDuel(args: string | string[], options?: Parse.ArgsOptions) {
