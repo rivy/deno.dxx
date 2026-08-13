@@ -1009,6 +1009,7 @@ export function pathIntoURL(
 	path: string | undefined,
 	options?: { base?: URL | null | undefined } & PathAndUrlOptions,
 ): URL | undefined {
+	if (path == null) return undefined;
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	const base =
 		options?.base === null
@@ -1160,6 +1161,7 @@ export function intoURL(
 	path: string | null | undefined,
 	options?: { base?: URL } & PathAndUrlOptions,
 ): URL | undefined {
+	if (path == null) return undefined;
 	options = { ...PathAndUrlOptionsDefault, ...options };
 	const base =
 		options?.base ?? ifThen(atImportCWD != null, () => $path.toFileUrl(atImportCWD + $path.SEP));
@@ -1185,7 +1187,7 @@ export function intoURL(
 		// };
 
 		// * use efficient initial return(s)
-		if (path == null || path.length === 0) {
+		if (path.length === 0) {
 			return ifThen(base != null, base);
 		}
 		const forWinOS = options.forPlatform === 'WinOS' || (options.forPlatform === 'host' && isWinOS);
