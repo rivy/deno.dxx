@@ -1,5 +1,6 @@
 // spell-checker:ignore (jargon) positionals
 
+import { $colors } from '../tests/$deps.ts';
 import {
 	$logger,
 	$version,
@@ -212,7 +213,7 @@ for (const [index, file] of files.entries()) {
 	const contents = await Deno.readTextFile(file.name);
 
 	if (index > 0) console.log();
-	console.log(`===== ${file.name} =====`);
+	console.log($colors.green('* ' + file.name));
 	console.log(contents.replace(/\r?\n$/, ''));
 }
 
