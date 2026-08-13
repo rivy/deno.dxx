@@ -59,7 +59,14 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @:prep
 @:create_unique_tid
 @:: TID == TargetID; unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
-@for /f "tokens=1,2,3,4 delims=/ " %%G in ("%DATE%") do @set "SHIM_TID=$shim_tid-%%J%%H%%I.%TIME::=%-%RANDOM%$" &@:: $shim_tid-YYYYMMDD.HHMMSS.ss-NNNNN$
+@::* NOTE: unavoidable but *very low* collision/race risk [requires same hundredth of a second + same random number from 1-65536]
+@::* NOTE: DATE/TIME env vars are LOCALE dependent: replace them?
+@set "SHIM_TID=$shim_TID-%DATE%-%TIME%-%RANDOM%$" &@:: unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
+@set "SHIM_TID=%SHIM_TID::=%" &@:: remove possible locale-based special characters
+@set "SHIM_TID=%SHIM_TID:/=%" &@:: remove possible locale-based special characters
+@set "SHIM_TID=%SHIM_TID:\=%" &@:: remove possible locale-based special characters
+@set "SHIM_TID=%SHIM_TID:'=%" &@:: remove possible locale-based special characters
+@set "SHIM_TID=%SHIM_TID:,=%" &@:: remove possible locale-based special characters
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (avoids issues with spaces in path; eg, for times between 0:00 and 9:59)
 @set "SHIM_PIPE=%TEMP%\\<%=shimName%>.%SHIM_TID%.$shim_pipe$.cmd"
 @if EXIST "%SHIM_PIPE%" @goto :prep
