@@ -120,24 +120,27 @@ export function format(...args: unknown[]) {
 type TestName = string;
 const testLog: [TestName, (() => string) | string][] = [];
 const testFilePathLineCounts: Map<string, number> = new Map();
+const testDefinitionBasePath = Deno.cwd();
+const testDefinitionBasePathFileURL = $path.toFileUrl(testDefinitionBasePath);
 
 function lineCount(filePath: string) {
-	if (!testFilePathLineCounts.has(filePath)) {
+	const traverse = traversal(filePath, testDefinitionBasePathFileURL);
+	const resolvedFilePath = intoPath(traverse) ?? '';
+	if (!testFilePathLineCounts.has(resolvedFilePath)) {
 		try {
 			testFilePathLineCounts.set(
-				filePath,
-				Deno.readTextFileSync(traversal(filePath) ?? '')
+				resolvedFilePath,
+				Deno.readTextFileSync(resolvedFilePath)
 					.replace(/\r?\n$/ms, '')
 					.split(/\n/).length,
 			);
-		} catch (_) {
-			// console.error('`lineCount()`: error happened');
+		} catch (_error) {
+			console.error('`lineCount()`: error happened', { _error, filePath, resolvedFilePath });
 			// cache negative count as an error signal
-			testFilePathLineCounts.set(filePath, -1);
+			testFilePathLineCounts.set(resolvedFilePath, -1);
 		}
 	}
-	const count = testFilePathLineCounts.get(filePath);
-	// console.error('`lineCount()`', { filePath, count });
+	const count = testFilePathLineCounts.get(resolvedFilePath);
 	return count != undefined && count >= 0 ? count : undefined;
 }
 
