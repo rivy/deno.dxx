@@ -63,8 +63,59 @@ test('falseyValues: all values are ANSI and lowercase', () => {
 
 //===
 
+// intoPath()
+import { intoPath } from './$shared.ts';
+
+test('intoPath: undefined result for undefined path input', () => {
+	const path = undefined;
+	const expected = undefined;
+	console.log({ path, expected });
+	const result = intoPath(path);
+	console.log({ result });
+	assertEquals(result, expected, 'return value should be undefined');
+});
+
+//===
+
+// intoPlatformPath()
+import { intoPlatformPath } from './$shared.ts';
+
+test('intoPlatformPath: undefined result for undefined path input', () => {
+	const path = undefined;
+	const expected = undefined;
+	console.log({ path, expected });
+	const result = intoPlatformPath(path);
+	console.log({ result });
+	assertEquals(result, expected, 'return value should be undefined');
+});
+
+//===
+
+// intoURL()
+import { intoURL } from './$shared.ts';
+
+test('intoURL: undefined result for undefined path input', () => {
+	const path = undefined;
+	const expected = undefined;
+	console.log({ path, expected });
+	const result = intoURL(path);
+	console.log({ result });
+	assertEquals(result, expected, 'return value should be undefined');
+});
+
+//===
+
 // pathIntoURL()
 import { pathIntoURL } from './$shared.ts';
+
+test('pathIntoURL: undefined result for undefined path input', () => {
+	const path = undefined;
+	const expected = undefined;
+	console.log({ path, expected });
+	const result = pathIntoURL(path);
+	console.log({ result });
+	assertEquals(result, expected, 'return value should be undefined');
+});
 
 test('pathIntoURL: valid file path', () => {
 	const path = 'C:\\Users\\Morpheus\\file.ext';
