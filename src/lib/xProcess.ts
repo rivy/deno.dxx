@@ -54,7 +54,7 @@ const execPathExtensions = isWinOS
 // *note*: any non-standalone process is considered a "deno-like" runner (eg, in the form `<runner> <options..> eval/run <options..> script_name <script_options..>`)
 // *note*: using a runner with a different, unexpected name may still lead to unexpected argument parsing results
 const denoRunnerNameReS = '^deno(?:[.]exe)?$';
-const possibleDenoRunnerNameReS = '^deno(?:[.-].*)*(?:[.]com|com)?$';
+const possibleDenoRunnerNameReS = '^deno(?:[-.].*)*(?:[.]com|[.]exe)?$';
 const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]m?[jt]s$`;
 const enhancedShellRx = new RegExp('[\\/][^\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
 const removableExtensions = (execPathExtensions ?? []).concat(
