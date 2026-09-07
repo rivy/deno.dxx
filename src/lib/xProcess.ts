@@ -100,10 +100,10 @@ export const possibleDenoRunner =
 	likelyIsDenoRunner ||
 	!!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
 
-/** * process was invoked by direct execution */
+/** * process was invoked by direct execution (*not* a runner, eg, `ME_EXE [ME_ARGS]..` *not* `RUNNER [RUNNER_OPTIONS] ME [ME_ARGS]`) */
 export const isDirectExecution =
 	likelyIsStandalone; /* || (denoExecPath ? !$path.basename(denoExecPath).match(runnerNameReS) : undefined) */
-/** * process was invoked as an eval script (eg, `deno eval ...`) */
+/** * process was invoked as an eval script (eg, `deno [DENO_OPTIONS] eval [DENO_EVAL_OPTIONS] ME_SCRIPT_CODE [ME_ARGS]`) */
 export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : undefined;
 
 //===
@@ -125,6 +125,7 @@ export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : u
 
 /** * summary of information transmitted by 'shim'-executable initiating the main script, when available */
 export const shim = await (async () => {
+	// deconstruct/parse SHIM into `parts`
 	const parts: {
 		/** * path/URL-string of script targeted by shim */
 		TARGET?: string;
@@ -219,8 +220,8 @@ export const shim = await (async () => {
 		// #2 - split on `Deno.mainModule` match to <script_name> (works for run; eval is not working)
 		// skip one non-option (run), then take the first non-option matching Deno.mainModule
 		// eval is unfortunately non-deterministic because its options can have arbitrary arguments which makes finding the eval code difficult
-		// ? heuristic? ~ skip a non-option for all known runner options that take mandatory options but don't include an = in the option string?
-		//    ... currently, its [ --cert, --conditions, -c / --config, --cpu-prof-dir, --cpu-prof-name, --ext, --location, --preload, --require, --seed, --import-map, --lock ]
+		// ? heuristic? ~ skip a non-option for all known runner options that take *mandatory* options but don't include an = in the option string?
+		//    ... currently, as of [2026-09; deno-v2.9.6] it is [-L / --loglevel] + [ --cert, --conditions, -c / --config, --conditions, --cpu-prof-dir, --cpu-prof-name, --ext, --inspect-publish-uid, --location, --min-dep-age, --nodes-module-linker, --preload, --require, --seed, --import-map, --lock ]
 		//    ... can add to this list as versions come along; maint but not impossible
 		//    ... can assume that any option mentioned that has an `=` will include its argument in the same token with possible surrounding double quotes (Deno wouldn't understand single quotes)
 		//    ... o/w if the option matches, add one to the minimum non-options skipped
