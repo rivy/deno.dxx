@@ -226,10 +226,30 @@ export const shim = await (async () => {
 		//    ... can assume that any option mentioned that has an `=` will include its argument in the same token with possible surrounding double quotes (Deno wouldn't understand single quotes)
 		//    ... o/w if the option matches, add one to the minimum non-options skipped
 		//    ... can just do the extended stuff for any known eval, which is easy to check?
+		const optionsWithMandatoryArguments = new Set([
+			'-L',
+			'--log-level',
+			'--cert',
+			'--conditions',
+			'-c',
+			'--config',
+			'--cpu-prof-dir',
+			'--cpu-prof-name',
+			'--ext',
+			'--inspect-publish-uid',
+			'--location',
+			'--min-dep-age',
+			'--node-modules-linker',
+			'--preload',
+			'--require',
+			'--seed',
+			'--import-map',
+		]);
 		const mainModulePath = pathIntoURL(Deno.mainModule);
 		if (mainModulePath?.href != null) {
 			let idx = 0;
 			let nonOptionN = 0;
+			let nonOptionNToSkip = 1; // the `run` or `eval` subcommand
 			let foundEndOfOptions = false;
 			for (const word of words) {
 				idx++;
@@ -238,8 +258,15 @@ export const shim = await (async () => {
 					foundEndOfOptions = true;
 					continue;
 				}
+				if (
+					!foundEndOfOptions &&
+					deQuotedWord != null &&
+					optionsWithMandatoryArguments.has(deQuotedWord)
+				) {
+					nonOptionNToSkip++;
+				}
 				if (foundEndOfOptions || !deQuotedWord?.startsWith('-')) nonOptionN++;
-				if (nonOptionN > 1) {
+				if (nonOptionN > nonOptionNToSkip) {
 					if (pathEquivalent(mainModulePath.href, deQuotedWord)) {
 						parts.runner = words.slice(0, 1)[0];
 						parts.runnerArgs = words.slice(1, idx - 1);
