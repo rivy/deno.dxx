@@ -54,7 +54,7 @@ const execPathExtensions = isWinOS
 // *note*: any non-standalone process is considered a "deno-like" runner (eg, in the form `<runner> <options..> eval/run <options..> script_name <script_options..>`)
 // *note*: using a runner with a different, unexpected name may still lead to unexpected argument parsing results
 const denoRunnerNameReS = '^deno(?:[.]exe)?$';
-const possibleDenoRunnerNameReS = '^deno(?:[-.].*)*(?:[.]com|[.]exe)?$';
+const possibleDenoRunnerNameReS = '^deno(?:[-.].)?.*$';
 const isDenoEvalReS = `${$path.SEP_PATTERN.source}[$]deno[$]eval[.]m?[jt]s$`;
 const enhancedShellRx = new RegExp('[\\/][^\\/]*?sh$', 'ms'); // (sh, bash, dash, ...)
 const removableExtensions = (execPathExtensions ?? []).concat(
@@ -69,19 +69,19 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 	'.deno.ts',
 );
 // *
-// `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
+/** * process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (directly, via `Deno.args()`) */
 const underEnhancedShell =
 	(((await envAsync('SHELL')) || '').match(enhancedShellRx) || []).length > 0;
 
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
-const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_'];
-const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC'];
+const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_']; // legacy "DENO_SHIM_"
+const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC']; // legacy "URL", "ARGV", "ARGV0" (future removal of "EXEC"?)
 
 //===
 
-/** * process appears to have been invoked from a compiled standalone binary executable (note: moderately fragile) */
+/** * process appears to have been invoked from a compiled standalone executable (*not* using a runner; note: moderately fragile) */
 // ... seems correct up to Deno-v2.1.6 (2025-01-21 ~ ToDO: verify)
 // ref: [deno ~ Runtime API for 'standalone'](https://github.com/denoland/deno/issues/15996) @@ <https://archive.is/Sooka>
 // ref: [SO ~ [deno] Determine if compiled](https://stackoverflow.com/questions/76647896/determine-if-running-uncompiled-ts-script-or-compiled-deno-executa> @@ <https://archive.is/g7xws>
@@ -100,7 +100,7 @@ export const possibleDenoRunner =
 	likelyIsDenoRunner ||
 	!!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
 
-/** * process was invoked by direct execution (*not* a runner, eg, `ME_EXE [ME_ARGS]..` *not* `RUNNER [RUNNER_OPTIONS] ME [ME_ARGS]`) */
+/** * process was invoked by direct execution (*not* a runner, eg, `ME_EXE [ME_ARGS]..` *not* `RUNNER [RUNNER_ARGS/OPTIONS..] ME [ME_ARGS]`) */
 export const isDirectExecution =
 	likelyIsStandalone; /* || (denoExecPath ? !$path.basename(denoExecPath).match(runnerNameReS) : undefined) */
 /** * process was invoked as an eval script (eg, `deno [DENO_OPTIONS] eval [DENO_EVAL_OPTIONS] ME_SCRIPT_CODE [ME_ARGS]`) */
@@ -109,7 +109,107 @@ export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : u
 //===
 
 // NOTE: when multiple sources of process information are available, enhanced-shim supplied information is given priority
-// * enhanced-shim supplied data will generally have the most accurate/cleanest information, especially the best `argv0`
+// * enhanced-shim supplied data will generally have the most accurate/cleanest information, especially the best `arg0`
+
+//===
+
+const runnerEvalOrRun = new Set(['eval', 'run']);
+// ## maint: will require ongoing maintenance for keep up with Deno version changes
+const runnerAllOptionsWithMandatoryArguments = new Set([
+	// ## * current as of Deno-v2.9.6
+	// `deno`
+	'-L',
+	'--log-level',
+	// `deno [eval|run]`
+	'--cert',
+	'--conditions',
+	'-c',
+	'--config',
+	'--cpu-prof-dir',
+	'--cpu-prof-name',
+	'--ext',
+	'--import-map',
+	'--inspect-publish-uid',
+	'--location',
+	'--lock',
+	'--min-dep-age',
+	'--node-modules-linker',
+	'--preload',
+	'--require',
+	'--seed',
+]);
+const runnerShortOptionsWithMandatoryArguments = [...runnerAllOptionsWithMandatoryArguments]
+	.filter((option) => /^-[^-]$/.test(option))
+	.map((option) => option[1])
+	.join('');
+// * `deno` option arguments, when attached to option will always be in the form -...X[=]OPT_ARG... (always the last part of the option and always uses = or nothing [never :]; eg, '-AL=info' or '-Linfo') // spell-checker:ignore Linfo
+const runnerShortOptionWithMandatoryArgumentRe = new RegExp(
+	`^-[^${runnerShortOptionsWithMandatoryArguments}-]*[${runnerShortOptionsWithMandatoryArguments}]$`,
+);
+
+const runnerPartsFromWords = (words: string[]) => {
+	// ... use an heuristic to split <runner> <runner_options> <script_name> <script_options>
+	// ... assume execution in `deno` style as `<runner>` + `<options..> [eval/run] <options..> script_code/script_name <script_options..>`
+
+	// #2 - split on `Deno.mainModule` match to <script_name> (works for run; eval is not working)
+	// skip one non-option (run), then take the first non-option matching Deno.mainModule
+	// eval is unfortunately non-deterministic because its options can have arbitrary arguments which makes finding the eval code difficult
+	// ? heuristic? ~ skip a non-option for all known runner options that take *mandatory* options but don't include an = in the option string?
+	//    ... currently, as of [2026-09; deno-v2.9.6] it is [-L / --loglevel] + [ --cert, --conditions, -c / --config, --conditions, --cpu-prof-dir, --cpu-prof-name, --ext, --inspect-publish-uid, --location, --min-dep-age, --nodes-module-linker, --preload, --require, --seed, --import-map, --lock ]
+	//    ... can add to this list as versions come along; maint but not impossible
+	//    ... can assume that any option mentioned that has an `=` will include its argument in the same token with possible surrounding double quotes (Deno wouldn't understand single quotes)
+	//    ... o/w if the option matches, add one to the minimum non-options skipped
+	//    ... can just do the extended stuff for any known eval, which is easy to check?
+	const parts: {
+		runner?: string;
+		runnerArgs?: string[];
+		scriptName?: string;
+		scriptCode?: string;
+		scriptArgs?: string[];
+	} = {};
+	if (words.length < 1) return parts;
+	const mainModulePath = pathIntoURL(Deno.mainModule);
+	if (mainModulePath?.href == null) return parts;
+	let idx = 0;
+	let nonOptionN = 0;
+	let nonOptionNToSkip = 1; // skip runner
+	let foundEndOfOptions = false;
+	for (const word of words) {
+		idx++;
+		const deQuotedWord = deQuote(word);
+		if (!foundEndOfOptions && deQuotedWord === '--') {
+			foundEndOfOptions = true;
+			continue;
+		}
+		if (
+			!foundEndOfOptions &&
+			deQuotedWord != null &&
+			(runnerEvalOrRun.has(deQuotedWord) ||
+				runnerAllOptionsWithMandatoryArguments.has(deQuotedWord) ||
+				runnerShortOptionWithMandatoryArgumentRe.test(deQuotedWord))
+		) {
+			nonOptionNToSkip++;
+		}
+		if (foundEndOfOptions || !deQuotedWord?.startsWith('-')) nonOptionN++;
+		if (nonOptionN > nonOptionNToSkip) {
+			// console.warn({ idx, nonOptionN, nonOptionNToSkip, deQuotedWord, isEval });
+			if (isEval) {
+				parts.runner = deQuote(words.slice(0, 1)[0]);
+				parts.runnerArgs = words.slice(1, idx - 1);
+				parts.scriptCode = deQuotedWord;
+				parts.scriptArgs = words.slice(idx);
+				break;
+			} else if (pathEquivalent(mainModulePath.href, deQuotedWord)) {
+				parts.runner = deQuote(words.slice(0, 1)[0]);
+				parts.runnerArgs = words.slice(1, idx - 1);
+				parts.scriptName = words.slice(idx - 1, idx)[0];
+				parts.scriptArgs = words.slice(idx);
+				break;
+			}
+		}
+	}
+	return parts;
+};
 
 //===
 
@@ -152,18 +252,18 @@ export const shim = await (async () => {
 	} = {};
 	parts.TARGET =
 		(await envAsync('SHIM_TARGET')) ||
-		(await envAsync('SHIM_URL')) ||
-		(await envAsync('DENO_SHIM_URL'));
+		(await envAsync('SHIM_URL' /* legacy */)) ||
+		(await envAsync('DENO_SHIM_URL' /* legacy */));
 	parts.ARG0 =
 		(await envAsync('SHIM_ARG0')) ??
-		(await envAsync('SHIM_ARGV0')) ??
-		(await envAsync('DENO_SHIM_ARG0'));
+		(await envAsync('SHIM_ARGV0' /* legacy */)) ??
+		(await envAsync('DENO_SHIM_ARG0' /* legacy */));
 	parts.ARGS =
 		(await envAsync('SHIM_ARGS')) ??
-		(await envAsync('SHIM_ARGV')) ??
-		(await envAsync('DENO_SHIM_ARGS'));
-	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
-	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC'));
+		(await envAsync('SHIM_ARGV' /* legacy */)) ??
+		(await envAsync('DENO_SHIM_ARGS' /* legacy */));
+	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE' /* legacy */));
+	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC' /* legacy */));
 	//
 	parts.runner = undefined;
 	parts.runnerArgs = undefined;
@@ -172,111 +272,20 @@ export const shim = await (async () => {
 	parts.scriptArgs = undefined;
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
 	if (
-		/* aka `isEnhancedShimTarget` */
+		/* aka `isShimTarget` */
 		parts.targetURL &&
 		pathEquivalent(parts.targetURL, denoMainModule)
 	) {
 		// shim is targeting current process
-		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an enhanced shim
+		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an shim
 		parts.runner = parts.ARG0;
 		parts.runnerArgs = [];
 	} else if (parts.targetURL && pathEquivalent(parts.targetURL, denoExecPath)) {
 		// shim is targeting runner
-		// ... use an heuristic to split <runner> <runner_options> <script_name> <script_options>
-		// ... assume execution in `deno` style as `<runner>` + `<options..> eval/run <options..> script_name <script_options..>`
-		// FixME: [2026-08-18] revise to break on "script_name" by using Deno.mainModule
-		//    ... `deno run ...` has several options with mandatory option_arguments which will appear as non-options to this heuristic and break it
-		//    ... currently, its [ --cert, --conditions, -c / --config, --cpu-prof-dir, --cpu-prof-name, --ext, --location, --preload, --require, --seed, --import-map, --lock ]
-		//    ... these options can be used with = (eg --cert=...) to appear as a single option, but chasing these over versions is a losing proposition
-		//    ... will need to add tests
-		// ... add warning that runner needs to have deterministic options (only no argument or OPT="OPT_ARG" / "OPT=OPT_ARG"; OPT OPT_ARG becomes impossible to correctly parse CLI arguments)
-		// ... two heuristics are possible; `RUNNER RUNNER_OPTS run SCRIPT_NAME SCRIPT_ARGS` ... skip one non-option (run), then take the first non-option matching Deno.mainModule (can add additional heuristic looking for mandatory options with/without 'OPT=' in the option to add more non-options to skip)
-		// ... eval will need the second heuristic (using only "OPT=...") as the code can't be searched for in the way that the SCRIPT name can
-		// ... NOTE: *could all be avoided* if the RUNNER would just offer the raw(-ish) command line left over after parsing it's own options out of the string
-		// ... discuss the issue that `deno install ...` creates a WinOS shim with `deno --config CONFIG_FILE ...` (only? when installing from local DIR) causing great difficulty in parsing the ARGS for the TARGET script
 		if (!parts.ARGS) parts.runner = parts.ARG0;
 		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
-		// let idx = 0;
-		// // #1 - find and use *second* non-option in ARGS as script name ; !! broken for command lines with separate option_arguments
-		// let nonOptionN = 0;
-		// for (const word of words) {
-		// 	idx++;
-		// 	if (!deQuote(word)?.startsWith('-')) nonOptionN++;
-		// 	if (nonOptionN > 1) {
-		// 		parts.runner = parts.ARG0;
-		// 		parts.runnerArgs = words.slice(0, idx - 1);
-		// 		if (isEval) {
-		// 			parts.scriptName = '$deno$eval';
-		// 			parts.scriptCode = words.slice(idx - 1, idx)[0];
-		// 		} else {
-		// 			parts.scriptName = words.slice(idx - 1, idx)[0];
-		// 			parts.scriptCode = undefined;
-		// 		}
-		// 		parts.scriptArgs = words.slice(idx);
-		// 		break;
-		// 	}
-		// }
-
-		// #2 - split on `Deno.mainModule` match to <script_name> (works for run; eval is not working)
-		// skip one non-option (run), then take the first non-option matching Deno.mainModule
-		// eval is unfortunately non-deterministic because its options can have arbitrary arguments which makes finding the eval code difficult
-		// ? heuristic? ~ skip a non-option for all known runner options that take *mandatory* options but don't include an = in the option string?
-		//    ... currently, as of [2026-09; deno-v2.9.6] it is [-L / --loglevel] + [ --cert, --conditions, -c / --config, --conditions, --cpu-prof-dir, --cpu-prof-name, --ext, --inspect-publish-uid, --location, --min-dep-age, --nodes-module-linker, --preload, --require, --seed, --import-map, --lock ]
-		//    ... can add to this list as versions come along; maint but not impossible
-		//    ... can assume that any option mentioned that has an `=` will include its argument in the same token with possible surrounding double quotes (Deno wouldn't understand single quotes)
-		//    ... o/w if the option matches, add one to the minimum non-options skipped
-		//    ... can just do the extended stuff for any known eval, which is easy to check?
-		const optionsWithMandatoryArguments = new Set([
-			'-L',
-			'--log-level',
-			'--cert',
-			'--conditions',
-			'-c',
-			'--config',
-			'--cpu-prof-dir',
-			'--cpu-prof-name',
-			'--ext',
-			'--inspect-publish-uid',
-			'--location',
-			'--min-dep-age',
-			'--node-modules-linker',
-			'--preload',
-			'--require',
-			'--seed',
-			'--import-map',
-		]);
-		const mainModulePath = pathIntoURL(Deno.mainModule);
-		if (mainModulePath?.href != null) {
-			let idx = 0;
-			let nonOptionN = 0;
-			let nonOptionNToSkip = 1; // the `run` or `eval` subcommand
-			let foundEndOfOptions = false;
-			for (const word of words) {
-				idx++;
-				const deQuotedWord = deQuote(word);
-				if (!foundEndOfOptions && deQuotedWord === '--') {
-					foundEndOfOptions = true;
-					continue;
-				}
-				if (
-					!foundEndOfOptions &&
-					deQuotedWord != null &&
-					optionsWithMandatoryArguments.has(deQuotedWord)
-				) {
-					nonOptionNToSkip++;
-				}
-				if (foundEndOfOptions || !deQuotedWord?.startsWith('-')) nonOptionN++;
-				if (nonOptionN > nonOptionNToSkip) {
-					if (pathEquivalent(mainModulePath.href, deQuotedWord)) {
-						parts.runner = words.slice(0, 1)[0];
-						parts.runnerArgs = words.slice(1, idx - 1);
-						parts.scriptName = words.slice(idx - 1, idx)[0];
-						parts.scriptArgs = words.slice(idx);
-						break;
-					}
-				}
-			}
-		}
+		// determine parts using heuristic function `runnerPartsFromWords()`
+		Object.assign(parts, runnerPartsFromWords(words));
 	}
 	return parts;
 })();
@@ -297,7 +306,8 @@ await Promise.all(
 
 //===
 
-export const isEnhancedShimTarget =
+/** * process has info supplied by shim (via SHIM_...) */
+export const isShimTarget =
 	(shim.targetURL &&
 		(pathEquivalent(shim.targetURL, denoMainModule) ||
 			(pathEquivalent(shim.targetURL, denoExecPath) &&
@@ -328,64 +338,24 @@ export const commandLineParts = (() => {
 		parts.scriptCode = undefined;
 		parts.scriptArgs = words.slice(1);
 	} else {
-		// FixME: [2028-08-18] ... basic heuristic breaks because of confusion with 'free' option arguments
-		// // o/w assume execution in `deno` style as `<runner> <options..> eval/run <options..> script_name <script_options..>`
-		// // * so, find *third* non-option
-		// let idx = 0;
-		// let nonOptionN = 0;
-		// let foundEndOfOptions = false;
-		// for (const word of words) {
-		// 	idx++;
-		// 	if (deQuote(word) === '--') {
-		// 		foundEndOfOptions = true;
-		// 		continue;
-		// 	}
-		// 	if (foundEndOfOptions || !deQuote(word)?.startsWith('-')) nonOptionN++;
-		// 	if (nonOptionN > 2) {
-		// 		parts.runner = words.slice(0, 1)[0];
-		// 		parts.runnerArgs = words.slice(1, idx - 1);
-		// 		parts.scriptName = words.slice(idx - 1, idx)[0];
-		// 		parts.scriptArgs = words.slice(idx);
-		// 		break;
-		// 	}
-		// }
-
-		// ...
-
-		// skip two non-options (runner, eval/run), then take the first non-option matching Deno.mainModule
-		const mainModulePath = pathIntoURL(Deno.mainModule);
-		if (mainModulePath?.href != null) {
-			let idx = 0;
-			let nonOptionN = 0;
-			let foundEndOfOptions = false;
-			for (const word of words) {
-				idx++;
-				const deQuotedWord = deQuote(word);
-				if (!foundEndOfOptions && deQuotedWord === '--') {
-					foundEndOfOptions = true;
-					continue;
-				}
-				if (foundEndOfOptions || !deQuote(word)?.startsWith('-')) nonOptionN++;
-				if (nonOptionN > 2) {
-					if (pathEquivalent(mainModulePath.href, deQuotedWord)) {
-						parts.runner = words.slice(0, 1)[0];
-						parts.runnerArgs = words.slice(1, idx - 1);
-						parts.scriptName = words.slice(idx - 1, idx)[0];
-						parts.scriptArgs = words.slice(idx);
-						break;
-					}
-				}
-			}
-		}
+		// o/w use heuristic function `runnerPartsFromWords()`
+		Object.assign(parts, runnerPartsFromWords(words));
 	}
 	return parts;
 })();
 
 //===
 
+export const isCommandLineRunnerShimTarget =
+	commandLineParts.runner != null &&
+	shim.TARGET != null &&
+	pathEquivalent(deQuote(commandLineParts.runner), deQuote(shim.TARGET));
+
+//===
+
 /** * path string of main script file (best guess from all available sources) */
 export const pathURL =
-	(isEnhancedShimTarget ? intoURL(deQuote(shim.scriptName))?.href : undefined) ??
+	(isShimTarget ? intoURL(deQuote(shim.scriptName))?.href : undefined) ??
 	(isDirectExecution
 		? denoExecPath
 		: (intoURL(deQuote(commandLineParts.scriptName))?.href ?? denoMainModule));
@@ -428,19 +398,29 @@ if (!isWinOS && name != null && permittedRun && shim.runner === (await commandVO
 
 /** * executable text string which initiated/invoked execution of the current process */
 export const argv0 =
-	(isEnhancedShimTarget ? shim.runner : undefined) ?? commandLineParts.runner ?? denoExecPath;
+	(isShimTarget ? shim.runner : undefined) ?? commandLineParts.runner ?? denoExecPath;
 /** * runner specific command line options */
 export const execArgv = [
-	...((isEnhancedShimTarget ? shim.runnerArgs : undefined) ?? commandLineParts.runnerArgs ?? []),
+	...((isShimTarget ? shim.runnerArgs : undefined) ?? commandLineParts.runnerArgs ?? []),
 ];
+
+// console.warn({
+// 	isShimTarget,
+// 	SHIM_runner: shim.runner,
+// 	CMD_runner: commandLineParts.runner,
+// 	SHIM_TARGET: shim.TARGET,
+// 	CMD_runner_URL: intoURL(commandLineParts.runner),
+// 	SHIM_TARGET_URL: intoURL(shim.TARGET),
+// 	pathEquivalent: pathEquivalent(deQuote(commandLineParts.runner), deQuote(shim.TARGET)),
+// });
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs =
-	isEnhancedShimTarget && shim.runner
+	isShimTarget && shim.runner
 		? [shim.runner, ...(shim.runnerArgs ?? []), shim.scriptName].filter(Boolean).join(' ')
 		: commandLineParts.runner
 			? [
-					commandLineParts.runner,
+					(isCommandLineRunnerShimTarget ? shim.ARG0 : undefined) ?? commandLineParts.runner,
 					...(commandLineParts.runnerArgs ?? []),
 					commandLineParts.scriptName,
 				]
@@ -466,7 +446,7 @@ export const runAs =
 
 /** * calculated or supplied `argv0` is available for interpretation/expansion */
 export const haveSuppliedArgv0 = Boolean(
-	(isEnhancedShimTarget && shim.ARG0) || commandLineParts.runner || isDirectExecution,
+	(isShimTarget && shim.ARG0) || commandLineParts.runner || isDirectExecution,
 );
 
 /** * shim supplies enhanced arguments */
@@ -477,7 +457,7 @@ export const haveEnhancedShimArgs = Boolean(
 // ref: [🐛/🙏🏻? ~ CLI apps need original command line (WinOS)](https://github.com/denoland/deno/issues/9871)
 /** * raw arguments are available for interpretation/expansion OR an "advanced" runner/shell is assumed to have already done correct argument expansion */
 export const haveEnhancedArgs = Boolean(
-	isEnhancedShimTarget || haveEnhancedShimArgs || commandLine || underEnhancedShell,
+	isShimTarget || haveEnhancedShimArgs || commandLine || underEnhancedShell,
 );
 /** impaired '$0' and/or argument resolution, ie:
 - process name (eg, '$0') is not supplied and must be determined heuristically
@@ -487,6 +467,7 @@ export const impaired = isWinOS
 	? !(haveEnhancedArgs && haveSuppliedArgv0)
 	: /* POSIX-like */ !haveSuppliedArgv0;
 
+// FixME: add Deno version warnings ... broken before Deno-vM.m.r and for specific versions (eg, Deno-v2.9.6 b/c of `--` regression)
 export const impairedWarningMessage = () => {
 	return impaired
 		? `degraded capacity (faulty ${[
@@ -500,6 +481,7 @@ export const impairedWarningMessage = () => {
 		: undefined;
 };
 
+// ToDO: investigate `msg` argument as override
 export const warnIfImpaired = (
 	writer: (...args: unknown[]) => void = (args) => console.warn(`WARN/[${name}]:`, args),
 ) => {
@@ -513,14 +495,14 @@ export const warnIfImpaired = (
 // ... for use by SHIMs passing args via ENV (max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
 // ... limit to 8kiB as default for limit == true (heuristic)
 
-// ... instead output large SHIM_ARGS to a temporary file (%TEMP%/SHIM_ARGS.{sha1(TARGET_URL)})
+// ... or instead output large SHIM_ARGS to a temporary file (%TEMP%/SHIM_ARGS.{sha1(TARGET_URL)})
 
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return await $args.argsAsync(
 		(() => {
-			if (isEnhancedShimTarget) {
+			if (isShimTarget) {
 				if (shim.scriptArgs != null) {
 					return [...shim.scriptArgs].filter(Boolean);
 				}
@@ -537,7 +519,7 @@ export const argsSync = () => {
 	if (!isWinOS || underEnhancedShell) return [...Deno.args]; // pass-through of `Deno.args` for non-Windows platforms // ToDO: investigate how best to use *readonly* Deno.args
 	return $args.argsSync(
 		(() => {
-			if (isEnhancedShimTarget) {
+			if (isShimTarget) {
 				if (shim.scriptArgs != null) {
 					return [...shim.scriptArgs].filter(Boolean);
 				}

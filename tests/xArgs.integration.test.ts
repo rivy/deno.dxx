@@ -81,6 +81,8 @@ setEnvFromArgs(Deno.args);
 // ToDO: add skip logic for Deno versions < 1.28.0 (which do not support `Deno.Command()`)
 // ToDO: [2023-10-10; rivy] deal with CWD != projectPath
 
+// FixME: [Deno-v2.9.6 breaks use of `--`; see <https://github.com/denoland/deno/issues/36792>] ... add tests for `deno run -A -- script.ts ARGS`, `deno run -A -- script.ts -- ARGS`, `deno -A -- script.ts ARGS`, `deno -A -- script.ts -- ARGS` (and for `deno eval ...`)
+
 const dumbDenoRunner = Deno.execPath(); // use `Deno.execPath()` instead of `deno` to avoid any interposed enhanced shim (with possible associated shimmed environment changes)
 const denoVersion = await haveDenoVersion(dumbDenoRunner);
 const command = dumbDenoRunner;
@@ -96,9 +98,9 @@ const ffiArgs =
 			: versionCompare(denoVersion, '1.13.0') >= 0
 				? ['--allow-ffi', '--unstable']
 				: [];
-let commandArgs: string[] = ['run', '--allow-all', ...ffiArgs, 'eg/args.ts'];
-if (versionCompare(denoVersion, '2.0') >= 0 && commandArgs.includes('--allow-all')) {
-	commandArgs = commandArgs.filter((arg) => !arg.startsWith('--allow-ffi'));
+let commandBaseArgs: string[] = ['run', '--allow-all', ...ffiArgs];
+if (versionCompare(denoVersion, '2.0') >= 0 && commandBaseArgs.includes('--allow-all')) {
+	commandBaseArgs = commandBaseArgs.filter((arg) => !arg.startsWith('--allow-ffi'));
 }
 const exeArgs = [
 	'-l',
@@ -111,7 +113,7 @@ const exeArgs = [
 	`'' 'this that' :'this that': ":'this that':" that"'"s "'that' "`, // single-quoted args and args containing single-quotes
 	// "``", // ToDO [2023-11-04; rivy] add testing for backticks
 ];
-const cliArgs = [...commandArgs, ...exeArgs];
+const cliArgs = [...commandBaseArgs, 'eg/args.ts', ...exeArgs];
 const cliCmd = [command, ...cliArgs].join(' ');
 
 const useCMD = isWinOS && !command.match(/[.](com|exe)$/); // `/[.](com|exe|bat|cmd)$/` also seems to work but might have internal/unknown argument parsing/quoting by `Deno.Command()`

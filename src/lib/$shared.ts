@@ -1154,7 +1154,9 @@ export function pathIntoURL(
 @param options ~ defaults to `{platform: 'host', singleLetterSchemeAsDrive: true}`
 @tags `no-panic`, `no-throw` ; `no-prompt`
 */
-// FixME: ? add urlStringEncoding option; true/'all', 'fileScheme-only', 'fileOrNoScheme-only' (default), 'noScheme-only', false/'none'
+// FixME: ? determine options/rules for how to heuristically determine if a string is a file path and whether to convert such to "x:/..." or "file:///..." URL form for consistency and comparisons
+//    ... * maybe if `singleLetterSchemeAsDrive: true` and matched, convert to 'file:///...' URL (or direct using an option with an unsurprising default)
+// FixME: ? add urlStringEncoding option (need better description); true/'all' (means what?), 'fileScheme-only', 'fileOrNoScheme-only' (default), 'noScheme-only', false/'none'
 // export function intoURL(path?: string, base?: URL, options?: PathAndUrlOptions): URL | undefined;
 // export function intoURL(path?: string, ...args: unknown[]) {
 export function intoURL(
