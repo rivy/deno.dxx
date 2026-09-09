@@ -18,7 +18,7 @@ import {
 	projectURL,
 	permitsSync,
 	toCommonCase,
-	traversal,
+	/* traversal, */
 	pathIntoURL,
 } from './$shared.ts';
 
@@ -73,8 +73,8 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 const underEnhancedShell =
 	(((await envAsync('SHELL')) || '').match(enhancedShellRx) || []).length > 0;
 
-const defaultRunner = 'deno';
-const defaultRunnerArgs = ['run', '-A'];
+// const defaultRunner = 'deno';
+// const defaultRunnerArgs = ['run', '-A'];
 
 const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_']; // legacy "DENO_SHIM_"
 const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC']; // legacy "URL", "ARGV", "ARGV0" (future removal of "EXEC"?)
@@ -213,6 +213,36 @@ const runnerPartsFromWords = (words: string[]) => {
 
 //===
 
+// command line data for current process
+
+/** * process command line, when available */
+export const commandLine = $commandLine.GetCommandLine();
+/** * process command line ~ split into semantic parts */
+export const commandLineParts = (() => {
+	// note: algorithm requires finding non-option words, so final text is a reconstruction instead of verbatim (though it should only differ in whitespace between words, if at all)
+	// * necessary b/c `deno`, which already does this work, doesn't/won't supply the raw args
+	const parts: {
+		runner?: string;
+		runnerArgs?: string[];
+		scriptName?: string;
+		scriptCode?: string;
+		scriptArgs?: string[];
+	} = {};
+	const words = commandLine ? $args.wordSplitCLText(commandLine) : undefined;
+	if (words == null) return parts;
+	if (isDirectExecution) {
+		parts.scriptName = words.slice(0, 1)[0];
+		parts.scriptCode = undefined;
+		parts.scriptArgs = words.slice(1);
+	} else {
+		// o/w use heuristic function `runnerPartsFromWords()`
+		Object.assign(parts, runnerPartsFromWords(words));
+	}
+	return parts;
+})();
+
+//===
+
 // shim-supplied process information
 
 // ... TARGET and ARGS could be avoided if Deno supplies raw argument text or Win32 `GetCommandLine()` is available and full text formatting control of sub-process arguments is enabled
@@ -271,20 +301,20 @@ export const shim = await (async () => {
 	parts.scriptCode = undefined;
 	parts.scriptArgs = undefined;
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
-	if (
-		/* aka `isShimTarget` */
-		parts.targetURL &&
-		pathEquivalent(parts.targetURL, denoMainModule)
-	) {
-		// shim is targeting current process
-		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an shim
-		parts.runner = parts.ARG0;
-		parts.runnerArgs = [];
-	} else if (parts.targetURL && pathEquivalent(parts.targetURL, denoExecPath)) {
-		// shim is targeting runner
-		if (!parts.ARGS) parts.runner = parts.ARG0;
-		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
-		// determine parts using heuristic function `runnerPartsFromWords()`
+	// if (parts.targetURL?.length && pathEquivalent(parts.targetURL, denoMainModule)) {
+	// 	// shim is targeting current process
+	// 	parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an shim
+	// 	parts.runner = parts.ARG0;
+	// 	// parts.runnerArgs = [];
+	// } else if (parts.targetURL?.length && pathEquivalent(parts.targetURL, denoExecPath)) {
+	// 	// shim is targeting runner
+	// 	if (!parts.ARGS) parts.runner = parts.ARG0;
+	// 	const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
+	// 	// determine parts using heuristic function `runnerPartsFromWords()`
+	// 	Object.assign(parts, runnerPartsFromWords(words));
+	// }
+	if (parts.ARG0?.length) {
+		const words = [parts.ARG0, ...(parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [])];
 		Object.assign(parts, runnerPartsFromWords(words));
 	}
 	return parts;
@@ -308,44 +338,13 @@ await Promise.all(
 
 /** * process has info supplied by shim (via SHIM_...) */
 export const isShimTarget =
-	(shim.targetURL &&
+	(shim.targetURL?.length &&
 		(pathEquivalent(shim.targetURL, denoMainModule) ||
 			(pathEquivalent(shim.targetURL, denoExecPath) &&
 				pathEquivalent(shim.scriptName, denoMainModule)))) ||
 	false;
 
-//===
-
-// command line data for current process
-
-/** * process command line, when available */
-export const commandLine = $commandLine.GetCommandLine();
-/** * process command line ~ split into semantic parts */
-export const commandLineParts = (() => {
-	// note: algorithm requires finding non-option words, so final text is a reconstruction instead of verbatim (though it should only differ in whitespace between words, if at all)
-	// * necessary b/c `deno`, which already does this work, doesn't/won't supply the raw args
-	const parts: {
-		runner?: string;
-		runnerArgs?: string[];
-		scriptName?: string;
-		scriptCode?: string;
-		scriptArgs?: string[];
-	} = {};
-	const words = commandLine ? $args.wordSplitCLText(commandLine) : undefined;
-	if (words == null) return parts;
-	if (isDirectExecution) {
-		parts.scriptName = words.slice(0, 1)[0];
-		parts.scriptCode = undefined;
-		parts.scriptArgs = words.slice(1);
-	} else {
-		// o/w use heuristic function `runnerPartsFromWords()`
-		Object.assign(parts, runnerPartsFromWords(words));
-	}
-	return parts;
-})();
-
-//===
-
+/** * shim is targeting command line runner (using SHIM_...) */
 export const isCommandLineRunnerShimTarget =
 	commandLineParts.runner != null &&
 	shim.TARGET != null &&
@@ -416,31 +415,26 @@ export const execArgv = [
 
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs =
-	isShimTarget && shim.runner
-		? [shim.runner, ...(shim.runnerArgs ?? []), shim.scriptName].filter(Boolean).join(' ')
+	(isShimTarget || isCommandLineRunnerShimTarget) && shim.runner
+		? [shim.runner, ...(shim.runnerArgs ?? []), isEval ? shim.scriptCode : shim.scriptName]
+				.filter(Boolean)
+				.map((s) => $args.reQuote(s ?? ''))
+				.join(' ')
 		: commandLineParts.runner
 			? [
-					(isCommandLineRunnerShimTarget ? shim.ARG0 : undefined) ?? commandLineParts.runner,
+					commandLineParts.runner,
 					...(commandLineParts.runnerArgs ?? []),
-					commandLineParts.scriptName,
+					isEval ? commandLineParts.scriptCode : commandLineParts.scriptName,
 				]
 					.filter(Boolean)
+					.map((s) => $args.reQuote(s ?? ''))
 					.join(' ')
 			: isDirectExecution
-				? [commandLineParts.scriptName].filter(Boolean).join(' ')
-				: isEval
-					? [defaultRunner, 'eval', /* ToDO?: find reference to eval text */ '...'].join(' ')
-					: pathURL?.length
-						? [
-								defaultRunner,
-								...defaultRunnerArgs,
-								$args.reQuote(
-									decodeURIComponent(
-										traversal(pathURL || '')?.replace(/^-/, `.${$path.SEP}-`) ?? '',
-									),
-								),
-							].join(' ')
-						: undefined;
+				? [commandLineParts.scriptName]
+						.filter(Boolean)
+						.map((s) => $args.reQuote(s ?? ''))
+						.join(' ')
+				: undefined;
 
 //===
 
