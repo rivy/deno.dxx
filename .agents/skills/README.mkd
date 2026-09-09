@@ -1,0 +1,18 @@
+<!-- spell-checker:ignore () frontmatter subdirectory -->
+
+# Skills
+
+Reusable task recipes, one per subdirectory:
+
+```
+skills/
+  <skill-name>/
+    SKILL.mkd     # frontmatter (name, description) + step-by-step instructions
+    ...           # optional helper scripts / references
+```
+
+Make `description` specific about _when_ to use the skill — that's what an agent matches against. Reference project docs by relative path back to [`../guide.mkd`](../guide.mkd) and [`../architecture.mkd`](../architecture.mkd) instead of duplicating them.
+
+These are plain files, not a tool's native skill feature. An agent uses one because [`../../AGENTS.md`](../../AGENTS.md) tells it to read this directory — so keep each `SKILL.mkd` self-contained and list new ones in the index below.
+
+_No skills defined yet._

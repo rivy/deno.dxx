@@ -1,0 +1,14 @@
+<!-- spell-checker:ignore () frontmatter -->
+
+# Commands
+
+Reusable prompts, one Markdown file each:
+
+```
+commands/
+  <command-name>.mkd     # optional frontmatter + prompt body
+```
+
+Keep commands small and composable; have them defer to [`../guide.mkd`](../guide.mkd) and [`../commits.mkd`](../commits.mkd) for details rather than restating them. List new ones in the index below so an agent reading this directory knows they exist.
+
+_No commands defined yet._
