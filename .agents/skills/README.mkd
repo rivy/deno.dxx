@@ -15,4 +15,6 @@ Make `description` specific about _when_ to use the skill — that's what an age
 
 These are plain files, not a tool's native skill feature. An agent uses one because [`../../AGENTS.md`](../../AGENTS.md) tells it to read this directory — so keep each `SKILL.mkd` self-contained and list new ones in the index below.
 
-_No skills defined yet._
+| Skill                                           | Use for                                                                                                                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`rewrite-commits/`](rewrite-commits/SKILL.mkd) | Rewriting a range of commits (WIP snapshots, one giant commit, ...) into small, single-concern, repo-style commits without changing the range's final tree |

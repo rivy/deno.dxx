@@ -1,0 +1,97 @@
+<!-- spell-checker:ignore () dxx Deno commitlint oneline -->
+
+---
+name: rewrite-commits
+description: Rewrite a range of git commits into small, single-concern commits that follow the repo's commit-message style (see ../../commits.mkd), dropping WIP-style messages, while leaving the range's final tree exactly unchanged. Use when asked to "clean up", "split up", "reword", or "rewrite" a run of commits (often WIP ones) into reviewable history.
+---
+
+# Rewrite commits
+
+Turns a messy run of commits (WIP snapshots, one giant commit, badly-worded history) into a sequence of small, reviewable, well-described commits — without changing what the code at the tip of the range actually does. This is history surgery on **already-authored, working** code; it is not a redesign. If the requested change would alter behavior, stop and ask first.
+
+## 0. Read the style rules
+
+Read [`../../commits.mkd`](../../commits.mkd) (or, in a repo without one, infer the header format/type vocabulary from `git log --oneline -50`) before writing any commit message. Match it exactly — separator, type vocabulary, scope style, body conventions.
+
+## 1. Pin down the range and the goal
+
+- Base commit (exclusive) and tip commit (inclusive) — ask if either is ambiguous.
+- Any explicit constraints the user gave (e.g. "remove WIPs", "small commits", "minimal multi-file changes", "keep it working"). Default to: small, single-concern, minimal-file commits, with no commit left carrying a WIP-style header.
+- The **only** hard invariant unless told otherwise: the tree at the new tip must be byte-for-byte identical to the tree at the old tip. Intermediate commits may reorder/restructure, but the end state does not change.
+
+## 2. Check safety before touching anything
+
+```
+git branch --all --contains <tip>
+git remote -v
+```
+
+If the tip (or any commit in range) is reachable from a `remotes/...` ref, the range is **already published**. Rewriting it locally is fine; force-pushing it is an outward-facing, hard-to-reverse action — do the local rewrite, then report the situation and ask before pushing or moving any branch that tracks that remote. Never push without being asked.
+
+Then, regardless of remote status:
+
+```
+git branch backup/pre-rewrite-<date> <tip>          # safety net, always
+git checkout -b <working-branch-name> <base>         # fresh branch to build on
+```
+
+If HEAD was detached, note that too — after the rewrite you'll need to tell the user there is no branch pointer to move, and ask what to do with it (new branch is usually right).
+
+## 3. Get the authoritative per-file diff — and verify the direction
+
+For each changed file:
+
+```
+git diff <base> <tip> -- <file>
+```
+
+This is base(old, `a`)→tip(new, `b`): `-` lines are only in the old tree, `+` lines are only in the new tree. **This direction is easy to misread, and misreading it silently produces a plausible-looking but backwards patch.** Before trusting any `+`/`-` reading, sanity-check with a direct, unambiguous comparison for at least one distinctive line:
+
+```
+git show <base>:<file> | Select-String '<distinctive text>'
+git show <tip>:<file> | Select-String '<distinctive text>'
+```
+
+If those two don't match your reading of the diff's `+`/`-`, trust the direct comparison, not your first read of the diff. Also watch for `git diff <A> <B>` vs `git diff <A> -- <file>` (working tree, not `<B>`) vs `git diff <A> <B> -- <file>` — always use the fully-specified two-revision form when precision matters, and redo it explicitly if you're ever unsure which side is old and which is new. This mistake is the single most likely way this task goes wrong; slow down here rather than after wiring up several commits on a wrong reading.
+
+Save large diffs to the scratchpad directory and read them with the Read tool rather than scrolling terminal output — get the exact final text (`git show <tip>:<file>`) for anything you'll reproduce verbatim, rather than retyping from a diff view.
+
+## 4. Plan the split
+
+Prefer, in order: one file per commit > one file, one concern per commit > a tightly-coupled multi-file concern as one commit (only when the files are genuinely one deliverable, e.g. a docs scaffold added together). Within a single large, entangled file diff, look for natural seams before treating it as one commit:
+
+- **Pure moves** (a block relocated, unchanged) split cleanly from content changes — do the move first, as its own commit, since independent top-level declarations can usually be reordered with zero behavior change.
+- **Comment/doc-only** hunks split from logic hunks.
+- **Independent constant/regex tweaks** split from the algorithm they're near.
+- A genuinely single rewrite that touches many call sites of one renamed/restructured thing (e.g. a rename plus its ~8 use sites) is still **one** commit — don't fragment a mechanical, all-or-nothing change into pieces that would leave intermediate states half-renamed.
+- Order commits so each one is _plausibly_ independently reasoned-about, and, where practical, independently compilable — not strictly required (the original WIPs likely didn't compile either), but a real improvement over the original when achievable at reasonable effort.
+
+Write the plan down (even just mentally) as an ordered list of `type/scope ~ subject` headers before editing anything.
+
+## 5. Build each commit
+
+For each planned commit, in order:
+
+1. Edit the working tree to that intermediate state. Reproduce target content exactly (copy from the saved diff / `git show <tip>:<file>` output) rather than re-deriving it by hand.
+2. Verify before committing — at minimum the project's type-check/lint (e.g. `deno check`, `deno lint` for a Deno project); run tests too if the commit is a natural checkpoint.
+3. Diff the file against the base commit (`git diff <base> -- <file>`) to confirm the change is exactly what you intended — no stray hunks bleeding in from a later step.
+4. `git add` the specific file(s) for this concern only, then commit with a message in the repo's style, including a `## why` body section whenever the reason isn't obvious from the diff alone.
+
+**If a commit accidentally bundles two concerns** (e.g. you edited ahead before committing), don't try to untangle it in place: `git reset --soft <its-parent>` to un-commit while keeping the working tree, revert just the extra concern's edits back to the intermediate state, commit the first concern, then reapply and commit the second. This is far more reliable than trying to selectively unstage hunks from a file that's already fully edited.
+
+## 6. Verify the end state
+
+```
+git diff --stat <original-tip>       # must be empty — tree-for-tree identical
+deno test -A                          # or the project's full test/style gate
+```
+
+Both must be clean before calling the rewrite done. If the tree doesn't match, find the drifted file with `git diff <original-tip> -- <path>` and fix it — don't leave a silent behavior change.
+
+## 7. Report and hand off
+
+Summarize the new commit list (`git log --oneline <base>..HEAD`), confirm the tree/test check passed, and:
+
+- If nothing was published (no remote contained the old tip): explain that the working branch is ready, and ask whether to fast-forward/replace the branch the user was on.
+- If the old tip _was_ published to a remote branch: say so explicitly, and ask before force- pushing or moving any branch — never do it on your own judgment.
+- If HEAD was detached before you started: say that too, and ask what branch name (if any) they want for the result.
