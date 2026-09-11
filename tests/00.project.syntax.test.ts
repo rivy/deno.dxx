@@ -222,7 +222,7 @@ test(`syntax ~ all libs are *no-panic* (${projectCodeFilesByKind.libs.length} fo
 	console.log({ files });
 
 	const flawedFilesPromises = files.map(async (file) => {
-		const cmd = [denoCommand, 'run', '--no-prompt', '--', file];
+		const cmd = [denoCommand, 'run', '--no-prompt', file];
 		// console.debug({ cmd });
 		const p = Deprecated.Deno.run({ cmd, stdin: 'null', stdout: 'piped', stderr: 'piped' });
 		const [status, out, err] = await Promise.all([
