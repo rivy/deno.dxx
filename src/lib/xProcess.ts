@@ -18,7 +18,7 @@ import {
 	projectURL,
 	permitsSync,
 	toCommonCase,
-	traversal,
+	/* traversal, */
 	pathIntoURL,
 } from './$shared.ts';
 
@@ -73,8 +73,8 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 const underEnhancedShell =
 	(((await envAsync('SHELL')) || '').match(enhancedShellRx) || []).length > 0;
 
-const defaultRunner = 'deno';
-const defaultRunnerArgs = ['run', '-A'];
+// const defaultRunner = 'deno';
+// const defaultRunnerArgs = ['run', '-A'];
 
 // ## Shims & Meta-Shims
 // * a "shim" (ie, adaption layer) is often completely transparent, but an enhanced or "meta"-shim supplies information to a target process via environment vars
@@ -397,33 +397,38 @@ export const execArgv = [
 	...((isShimTarget ? shim.runnerArgs : undefined) ?? commandLineParts.runnerArgs ?? []),
 ];
 
+// console.warn({
+// 	isShimTarget,
+// 	SHIM_runner: shim.runner,
+// 	CMD_runner: commandLineParts.runner,
+// 	SHIM_TARGET: shim.TARGET,
+// 	CMD_runner_URL: intoURL(commandLineParts.runner),
+// 	SHIM_TARGET_URL: intoURL(shim.TARGET),
+// 	pathEquivalent: pathEquivalent(deQuote(commandLineParts.runner), deQuote(shim.TARGET)),
+// });
+
 /** * executable string which can be used to re-run current application; eg, `Deno.run({cmd: [ runAs, ... ]});` */
 export const runAs =
-	isShimTarget && shim.runner
-		? [shim.runner, ...(shim.runnerArgs ?? []), shim.scriptName].filter(Boolean).join(' ')
+	(isShimTarget || isCommandLineRunnerShimTarget) && shim.runner
+		? [shim.runner, ...(shim.runnerArgs ?? []), isEval ? shim.scriptCode : shim.scriptName]
+				.filter(Boolean)
+				.map((s) => $args.reQuote(s ?? ''))
+				.join(' ')
 		: commandLineParts.runner
 			? [
 					commandLineParts.runner,
 					...(commandLineParts.runnerArgs ?? []),
-					commandLineParts.scriptName,
+					isEval ? commandLineParts.scriptCode : commandLineParts.scriptName,
 				]
 					.filter(Boolean)
+					.map((s) => $args.reQuote(s ?? ''))
 					.join(' ')
 			: isDirectExecution
-				? [commandLineParts.scriptName].filter(Boolean).join(' ')
-				: isEval
-					? [defaultRunner, 'eval', /* ToDO?: find reference to eval text */ '...'].join(' ')
-					: pathURL?.length
-						? [
-								defaultRunner,
-								...defaultRunnerArgs,
-								$args.reQuote(
-									decodeURIComponent(
-										traversal(pathURL || '')?.replace(/^-/, `.${$path.SEP}-`) ?? '',
-									),
-								),
-							].join(' ')
-						: undefined;
+				? [commandLineParts.scriptName]
+						.filter(Boolean)
+						.map((s) => $args.reQuote(s ?? ''))
+						.join(' ')
+				: undefined;
 
 //===
 
@@ -450,6 +455,7 @@ export const impaired = isWinOS
 	? !(haveEnhancedArgs && haveSuppliedArgv0)
 	: /* POSIX-like */ !haveSuppliedArgv0;
 
+// FixME: add Deno version warnings ... broken before Deno-vM.m.r and for specific versions (eg, Deno-v2.9.6 b/c of `--` regression)
 export const impairedWarningMessage = () => {
 	return impaired
 		? `degraded capacity (faulty ${[
@@ -463,6 +469,7 @@ export const impairedWarningMessage = () => {
 		: undefined;
 };
 
+// ToDO: investigate `msg` argument as override
 export const warnIfImpaired = (
 	writer: (...args: unknown[]) => void = (args) => console.warn(`WARN/[${name}]:`, args),
 ) => {
@@ -476,7 +483,7 @@ export const warnIfImpaired = (
 // ... for use by SHIMs passing args via ENV (max env space ~32kiB [ref: <https://devblogs.microsoft.com/oldnewthing/20100203-00/?p=15083> @@ <https://archive.is/dMe0P>])
 // ... limit to 8kiB as default for limit == true (heuristic)
 
-// ... instead output large SHIM_ARGS to a temporary file (%TEMP%/SHIM_ARGS.{sha1(TARGET_URL)})
+// ... or instead output large SHIM_ARGS to a temporary file (%TEMP%/SHIM_ARGS.{sha1(TARGET_URL)})
 
 /** * Promise for an array of 'shell'-expanded arguments; simple pass-through of `Deno.args` for non-Windows platforms */
 export const argsAsync = async () => {
