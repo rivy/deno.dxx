@@ -112,6 +112,54 @@ export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : u
 
 //===
 
+// command line data for current process
+
+/** * process command line, when available */
+export const commandLine = $commandLine.GetCommandLine();
+/** * process command line ~ split into semantic parts */
+export const commandLineParts = (() => {
+	// note: algorithm requires finding non-option words, so final text is a reconstruction instead of verbatim (though it should only differ in whitespace between words, if at all)
+	// * necessary b/c `deno`, which already does this work, doesn't/won't supply the raw args
+	const parts: {
+		runner?: string;
+		runnerArgs?: string[];
+		scriptName?: string;
+		scriptCode?: string;
+		scriptArgs?: string[];
+	} = {};
+	const words = commandLine ? $args.wordSplitCLText(commandLine) : undefined;
+	if (words == null) return parts;
+	if (isDirectExecution) {
+		parts.scriptName = words.slice(0, 1)[0];
+		parts.scriptCode = undefined;
+		parts.scriptArgs = words.slice(1);
+	} else {
+		// o/w assume execution in `deno` style as `<runner> <options..> eval/run <options..> script_name <script_options..>`
+		// * so, find *third* non-option
+		let idx = 0;
+		let nonOptionN = 0;
+		let foundEndOfOptions = false;
+		for (const word of words) {
+			idx++;
+			if (deQuote(word) === '--') {
+				foundEndOfOptions = true;
+				continue;
+			}
+			if (foundEndOfOptions || !deQuote(word)?.startsWith('-')) nonOptionN++;
+			if (nonOptionN > 2) {
+				parts.runner = words.slice(0, 1)[0];
+				parts.runnerArgs = words.slice(1, idx - 1);
+				parts.scriptName = words.slice(idx - 1, idx)[0];
+				parts.scriptArgs = words.slice(idx);
+				break;
+			}
+		}
+	}
+	return parts;
+})();
+
+//===
+
 // shim-supplied process information
 
 // ... TARGET and ARGS could be avoided if Deno supplies raw argument text or Win32 `GetCommandLine()` is available and full text formatting control of sub-process arguments is enabled
@@ -230,54 +278,6 @@ export const isEnhancedShimTarget =
 			(pathEquivalent(shim.targetURL, denoExecPath) &&
 				pathEquivalent(shim.scriptName, denoMainModule)))) ||
 	false;
-
-//===
-
-// command line data for current process
-
-/** * process command line, when available */
-export const commandLine = $commandLine.GetCommandLine();
-/** * process command line ~ split into semantic parts */
-export const commandLineParts = (() => {
-	// note: algorithm requires finding non-option words, so final text is a reconstruction instead of verbatim (though it should only differ in whitespace between words, if at all)
-	// * necessary b/c `deno`, which already does this work, doesn't/won't supply the raw args
-	const parts: {
-		runner?: string;
-		runnerArgs?: string[];
-		scriptName?: string;
-		scriptCode?: string;
-		scriptArgs?: string[];
-	} = {};
-	const words = commandLine ? $args.wordSplitCLText(commandLine) : undefined;
-	if (words == null) return parts;
-	if (isDirectExecution) {
-		parts.scriptName = words.slice(0, 1)[0];
-		parts.scriptCode = undefined;
-		parts.scriptArgs = words.slice(1);
-	} else {
-		// o/w assume execution in `deno` style as `<runner> <options..> eval/run <options..> script_name <script_options..>`
-		// * so, find *third* non-option
-		let idx = 0;
-		let nonOptionN = 0;
-		let foundEndOfOptions = false;
-		for (const word of words) {
-			idx++;
-			if (deQuote(word) === '--') {
-				foundEndOfOptions = true;
-				continue;
-			}
-			if (foundEndOfOptions || !deQuote(word)?.startsWith('-')) nonOptionN++;
-			if (nonOptionN > 2) {
-				parts.runner = words.slice(0, 1)[0];
-				parts.runnerArgs = words.slice(1, idx - 1);
-				parts.scriptName = words.slice(idx - 1, idx)[0];
-				parts.scriptArgs = words.slice(idx);
-				break;
-			}
-		}
-	}
-	return parts;
-})();
 
 //===
 
