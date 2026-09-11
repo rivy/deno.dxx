@@ -1,0 +1,16 @@
+<!-- spell-checker:ignore () Deno JSONSchema -->
+
+# Tools
+
+Custom tool / command definitions for agents that support them (MCP servers, agent-runner tool specs, etc.).
+
+Suggested layout:
+
+```
+tools/
+  <tool-name>.ts     # or .js / .mkd manifest, per the target agent's format
+```
+
+Prefer thin wrappers over the project's own scripts in [`../../tools/`](../../tools/) and `deno task` entries rather than reimplementing logic. Document each tool's inputs, outputs, and required Deno permissions at the top of its file, and list it in the index below.
+
+_No custom tools defined yet._

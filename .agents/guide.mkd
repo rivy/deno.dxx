@@ -1,0 +1,65 @@
+<!-- spell-checker:ignore () dxx Deno dprint biome cspell commitlint bmp jsonc semver globstar shim shimmed opencode -->
+
+# Agent guide
+
+## What this project is
+
+`dxx` provides enhanced replacements for common Deno commands plus the `xProcess` support library:
+
+- `dxf` — formatter wrapper (`dprint fmt` when available, else `deno fmt`)
+- `dxi` — installer that writes an enhanced shim (bash-like command-line/brace/glob expansion on Windows, suppresses the "Terminate batch job (Y/N)?" prompt)
+- `dxr` — runner with the same command-line expansion enhancements
+- `dxx` — integrator (WIP)
+- `xProcess` — library that lets scripts recover their true invocation text and expanded args
+
+Details and usage examples are in [`../README.md`](../README.md). Structure is in [`architecture.mkd`](architecture.mkd).
+
+## Setup
+
+- Install Deno (project targets `std@0.134.0`, so Deno >= 1.20.5). Newer Deno is fine for development.
+- No `package.json` / `node_modules`; imports resolve via URL. `deno.lock` is intentionally disabled.
+- Optional dev tools (checked for at test time, skipped if absent): `dprint`, `cspell`, `commitlint`, `bmp`, `madge`.
+- `vendor/` and `node_modules/` are excluded from all tooling — never edit `vendor/`.
+
+## Workflows
+
+| Task                | Command                                                                           |
+| ------------------- | --------------------------------------------------------------------------------- |
+| Run all tests       | `deno test -A`                                                                    |
+| Tests, colorized    | `deno task test`                                                                  |
+| Lint                | `deno lint`                                                                       |
+| Format (write)      | `dprint fmt`                                                                      |
+| Format (check)      | `dprint check`                                                                    |
+| Style + syntax gate | `deno test -A tests/00.project.style.test.ts tests/00.project.syntax.test.ts`     |
+| Coverage            | `deno test -A --coverage=.coverage` then `deno coverage ...` (see `../README.md`) |
+| Release testing     | `deno test -A -- --release`                                                       |
+| Benchmarks          | `dxr bench/bench-parser.ts`                                                       |
+
+Test flags after `--` (e.g. `--release`, `--test-xxx`) set `TEST_XXX=true` for the run via `setEnvFromArgs`.
+
+## Coding conventions
+
+Formatting is enforced by `dprint` (config in [`../.dprint.json`](../.dprint.json)) — always run `dprint fmt` before committing. Key choices:
+
+- Tabs for indentation, width 2; line width 100
+- Single quotes; semicolons; trailing commas only on multi-line
+- Imports/exports sorted case-insensitively
+- LF newlines, final newline required, no trailing whitespace, no UTF-8 BOM (the style test fails otherwise)
+
+Other norms visible in the codebase:
+
+- Shared/internal modules are prefixed with `$` (e.g. `$deps.ts`, `$shared.ts`, `$mod.ts`)
+- Deno standard library is re-exported through `$deps.ts` files rather than imported directly elsewhere
+- Add `<!-- spell-checker:ignore ... -->` / `// spell-checker:ignore ...` lines for new proper nouns and jargon so `cspell` passes
+- Keep code cross-platform; guard OS-specific behavior with `isWinOS` and platform path helpers
+
+## Commit conventions
+
+Full rules and examples: [`commits.mkd`](commits.mkd). In short: `type[/scope] ~ imperative subject` (note the `~` separator), lowercase type from the `feat` / `fix` / `change` / `refactor` / `perf` / `docs` / `test` / `deps` / `maint` set, header ≤ 90 chars, add a `## why` body section for non-obvious changes. `commitlint` validates every commit as part of the style test.
+
+## Gotchas
+
+- The repo currently has WIP commits and two scratch files (`t-em.ts`, `t-mm.ts`) at root — confirm intent before touching them.
+- `deno.lock` is disabled by design; don't re-enable it.
+- Console-size / TTY integration tests can't get a real TTY in CI and are handled specially — don't assume failures there are your change.
+- `dprint`'s markdown plugin reformats prose to single lines (`textWrap: always`, huge line width); expect that when you run `dprint fmt`.

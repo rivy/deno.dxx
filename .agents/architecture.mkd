@@ -1,0 +1,46 @@
+<!-- spell-checker:ignore () dxx Deno FFI shim shimmed jsonc runtimes globstar -->
+
+# Architecture
+
+## Top-level layout
+
+| Path                                | Contents                                                            |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `src/`                              | The `dx*` command entry points (`dxf.ts`, `dxi.ts`, `dxr.ts`)       |
+| `src/lib/`                          | `xProcess` and supporting library modules                           |
+| `tests/`                            | `deno test` suites; `00.project.*.test.ts` are the CI project gates |
+| `tests/fixtures/`, `tests/helpers/` | Test data and helpers                                               |
+| `eg/`                               | Example scripts (with and without `xProcess`) for manual comparison |
+| `bench/`                            | Benchmarks (run via `dxr`)                                          |
+| `tools/`                            | Maintenance scripts, incl. shim-revision prototypes                 |
+| `vendor/`                           | Vendored dependencies — do not edit                                 |
+| `.changelog/`                       | `git-changelog` templates                                           |
+| `.tasks/`                           | Scripts backing `deno task` entries                                 |
+
+## `dx*` commands (`src/`)
+
+- `dxf.ts` — detects `dprint` + config in the project root; runs `dprint fmt`, otherwise `deno fmt`.
+- `dxi.ts` — installs a script with an enhanced shim; shim adds bash-like arg/brace/glob expansion on Windows and blocks the batch-interrupt prompt.
+- `dxr.ts` — runs a target script applying the same expansion while preserving quote semantics; also improves `$0`/`%0` for `xProcess` scripts.
+- `dxx.ts` — integrator, WIP.
+
+## Key `src/lib/` modules
+
+| Module                                   | Role                                                       |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| `xProcess.ts`                            | Main library: recover true invocation text + expanded args |
+| `xArgs.ts`                               | Argument tokenizing / expansion                            |
+| `xBraces.ts`                             | Brace expansion                                            |
+| `xFetch.ts`                              | Fetch helpers                                              |
+| `xWalk.ts`                               | Filesystem walking                                         |
+| `commandLine.ts`                         | Command-line reconstruction (esp. Windows)                 |
+| `shim.windows.ts`                        | Windows shim generation                                    |
+| `consoleSize.ts`, `consoleSizeViaFFI.ts` | Terminal size detection (incl. optional FFI path)          |
+| `restyleYargsHelp.ts`                    | Help-text formatting                                       |
+| `eol.ts`, `utils.ts`                     | Misc helpers                                               |
+| `$deps.ts`, `$deps.cli.ts`               | Central dependency re-exports                              |
+| `$shared.ts`, `$shared.TLA.ts`           | Shared runtime helpers (TLA = top-level await variant)     |
+
+## How the pieces fit
+
+Scripts get enhanced argument handling three ways: (1) run through `dxr`, (2) installed with `dxi`'s enhanced shim, or (3) `--unstable` FFI. `xProcess` reads whichever context is available to present accurate args and invocation text, which also lets `deno compile` produce fully self-contained binaries.
