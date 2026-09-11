@@ -96,9 +96,9 @@ const ffiArgs =
 			: versionCompare(denoVersion, '1.13.0') >= 0
 				? ['--allow-ffi', '--unstable']
 				: [];
-let commandArgs: string[] = ['run', '--allow-all', ...ffiArgs, 'eg/args.ts'];
-if (versionCompare(denoVersion, '2.0') >= 0 && commandArgs.includes('--allow-all')) {
-	commandArgs = commandArgs.filter((arg) => !arg.startsWith('--allow-ffi'));
+let commandBaseArgs: string[] = ['run', '--allow-all', ...ffiArgs];
+if (versionCompare(denoVersion, '2.0') >= 0 && commandBaseArgs.includes('--allow-all')) {
+	commandBaseArgs = commandBaseArgs.filter((arg) => !arg.startsWith('--allow-ffi'));
 }
 const exeArgs = [
 	'-l',
@@ -111,7 +111,7 @@ const exeArgs = [
 	`'' 'this that' :'this that': ":'this that':" that"'"s "'that' "`, // single-quoted args and args containing single-quotes
 	// "``", // ToDO [2023-11-04; rivy] add testing for backticks
 ];
-const cliArgs = [...commandArgs, ...exeArgs];
+const cliArgs = [...commandBaseArgs, 'eg/args.ts', ...exeArgs];
 const cliCmd = [command, ...cliArgs].join(' ');
 
 const useCMD = isWinOS && !command.match(/[.](com|exe)$/); // `/[.](com|exe|bat|cmd)$/` also seems to work but might have internal/unknown argument parsing/quoting by `Deno.Command()`
