@@ -19,6 +19,7 @@ import {
 	permitsSync,
 	toCommonCase,
 	traversal,
+	pathIntoURL,
 } from './$shared.ts';
 
 import * as $commandLine from '../lib/commandLine.ts';
@@ -112,6 +113,103 @@ export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : u
 
 //===
 
+const denoRunnerEvalOrRun = new Set(['eval', 'run']);
+// ## maint: will require ongoing maintenance for keep up with Deno version changes
+const denoRunnerOptionsWithMandatoryArguments = new Set([
+	// ## * current as of Deno-v2.9.6
+	// `deno`
+	'-L',
+	'--log-level',
+	// `deno [eval|run]`
+	'--cert',
+	'--conditions',
+	'-c',
+	'--config',
+	'--cpu-prof-dir',
+	'--cpu-prof-name',
+	'--ext',
+	'--import-map',
+	'--inspect-publish-uid',
+	'--location',
+	'--lock',
+	'--min-dep-age',
+	'--node-modules-linker',
+	'--preload',
+	'--require',
+	'--seed',
+]);
+const denoRunnerShortOptionsWithMandatoryArguments = [...denoRunnerOptionsWithMandatoryArguments]
+	.filter((option) => /^-[^-]$/.test(option))
+	.map((option) => option[1])
+	.join('');
+// * `deno` option arguments, when attached to option will always be in the form -...X[=]OPT_ARG... (always the last part of the option and always uses = or nothing [never :]; eg, '-AL=info' or '-Linfo') // spell-checker:ignore Linfo
+const denoRunnerShortOptionWithMandatoryArgumentRe = new RegExp(
+	`^-[^${denoRunnerShortOptionsWithMandatoryArguments}-]*[${denoRunnerShortOptionsWithMandatoryArguments}]$`,
+);
+
+const denoRunnerPartsFromWords = (words: string[]) => {
+	// ... use an heuristic to categorize words from runner CLI command strings
+	// ... assume execution in `deno` style as `<runner>` + `<options..> [eval/run] <options..> script_code/script_name <script_options..>`
+
+	// heuristic ~ skip an additional non-option for all known runner options that take *mandatory* options but don't include an = in the option string
+	// ... `denoRunnerOptionsWithMandatoryArguments` holds the known special runner options
+	// ... can assume that for any word containing a mentioned option and also has a `=` will include its argument in the same word (with possible surrounding double quotes; [WinOS] Deno wouldn't understand single quotes)
+	// ... o/w if the word contains the option, add one to the minimum non-options skipped
+	// ... SCRIPT_CODE for `eval` is assumed to start with any character except `-` unless is follows `--` (allows scripts like "-1; ...")
+	const parts: {
+		runner?: string;
+		runnerArgs?: string[];
+		scriptName?: string;
+		scriptCode?: string;
+		scriptArgs?: string[];
+	} = {};
+	if (words.length < 1) return parts;
+	const mainModulePath = pathIntoURL(Deno.mainModule);
+	if (mainModulePath?.href == null) return parts;
+	let idx = 0;
+	let nonOptionN = 0;
+	let nonOptionNToSkip = 0;
+	let foundEndOfOptions = false;
+	for (const word of words) {
+		idx++;
+		if (idx === 1) continue; // skip RUNNER (which could start with '-')
+		const deQuotedWord = deQuote(word);
+		if (!foundEndOfOptions && deQuotedWord === '--') {
+			foundEndOfOptions = true;
+			continue;
+		}
+		if (
+			!foundEndOfOptions &&
+			deQuotedWord != null &&
+			(denoRunnerEvalOrRun.has(deQuotedWord) ||
+				denoRunnerOptionsWithMandatoryArguments.has(deQuotedWord) ||
+				denoRunnerShortOptionWithMandatoryArgumentRe.test(deQuotedWord))
+		) {
+			nonOptionNToSkip++;
+		}
+		if (foundEndOfOptions || !deQuotedWord?.startsWith('-')) nonOptionN++;
+		if (nonOptionN > nonOptionNToSkip) {
+			// console.warn({ idx, nonOptionN, nonOptionNToSkip, deQuotedWord, isEval });
+			if (isEval) {
+				parts.runner = deQuote(words.slice(0, 1)[0]);
+				parts.runnerArgs = words.slice(1, idx - 1);
+				parts.scriptCode = deQuotedWord;
+				parts.scriptArgs = words.slice(idx);
+				break;
+			} else if (pathEquivalent(mainModulePath.href, deQuotedWord)) {
+				parts.runner = deQuote(words.slice(0, 1)[0]);
+				parts.runnerArgs = words.slice(1, idx - 1);
+				parts.scriptName = words.slice(idx - 1, idx)[0];
+				parts.scriptArgs = words.slice(idx);
+				break;
+			}
+		}
+	}
+	return parts;
+};
+
+//===
+
 // command line data for current process
 
 /** * process command line, when available */
@@ -134,26 +232,8 @@ export const commandLineParts = (() => {
 		parts.scriptCode = undefined;
 		parts.scriptArgs = words.slice(1);
 	} else {
-		// o/w assume execution in `deno` style as `<runner> <options..> eval/run <options..> script_name <script_options..>`
-		// * so, find *third* non-option
-		let idx = 0;
-		let nonOptionN = 0;
-		let foundEndOfOptions = false;
-		for (const word of words) {
-			idx++;
-			if (deQuote(word) === '--') {
-				foundEndOfOptions = true;
-				continue;
-			}
-			if (foundEndOfOptions || !deQuote(word)?.startsWith('-')) nonOptionN++;
-			if (nonOptionN > 2) {
-				parts.runner = words.slice(0, 1)[0];
-				parts.runnerArgs = words.slice(1, idx - 1);
-				parts.scriptName = words.slice(idx - 1, idx)[0];
-				parts.scriptArgs = words.slice(idx);
-				break;
-			}
-		}
+		// o/w use heuristic function `runnerPartsFromWords()`
+		Object.assign(parts, denoRunnerPartsFromWords(words));
 	}
 	return parts;
 })();
@@ -172,6 +252,7 @@ export const commandLineParts = (() => {
 
 /** * summary of information transmitted by 'shim'-executable initiating the main script, when available */
 export const shim = await (async () => {
+	// deconstruct/parse SHIM into `parts`
 	const parts: {
 		/** * path/URL-string of script targeted by shim */
 		TARGET?: string;
@@ -187,8 +268,7 @@ export const shim = await (async () => {
 		// ... EXEC is really an implementation detail (for maximum command line content flexibility within a no-'Terminate batch job (Y/N)?' formulated batch file)
 		/** * executable path of secondary shim (when needed; generally defined only for Windows) */
 		EXEC?: string;
-		/** * URL of process script targeted by enhanced-shim process data (compact/string form)
-		 */
+		/** * URL of process script targeted by enhanced-shim process data (compact/string form) */
 		// * used to gate shim-provided information to the correct process, avoiding interpretation of information passed through xProcess-naive intermediary processes
 		targetURL?: string;
 		runner?: string;
@@ -199,18 +279,18 @@ export const shim = await (async () => {
 	} = {};
 	parts.TARGET =
 		(await envAsync('SHIM_TARGET')) ||
-		(await envAsync('SHIM_URL')) ||
-		(await envAsync('DENO_SHIM_URL'));
+		(await envAsync('SHIM_URL' /* legacy */)) ||
+		(await envAsync('DENO_SHIM_URL' /* legacy */));
 	parts.ARG0 =
 		(await envAsync('SHIM_ARG0')) ??
-		(await envAsync('SHIM_ARGV0')) ??
-		(await envAsync('DENO_SHIM_ARG0'));
+		(await envAsync('SHIM_ARGV0' /* legacy */)) ??
+		(await envAsync('DENO_SHIM_ARG0' /* legacy */));
 	parts.ARGS =
 		(await envAsync('SHIM_ARGS')) ??
-		(await envAsync('SHIM_ARGV')) ??
-		(await envAsync('DENO_SHIM_ARGS'));
-	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE'));
-	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC'));
+		(await envAsync('SHIM_ARGV' /* legacy */)) ??
+		(await envAsync('DENO_SHIM_ARGS' /* legacy */));
+	parts.PIPE = (await envAsync('SHIM_PIPE')) ?? (await envAsync('DENO_SHIM_PIPE' /* legacy */));
+	parts.EXEC = (await envAsync('SHIM_EXEC')) ?? (await envAsync('DENO_SHIM_EXEC' /* legacy */));
 	//
 	parts.runner = undefined;
 	parts.runnerArgs = undefined;
@@ -218,40 +298,21 @@ export const shim = await (async () => {
 	parts.scriptCode = undefined;
 	parts.scriptArgs = undefined;
 	parts.targetURL = intoURL(deQuote(parts.TARGET))?.href;
-	if (
-		/* aka `isEnhancedShimTarget` */
-		parts.targetURL &&
-		pathEquivalent(parts.targetURL, denoMainModule)
-	) {
-		// shim is targeting current process
-		parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an enhanced shim
-		parts.runner = parts.ARG0;
-		parts.runnerArgs = [];
-	} else if (parts.targetURL && pathEquivalent(parts.targetURL, denoExecPath)) {
-		// shim is targeting runner
-		if (!parts.ARGS) parts.runner = parts.ARG0;
-		// o/w assume execution in `deno` style as `<runner>` + `<options..> eval/run <options..> script_name <script_options..>`
-		// * so, find and use *second* non-option in ARGS as script name
-		const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
-		let idx = 0;
-		let nonOptionN = 0;
-		for (const word of words) {
-			idx++;
-			if (!deQuote(word)?.startsWith('-')) nonOptionN++;
-			if (nonOptionN > 1) {
-				parts.runner = parts.ARG0;
-				parts.runnerArgs = words.slice(0, idx - 1);
-				if (isEval) {
-					parts.scriptName = '$deno$eval';
-					parts.scriptCode = words.slice(idx - 1, idx)[0];
-				} else {
-					parts.scriptName = words.slice(idx - 1, idx)[0];
-					parts.scriptCode = undefined;
-				}
-				parts.scriptArgs = words.slice(idx);
-				break;
-			}
-		}
+	// if (parts.targetURL?.length && pathEquivalent(parts.targetURL, denoMainModule)) {
+	// 	// shim is targeting current process
+	// 	parts.ARGS = parts.ARGS ?? ''; // redefine undefined ARGS as an empty string ('') when targeted by an shim
+	// 	parts.runner = parts.ARG0;
+	// 	// parts.runnerArgs = [];
+	// } else if (parts.targetURL?.length && pathEquivalent(parts.targetURL, denoExecPath)) {
+	// 	// shim is targeting runner
+	// 	if (!parts.ARGS) parts.runner = parts.ARG0;
+	// 	const words = parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [];
+	// 	// determine parts using heuristic function `runnerPartsFromWords()`
+	// 	Object.assign(parts, runnerPartsFromWords(words));
+	// }
+	if (parts.ARG0?.length) {
+		const words = [parts.ARG0, ...(parts.ARGS ? $args.wordSplitCLText(parts.ARGS) : [])];
+		Object.assign(parts, denoRunnerPartsFromWords(words));
 	}
 	return parts;
 })();
