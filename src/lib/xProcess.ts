@@ -31,8 +31,8 @@ const atImportPermissions =
 const permittedRead = atImportPermissions.read.state === 'granted';
 const permittedRun = atImportPermissions.run.state === 'granted';
 
-const denoExecPath = permittedRead ? Deno.execPath() : undefined;
-const denoMainModule = permittedRead ? Deno.mainModule : undefined;
+const denoExecPath = permittedRead ? Deno.execPath() : undefined; // ToDO: revise given NOTE: no read permission needed for Deno-v2.4.0+
+const denoMainModule = permittedRead ? Deno.mainModule : undefined; // ToDO: revise given NOTE: no read permission needed for Deno-v2+
 
 // ToDO? : make this a configurable option (with default == `!isWinOS`); OTOH, current usage should be correct 99+% of the time
 // const caseSensitiveFiles = mightUseFileSystemCase();
@@ -68,19 +68,19 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 	'.deno.ts',
 );
 // *
-// `underEnhancedShell` == process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (via `Deno.args()`)
+/** * process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (directly, via `Deno.args()`) */
 const underEnhancedShell =
 	(((await envAsync('SHELL')) || '').match(enhancedShellRx) || []).length > 0;
 
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
-const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_'];
-const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC'];
+const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_']; // legacy "DENO_SHIM_"
+const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC']; // legacy "URL", "ARGV", "ARGV0" (future removal of "EXEC"?)
 
 //===
 
-/** * process appears to have been invoked from a compiled standalone binary executable (note: moderately fragile) */
+/** * process appears to have been invoked from a compiled standalone executable (*not* using a runner; note: moderately fragile) */
 // ... seems correct up to Deno-v2.1.6 (2025-01-21 ~ ToDO: verify)
 // ref: [deno ~ Runtime API for 'standalone'](https://github.com/denoland/deno/issues/15996) @@ <https://archive.is/Sooka>
 // ref: [SO ~ [deno] Determine if compiled](https://stackoverflow.com/questions/76647896/determine-if-running-uncompiled-ts-script-or-compiled-deno-executa> @@ <https://archive.is/g7xws>
@@ -99,16 +99,16 @@ export const possibleDenoRunner =
 	likelyIsDenoRunner ||
 	!!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
 
-/** * process was invoked by direct execution */
+/** * process was invoked by direct execution (*not* a runner, eg, `ME_EXE [ME_ARGS]..` *not* `RUNNER [RUNNER_ARGS/OPTIONS..] ME [ME_ARGS]`) */
 export const isDirectExecution =
-	likelyIsStandalone /* || (denoExecPath ? !$path.basename(denoExecPath).match(runnerNameReS) : undefined) */;
-/** * process was invoked as an eval script (eg, `deno eval ...`) */
+	likelyIsStandalone; /* || (denoExecPath ? !$path.basename(denoExecPath).match(runnerNameReS) : undefined) */
+/** * process was invoked as an eval script (eg, `deno [DENO_OPTIONS] eval [DENO_EVAL_OPTIONS] ME_SCRIPT_CODE [ME_ARGS]`) */
 export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : undefined;
 
 //===
 
 // NOTE: when multiple sources of process information are available, enhanced-shim supplied information is given priority
-// * enhanced-shim supplied data will generally have the most accurate/cleanest information, especially the best `argv0`
+// * enhanced-shim supplied data will generally have the most accurate/cleanest information, especially the best `arg0`
 
 //===
 
