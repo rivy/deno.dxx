@@ -40,12 +40,12 @@ export function createWarnFn(testFilePath?: URL | string) {
 //===
 
 // `setEnvFromArgs()`
-/** Create/set `TEST_...` environment variables from any `args` option flags.
+/** Create/set `TEST_...` environment variables from any long option flags within `args`.
 - requires `env` permission (o/w `Deno.env.set()` will panic)
 */
 export function setEnvFromArgs(args: string[] = Deno.args) {
 	args.forEach((arg) => {
-		const match = arg.match(/^--(?:test[_-])?(.*)$/);
+		const match = arg.match(/^--(?:test[_-])?([^=]+)(.*)$/);
 		if (match) {
 			const name = `TEST_${match[1].toLocaleUpperCase().replace(/\W/g, '_')}`;
 			Deno.env.set(name, 'true');
