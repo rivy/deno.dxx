@@ -6,7 +6,7 @@ const cmdShimBase = `% \`<%=shimName%>\` (*enhanced* Deno CMD shim; by <%=appNam
 @if DEFINED SHIM_DEBUG @echo # SHIM_DEBUG='%SHIM_DEBUG%' ## defined and active 1>&2
 @rem
 @set "ERRORLEVEL=" &@:: reset ERRORLEVEL (defensive de-cloaking to avoid any prior pinned value)
-@set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL is used to report final ERRORLEVEL (and ultimately reset to null); * side-effect of proper return of script to process error level
+@set "SHIM_ERRORLEVEL=" &@:: SHIM_ERRORLEVEL is used to report final ERRORLEVEL (and then reset to null); * use enables proper transfer of script return value to process error level
 @setLocal
 @rem
 @rem:: escape closing parentheses to prevent parsing issues in the final parse group
@@ -28,13 +28,13 @@ const cmdShimBase = `% \`<%=shimName%>\` (*enhanced* Deno CMD shim; by <%=appNam
 @set SHIM_ARGS=%SHIM_ARGS:^^^)=)%
 @call set SHIM_ARGS=%%SHIM_ARGS:~1%%
 @set "SHIM_TARGET=<%=denoRunTarget%>"
-@REM @rem:: suppress default [ugly UI/UX] prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice [use \`--no-prompt\` instead]
-@REM * @set "DENO_NO_PROMPT=1"
-@rem:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
-@set "DENO_NO_UPDATE_CHECK=1"
 @rem:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
 @set "DENO_NO_DEPRECATION_WARNINGS=1"
-@call deno "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>%%SHIM_ARGS%%
+@rem:: suppress default [ugly UI/UX] prompting behavior in favor of panics for insufficient permissions
+@REM * @set "DENO_NO_PROMPT=1" ## *DISABLED* for user choice [USER may reset/set DENO_NO_PROMPT [or add \`--no-prompt\` to the SHIM \`@call deno "run" ...\` command]]
+@rem:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
+@set "DENO_NO_UPDATE_CHECK=1"
+@call deno "run"<%= denoRunOptions ? (' ' + denoRunOptions) : '' %> -- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>%%SHIM_ARGS%%
 @call set SHIM_ERRORLEVEL=%%ERRORLEVEL%%
 @rem:: reset DENO_NO_... ENV suppression vars to prior values
 @REM * @set "DENO_NO_PROMPT=%DENO_NO_PROMPT%"
@@ -64,7 +64,7 @@ const cmdShimPrepPipe = `@:pipeEnabled
 @set "SHIM_TID=$shim_TID-%DATE%-%TIME%-%RANDOM%$" &@:: unique identifier for the shim target (avoids file system overwrite conflicts for concurrent executions)
 @set "SHIM_TID=%SHIM_TID::=%" &@:: remove possible locale-based special characters
 @set "SHIM_TID=%SHIM_TID:/=%" &@:: remove possible locale-based special characters
-@set "SHIM_TID=%SHIM_TID:\=%" &@:: remove possible locale-based special characters
+@set "SHIM_TID=%SHIM_TID:\\=%" &@:: remove possible locale-based special characters
 @set "SHIM_TID=%SHIM_TID:'=%" &@:: remove possible locale-based special characters
 @set "SHIM_TID=%SHIM_TID:,=%" &@:: remove possible locale-based special characters
 @set "SHIM_TID=%SHIM_TID: =0%" &:: replace any spaces with '0' (avoids issues with spaces in path; eg, for times between 0:00 and 9:59)
@@ -78,13 +78,13 @@ export const PosixShimTemplate = `#!/bin/sh
 # % \`<%=shimName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
 SHIM_ARG0="$0"
 SHIM_TARGET="<%=denoRunTarget%>"
+# @rem:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
+set "DENO_NO_DEPRECATION_WARNINGS=1"
 # @REM @rem:: suppress default [ugly UI/UX] prompting behavior in favor of panics for insufficient permissions ## *DISABLED* for user choice [use \`--no-prompt\` instead]
 # @REM export "DENO_NO_PROMPT=1"
 # @rem:: suppress annoying/distracting/useless-for-non-dev Deno update check/notification
 set "DENO_NO_UPDATE_CHECK=1"
-# @rem:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
-set "DENO_NO_DEPRECATION_WARNINGS=1"
-<%=denoCommandPrefix%><%=denoCommand%> "run" <%= denoRunOptions ? (denoRunOptions + ' ') : '' %>-- "<%=denoRunTarget%>" <%= denoRunTargetArgs ? (denoRunTargetArgs + ' ') : '' %>
+<%=denoCommandPrefix%><%=denoCommand%> "run"<%= denoRunOptions ? (' ' + denoRunOptions) : '' %> -- "<%=denoRunTarget%>"<%= denoRunTargetArgs ? (' ' + denoRunTargetArgs) : '' %>
 `;
 
 export function cmdShimTemplate(enablePipe: boolean) {
