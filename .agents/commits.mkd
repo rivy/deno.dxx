@@ -1,0 +1,74 @@
+<!-- markdownlint-disable fenced-code-language -->
+<!-- spell-checker:ignore () dxx Deno commitlint changelog jsonc semver fixup gitignore xProcess maint upkeep RE-word -->
+
+# Commit style & rules
+
+Commits are validated by `commitlint` ([`../.commitlint.config.js`](../.commitlint.config.js)) and consumed by `git-changelog` ([`../.changelog/config.yml`](../.changelog/config.yml)). The style test (`tests/00.project.style.test.ts`) runs `commitlint` against every commit since the last release marker, so a malformed message fails CI.
+
+## Header format
+
+```
+<type>[/<scope>][!] ~ <subject>
+```
+
+- **Separator is `~`** (space-tilde-space). This repo uses `~`, not `:` — ~99% of history. A `:` is tolerated by the linter but don't introduce it.
+- **type** — lowercase, from the list below. Sentence-case (`Fix`) also passes but lowercase is the norm.
+- **scope** — optional, after a `/`. Lowercase / camelCase / PascalCase / UPPERCASE all allowed (e.g. `cli`, `xProcess`, `TS`). Nest with `/` for a compound scope: `maint/dev`, `deps/vendor`, `test/project-style`.
+- **`!`** — append to type/scope to flag a breaking change: `refactor/cli! ~ …` (also add a `BREAKING CHANGE:` footer).
+- **subject** — imperative mood, lowercase start, **no trailing period**. Keep the whole header ≤ 90 chars (warning above that).
+- A secondary, narrower scope may lead the subject in parens: `change ~ (shared) revise debug output`.
+
+### Examples (from history)
+
+```
+feat/xargs ~ handle drive-prefixed globs reliably
+fix/shim ~ revise TID calculation for more locale robustness
+refactor/cli ~ make dx* shims return undefined on arg errors
+test/project-syntax ~ log expanded file sets on failure
+deps/vendor ~ add patches for Deno-v2.1+ compatibility
+docs/eg ~ add display-in-time-order BAT/Deno-TS chimera
+maint/dev ~ (gitignore) update
+```
+
+## Types
+
+Preferred set (these flow into the CHANGELOG):
+
+| Type       | Use for                                              | CHANGELOG group    |
+| ---------- | ---------------------------------------------------- | ------------------ |
+| `feat`     | new user-facing capability                           | Features           |
+| `fix`      | bug fix                                              | Fixes              |
+| `change`   | behavior change that isn't a feature or a pure fix   | Changes            |
+| `refactor` | internal restructuring, no behavior change           | Refactoring        |
+| `perf`     | performance improvement                              | Enhancements       |
+| `docs`     | docs, comments, examples (`eg/`)                     | Documentation      |
+| `test`     | tests only                                           | Test Improvements  |
+| `deps`     | dependency add/update (maps to "Dependency Updates") | Dependency Updates |
+| `maint`    | tooling, build, CI, repo housekeeping                | Maintenance        |
+
+Also accepted by the linter and folded into the groups above: `add`/`added`/`changed` → change, `bugfix`/`fixed`/`fixes` → fix, `build`/`chore`/`upkeep` → maint, `tests` → test, `updated` → update. `style` is accepted but excluded from the CHANGELOG — use it only for pure formatting churn.
+
+`fork`, `merge`/`merged`, `revert`, `automatic`, `auto-merged` exist for git-generated messages.
+
+## Body & footer
+
+- Blank line after the header, then wrap body text at ~95 columns (`body-max-line-length` is disabled, but keep it readable).
+- Bullets with `-` for a list of concrete changes.
+- Longer commits use lightweight Markdown sub-sections in the body — seen in history: `## why`, `## notes`, `## refs`. Prefer `## why` whenever the reason isn't obvious from the diff.
+- Inline `TODO:` / `ToDO:` notes in the body are fine for follow-up context.
+- Reference links use the repo's `[text](url) @@ <https://archive.is/…>` archived-link style.
+- Breaking changes: `BREAKING CHANGE: …` in the footer (keyword the changelog picks up).
+- Conventional-Commits footers (`Refs:`, `Closes #…`, etc.) are allowed; leading-blank/length rules on footers are disabled.
+
+## WIP and release strictness
+
+- `wip` / `version` / `x` types and `fixup!` / `squash!` messages are allowed **only during local development** ("relaxed review").
+- Under release testing — `deno test -A -- --release` (or `--test-dist` / `--test-release`, which set `test_release` / `test_dist`) — those are rejected, `commitlint` runs `--strict`, and an empty subject is an error. Squash or reword WIP commits before publishing a release.
+- Version-bump commits whose message starts with a number (e.g. `0.0.16`) are ignored by the linter; they're produced by `bmp` during the release flow (see [`../README.md`](../README.md) "Publishing"). Don't hand-write them and don't hand-edit `CHANGELOG.mkd`.
+
+## Checklist before committing
+
+1. `dprint fmt` and `deno lint` are clean.
+2. `deno test -A tests/00.project.style.test.ts tests/00.project.syntax.test.ts` passes (this also lints your new commit message).
+3. Header is `type[/scope] ~ imperative subject`, ≤ 90 chars, no trailing period.
+4. Non-obvious change → add a `## why` body section.

@@ -1,0 +1,40 @@
+<!-- spell-checker:ignore () dxx Deno opencode Codex Gemini Cursor frontmatter -->
+
+# `.agents/`
+
+Single home for agent-facing material so the repo root stays minimal. The root [`../AGENTS.md`](../AGENTS.md) is the short entry point; everything else lives here.
+
+## Contents
+
+| Path                                   | Purpose                                                   |
+| -------------------------------------- | --------------------------------------------------------- |
+| [`guide.mkd`](guide.mkd)               | Setup, dev workflows, coding conventions, known gotchas   |
+| [`commits.mkd`](commits.mkd)           | Commit message format, rules, and repo style              |
+| [`architecture.mkd`](architecture.mkd) | Directory map, the `dx*` commands, key `src/lib/` modules |
+| [`skills/`](skills/)                   | Reusable task recipes (one folder each)                   |
+| [`tools/`](tools/)                     | Custom tool / command definitions                         |
+| [`commands/`](commands/)               | Reusable prompts                                          |
+
+Treat `guide.mkd`, `commits.mkd`, and `architecture.mkd` as the source of truth. Add new material here, not as new root-level files.
+
+## How this works across agents
+
+There is **one** instruction surface: the root `AGENTS.md`, which tells the agent to read the files in this directory. Nothing here relies on a tool-specific loader, and there is intentionally **no `.claude/`, `.opencode/`, `.cursor/`, or `.github/` agent config** — those would fragment the guidance and clutter the tree.
+
+| Agent       | How it picks this up                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| Codex CLI   | Reads root `AGENTS.md` automatically, then follows its pointers here.                                  |
+| opencode    | Reads root `AGENTS.md` automatically, then follows its pointers here.                                  |
+| Claude Code | Reads [`../CLAUDE.md`](../CLAUDE.md) (a one-line `@AGENTS.md` bridge), then follows the same pointers. |
+| Cursor      | Reads root `AGENTS.md` directly.                                                                       |
+| Gemini CLI  | Add a `GEMINI.md` bridge (`@AGENTS.md` equivalent) only if that agent is used.                         |
+
+Because `skills/`, `tools/`, and `commands/` are plain files rather than a tool's native skill/command feature, an agent uses them by **reading** them when `AGENTS.md` says to — not through auto-discovery. Keep each one self-describing so that works.
+
+## Adding material
+
+- New guidance → extend `guide.mkd` / `commits.mkd` / `architecture.mkd`.
+- New skill → `skills/<name>/SKILL.mkd` (+ any helper files).
+- New tool or command → `tools/<name>.*` or `commands/<name>.mkd`.
+- Then add a one-line pointer in `../AGENTS.md` or the relevant subdirectory README if an agent needs to know it exists.
+- Markdown files use the `.mkd` extension; only `AGENTS.md`, `CLAUDE.md`, and `README.md` stay `.md` (tools require those exact names).
