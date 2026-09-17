@@ -75,7 +75,21 @@ For each planned commit, in order:
 1. Edit the working tree to that intermediate state. Reproduce target content exactly (copy from the saved diff / `git show <tip>:<file>` output) rather than re-deriving it by hand.
 2. Verify before committing — at minimum the project's type-check/lint (e.g. `deno check`, `deno lint` for a Deno project); run tests too if the commit is a natural checkpoint.
 3. Diff the file against the base commit (`git diff <base> -- <file>`) to confirm the change is exactly what you intended — no stray hunks bleeding in from a later step.
-4. `git add` the specific file(s) for this concern only, then commit with a message in the repo's style, including a `## why` body section whenever the reason isn't obvious from the diff alone.
+4. `git add` the specific file(s) for this concern only, then commit with a message in the repo's style (see below).
+
+### Writing the message body
+
+The header states _what_ changed; only add a body when the header alone doesn't cover it, and even then keep body text a _what_, not a _why_, except in a `## why` section:
+
+- **Header suffices** → no body at all. Most single-concern commits land here (e.g. `docs/eg ~ add display-in-time-order BAT/Deno-TS chimera`).
+- **Header doesn't cover everything** → a plain `-` bullet list of the concrete changes, still _what_, not commentary (e.g. `maint/dev ~ add basic AGENTS info/structure`'s bullets).
+- **The reason isn't obvious from the diff/bullets** → add a `## why` section: prose explaining the motivation/reasoning, written fresh from this specific diff. Never lift `## why` (or any body) text from another commit, even one touching the same file/topic — a genuine-looking but copy-pasted rationale is worse than none.
+- **A large or multi-part change needs more than a short why** → `## notes`, a fuller list mixing changes and their reasons (e.g. `fix/xProcess ~ quote-safe runAs reconstruction, drop dead defaultRunner fallback`).
+- **External/supporting references** (an issue, a spec, an upstream regression) → `## refs`, using the repo's `[text](url) @@ <https://archive.is/…>` link style.
+
+Check real history (`git log <base>~30..<base>`) for the tone before writing anything non-trivial — the voice should read as this repo's, not as a generic AI summary.
+
+**Do not add AI attribution.** No `Co-Authored-By: Claude …` (or similar) trailer, and no mention of the agent/model in the header or body — the commit is authored as the user's own work, matching the rest of this repo's history.
 
 **If a commit accidentally bundles two concerns** (e.g. you edited ahead before committing), don't try to untangle it in place: `git reset --soft <its-parent>` to un-commit while keeping the working tree, revert just the extra concern's edits back to the intermediate state, commit the first concern, then reapply and commit the second. This is far more reliable than trying to selectively unstage hunks from a file that's already fully edited.
 
