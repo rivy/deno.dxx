@@ -1,6 +1,6 @@
 // CommitLint configuration
 // ref: <https://commitlint.js.org/#/reference-configuration>
-// v2024-07-12 [rivy]
+// v2026-09-16 [rivy]
 
 // spell-checker:ignore (jargon) maint (names) CommitLint DPrint (people) Roy Ivy III * rivy
 
@@ -13,7 +13,7 @@ const isNPMTestDist = !!process.env.npm_config_test_dist;
 const isTestDist = !!process.env.test_dist;
 const isTestRelease = !!process.env.test_release;
 
-/** Relax linting rules/strictures (for development; *not* when submitting for distribution/release). */
+/** Relax linting rules/strictures (for development; *not* when submitting for distribution/release) */
 const relaxedReview = !(isNPMTestDist || isTestDist || isTestRelease);
 
 const commitTags = [
@@ -78,7 +78,10 @@ module.exports = {
 	ignores: [
 		(msg) => msg.match(/^\s*\d+([.]\d+)*/) /* version commit */,
 		relaxedReview
-			? (msg) => msg.match(/^\s*(fixup|squash)!/) /* fixup! or squash! commit */
+			? (msg) => msg.match(/^\s*(fixup|squash)!/) /* `git` fixup! or squash! commit */
+			: undefined,
+		relaxedReview
+			? (msg) => msg.match(/^\s*(GitButler\s.*)/i) /* GitButler (`but`) workspace commit(s) */
 			: undefined,
 	].filter((v) => v != null),
 	rules: {
