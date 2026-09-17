@@ -81,6 +81,8 @@ setEnvFromArgs(Deno.args);
 // ToDO: add skip logic for Deno versions < 1.28.0 (which do not support `Deno.Command()`)
 // ToDO: [2023-10-10; rivy] deal with CWD != projectPath
 
+// FixME: [Deno-v2.9.6 breaks use of `--`; see <https://github.com/denoland/deno/issues/36792>] ... add tests for `deno run -A -- script.ts ARGS`, `deno run -A -- script.ts -- ARGS`, `deno -A -- script.ts ARGS`, `deno -A -- script.ts -- ARGS` (and for `deno eval ...`)
+
 const dumbDenoRunner = Deno.execPath(); // use `Deno.execPath()` instead of `deno` to avoid any interposed enhanced shim (with possible associated shimmed environment changes)
 const denoVersion = await haveDenoVersion(dumbDenoRunner);
 const command = dumbDenoRunner;
