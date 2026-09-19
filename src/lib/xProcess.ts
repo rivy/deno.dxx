@@ -84,24 +84,30 @@ const shimEnvBaseNames = ['TARGET', 'URL', 'ARG0', 'ARGV0', 'ARGS', 'ARGV', 'PIP
 
 //===
 
+// console.debug({ projectURL, denoExecPath });
+
 /** * process appears to have been invoked from a compiled standalone executable (*not* using a runner; note: moderately fragile) */
 // ... seems correct up to Deno-v2.1.6 (2025-01-21 ~ ToDO: verify)
 // ref: [deno ~ Runtime API for 'standalone'](https://github.com/denoland/deno/issues/15996) @@ <https://archive.is/Sooka>
 // ref: [SO ~ [deno] Determine if compiled](https://stackoverflow.com/questions/76647896/determine-if-running-uncompiled-ts-script-or-compiled-deno-executa> @@ <https://archive.is/g7xws>
 // ref: [deno ~ PR - add `Deno.standalone` API](https://github.com/denoland/deno/pull/18402) @@ <https://archive.is/SX4ZM>
 export const likelyIsStandalone =
-	$path.basename(pathFromURL(projectURL) ?? '') ===
-	`deno-compile-${$path.basename(denoExecPath ?? '')}`;
-
-export const likelyIsDenoRunner = !!$path.basename(denoExecPath ?? '').match(denoRunnerNameReS);
-export const possibleDenoRunner =
 	(
 		Deno?.build as
 			| { standalone?: boolean /* Deno v2.3+ (see GH/denoland/deno#15996) */ }
 			| undefined
 	)?.standalone ||
-	likelyIsDenoRunner ||
-	!!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
+	/* Deno-v2.x ~ projectURL (from import.meta.url), for compiled scripts, ends with "deno-compile-.../" */
+	$path.basename(pathFromURL(projectURL) ?? '') ===
+		`deno-compile-${$path.basename(denoExecPath ?? '')}` ||
+	/* Deno-v1.40.x ~ projectURL (from import.meta.url), for compiled scripts, ends with "deno-compile-.../REPO_DIR_BASENAME/" */
+	$path.basename($path.dirname(pathFromURL(projectURL) ?? '')) ===
+		`deno-compile-${$path.basename(denoExecPath ?? '')}`;
+// ToDO: add final match for prior versions ... import.meta.url and denoExecPath match except for extension and denoExecPath is not possibleRunner name
+
+export const likelyIsDenoRunner = !!$path.basename(denoExecPath ?? '').match(denoRunnerNameReS);
+export const possibleDenoRunner =
+	likelyIsDenoRunner || !!$path.basename(denoExecPath ?? '').match(possibleDenoRunnerNameReS);
 
 /** * process was invoked by direct execution (*not* a runner, eg, `ME_EXE [ME_ARGS]..` *not* `RUNNER [RUNNER_ARGS/OPTIONS..] ME [ME_ARGS]`) */
 export const isDirectExecution =
@@ -471,7 +477,7 @@ export const impairedWarningMessage = () => {
 				.filter(Boolean)
 				.join(
 					' and ',
-				)} resolution); full/correct function requires an enhanced runner or shim (use \`dxr\` or install with \`dxi\`)`
+				)} resolution); full/correct function requires a "meta" runner or shim (use \`dxr\` or install with \`dxi\`)`
 		: undefined;
 };
 
