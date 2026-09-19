@@ -51,7 +51,7 @@ const execPathExtensions = isWinOS
 // * These are assumptions (of varying _fragility_) based on current (2021-12-28) practice of the Deno executable.
 // * If the runner (ie, `deno`) would supply `argv0`, the raw args, and the args supplied to itself, much of this fragility would evaporate
 // * and compatibility with other runners (such as NodeJS) should be more achievable.
-// *note*: any non-standalone process is considered a "deno-like" runner (eg, in the form `<runner> <options..> eval/run <options..> script_name <script_options..>`)
+// *note*: any non-standalone process is considered a "deno-like" runner (eg, in the form `<runner> [<runner_option..>] [eval/run] [<runner_option..>] script_code/script_name [<script_args..>]`)
 // *note*: using a runner with a different, unexpected name may still lead to unexpected argument parsing results
 const denoRunnerNameReS = '^deno(?:[.]exe)?$';
 const possibleDenoRunnerNameReS = '^deno(?:[-.].)?.*$';
@@ -69,13 +69,16 @@ const removableExtensions = (execPathExtensions ?? []).concat(
 	'.deno.ts',
 );
 // *
-/** * process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (directly, via `Deno.args()`) */
+/** * process has been executed by a modern shell (sh, bash, ...) which supplies correctly expanded arguments to the process (supplied directly, via `Deno.args()`) */
 const underEnhancedShell =
 	(((await envAsync('SHELL')) || '').match(enhancedShellRx) || []).length > 0;
 
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
+// ## Shims & Meta-Shims
+// * a "shim" (ie, adaption layer) is often completely transparent, but an enhanced or "meta"-shim supplies information to a target process via environment vars
+// * define expected/possible "meta"-shim environment variables
 const shimEnvPrefix = ['SHIM_', 'DENO_SHIM_']; // legacy "DENO_SHIM_"
 const shimEnvBaseNames = ['TARGET', 'URL', 'ARG0', 'ARGV0', 'ARGS', 'ARGV', 'PIPE', 'EXEC']; // legacy "URL", "ARGV0", "ARGV" (possible future removal of "EXEC"?)
 
@@ -108,8 +111,8 @@ export const isEval = denoMainModule ? !!denoMainModule.match(isDenoEvalReS) : u
 
 //===
 
-// NOTE: when multiple sources of process information are available, enhanced-shim supplied information is given priority
-// * enhanced-shim supplied data will generally have the most accurate/cleanest information, especially the best `arg0`
+// NOTE: when multiple sources of process information are available, shim supplied information is given priority (if/when present)
+// * shim supplied data will generally have the most accurate/cleanest information, especially the best `ARG0`
 
 //===
 
