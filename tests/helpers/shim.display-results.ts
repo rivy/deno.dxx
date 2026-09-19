@@ -13,6 +13,7 @@ const args = Deno.args;
 
 if (args.length === 0) {
 	if (DenoVx.isatty(Deno.stdin)) {
+		console.error('Display results shim match and apply to all arguments.\n');
 		console.error('Usage: `deno run -A tests/helpers/shim.display-results.ts <SHIM_PATH>..`');
 		Deno.exit(1);
 	}
