@@ -344,6 +344,12 @@ export const isShimTarget =
 				pathEquivalent(shim.scriptName, denoMainModule)))) ||
 	false;
 
+/** * shim is targeting command line runner (using SHIM_...) */
+export const isCommandLineRunnerShimTarget =
+	commandLineParts.runner != null &&
+	shim.TARGET != null &&
+	pathEquivalent(deQuote(commandLineParts.runner), deQuote(shim.TARGET));
+
 //===
 
 /** * path string of main script file (best guess from all available sources) */
