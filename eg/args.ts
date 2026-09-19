@@ -79,7 +79,9 @@ log.trace('project:', {
 		}),
 	),
 });
-log.trace('Deno:', { execPath: Deno.execPath(), mainModule: Deno.mainModule, args: Deno.args });
+log.trace('Deno:', { version: Deno.version, build: Deno.build, importMeta: import.meta });
+log.trace('Deno:', { execPath: Deno.execPath(), mainModule: Deno.mainModule });
+log.trace('Deno:', { args: Deno.args });
 
 const logLevelFromEnv = $logger.logLevelFromEnv() ?? (env('DEBUG') ? 'debug' : undefined);
 log.debug(
