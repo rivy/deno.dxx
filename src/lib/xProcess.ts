@@ -76,8 +76,8 @@ const underEnhancedShell =
 const defaultRunner = 'deno';
 const defaultRunnerArgs = ['run', '-A'];
 
-const shimEnvPrefix = ['DENO_SHIM_', 'SHIM_']; // legacy "DENO_SHIM_"
-const shimEnvBaseNames = ['URL', 'TARGET', 'ARG0', 'ARGS', 'ARGV', 'ARGV0', 'PIPE', 'EXEC']; // legacy "URL", "ARGV", "ARGV0" (future removal of "EXEC"?)
+const shimEnvPrefix = ['SHIM_', 'DENO_SHIM_']; // legacy "DENO_SHIM_"
+const shimEnvBaseNames = ['TARGET', 'URL', 'ARG0', 'ARGV0', 'ARGS', 'ARGV', 'PIPE', 'EXEC']; // legacy "URL", "ARGV0", "ARGV" (possible future removal of "EXEC"?)
 
 //===
 
