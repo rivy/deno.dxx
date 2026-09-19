@@ -327,7 +327,7 @@ export async function unGrantedPermits(permitNames: Deno.PermissionName[] = []) 
 		}),
 	);
 	const missing = permits
-		.filter((permit) => permit.permitStatus.state !== 'granted')
+		.filter((permit) => permit.permitStatus?.state !== 'granted')
 		.map((permit) => permit.name);
 	return missing;
 }
@@ -367,7 +367,7 @@ export function unGrantedPermitsSync(permitNames: Deno.PermissionName[] = []) {
 		return { name, permitStatus: Deno.permissions?.querySync?.({ name }) };
 	});
 	const missing = permits
-		.filter((permit) => permit.permitStatus.state !== 'granted')
+		.filter((permit) => permit.permitStatus?.state !== 'granted')
 		.map((permit) => permit.name);
 	return missing;
 }
