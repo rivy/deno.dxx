@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore () markdownlint (people) Roy Ivy III * rivy (names) Deno Gitter (utils) dprint genhtml perl (vars) lcov getcwd gmrsu gmsu -->
+<!-- spell-checker:ignore () markdownlint (people) Roy Ivy III * rivy (abbrev/names) Deno Gitter MSDV (utils) dprint genhtml perl (vars) lcov getcwd gmrsu gmsu -->
 
 <!-- (template) data-template-match='(?<=^|\s)(https://deno.land/x/dxx@)v?(?:(?:\d+[.])*\d+)(?=/)' data-template-replace='$1${VERSION_TAG}' -->
 
@@ -22,7 +22,6 @@ automatically runs `dprint fmt` if `dprint` is available and a config is found i
 ### installer (`dxi`)
 
 - installs command scripts with an enhanced shim
-
   - command line expansion enhancement
     - enables automated, bash-like command line expansion (including full brace and advanced glob expansion) for WinOS platforms; pass-through for non-Windows platforms
     - when using the 'xProcess' library, enables scripts to more accurately determine the their invocation text allowing them to show accurate help and examples
@@ -52,6 +51,18 @@ automatically runs `dprint fmt` if `dprint` is available and a config is found i
 
 - [WIP]
 
+## Minimum Supported Deno Version (MSDV)
+
+Deno-v1.30.0+ is required to use synchronous permission query code and related synchronous functions (eg, `abortIfMissingPermitsSync(...)`, which can avoid top-level await).
+
+Deno-v1.23.0+ may be used if synchronous permit code is avoided (eg, use `abortIfMissingPermits(...)`); earlier versions cause type errors when parsing types for lodash-v4.17.15.
+
+> For Deno-v2.x, use `deno run ...` or a MetaShim runner.
+>
+> For Deno-v1.40.x, use `deno --unstable-ffi run ...` or a MetaShim runner.
+>
+> For Deno-v1.23.0 up to Deno-v1.39.4, use `deno --unstable run ...` or a MetaShim runner.
+
 ## Installation of Tools
 
 <!-- `deno run -A show-max-std-for-deno-v.ts 1.20.5` => "Deno-v1.20.5 => std@0.134.0" -->
@@ -74,7 +85,9 @@ dxi -A "https://deno.land/x/dxx@v0.0.16/src/dxr.ts"
 
 ## Using the 'xProcess' library
 
-Solely using `dxr` (after installation with `dxi`) as a script runner will perform _bash-like argument expansion_ for the target script while _preserving correct quote semantics_ for both double and single quoted arguments. Additional functionality requires use of the 'xProcess' library in coordination with either an enhanced runner, such as `dxr`, an enhanced shim (provided by installation with `dxi`), or using FFI (currently [as of 2022-01-01] requiring the use of `--unstable`).
+Solely using `dxr` (after installation with `dxi`) as a script runner will perform _bash-like argument expansion_ for the target script while _preserving correct quote semantics_ for both double and single quoted arguments. Additional functionality requires use of the 'xProcess' library in coordination with either an enhanced "meta" runner, such as `dxr`, an enhanced "meta" shim (provided by installation with `dxi`), or using FFI (currently [as of 2022-01-01] requiring the use of `--unstable`).
+
+> "Meta" runners and "meta" shims supply extra information to a target process via environment variables (SHIM\_...) to enable improved handling of arguments.
 
 Comparisons of `eg\args.ts` (using 'xProcess') vs `args-naive.ts` (without 'xProcess', using only `deno` built-ins) in various scenarios...
 
@@ -97,6 +110,10 @@ C:> dxr eg/args.ts '*' * "*"
 ```
 
 Fully capable, completely self-contained, executable binaries can be built from scripts which use the 'xProcess' library by compiling them with the `--allow-all` and `--unstable` flags. For example, using `deno compile -A --unstable eg/args.ts` (from the main project directory, on the WinOS platform) will produce a binary `args.exe` which contains all the enhanced argument functionality and requires no extra support. The resultant `args.exe` binary may be moved to any other WinOS platform and executed with full fidelity.
+
+> Deno-v1.40+ should use the more specific `deno compile -A --unstable-ffi ...` to avoid ugly deprecation warnings.
+>
+> And Deno-v2+ no longer requires any `--unstable` flag for full function (use `deno compile -A ...`).
 
 ## Development
 
