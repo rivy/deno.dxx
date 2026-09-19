@@ -1,7 +1,7 @@
 // import * as $colors from 'https://deno.land/std@0.134.0/fmt/colors.ts';
 
 const child = new Deno.Command(Deno.execPath(), {
-	args: ['test', '-A', ...Deno.args],
+	args: ['test', '-A', '--unstable-unsafe-proto', ...Deno.args],
 	cwd: new URL('..', import.meta.url),
 	stdout: 'piped',
 	stderr: 'inherit',
