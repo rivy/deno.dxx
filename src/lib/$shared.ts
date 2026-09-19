@@ -19,6 +19,7 @@
 // NOTE: (from `rust) ~ `as...()` functions are cheap conversions (minimal compute/memory)
 //   ... `to...() / into...()` functions are more expensive and `into...()` might modify the input arguments to the function
 
+// spell-checker:ignore (abbrev) MSDV * Minimum Supported Deno Version
 // spell-checker:ignore (fns) chdir
 // spell-checker:ignore (env) WSL WSLENV
 // spell-checker:ignore (jargon) CWDs distro falsey truthy
@@ -29,7 +30,7 @@
 // spell-checker:ignore (yargs) positionals
 
 import { DenoVx, Deprecated } from './$deprecated.ts';
-import { $colors, $fs, $path } from './$deps.ts';
+import { $colors, $fs, $path, $semver } from './$deps.ts';
 import { atImportPermissions, atImportPermitCWD } from './$shared.TLA.ts';
 
 //===
@@ -260,6 +261,8 @@ export function currentCallStack() {
 
 //====
 
+// NOTE: synchronous permit queries require Deno-v1.30.0+ to succeed
+
 function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	const c: Record<T, U> = {} as Record<T, U>;
 	a.map((e: T, idx: number) => (c[e] = b[idx]));
@@ -372,6 +375,11 @@ export function unGrantedPermitsSync(permitNames: Deno.PermissionName[] = []) {
 	return missing;
 }
 
+function composeMinDenoVersionMessage(minReqDenoVersion: string) {
+	const msg = `Minimum required Deno version is '${minReqDenoVersion}' (current version is '${Deno.version.deno}'); re-run with required Deno version`;
+	return msg;
+}
+
 function composeMissingPermitsMessage(permitNames: Deno.PermissionName[] = []) {
 	/** Sorted, non-duplicated, permission names (used for flag generation) */
 	const flagNames = permitNames.length > 0 ? [...new Set(permitNames.sort())] : ['all'];
@@ -429,6 +437,12 @@ export function abortIfMissingPermitsSync(
 	}
 	// console.warn({ options });
 	// console.warn({ callers, top, url, name });
+	const minDenoVersion = '1.30.0';
+	const haveMSDV = $semver.satisfies(Deno.version.deno, `>=${minDenoVersion}`);
+	if (!haveMSDV) {
+		options.writer(composeMinDenoVersionMessage(minDenoVersion));
+		Deno.exit(options.exitCode);
+	}
 	const missing = unGrantedPermitsSync(permitNames);
 	if (missing.length > 0) {
 		options.writer(composeMissingPermitsMessage(missing));
