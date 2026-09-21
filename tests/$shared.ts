@@ -15,6 +15,7 @@ import { $colors, $path } from './$deps.ts';
 import {
 	currentCallStack,
 	decode,
+	env,
 	intoPath,
 	isWinOS,
 	projectPath,
@@ -172,8 +173,8 @@ function composeTestName(
 				' ' +
 				(options.ignore ? $colors.yellow('--') : '::') +
 				' ' +
-				$colors.bold(description)
-		: filePathText + ' ' + (options.ignore ? $colors.yellow('--') : '::') + ' ' + description;
+				(options.ignore ? $colors.yellow(description) : $colors.bold(description))
+		: filePathText + ' ' + (options.ignore ? '--' : '::') + ' ' + description;
 }
 
 export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
@@ -201,7 +202,7 @@ export function createTestFn(testFilePath?: string | URL) {
 			'';
 		const testName: TestName = composeTestName(tag, description, {
 			align: !pathOfTestFile,
-			colorize: false,
+			colorize: !!env('TEST_COLORIZE'),
 			ignore: !!options.ignore,
 		});
 		Deno.test({
