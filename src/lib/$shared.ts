@@ -31,7 +31,8 @@
 
 import { DenoVx, Deprecated } from './$deprecated.ts';
 import { $colors, $fs, $path, $semver } from './$deps.ts';
-import { atImportPermissions, atImportPermitCWD } from './$shared.TLA.ts';
+// import { atImportPermissions, atImportPermitCWD } from './$shared.TLA.ts';
+// import { permitsAsync } from './$shared.TLA.ts';
 
 //===
 
@@ -61,6 +62,8 @@ export const isWinOS = fnIsWinOS();
 
 //===
 
+const DenoPermissionNames: Deno.PermissionName[] = DenoVx.PermissionNames();
+
 // `type PermitOptions`
 /** Permit/permission options
 @param permitGuard • verify permission(s) prior to use (avoids Deno prompts/panics); defaults to `true`
@@ -71,6 +74,13 @@ export type PermitOptions = {
 const PermitOptionsDefault: Required<PermitOptions> = {
 	permitGuard: true,
 };
+
+//===
+
+const atImportPermissions =
+	Deno?.permissions?.querySync != null ? permitsSync() : await permitsAsync();
+export const atImportPermitCWD =
+	(Deno.permissions?.querySync({ name: 'read', path: '.' })).state === 'granted';
 
 //===
 
@@ -268,8 +278,6 @@ function zip<T extends string | number | symbol, U>(a: T[], b: U[]) {
 	a.map((e: T, idx: number) => (c[e] = b[idx]));
 	return c;
 }
-
-const DenoPermissionNames: Deno.PermissionName[] = DenoVx.PermissionNames();
 
 // FixME: [2024-09-25; rivy] revise permits functions to allow for optional configuration parameters for each permission
 
@@ -2159,6 +2167,7 @@ export const commandVOf = (name: string) => {
 
 // `fetch()` implementation (requires read [for local runs] or network permissions)
 import { fetch } from './xFetch.ts'; // 'file://'-compatible `fetch()`
+import { permitsAsync } from './$shared.TLA.ts';
 
 // import { intoURL, projectLocations, projectURL } from '../../tests/$shared.ts';
 // import { logger } from '../../tests/$shared.ts';

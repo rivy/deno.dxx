@@ -1,8 +1,9 @@
 // spell-checker:ignore (names) Deno
 
 import { $colors } from '../$deps.ts';
-import { env, permitsAsync } from '../$shared.TLA.ts';
-// import { env } from '../$shared.ts';
+// import { env, permitsAsync } from '../$shared.TLA.ts';
+// import { permitsAsync } from '../$shared.TLA.ts';
+import { env } from '../$shared.ts';
 
 // const atImportPermissions = await permitsAsync();
 
@@ -22,8 +23,11 @@ import { env, permitsAsync } from '../$shared.TLA.ts';
 // 	}
 // }
 
-const _havePermissions = await permitsAsync();
-const supportsUnicode = !!env('CI') || env('TERM') === 'xterm-256color';
+// const _havePermissions = await permitsAsync();
+// const supportsUnicode = !!env('CI') || env('TERM') === 'xterm-256color';
+const supportsUnicode: () => boolean = () => {
+	return !!env('CI') || env('TERM') === 'xterm-256color';
+};
 
 export const symbolStrings: Record<string, Record<string, string>> = {
 	// ASCII (ie, ANSI high-bit reset) character fallback prefixes
@@ -92,4 +96,4 @@ export const symbolStrings: Record<string, Record<string, string>> = {
 	},
 };
 
-export const symbols = supportsUnicode ? symbolStrings.unicode : symbolStrings.ascii;
+export const symbols = supportsUnicode() ? symbolStrings.unicode : symbolStrings.ascii;

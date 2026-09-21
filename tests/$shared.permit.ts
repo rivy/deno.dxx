@@ -2,8 +2,8 @@
 
 import { $colors, $path } from './$deps.ts';
 
-import { env } from '../src/lib/$shared.TLA.ts';
-import { format, traversal } from './$shared.ts';
+// import { env } from '../src/lib/$shared.TLA.ts';
+import { env, format, traversal } from './$shared.ts';
 
 //===
 
