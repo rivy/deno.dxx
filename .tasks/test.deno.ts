@@ -19,20 +19,6 @@ await child.stdout
 			},
 		}),
 	)
-	// .pipeThrough(
-	// 	// add ANSI color to descriptions (for pure ASCII test descriptions/names)
-	// 	new TransformStream<string, string>({
-	// 		transform(s, controller) {
-	// 			controller.enqueue(
-	// 				s.replace(
-	// 					/^(\S+?:\d+)\s(::)\s(.*)$/g,
-	// 					(_match, location, _separator, /* description, */ result) =>
-	// 						`${$colors.dim(location)} ${result}`,
-	// 				),
-	// 			);
-	// 		},
-	// 	}),
-	// )
 	.pipeThrough(new TextEncoderStream())
 	.pipeTo(Deno.stdout.writable, { preventClose: true });
 
