@@ -147,7 +147,11 @@ function lineCount(filePath: string) {
 function composeTestName(
 	tag: string,
 	description: string,
-	options: { align: boolean; ignore: boolean } = { align: false, ignore: false },
+	options: { align: boolean; colorize: boolean; ignore: boolean } = {
+		align: false,
+		colorize: false,
+		ignore: false,
+	},
 ) {
 	const align = options.align;
 	const padding = (() => {
@@ -159,10 +163,17 @@ function composeTestName(
 			? [...maxLines.toString()].length - [...tagLine.toString()].length
 			: 0;
 	})();
+
 	const filePathText = tag
-		? `${$colors.dim($path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s))} `
+		? `${$path.parse(tag).base.replace(/\d+\s*$/, (s) => '0'.repeat(padding) + s)}`
 		: '';
-	return filePathText + (options.ignore ? $colors.yellow(description) : $colors.bold(description));
+	return options.colorize
+		? $colors.dim(filePathText) +
+				' ' +
+				(options.ignore ? $colors.yellow('--') : '::') +
+				' ' +
+				$colors.bold(description)
+		: filePathText + ' ' + (options.ignore ? $colors.yellow('--') : '::') + ' ' + description;
 }
 
 export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
@@ -190,6 +201,7 @@ export function createTestFn(testFilePath?: string | URL) {
 			'';
 		const testName: TestName = composeTestName(tag, description, {
 			align: !pathOfTestFile,
+			colorize: false,
 			ignore: !!options.ignore,
 		});
 		Deno.test({
