@@ -220,16 +220,22 @@ export function splitByBareWSo(s: string): Array<string> {
 /** Group of regular expressions matching specific parts of a "word" (or token). */
 const WordRxs = {
 	/** RegExp matching any single token fragment up to bare (non-quoted) white space.
-	- `(tokenFragment)(bareWS)?(restOfString)` */
+	- `(tokenFragment)(bareWS)?(restOfString)`
+	- NOTE: single-quotes (') must be balanced before EOS, but double-quotes (") may be unbalanced
+	*/
 	nonBareWS: new RegExp(
 		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonANonQNonWSReS}+))(\\s+)?(.*?$)`,
 		'msu',
 	),
 	/** RegExp matching a (single or double) quoted portion of a word.
-	- `(tokenFragment)(restOfString)` */
+	- `(tokenFragment)(restOfString)`
+	- NOTE: single-quotes (') must be balanced before EOS, but double-quotes (") may be unbalanced
+	*/
 	quoteBasic: new RegExp(`^((?:${DQStringReS}|${SQStringStrictReS}))(.*?$)`, 'msu'),
 	/** RegExp matching a (single or double *or __ANSI-C__*) quoted portion of a word.
-	- `(tokenFragment)(restOfString)` */
+	- `(tokenFragment)(restOfString)`
+	- NOTE: single-quotes (') must be balanced before EOS, but double-quotes (") may be unbalanced
+	*/
 	quote: new RegExp(
 		`^((?:${ANSICStringReS}|${DQStringReS}|${SQStringStrictReS}|${cNonANonQNonWSReS}+))(.*?$)`,
 		'msu',
@@ -312,8 +318,10 @@ export function wordSplitCLText(
 	// parse string into tokens (aka words) separated by unquoted-whitespace
 	// * supports both single and double quotes
 	// * no character escape sequences are recognized
-	// * unbalanced quotes are allowed (parsed as if EOL is a completing quote)
-	const { autoQuote } = options;
+	// * unbalanced DQ quotes are allowed (parsed as if EOL is a completing quote)
+	// * words/tokens are returned raw without removing quotes
+	/** Add balancing quote to word automatically, if missing */
+	const autoQuote = options.autoQuote;
 	const arr: Array<string> = [];
 	s = s.replace(/^\s+/msu, ''); // trim leading whitespace
 	// console.warn('xArgs.wordSplitCLText()', { s, options });
