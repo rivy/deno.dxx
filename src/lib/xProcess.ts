@@ -425,7 +425,6 @@ export const runAs =
 	(isShimTarget || isCommandLineRunnerShimTarget) && shim.runner
 		? [shim.runner, ...(shim.runnerArgs ?? []), isEval ? shim.scriptCode : shim.scriptName]
 				.filter(Boolean)
-				.map((s) => $args.reQuote(s ?? ''))
 				.join(' ')
 		: commandLineParts.runner
 			? [
@@ -434,13 +433,9 @@ export const runAs =
 					isEval ? commandLineParts.scriptCode : commandLineParts.scriptName,
 				]
 					.filter(Boolean)
-					.map((s) => $args.reQuote(s ?? ''))
 					.join(' ')
 			: isDirectExecution
-				? [commandLineParts.scriptName]
-						.filter(Boolean)
-						.map((s) => $args.reQuote(s ?? ''))
-						.join(' ')
+				? [commandLineParts.scriptName].filter(Boolean).join(' ')
 				: undefined;
 
 //===
