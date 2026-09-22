@@ -7,6 +7,7 @@
 		"indentWidth": 2,
 		"singleQuote": true,
 		"proseWrap": "never"
+		// "json.trailingCommas": "jsonc"
 	},
 	"lint": { "rules": { "exclude": ["no-import-prefix"] } },
 	"lock": false,
