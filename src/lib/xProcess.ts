@@ -201,13 +201,13 @@ const denoRunnerPartsFromWords = (words: string[]) => {
 		if (nonOptionN > nonOptionNToSkip) {
 			// console.warn({ idx, nonOptionN, nonOptionNToSkip, deQuotedWord, isEval });
 			if (isEval) {
-				parts.runner = deQuote(words.slice(0, 1)[0]);
+				parts.runner = words.slice(0, 1)[0];
 				parts.runnerArgs = words.slice(1, idx - 1);
-				parts.scriptCode = deQuotedWord;
+				parts.scriptCode = words.slice(idx - 1, idx)[0];
 				parts.scriptArgs = words.slice(idx);
 				break;
 			} else if (pathEquivalent(mainModulePath.href, deQuotedWord)) {
-				parts.runner = deQuote(words.slice(0, 1)[0]);
+				parts.runner = words.slice(0, 1)[0];
 				parts.runnerArgs = words.slice(1, idx - 1);
 				parts.scriptName = words.slice(idx - 1, idx)[0];
 				parts.scriptArgs = words.slice(idx);
