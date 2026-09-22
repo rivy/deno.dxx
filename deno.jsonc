@@ -14,6 +14,7 @@
 	// "nodeModulesDir": "none" // not needed; default for Deno-2 with no *package.json* file
 	// , "importMap": "./vendor/import_map.json"
 	"tasks": {
+		"compile": "deno run -A .tasks/compile.deno.ts",
 		"test": "deno run -A .tasks/test.deno.ts -- --test-colorize",
 		"test_via_denoEval": "deno test -A | deno eval 'for await (const chunk of Deno.stdin.readable.pipeThrough(new TextDecoderStream())){ await Deno.stdout.write( new TextEncoder().encode(chunk.replace(/\\\\x1b(\\[[0-9;]*m)/g, \"\\x1b$1\"),),); } '",
 		"test_via_perl": "deno test -A | perl -pe 'BEGIN { $| = 1 } s/\\\\x1b(\\[[0-9;]*m)/\\e$1/g'"
