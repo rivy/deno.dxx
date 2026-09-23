@@ -171,10 +171,10 @@ function composeTestName(
 	return options.colorize
 		? $colors.dim(filePathText) +
 				' ' +
-				(options.ignore ? $colors.yellow('--') : '::') +
+				(options.ignore ? $colors.yellow('**') : '::') +
 				' ' +
 				(options.ignore ? $colors.yellow(description) : $colors.bold(description))
-		: filePathText + ' ' + (options.ignore ? '--' : '::') + ' ' + description;
+		: filePathText + ' ' + (options.ignore ? '**' : '::') + ' ' + description;
 }
 
 export type TestOptions = Omit<Deno.TestDefinition, 'fn' | 'name'>;
