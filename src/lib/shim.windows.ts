@@ -1,6 +1,6 @@
 // spell-checker:ignore (vars) ARGX
 
-const cmdShimBase = `% \`<%=shimName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
+const cmdShimBase = `% \`<%=shimName%>\` (*enhanced*, Deno CMD meta-shim; by <%=appNameVersion%>) %
 @rem:: spell-checker:ignore (shell/CMD) COMSPEC ERRORLEVEL delims ; (deno) Deno hrtime ; (bin) <%=shimName%> <%=denoRunTarget%>
 @rem
 @if DEFINED SHIM_DEBUG @echo # SHIM_DEBUG='%SHIM_DEBUG%' ## defined and active 1>&2
@@ -74,7 +74,7 @@ const cmdShimPrepPipe = `@:pipeEnabled
 const cmdShimPrepNoPipe = '@:pipeDisabled';
 
 export const PosixShimTemplate = `#!/bin/sh
-# % \`<%=shimName%>\` (*enhanced* Deno CMD shim; by <%=appNameVersion%>) %
+# % \`<%=shimName%>\` (*enhanced*, Deno CMD meta-shim; by <%=appNameVersion%>) %
 SHIM_ARG0="$0"
 SHIM_TARGET="<%=denoRunTarget%>"
 # @rem:: suppress annoying/distracting/useless-for-non-dev Deno deprecation warnings [undocumented; warnings and var included in Deno v1.40+]
@@ -91,12 +91,12 @@ export function cmdShimTemplate(enablePipe: boolean) {
 }
 
 export function shimInfo(contentsOriginal: string) {
-	// heuristic match for enhanced shim
+	// heuristic match for enhanced meta-shim
 	// spell-checker:ignore () ined
 	const isEnhanced =
 		contentsOriginal.match(/goto\s+[\W_]*undef(?:ined)?[\W_]*\s+2\s*>\s*NUL/i) ||
 		contentsOriginal.match(/\(\s*goto\s*\)\s+2\s*>\s*NUL/i) ||
-		contentsOriginal.match(/shim\s*;\s*by\s*`?dxi`?/i);
+		contentsOriginal.match(/(?:meta-?)shim\s*;\s*by\s*`?dxi`?/i);
 
 	const reMatchArray = contentsOriginal.match(
 		// match `deno run` options, run-target (as a URL-like quoted string), and run-target arguments from shim text
