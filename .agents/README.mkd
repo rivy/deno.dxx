@@ -9,13 +9,14 @@ Single home for agent-facing material so the repo root stays minimal. The root [
 | Path                                             | Purpose                                                                  |
 | ------------------------------------------------ | ------------------------------------------------------------------------ |
 | [`project-guide.mkd`](project-guide.mkd)         | Project summary, setup, dev workflows, coding conventions, known gotchas |
+| [`project-spec.mkd`](project-spec.mkd)           | Project specification ~ purpose, component contracts, invariants, gaps   |
 | [`project-structure.mkd`](project-structure.mkd) | Directory map, the `dx*` commands, key `src/lib/` modules                |
 | [`spec-commits.mkd`](spec-commits.mkd)           | Commit message format, rules, and repo style                             |
 | [`commands/`](commands/)                         | Reusable prompts                                                         |
 | [`skills/`](skills/)                             | Reusable task recipes (one folder each)                                  |
 | [`tools/`](tools/)                               | Custom tool / command definitions                                        |
 
-Treat `project-guide.mkd`, `project-structure.mkd`, and `spec-commits.mkd` as the source of truth. Add new material here, not as new root-level files.
+Treat `project-guide.mkd`, `project-spec.mkd`, `project-structure.mkd`, and `spec-commits.mkd` as the source of truth. Add new material here, not as new root-level files.
 
 ## How this works across agents
 
@@ -33,7 +34,7 @@ Because `commands/`, `skills/`, and `tools/` are plain files rather than a tool'
 
 ## Adding material
 
-- New guidance → extend `project-guide.mkd` / `project-structure.mkd` / `spec-commits.mkd`.
+- New guidance → extend `project-guide.mkd` / `project-spec.mkd` / `project-structure.mkd` / `spec-commits.mkd`.
 - New command → `commands/<name>.mkd`.
 - New skill → `skills/<name>/SKILL.mkd` (+ any helper files).
 - New tool → `tools/<name>.*` or `commands/<name>.mkd`.

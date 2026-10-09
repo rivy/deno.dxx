@@ -1,0 +1,356 @@
+<!-- spell-checker:ignore () dxx dxf dxi dxr Deno denoland jsdelivr xProcess xArgs xBraces xFetch xWalk xWait MSDV FFI CDN CodeCov SIGBREAK SIGINT COMSPEC ERRORLEVEL PATHEXT setLocal dprint cspell commitlint bmp madge jsonc semver globstar nullglob picomatch micromatch braces yargs cliffy lodash shim shims shimmed dexter deps upkeep -->
+
+# Project spec
+
+Normative specification of what `dxx` **is**, what each component **must do**, and which invariants the project enforces. Companion documents: [`project-guide.mkd`](project-guide.mkd) (how to work in the repo), [`project-structure.mkd`](project-structure.mkd) (where things live), [`spec-commits.mkd`](spec-commits.mkd) (commit format).
+
+Throughout: **MUST** / **MUST NOT** / **SHOULD** / **MAY** have their usual (RFC-2119-ish) force. Sections marked _[status]_ record the gap between spec and current implementation; those are the authoritative to-do list, not aspirational prose.
+
+## 1 · Identity
+
+| Property       | Value                                                                      |
+| -------------- | -------------------------------------------------------------------------- |
+| Name           | `dxx`                                                                      |
+| Description    | Enhanced Deno commands                                                     |
+| Version        | `0.0.16` (pre-1.0; see §11)                                                |
+| Author/license | Roy Ivy III (`rivy`) · MIT                                                 |
+| Repository     | `rivy/deno.dxx`                                                            |
+| Distribution   | `https://deno.land/x/dxx@v<VERSION>/src/<cmd>.ts` · jsDelivr CDN mirror    |
+| Language       | TypeScript on Deno; no Node/npm runtime, no `package.json`, no `deno.lock` |
+| Host platforms | Windows (primary), macOS, Linux                                            |
+
+## 2 · Purpose & problem statement
+
+Deno's CLI drops information that command-line applications need, most acutely on Windows. `dxx` exists to recover that information and to make scripts behave like well-mannered native commands.
+
+The concrete upstream gaps this project works around:
+
+| Gap                                                                            | Upstream ref                                                         |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Scripts cannot learn their own invocation text (`$0` / `%0`)                   | [denoland/deno#9874](https://github.com/denoland/deno/issues/9874)   |
+| No access to the raw/original command line (quote context lost in `Deno.args`) | [denoland/deno#9871](https://github.com/denoland/deno/issues/9871)   |
+| `CTRL-C` on a shimmed script triggers `Terminate batch job (Y/N)?`             | [denoland/deno#9873](https://github.com/denoland/deno/issues/9873)   |
+| `^C^C` echo cannot be suppressed without raw input / signal handling           | [denoland/deno#9995](https://github.com/denoland/deno/issues/9995)   |
+| Deno v1.13 broke shims using `--allow-plugin`                                  | [denoland/deno#11819](https://github.com/denoland/deno/issues/11819) |
+| `cmd` argument quoting through `Deno.run`                                      | [denoland/deno#8852](https://github.com/denoland/deno/issues/8852)   |
+
+Derived requirements:
+
+- **R1** — On Windows, a target script MUST be able to receive `bash`-like expanded arguments (brace, tilde, glob) **while preserving quote semantics** (`'*'`, `*`, and `"*"` MUST remain distinguishable).
+- **R2** — A target script MUST be able to recover the text that invoked it, so that generated help/usage/examples name the real command.
+- **R3** — Interrupting a shimmed script MUST NOT leave a `Terminate batch job (Y/N)?` prompt, and the script's exit status MUST reach the parent shell.
+- **R4** — Every enhancement MUST degrade gracefully: when enhanced data is unavailable, behavior falls back to plain `Deno.args` and the process MAY warn that it is running _impaired_ (§7).
+- **R5** — A script using the library MUST remain compilable to a fully self-contained binary (`deno compile`) with no loss of function.
+
+### Non-goals
+
+- Replacing `deno` itself, or wrapping subcommands beyond those specified here.
+- Emulating a full shell (no command substitution, pipelines, redirection, or backslash escapes — see §6).
+- POSIX argument enhancement: a modern shell already expands correctly, so POSIX behavior is deliberately pass-through.
+
+## 3 · Components
+
+| Component  | Kind      | Entry point           | Status                                              |
+| ---------- | --------- | --------------------- | --------------------------------------------------- |
+| `dxf`      | command   | `src/dxf.ts`          | implemented (see §4.1 divergence)                   |
+| `dxi`      | command   | `src/dxi.ts`          | implemented; shim revision of existing shims is WIP |
+| `dxr`      | command   | `src/dxr.ts`          | implemented                                         |
+| `dxx`      | command   | `src/dxx.ts`          | **specified, not implemented** (no source file)     |
+| `xProcess` | library   | `src/lib/xProcess.ts` | implemented                                         |
+| `xArgs`    | library   | `src/lib/xArgs.ts`    | implemented                                         |
+| support    | libraries | `src/lib/*`           | implemented (§4.7)                                  |
+| dexter/xtr | format    | —                     | **unspecified placeholder** (§13)                   |
+
+## 4 · Component specs
+
+### 4.1 · `dxf` — formatter
+
+Purpose: one command that formats the project with whichever formatter the project actually uses.
+
+- Usage: `dxf [OPTION..] [-- [FORMAT_OPTION..]] [FILE..]`.
+- `--formatter|-f COMMAND` selects `default` | `all` | `deno` | `dprint`; absent ⇒ `dprint`. `all` MUST run `deno fmt` first, then `dprint fmt`.
+- Config discovery MUST be by first match: `dprint` ⇒ `.dprint.json`, `dprint.json`, `.dprintrc.json`; `deno` ⇒ `deno.json`, `tsconfig.json`. A found config MUST be passed as `--config <path>`. `deno fmt --config` MUST only be used for Deno >= 1.14.0.
+- With no `FILE` arguments, the formatter's own project-wide default applies.
+- Child `stdin`/`stdout`/`stderr` MUST be inherited; a non-zero formatter status MUST be propagated as the exit status.
+- Required permissions: `env`, `read`, `run`.
+
+_[status]_ **Divergence from the README**: `dxf` does not fall back to `deno fmt` when `dprint` is absent. `dprint --version` is probed but the result is only logged, so a missing `dprint` surfaces as a spawn failure instead. Either implement the documented fallback (`dprint` unavailable ⇒ `deno`) or correct [`../README.md`](../README.md).
+
+### 4.2 · `dxi` — installer
+
+Purpose: `deno install`, then upgrade the installed Windows shim into a **meta-shim** (§5).
+
+- Usage: `dxi [OPTION..] [[--] [INSTALL_OPTION..]] COMMAND [COMMAND_ARGUMENT..]`; `COMMAND` is required.
+- Options before the first non-option MUST be delegated verbatim to `deno install`, except as adjusted below. `COMMAND_ARGUMENT`s MUST be baked into every execution of the installed command.
+- Delegated-argument normalization (compatibility shims, each version-gated):
+  - `--quiet`/`-q` MUST be stripped from the `deno install` invocation (its output is needed to locate the shim; ref [denoland/deno#19037](https://github.com/denoland/deno/issues/19037)) and re-applied to the generated shim's `deno run` options instead.
+  - `--global` MUST be added for Deno >= 1.42.0 when not supplied.
+  - `--no-config` MUST be added for Deno >= 2.1.8 when not supplied.
+  - For Deno >= 2.6.0, `COMMAND` MUST precede the `--` that leads baked arguments.
+- `--help`/`-h` appearing among delegated arguments means "show `deno install` help"; `dxi` MUST exit `0` after the delegated run.
+- Shim path discovery MUST parse `deno install` output: the line following `… Successfully installed <name>`. Install success with an unreadable/missing shim path MUST be a hard error (exit `1`).
+- Shim rewrite MUST happen only when: install succeeded **and** host is Windows **and** a shim path was found. Rewrite MUST be `shimInfo()` parse ⇒ `cmdShimTemplate()` render ⇒ write back as CRLF.
+- Permission-flag normalization inside the parsed shim options: `--allow-plugin` and `--allow-ffi` ⇒ `--allow-all`; when `--allow-all` or unrestricted `--allow-run` is present, narrower `--allow-*` flags MUST be collapsed away.
+- Progress MUST be reported with a spinner and elided-to-console-width command text; the final line reports success/failure plus duration.
+- Exit status: `0` on success, otherwise the `deno install` status code.
+- Required permissions: `env`, `read`, `run`.
+
+_[status]_ A POSIX shim template (`PosixShimTemplate`) exists and is exercised only by `tests/helpers/shim.display-results.ts`; `dxi` never emits it. Either wire it up or mark it explicitly experimental. Revising **pre-existing** shims in place is also still WIP — prototypes live in [`../tools/`](../tools/).
+
+### 4.3 · `dxr` — runner
+
+Purpose: run a script with meta-runner enhancements, without installing anything.
+
+- Usage: `dxr [OPTION..] [[--] [RUN_OPTION..]] [--] SCRIPT [SCRIPT_ARG..]`; `SCRIPT` is required.
+- `RUN_OPTION`s MUST be delegated to `deno run`; when none are given, the default MUST be `-A --quiet`.
+- `SIGINT` (and `SIGBREAK` on Windows for Deno >= 1.23.0) MUST be registered and ignored **before** any other initialization, so that the target process owns interrupt handling (R3).
+- A `SCRIPT` beginning with `-` MUST be rewritten to `./-…` so it cannot be mistaken for an option.
+- The child MUST be spawned with inherited stdio and with the meta-shim environment (§5) set: `SHIM_ARG0` (runner text + delegated options + script), `SHIM_ARGS` (re-quoted target args), `SHIM_TARGET` (target URL).
+- `SHIM_ARGS` MUST be rejected above a heuristic cap of **8 KiB** (environment-block limit) with an error directing the user to install via `dxi` instead.
+- Exit status MUST mirror the child's.
+- Required permissions: `env`, `read` — plus `run` in practice.
+
+_[status]_ `run` is **not** declared in `dxr`'s `abortIfMissingPermitsSync(…)` list even though the command's entire job is spawning `deno`. The in-source note asks for permission-descriptor query parameters first; until then the declaration under-reports what the command needs.
+
+### 4.4 · `dxx` — integrator _[not implemented]_
+
+Specified intent: a single front-end that subsumes `dxf`/`dxi`/`dxr` and hosts the dexter/xtr work (§13). No `src/dxx.ts` exists; [`project-structure.mkd`](project-structure.mkd) currently lists it as if it did. Until it lands, the project ships three commands, not four, and docs MUST say so.
+
+### 4.5 · `xProcess` — process-identity library
+
+Purpose: answer "who am I, how was I invoked, and what are my real arguments?" from whichever source is available.
+
+Information sources, in **strict priority order**:
+
+1. **Meta-shim environment** (`SHIM_*`; §5) — cleanest data, including the best `ARG0`.
+2. **Raw command line** — Windows `GetCommandLineW()` via FFI (`src/lib/commandLine.ts`), parsed into semantic parts.
+3. **`Deno.args` / `Deno.mainModule` / `Deno.execPath()`** — the impaired fallback.
+
+Required exports (stable API surface):
+
+| Export                                                     | Meaning                                                                                   |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `name`                                                     | script name, extension removed (`PATHEXT` + JS/TS variants)                               |
+| `runAs`                                                    | text usable to re-invoke this application                                                 |
+| `argv0`, `execArgv`                                        | invoking executable text; runner-specific options                                         |
+| `args()` / `argsSync()` / `argsAsync()`                    | expanded arguments (§6)                                                                   |
+| `commandLine`, `commandLineParts`                          | raw command line and its `{runner, runnerArgs, scriptName, scriptCode, scriptArgs}` split |
+| `shim`                                                     | parsed meta-shim data                                                                     |
+| `isShimTarget`, `isCommandLineRunnerShimTarget`            | whether shim data is addressed to _this_ process                                          |
+| `likelyIsStandalone`, `isDirectExecution`, `isEval`        | execution-mode detection                                                                  |
+| `pathURL`                                                  | best-guess URL of the main script                                                         |
+| `impaired`, `impairedWarningMessage()`, `warnIfImpaired()` | capability reporting (§7)                                                                 |
+
+Behavioral requirements:
+
+- **Targeting gate** — shim-supplied data MUST be used only when it is addressed to this process: `SHIM_TARGET` must be path-equivalent to `Deno.mainModule`, or to `Deno.execPath()` with the shim's parsed `scriptName` matching `Deno.mainModule`. This prevents an `xProcess`-naive intermediary from leaking a parent's shim data into a child.
+- **Consume-and-clear** — all recognized `SHIM_*`/`DENO_SHIM_*` variables MUST be deleted from the environment at import (subject to `env` permission), so sub-processes do not re-interpret them.
+- **Runner-part heuristic** — command-line/`ARG0` word lists are parsed as `<runner> [<option>..] [eval|run] [<option>..] <script|code> [<arg>..]`. The set of runner options taking a **mandatory** separate argument MUST be maintained as Deno evolves (`denoRunnerOptionsWithMandatoryArguments`); short-option-with-argument forms (`-Linfo`, `-AL=info`) MUST be recognized.
+- **Standalone detection** — `deno compile` output MUST be detected (`Deno.build.standalone` for Deno >= 2.3, else the `deno-compile-<exe>` path marker) so that `argv0`/`name` come from the binary itself (R5).
+- **Platform pass-through** — on non-Windows hosts, or when `SHELL` matches a `*sh` shell, `args*()` MUST return `Deno.args` unchanged.
+- **`runAs` fidelity** — `runAs` MUST be assembled from raw parts **without** re-quoting or otherwise editing quote characters (regression fixed in history; keep it that way).
+- **No top-level panics/prompts** — see §10.
+
+### 4.6 · `xArgs` — argument parsing & expansion
+
+Word splitting (`wordSplitCLText`, `shiftCLTextWord`) MUST preserve quote context: a quoted token is a protected token, and an unbalanced quote is parsed as if closed at end-of-string.
+
+Expansion order, applied per word: **brace** ⇒ **tilde** ⇒ **glob**.
+
+| Stage | Rules                                                                                                                                               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| brace | Bash v4.3-compatible via [`braces`](https://github.com/micromatch/braces): lists/sets, ranges/sequences, increments, nesting, brace-bomb protection |
+| tilde | `~` ⇒ home directory                                                                                                                                |
+| glob  | Full extended glob + `globstar` via [`picomatch`](https://github.com/micromatch/picomatch)                                                          |
+
+Invariants:
+
+- Single **or** double quotes protect braces, tildes, and globs from expansion.
+- Backslash escape sequences MUST NOT be recognized; ANSI-C strings (`$'…'`) are recognized by `args*()`.
+- An empty-string argument MUST survive expansion as an empty string.
+- A glob matching nothing MUST remain literal, unless `nullglob` is enabled; `nullglob` defaults from the `NULLGLOB` (`nullglob`) environment variable, where `''`/`0`/`f`/`false`/`no`/`off` are falsey.
+- Each public operation MUST be available in sync, async, and lazy-iterator (`argsIt*`) forms.
+- `reQuote()` MUST produce text that re-parses to the same word (it is the wire format for `SHIM_ARGS`).
+
+The expected end-to-end behavior is pinned by `tests/xArgs.integration.test.ts`, which runs `eg/args.ts` through a real shell and asserts the exact expansion of a torture-test argument list (`^ & | < >`, `%this%`, `:'this that':`, `that"'"s`, …). That test is the contract — changes to expansion semantics MUST update it deliberately.
+
+### 4.7 · Support libraries
+
+| Module                                   | Requirement                                                                                                                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `commandLine.ts`                         | Windows `GetCommandLineA/W` via FFI; MUST return `undefined` (never throw) when FFI is unavailable or unpermitted                                                         |
+| `shim.windows.ts`                        | shim template rendering + `shimInfo()` parsing of existing shims (`isEnhanced` detection MUST stay heuristic and tolerant)                                                |
+| `consoleSize.ts`, `consoleSizeViaFFI.ts` | layered console-size detection: Deno API ⇒ FFI ⇒ `PowerShell`/`resize`/`stty`/`tput` (incl. `xargs` variants); MUST degrade to `undefined`, callers default to 80 columns |
+| `xBraces.ts`, `xWalk.ts`, `xFetch.ts`    | brace expansion; filesystem walking; fetch helpers                                                                                                                        |
+| `restyleYargsHelp.ts`                    | re-layout of `yargs` help text for the project's help style                                                                                                               |
+| `axe/` (`$logger`, `logger`)             | levelled logger; MUST start **suspended** and log to STDERR                                                                                                               |
+| `xWait/`                                 | spinner/progress output                                                                                                                                                   |
+| `eol.ts`, `utils.ts`                     | newline conversion; C/W string helpers                                                                                                                                    |
+| `$deps.ts`, `$deps.cli.ts`               | the **only** place third-party/std imports are named (§9)                                                                                                                 |
+| `$shared.ts`, `$shared.TLA.ts`           | shared helpers; `.TLA` variant isolates top-level-await usage                                                                                                             |
+| `$locals.ts`                             | re-export surface (`$me`, `$consoleSize`) for commands                                                                                                                    |
+
+_[status]_ `xWait` is slated for replacement by `rivy/deno.progress`.
+
+## 5 · Meta-shim protocol (normative)
+
+A **shim** is a transparent adaption layer. A **meta-shim** (or meta-runner, e.g. `dxr`) additionally passes process information to its target through environment variables.
+
+| Variable      | Direction | Meaning                                                                                                      |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------------------ |
+| `SHIM_TARGET` | in        | path/URL of the script the shim is launching — the **targeting gate** (§4.5)                                 |
+| `SHIM_ARG0`   | in        | original `argv[0]`/invocation text                                                                           |
+| `SHIM_ARGS`   | in        | original argument text (re-quoted; ≤ 8 KiB)                                                                  |
+| `SHIM_PIPE`   | in/out    | path of a generated script the target MAY write to, to push environment/CWD changes back to the parent shell |
+| `SHIM_EXEC`   | in        | secondary-shim executable path (implementation detail; Windows)                                              |
+
+- Legacy aliases MUST continue to be read: `SHIM_URL`, `SHIM_ARGV0`, `SHIM_ARGV`, and the `DENO_SHIM_*` forms of all names. New code MUST emit only the primary names.
+- Consumers MUST delete every recognized variable after reading (§4.5).
+- Oversized argument text MUST be rejected rather than silently truncated. (A file-based transport — `SHIM_ARGF` — is a documented future option.)
+
+### Windows CMD meta-shim requirements
+
+The generated `.cmd` shim (`cmdShimTemplate`) MUST:
+
+1. Capture `%*` into `SHIM_ARGS` with `)` escaped/unescaped around the parse-group boundary, and set `SHIM_ARG0` from `%~0`.
+2. Use the `(goto) 2>NUL` exit-the-batch-context trick so that `CTRL-C` does not produce `Terminate batch job (Y/N)?` (R3).
+3. Propagate the target's exit code via `SHIM_ERRORLEVEL` and a final `"%COMSPEC%" /d/c "@exit <code>"`, resetting `ERRORLEVEL`/`SHIM_ERRORLEVEL` to avoid pinned values.
+4. Set `DENO_NO_UPDATE_CHECK` and `DENO_NO_DEPRECATION_WARNINGS`, and restore their prior values afterwards. It MUST NOT force `DENO_NO_PROMPT` (user choice).
+5. When the pipe feature is enabled, build a collision-resistant `SHIM_TID` from `%DATE%`/`%TIME%`/`%RANDOM%` with locale-introduced path-illegal characters removed, then create/consume/delete `SHIM_PIPE`.
+6. Honor `SHIM_DEBUG`: when defined, emit diagnostics and retain the pipe file.
+7. Self-identify in its first line (`` `<name>` (*enhanced*, Deno CMD meta-shim; by <appNameVersion>) ``) so `shimInfo()` can recognize it later.
+
+_[status]_ Terminology is mid-migration from "enhanced shim" to "meta-shim". New text MUST use **meta-shim**; the template banner and older comments still say "enhanced".
+
+## 6 · Capability model
+
+A process is **enhanced** along two independent axes, and `xProcess` MUST report both:
+
+| Capability               | Satisfied by                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `haveSuppliedArgv0` (R2) | shim `ARG0`, a parsed command-line runner, or direct execution (compiled binary)                              |
+| `haveEnhancedArgs` (R1)  | being a shim target, shim-supplied script args, an available raw command line, or running under a `*sh` shell |
+
+`impaired` MUST be computed as `!(haveEnhancedArgs && haveSuppliedArgv0)` on Windows, and `!haveSuppliedArgv0` elsewhere. When impaired, `warnIfImpaired()` MUST name which resolution is faulty and MUST point the user at the remedy (`dxr`, or install with `dxi`). Commands choose whether to warn: `dxf` warns; `dxi` deliberately does not (it is commonly run via plain `deno install`).
+
+Three supported routes to full function, which MUST all remain viable:
+
+1. run through a meta-runner (`dxr`),
+2. run a command installed with `dxi` (meta-shim),
+3. FFI access to the raw command line (`--unstable`/`--unstable-ffi` on older Deno; unflagged on Deno 2+), including inside `deno compile` output.
+
+## 7 · CLI conventions (all `dx*` commands)
+
+- Permissions MUST be declared up front via `abortIfMissingPermitsSync(…)`, with an inline comment stating **why** each permit is needed. Commands MUST fail with a clear message rather than trigger Deno's permission prompt.
+- Argument parsing MUST use the project's vendored `yargs` fork with: `camel-case-expansion`, `strip-aliased`, `strip-dashed`; numbers unparsed where the command passes arguments through; `unknown-options-as-args` for the delegating commands. Because `halt-at-non-option` is unreliable alongside `unknown-options-as-args`, commands MUST split `bakedArgs` manually at the first non-option or `--`.
+- Arguments MUST come from `$me.args()` (expanded), never `Deno.args` directly.
+- All diagnostics go to **STDERR** via the suspended-then-resumed `logger`. Level MUST be resolvable from `LOG_LEVEL`/`LOGLEVEL`/`DEBUG` and from `--log-level`, `--silent`, `--quiet`, `--verbose`, `--debug`, `--trace`; an explicit `--log-level` wins, otherwise the most verbose request wins. Default level: `notice`.
+- Color/Unicode use MUST be gated on `mightUseColor()` / `mightUseUnicode()` (honoring `NO_COLOR`, `NO_UNICODE`).
+- Help text MUST be rendered via `restyleYargsHelp()` with `yargs`' own wrapping disabled, and MUST include version, usage, grouped options (`Options:`, `*Logging:`, `*Help/Info:`), and copyright.
+- A parse failure MUST print the error plus a "use `<cmd> --help` …" hint, and MUST exit `1`.
+
+_[status]_ `--help`/`--version` exit status is **inconsistent**: `dxf` and `dxr` always exit `1`; `dxi` exits `0` when help/version is the only argument and `1` otherwise. `dxi`'s rule is the intended one (help on request is success; help forced by a malformed command line is not). `dxf` and `dxr` SHOULD adopt it.
+
+## 8 · Platform & version compatibility
+
+- Code MUST stay cross-platform. OS-specific behavior MUST be gated on `isWinOS` and the project's path helpers; Windows is the primary target and the only platform where argument enhancement applies.
+- **MSDV** (Minimum Supported Deno Version):
+  - `std@0.134.0` pins the floor at **Deno 1.20.5**.
+  - **Deno 1.23.0+** when synchronous permission queries are avoided (`abortIfMissingPermits(…)`).
+  - **Deno 1.30.0+** to use the synchronous permit API (`abortIfMissingPermitsSync(…)`), which is what the commands do — so the effective floor is 1.30.0.
+- FFI flag matrix (also encoded in `tests/xArgs.integration.test.ts`):
+
+| Deno range  | Flags for raw-command-line FFI             |
+| ----------- | ------------------------------------------ |
+| 2.0+        | `--allow-ffi` (or `--allow-all`, not both) |
+| 1.40 – 1.46 | `--unstable-ffi` + `--allow-ffi`           |
+| 1.38 – 1.39 | `--unstable` or `--unstable-ffi` + allow   |
+| 1.13 – 1.37 | `--unstable` + `--allow-ffi`               |
+
+- Version-specific workarounds MUST be gated by `$semver` comparison and MUST carry a comment naming the Deno version and the issue. Currently tracked: `deno install` quiet-output bug (1.29+), `--global` default change (1.42+), `--config` warning (2.1.8+), `--`-before-`COMMAND` requirement (2.6+), and a `--` handling regression in **Deno 2.9.6** ([denoland/deno#36792](https://github.com/denoland/deno/issues/36792)).
+- Deprecated `Deno.run` usage MUST be funnelled through `src/lib/$deprecated.ts` rather than called directly, so the migration to `Deno.Command` can proceed module by module.
+
+## 9 · Dependency & vendoring policy
+
+- No `package.json`, no `node_modules`, no lockfile (`"lock": false` — this is deliberate; do not re-enable).
+- Third-party and `std` imports MUST be declared **only** in a `$deps*.ts` module and consumed from there. Pins in force: `std@0.134.0` (later versions prompt for permissions), `cliffy@v0.23.0` (last version on `std` ≤ 0.134.0), a project fork of `yargs`, plus `braces`/`picomatch`/`lodash` via jsDelivr ESM.
+- Every URL import MUST pin an exact version or commit.
+- `vendor/` holds `deno vendor` output (`vendor/deno@<ver>-vendor`) plus a `.patch` overlay applied by [`../tools/rebuild-vendor.BAT`](../tools/rebuild-vendor.BAT). `vendor/` is excluded from `deno`, `dprint`, and the test gates, and MUST NOT be hand-edited.
+- Types that upstream ships incorrectly MAY be vendored under `vendor/@types/…` and referenced with `import type`.
+
+## 10 · Quality invariants (enforced)
+
+These are machine-checked; `deno test -A` is the gate.
+
+**Library hygiene** — `tests/00.project.syntax.test.ts`
+
+- Every module under `src/lib/**` MUST be **no-panic**: `deno run --no-prompt <file>` succeeds with zero permissions.
+- Every such module MUST be **no-prompt**: importing it produces no permission prompt (checked via `expect`, when available).
+- All code files (source, examples, tests, benches, tools) MUST compile with **no warnings** under `deno test --reload --no-run`.
+- No circular dependencies (`madge`; currently skipped for `madge` >= 7 pending upstream TypeScript support).
+
+**Style** — `tests/00.project.style.test.ts`
+
+- `deno lint`, `dprint check`, `cspell`, `bmp --info`, and `commitlint` MUST all pass.
+- Non-binary project files MUST: contain no leading UTF-8 BOM, end with a newline when non-empty, use **LF** newlines (except `.bat`/`.cmd`/`.sln`/`.vcproj`/`.vcxproj`), and contain no trailing whitespace.
+- Excluded from scanning: `*build`, `*coverage`, `fixtures`, `.git`, `.gpg`, `vendor`.
+
+**Packaging & version** — `tests/00.project.package.test.ts`, `tests/00.project.version.test.ts`
+
+- `README`, `LICENSE`, and `CHANGELOG` MUST be present and non-empty.
+- `VERSION`, `$shared.ts`'s `VERSION`, and every versioned `deno.land/x/dxx@…` URL in the README MUST agree; on a version-tagged commit, `git describe` MUST agree too.
+
+**Release strictness** — `deno test -A -- --release` (or `--test-dist`/`--test-release`)
+
+- `commitlint --strict`; `wip`/`x`/`version` types and `fixup!`/`squash!` messages are rejected. Flags after `--` set `TEST_<FLAG>=true` via `setEnvFromArgs`.
+
+_Caveat_: console-size/TTY integration tests cannot obtain a real TTY under CI and are special-cased; failures there are usually environmental.
+
+## 11 · Versioning, release & distribution
+
+- Semantic versioning, currently `0.x` — breaking changes are possible between patch releases, and MUST still be marked `!` + `BREAKING CHANGE:` per [`spec-commits.mkd`](spec-commits.mkd).
+- `bmp` ([`../.bmp.yml`](../.bmp.yml)) is the single source of version propagation: `VERSION`, `src/lib/$shared.ts`, README URLs, `eg/WanCopy.ts`. Version strings MUST NOT be edited by hand.
+- `CHANGELOG.mkd` is generated by `git-changelog` from commit messages and MUST NOT be hand-edited. Commit types therefore determine the changelog; see `spec-commits.mkd`.
+- Release sequence: `bmp --[major|minor|patch]` ⇒ `git-changelog --next-tag "v<VERSION>"` ⇒ commit (message = bare version) ⇒ clean tree ⇒ `git tag -f v<VERSION>` ⇒ `deno test -A -- --release` ⇒ push tags.
+- Publication is by tag push (`deno.land/x` registry hook); the jsDelivr CDN path additionally supports version-range/latest/commit references.
+
+## 12 · CI/CD
+
+[`../.github/workflows/CICD.yml`](../.github/workflows/CICD.yml), on every push and pull request:
+
+- **Style/Syntax** (ubuntu) — installs `expect`, `bmp`, `commitlint@17`, `cspell@8`, `dprint@0.47.2`, `madge@6`; runs `deno cache` per entry point (converting warnings into GitHub annotations); then the style + syntax gates.
+- **Build** (ubuntu · macOS · windows) — full `deno test --allow-all --coverage`; extra TTY-wrapped console-size runs on ubuntu/macOS via `script`/`expect` (unavailable on Windows runners); LCOV upload to CodeCov; `deno compile --allow-all --unstable` of each `src/*.ts` entry point **from the CDN URL** for the current commit (preserving `import.meta.url` project context); packaged as `.zip`/`.tar.gz` artifacts with README + LICENSE.
+- **Publish** — on version-like tags only, attaching per-target archives to a GitHub release.
+
+Entry points are discovered by glob (`./src/[^$]*.ts`, `./src/bin/*.ts`, `./src/cli/*.ts`), so a new command file is picked up automatically — and `$`-prefixed modules are excluded by design.
+
+## 13 · Roadmap / known gaps
+
+Ordered roughly by how much they block the documented feature set:
+
+1. **`dxx`** — implement the integrator, or remove it from README/structure docs until it exists (§4.4).
+2. **`dxf` fallback** — reconcile code and README (§4.1).
+3. **`dxr` permissions** — declare `run` (§4.3).
+4. **`--help` exit status** — unify on `dxi`'s rule (§7).
+5. **`dxi` shim revision** — upgrade pre-existing shims in place; promote the [`../tools/`](../tools/) prototypes.
+6. **`dxr` enhancements** — auto-set requested permissions (warning when inferred), run remote scripts `dpx`-style with extra search directories (`src`, …), and `--install` a remote script.
+7. **dexter/xtr** — the file format and its auto-execution are placeholders with no specification yet; they MUST be specified before implementation.
+8. **`SHIM_ARGF`** — file-based transport for argument text beyond the environment-block cap (§5).
+9. **POSIX meta-shim** — decide the fate of `PosixShimTemplate` (§4.2).
+10. **`Deno.run` migration** — retire `$deprecated.ts` usage in favor of `Deno.Command`.
+11. **`xWait` ⇒ `rivy/deno.progress`**.
+12. **Deno 2.9.6 `--` regression** — tests are currently adjusted around it; re-tighten once upstream is fixed.
+
+## 14 · Glossary
+
+| Term        | Meaning                                                                                |
+| ----------- | -------------------------------------------------------------------------------------- |
+| shim        | adaption layer launching a script; normally transparent                                |
+| meta-shim   | shim that additionally passes process info to its target via `SHIM_*` (§5)             |
+| meta-runner | runner doing the same without installing anything (`dxr`)                              |
+| impaired    | running without reliable `$0` and/or argument resolution (§6)                          |
+| MSDV        | Minimum Supported Deno Version (§8)                                                    |
+| standalone  | `deno compile` output; executes directly rather than via a runner                      |
+| `nullglob`  | a non-matching glob expands to nothing instead of staying literal (§4.6)               |
+| TID         | TargetID; per-execution unique suffix for shim pipe files (§5)                         |
+| `$`-prefix  | repo convention marking a shared/internal module (`$deps.ts`, `$shared.ts`, `$mod.ts`) |
