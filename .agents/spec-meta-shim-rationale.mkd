@@ -1,0 +1,326 @@
+<!-- spell-checker:ignore () dxx dxf dxi dxr Deno denoland xProcess xArgs MSDV FFI COMSPEC ERRORLEVEL setLocal endLocal nullglob globstar shim shims shimmed shimmer scoop dprint deps -->
+<!-- spell-checker:ignore (vars) ARGF ARGS ARGV ARGX PPID TID ORIGIN LOGLEVEL -->
+<!-- spell-checker:ignore (shell/CMD) tasklist WMI pushd popd -->
+
+# Meta-shim variables — rationale
+
+Companion to [`spec-meta-shim.mkd`](spec-meta-shim.mkd). That document says **what** conforming implementations must do; this one says **why each variable exists**, in plain terms, with the concrete failure it prevents.
+
+Written to be read start-to-finish, or dipped into per variable. Nothing here is normative — where the two documents disagree, the spec wins.
+
+## How to read this
+
+Not everything named `SHIM_*` is part of the protocol. Three different kinds of variable share the prefix, and conflating them is a large part of why the current design feels murky:
+
+| Kind              | Direction            | Examples                                   | Who sets / reads                                          |
+| ----------------- | -------------------- | ------------------------------------------ | --------------------------------------------------------- |
+| **Transmitted**   | producer → target    | `SHIM_TARGET`, `SHIM_ARG0`, `SHIM_ARGS`, … | set by the shim, read by the target process               |
+| **Shim-internal** | within the shim only | `SHIM_TID`, `SHIM_ERRORLEVEL`              | set and read by the `.cmd` itself; target never sees them |
+| **User input**    | user → shim          | `SHIM_DEBUG`                               | set by a person in their shell; read by the shim          |
+| **Bidirectional** | both ways            | `SHIM_PIPE`                                | path set by the shim, _content_ written by the target     |
+
+Only the transmitted set is protocol. The rest are documented here anyway, because anyone reading a generated `.cmd` will meet them and wonder.
+
+The test applied throughout for "does this deserve a variable?" is:
+
+> Is there information the receiving process **cannot obtain any other way**, which changes what it does?
+
+Several candidate variables fail that test, and §5 records the ones deliberately left out.
+
+## 1 · The baseline, and what it cannot do
+
+You already have these three; this section exists only to mark the exact edge where they stop working.
+
+**`SHIM_TARGET`** — the path/URL of the script being launched. The name invites a misreading: the shim is _already_ launching the target, so it doesn't need to be told where to go. Its real job is on the **receiving** end — it is the return address that lets a process check "was this meant for me?" That makes it the addressing mechanism, not a destination.
+
+**`SHIM_ARG0`** — the invocation text. Deno gives a script no way to learn it was invoked as `myapp` rather than as `deno run --allow-read C:\Users\…\myapp.ts`. Without it, generated help says `Usage: deno run --allow-read C:\Users\…\myapp.ts [OPTION]…`, which is both ugly and un-typeable.
+
+**`SHIM_ARGS`** — the raw argument text, on Windows. Two distinct losses to recover: Windows has no shell to expand `*.txt`, and `Deno.args` has already discarded quote context, so `'*'`, `*`, and `"*"` arrive indistinguishable.
+
+> **Aside — why not just read the real command line?** `xProcess` does, as a fallback: `GetCommandLineW()` through FFI ([`../src/lib/commandLine.ts`](../src/lib/commandLine.ts)). But it costs `--allow-ffi`, a broad permission that defeats the point of running a script with narrow grants, and it still cannot recover `ARG0` — the command line of the `deno` process records how _deno_ was invoked, not that a shim named `myapp` stood in front of it. So the environment channel remains necessary even where FFI is available.
+
+**Where the three stop being enough.** They describe exactly one hop, from one producer to one target, and they assume that hop is the only one. Each of the variables below exists because one of those assumptions breaks:
+
+- the frame may be **stale** or **mis-delivered** (§2),
+- the argument text may be **ambiguous** or **too large** (§3),
+- there may be **more than one hop** (§4).
+
+## 2 · Trust and freshness
+
+### `SHIM_PPID` — "is this frame actually fresh?"
+
+**Holds** the process ID of the producer.
+
+**The problem.** `SHIM_TARGET` can only tell a process that a frame _describes_ it. It cannot tell it that the frame is _current_. These two situations are byte-for-byte identical in the environment:
+
+- my shim set this a millisecond ago, for me;
+- some ancestor set this, nobody cleared it, and I happen to be the same script.
+
+**Concrete case.** A script that re-invokes itself — common enough for a second pass, a privilege change, or a different flag set:
+
+```shell
+myapp big.txt            # shim sets ARG0=myapp, ARGS="big.txt", TARGET=…/myapp.ts
+  └─ myapp.ts runs, claims the frame, then internally runs:
+       deno run --allow-read myapp.ts --phase2
+         └─ myapp.ts (child) checks SHIM_TARGET … it matches perfectly. And wrongly.
+```
+
+The child's `mainModule` _is_ `SHIM_TARGET`. Every addressing check passes. The child therefore reports `ARG0=myapp` and `ARGS="big.txt"` as its own, and its `--help` and argument expansion both describe its parent's invocation.
+
+**Isn't that what consume-and-clear is for?** Yes — and that is the real defense. But look at how it is implemented ([`../src/lib/xProcess.ts`](../src/lib/xProcess.ts) §7.4 in the spec): the `Deno.env.delete()` calls are gated on `env` permission being **granted**. Run the parent as `deno run --allow-read myapp.ts` — no `--allow-env` — and the clear silently does not happen. The frame survives, and the case above fires. Clearing also cannot help if the parent crashed between claiming and clearing, or if the intermediate process doesn't implement this protocol at all.
+
+So the honest framing: **clearing is cooperative, addressing is coincidence-prone, parentage is neither.** `SHIM_PPID` is the only check that depends on nothing the previous process chose to do.
+
+**It also hardens the weakest address.** When `SHIM_TARGET` names `deno.exe` rather than a script — the "runner target" form — it matches _every_ Deno process in the subtree, and all the real disambiguation falls to heuristically parsing the script name out of `ARG0`/`ARGS` (`denoRunnerPartsFromWords`, which has to track Deno's evolving option list to stay correct). A parent-PID check is indifferent to how good that parse was.
+
+**Cost and honest limits.**
+
+- **It cannot be set from batch.** `cmd.exe` has no `$$`; `tasklist`/WMI probing is slow, deprecated, and locale-fragile. So for a `dxi`-generated `.cmd` — your highest-traffic path — this variable contributes **nothing**. Its value is confined to `dxr` and compiled shims, which get their PID for free.
+- **Setting it is a promise.** It asserts "the recipient will be my immediate child." True for `Deno.Command`/`Deno.run` (direct `CreateProcess`, no interposed shell). A producer that cannot promise it must omit it, or it breaks its own handoff — safely (recipient declines, runs impaired) but pointlessly.
+- **PID reuse** is a residual hole: a recycled PID could coincidentally match a leaked value. Requiring the target match _as well_ reduces this to needing a stale frame **and** a wraparound **and** a matching target.
+
+**Verdict:** worth having, but genuinely optional, and not a replacement for `SHIM_TARGET`. If you implement one new variable from this document, this is not the one.
+
+### `SHIM_V` — "can I even read this frame?"
+
+**Holds** the protocol major version (`2`).
+
+**The problem.** The moment a second implementation exists — the scoop compiled shim is the stated goal — you lose the ability to change what a variable _means_. Not what it's named: what it means. A silent reinterpretation is the dangerous kind of change, because both sides keep working and only the data is wrong.
+
+**Concrete case.** Suppose a later revision decides `SHIM_ARGS` should default to `raw` (unexpanded) rather than `requoted` (already expanded). A consumer built against today's assumption receives a `raw` frame, believes it is already expanded, and skips expansion — so the user's `*.txt` arrives literally, as one argument. Or the reverse: already-expanded text gets expanded a second time, and a file named `report[1].txt` silently vanishes under a glob. No error, no crash, just wrong arguments.
+
+**Without it,** every future change must be backward-compatible forever, or it breaks other people's installed shims silently. With it, the rule is simply **degrade, don't misread**: a consumer that sees a version it doesn't know declines the whole frame and runs impaired, with the existing warning. That is a visible, diagnosable failure instead of an invisible one.
+
+**Cost.** One `@set`. This is the cheapest insurance in the protocol, and it is only purchasable _before_ the second implementation ships — retrofitting a version to an unversioned protocol means guessing what unversioned frames meant.
+
+**Verdict:** implement this first, even if nothing else here is adopted. Its whole value is being there early.
+
+### `SHIM_BY` — "which shim wrote this?"
+
+**Holds** producer identity, `<tool>/<version>` — e.g. `dxi/0.0.16`, `scoop-cs/1.2`.
+
+**The problem.** When a user reports "my arguments came through wrong," the first unknown is which layer produced the frame: a shim from `dxi` v0.0.16, one generated by v0.0.9 and never regenerated, a hand-edited `.cmd`, or scoop's.
+
+**Concrete case.** Installed shims are files on disk that outlive the tool that wrote them. The repo already carries live examples of version-specific shim behavior — the `)`-escaping and `%`-doubling dance in [`../src/lib/shim.windows.ts`](../src/lib/shim.windows.ts), and the open question in the ToDO notes about whether `@set SHIM_ARGS=%SHIM_ARGS:!=^^!%` is required at all. If that escaping is ever corrected, a consumer has no way to distinguish text from an old shim from text from a new one — unless the frame says who wrote it. `SHIM_BY` makes a targeted workaround possible ("shims from `dxi` < 0.0.17 double `%` differently") instead of a global guess.
+
+It also supplies the identity that loop detection needs: recognizing "I have already been through here" requires something stable to compare.
+
+**Cost.** ~20 bytes, one `@set`. Pure diagnostics otherwise.
+
+**Verdict:** cheap and useful for support, but nothing breaks without it. Reasonable to fold into `SHIM_CHAIN` (§4) and not have as a standalone variable — its value is mostly realized _through_ the chain.
+
+## 3 · Argument text that describes itself
+
+### `SHIM_ARGS_FORM` — "has this text already been expanded?"
+
+**Holds** one of `raw`, `requoted`, `file`.
+
+**The problem.** A consumer handed `SHIM_ARGS` has no way to tell what stage the text is at. Is it verbatim shell text that still needs globbing and de-quoting? Or words that were already expanded and then re-quoted? The same string can be either.
+
+**Concrete case — mixing producers.** This is the one that actually forces the issue. Two producers in this project behave differently:
+
+- a `dxi`-generated `.cmd` captures `%*` — **raw**, unexpanded, straight from `cmd.exe`;
+- `dxr` expands arguments itself and writes `targetArgs.map($args.reQuote).join(' ')` — **already expanded** ([`../src/dxr.ts`](../src/dxr.ts)).
+
+Both write the same variable. Today a consumer survives this only because `reQuote()` is _supposed_ to make a second expansion a no-op — an unwritten, untested assumption that every participant must share forever. The moment a third-party producer (scoop's shim) writes raw text under the convention that it's pre-expanded, or vice versa, arguments silently corrupt:
+
+```shell
+myapp "report[1].txt"
+#  producer sends already-expanded text; consumer assumes raw and expands again
+#  → `[1]` is a character class, matches nothing, nullglob drops the word
+#  → the script receives zero arguments and reports "no input file"
+```
+
+**Without it,** the protocol only works if _every_ layer uses an identical expansion convention, agreed out-of-band and unchangeable. With it, each producer states what it is sending, and mixed chains become possible — which is the whole point of a protocol meant for more than one implementation.
+
+**It also settles absent-vs-empty.** These two must be distinguishable and currently aren't:
+
+- `myapp` with no arguments → definitively **zero** arguments;
+- `myapp` launched by something that set no argument text → **no information**, fall back to `Deno.args`.
+
+`cmd.exe` cannot hold an empty variable (`set "X="` deletes it), so emptiness cannot be encoded in `SHIM_ARGS` itself. A second variable that is present-but-unrelated solves it for free: `SHIM_ARGS_FORM` set means the argument text is authoritative, even when it's absent because it was empty.
+
+> Note: the leading `.` in the current template (`@set SHIM_ARGS=.%*`) is **not** this mechanism. It's an internal guard so batch string-substitution works on a possibly-empty value, and it's stripped before the variable is handed onward.
+
+**Cost.** One `@set` with a constant value. For the batch shim it is literally `@set "SHIM_ARGS_FORM=raw"`.
+
+**Verdict:** the highest value-per-byte variable in this document. It converts an unwritten global convention into a local, checkable statement, and it is what makes a second implementation safe to write.
+
+### `SHIM_ARGF` — "the text no longer fits"
+
+**Holds** the path to a file containing the argument text; paired with `SHIM_ARGS_FORM=file`.
+
+**The problem.** Hard platform ceilings. The Windows environment block is ~32 KiB **in total**; a command line is capped at ~32 KiB. `dxr` currently rejects argument text above a heuristic 8 KiB to stay clear of the first limit.
+
+**Concrete case — already logged in your own notes.** From the ToDO file, verbatim:
+
+```shell
+> dxr eg\args.ts ..\**\*.{t,j,cj,mj}s ..\**\*.ts
+error: Uncaught (in promise) Error: The filename or extension is too long. (os error 206)
+```
+
+A recursive glob over a moderately large tree expands to tens of thousands of characters. There is nothing exotic here — it is an ordinary command that simply cannot be expressed through either channel.
+
+**Without it,** the only available responses are to reject the command (today's behavior: error, with advice to install via `dxi` instead) or to truncate silently. Neither runs what the user asked for.
+
+**With it,** the argument text goes to a file in `%TEMP%`, and only the short path travels — lifting the environment cap and the command-line cap at once, since the long text stops being passed as arguments at all. This closes the OS error 206 item directly.
+
+**Why a separate variable rather than a marker inside `SHIM_ARGS`?** Because a file path is indistinguishable from an ordinary one-word argument. Any in-band marker would have to be a string that can never appear as real argument text, which is exactly the kind of assumption that breaks on the first unusual filename. Pairing a dedicated variable with the `file` form keeps it unambiguous.
+
+**Cost.** A temp file to create, read, and delete; `read` permission; a cleanup failure path (warn, don't fail); and the same collision-resistance concern that `SHIM_TID` already solves for the pipe.
+
+**Verdict:** worth implementing when someone hits the cap — which, per your own notes, has already happened. Until then it is a known-good design on the shelf.
+
+## 4 · More than one hop
+
+This is the section that answers the original question: how meta information survives passing _through_ another meta-shim runner.
+
+### `SHIM_ORIGIN_ARG0` — "what did the user actually type?"
+
+**Holds** the outermost invocation text in the chain. **Write-once**: set only by a producer that did not inherit one.
+
+**The problem.** `SHIM_ARG0` is overwritten by every layer, because every layer has its own answer for it. That is correct for a single hop and destructive across several.
+
+**Concrete case.** An app installed by `dxi` whose shim targets `dxr` (because the app wants `dxr`'s capabilities), with `dxr` then running the script:
+
+```text
+user types:   myapp data/*.csv
+
+hop 1  myapp.cmd   ARG0 = "myapp"                        TARGET = …/dxr.ts
+hop 2  dxr         ARG0 = "dxr --allow-read myapp.ts"    TARGET = …/myapp.ts
+hop 3  myapp.ts    reads ARG0 → "dxr --allow-read myapp.ts"
+```
+
+So `myapp --help` prints:
+
+```text
+Usage: dxr --allow-read myapp.ts [OPTION]… FILE…
+```
+
+The user typed `myapp`. The text they are shown is not something they can usefully retype, and `runAs` — the string whose entire purpose is to be able to re-run the application — now names an intermediate tool. That defeats R2, the second of the project's founding requirements.
+
+**Without it** the origin is destroyed at the first relay and is _not recoverable_ — the information is simply no longer present anywhere in the environment. No amount of cleverness in the final consumer gets it back.
+
+**Why write-once, rather than "the outermost producer wins"?** Because no producer knows whether it _is_ the outermost. Each one knows only its own `ARG0`. "Set it only if unset" is the one rule that preserves the first value through N layers without any layer needing to know the depth or its own position — which is precisely what makes it scale to chains nobody anticipated.
+
+**The one hazard.** A write-once variable is a write-once _hazard_ if it leaks: inherited without a valid claim, a stale origin would persist indefinitely and poison every later chain. Hence the continuity rule in the spec — inherit chain-scoped values **only** when an inbound frame was actually claimed, otherwise start fresh. That rule is what makes write-once safe rather than dangerous.
+
+**Cost.** One conditional set:
+
+```batch
+@if NOT DEFINED SHIM_ORIGIN_ARG0 @set "SHIM_ORIGIN_ARG0=%~0"
+```
+
+**Verdict:** this is the variable that delivers the stated goal. Of everything in this document, it has the clearest payoff and the smallest implementation.
+
+### `SHIM_CHAIN` — "how did I get here, and am I going in circles?"
+
+**Holds** an append-only, `;`-separated breadcrumb list, outermost first, one short segment per layer.
+
+**Two distinct jobs.**
+
+**Job 1 — not fork-bombing.** A shim whose target resolves back to a shim is an easy misconfiguration, and `PATH` lookup makes it easier: `myapp.cmd` → `dxr` → `myapp` where `myapp` resolves to the shim again rather than to the script. Nothing in the single-hop design notices. The chain gives a depth to cap, and the process errors out instead of spawning until the machine gives up.
+
+**Job 2 — diagnosability.** When `ARG0` looks wrong, the first question is how many layers were involved and which. One variable answers it:
+
+```text
+SHIM_CHAIN=dxi%2F0.0.16@myapp;dxr/0.0.16@myapp.ts
+```
+
+Two layers, a `dxi` shim then `dxr`, with the target each handed on. That turns "the help text is weird" into a five-second diagnosis, and it is the natural thing to dump under `SHIM_DEBUG` or `dxr --trace`.
+
+**Why not a plain `SHIM_DEPTH` integer?** A counter detects _depth_ but is blind to _cycles_. The loop `a → b → a → b` sitting at depth 4 is a genuine runaway that a depth-8 cap won't catch until it has spawned twice more; and if the cap is ever raised, it won't catch it at all. A segment list detects both — repetition is visible — for roughly the same cost, and it carries the diagnostic payload as a bonus. That's why the spec has no separate depth variable.
+
+**Cost.** Grows with depth, which is why the spec restricts segments to a batch-safe character set (no `; | & < > % !` or `"` to be mangled by `cmd.exe`) and caps depth at 8. One `@set` to append.
+
+**Verdict:** worth it mostly for Job 1. If you never build relay chains, it's optional; the moment you do, an unbounded recursion is a question of when, not if.
+
+### `SHIM_FRAME_<N>_*` — the middle layers
+
+**Holds** per-layer `ARG0`/`TARGET`/`BY`, indexed from the outermost.
+
+**The problem.** `SHIM_ORIGIN_ARG0` keeps the **first** invocation text and the live `SHIM_ARG0` keeps the **last**. In a chain of three or more, the middle layers' exact invocation text is gone. `SHIM_CHAIN` records _that_ a middle layer existed and which tool it was, but not how it was invoked.
+
+**Concrete case.** A three-layer chain where the middle layer mangles an option — it drops `--allow-read` or reorders arguments around `--`. The origin and the final text both look plausible; the error is entirely in the transition between them, which is the one thing not recorded.
+
+**Honest assessment.** This is the weakest variable in the document. It is diagnostic-only, it is the one piece of chain state whose size grows with real content rather than short tokens, and the scenario is one you have not hit. **Recommendation: leave it unimplemented** until a debugging session actually demands it. It is in the spec as a `MAY` and flagged as an open decision for exactly this reason.
+
+## 5 · Deliberately not variables
+
+Documenting the rejections matters as much as the additions — otherwise each gets reinvented.
+
+**`SHIM_ARGX`** (pre-expanded argument text, alongside `SHIM_ARGS`). Appears in the in-source notes as a candidate for avoiding double expansion. Your own comment already reaches the right conclusion: _"may not be needed as long as DENO_SHIM_ARGS is expanded and re-quoted correctly to block further re-evaluations."_ Exactly so — if re-quoting is correct, a second expansion is the identity, and a second variable carries no new information. `SHIM_ARGS_FORM` then labels the stage, which is what was actually wanted. The replacement for `ARGX` is a **test** pinning that identity, not a variable.
+
+**`SHIM_ORIGIN_ARGS`** (the outermost argument text). Tempting for symmetry with `SHIM_ORIGIN_ARG0`, but the arguments that matter to a process are the ones that reached _it_; an outer layer's pre-transformation arguments change nothing it does. Omitting it is also what keeps environment growth bounded — chain state stays `O(depth)` in short tokens plus **one** argument payload, instead of `O(depth)` payloads against a 32 KiB ceiling. Symmetry would be expensive and useless.
+
+**`SHIM_DEPTH`** (integer counter). Superseded by `SHIM_CHAIN`, which detects cycles as well as depth for the same cost. See §4.
+
+**A nonce or handshake token.** The obvious strong-addressing idea: the producer generates a random token and the target verifies it. It does not work, and it's worth knowing why. Verification requires the recipient to learn the expected token through some channel _other_ than the one being authenticated — and it has none. Put the token in the environment and it is exactly as leak-prone as everything else there; put it on the command line and it stops being a transparent shim, because the target's own argument parsing now has to know about it. `SHIM_PPID` is the version of this idea that works, because the OS supplies the second channel.
+
+**`SHIM_CWD`.** The working directory is inherited by the OS at spawn; `Deno.cwd()` is already correct. Nothing to transmit.
+
+## 6 · The remaining v1 variables
+
+### `SHIM_PIPE` — the only way a child can change its parent's shell
+
+**Holds** the path of a generated `.cmd` file the target may write into. The only bidirectional variable.
+
+**The problem.** A child process cannot alter its parent's environment or working directory. That is an OS guarantee, not a Deno limitation, and it means a Deno script _cannot_ implement `cd` — or anything else whose entire output is a change to the calling shell.
+
+**Concrete case.** This variable is what makes a whole category of tool possible: enhanced-`cd` (`cdd`, `scd`, a bookmark-jumping `goto`), directory stacks, and `source`-like commands that set environment variables for the session. The ToDO notes ask for exactly this under "teach `dxr` how to run (and 'source') executables … for shell-level environment and CWD changes."
+
+**How it works.** The shim creates an empty `.cmd` in `%TEMP%` and passes its path. The script writes commands into it (`@cd /d D:\project`, `@set EDITOR=…`). After the target exits, the shim `call`s that file — and because this happens after the `(goto) 2>NUL` trick has released the batch context, those commands run in the **caller's** context, so the changes land in the user's actual shell. Then the file is deleted, unless `SHIM_DEBUG` is set.
+
+**Cost.** A temp file per invocation, the collision-resistant naming that `SHIM_TID` exists to provide, and a cleanup path. Windows-specific: the POSIX equivalent needs a shell function or `eval` wrapper, not a file, which is part of the open question about the POSIX shim's fate.
+
+**Verdict:** keep. Nothing else can do this job, and it is load-bearing for a documented class of planned tools.
+
+### `SHIM_EXEC` — vestigial
+
+**Holds**, nominally, the path of a secondary shim executable — an implementation detail for maximum command-line flexibility inside a batch file written to avoid `Terminate batch job (Y/N)?`.
+
+**Current reality.** It is written by nothing and used by nothing. No `SHIM_EXEC` appears in [`../src/lib/shim.windows.ts`](../src/lib/shim.windows.ts); on the reading side it is pulled into `parts.EXEC` in [`../src/lib/xProcess.ts`](../src/lib/xProcess.ts) and then never referenced. The source comment already anticipates this — _"possible future removal of 'EXEC'?"_
+
+**Recommendation.** Remove it from the protocol surface. It must stay in the **clear** list (an old installed shim might still set it, and leaving a stray `SHIM_*` in the environment is the hazard this protocol exists to prevent), but it should not be in the documented catalog or in the parsed structure. Having a published variable that means nothing costs credibility with the next implementer.
+
+### Legacy aliases — `SHIM_URL`, `SHIM_ARGV0`, `SHIM_ARGV`, and every `DENO_SHIM_*`
+
+**Why they must still be read.** Shims are **files on disk that outlive the tool that generated them.** Someone who installed `myapp` with an older `dxi` has a `.cmd` emitting `SHIM_URL` and `SHIM_ARGV0`; upgrading the library must not break that installation, because nothing in the upgrade rewrites the shim. (Shim revision-in-place is a known open item.)
+
+**Why they must never be written.** Two names for one concept doubles the environment cost, doubles the clear list, and leaves ambiguity when both are set with different values.
+
+**Why `DENO_SHIM_` is the deprecated direction.** It looks like good hygiene — namespace your variables. But a namespaced name defeats the purpose here: the protocol's value is that _other_ tools implement it, and a `DENO_`-prefixed variable is one no non-Deno shim will ever set. Cross-tool safety has to come from the claim gate, not from the name.
+
+### Shim-internal: `SHIM_TID` and `SHIM_ERRORLEVEL`
+
+Neither is protocol — the target never sees either — but both appear in every generated shim.
+
+**`SHIM_TID`** builds a collision-resistant unique id from `%DATE%`, `%TIME%`, and `%RANDOM%`, with locale-introduced path-illegal characters stripped. It exists to name the pipe file so that two concurrent runs of the same shim do not overwrite each other's pipe. The locale scrubbing is not paranoia: `%DATE%` and `%TIME%` contain `/` and `:` in most locales, which are illegal in filenames.
+
+**`SHIM_ERRORLEVEL`** carries the target's exit code back out. The `(goto) 2>NUL` trick that suppresses `Terminate batch job (Y/N)?` also destroys the normal path for an exit code to reach the parent, so the code is stashed, then re-raised via `"%COMSPEC%" /d/c "@exit <code>"`. This is what satisfies R3's second half — the script's exit status must reach the calling shell.
+
+### User input: `SHIM_DEBUG`
+
+Set by a person, read by the shim. When defined, the shim echoes diagnostics (its own activation, the pipe path, the final error level) and **retains** the pipe file instead of deleting it.
+
+```shell
+set SHIM_DEBUG=1
+myapp foo
+```
+
+Worth keeping and worth documenting for users, because the batch layer is otherwise completely opaque — it is `@echo off` by construction, and when argument passing goes wrong there is nothing to look at. This is the only window into it.
+
+## 7 · If you implement only some of this
+
+Ordered by value for effort, so a partial adoption is still coherent.
+
+| Tier              | Add                                      | Buys                                                                                       | Effort                                |
+| ----------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------- |
+| **0** (today)     | `TARGET`, `ARG0`, `ARGS`                 | single-hop `$0` and argument recovery                                                      | —                                     |
+| **1 · do first**  | `SHIM_V`, `SHIM_ARGS_FORM`               | a second implementation becomes safe to write; mixed chains work; absent-vs-empty resolved | two constant `@set` lines             |
+| **2 · the goal**  | `SHIM_ORIGIN_ARG0`, `SHIM_CHAIN`         | meta info survives relays — correct help text at any depth; no runaway recursion           | two `@set` lines, one conditional     |
+| **3 · when hit**  | `SHIM_ARGF`                              | commands above the ~32 KiB ceiling run instead of erroring                                 | temp-file read/write/cleanup          |
+| **4 · hardening** | `SHIM_PPID`                              | catches stale frames that addressing cannot — self re-invocation, unclearable environments | trivial in `dxr`, impossible in batch |
+| **5 · skip**      | `SHIM_FRAME_<N>_*`, `SHIM_BY` standalone | middle-layer forensics                                                                     | not yet justified                     |
+
+Tier 1 is the one with a deadline attached: both variables are only fully purchasable _before_ a second implementation ships. Tier 2 is what you actually asked for. Tiers 4 and 5 can wait indefinitely, and tier 5 may never be worth it.

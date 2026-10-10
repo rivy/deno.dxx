@@ -21,6 +21,7 @@ To keep the repo root minimal, all agent-facing guidance lives in [`.agents/`](.
 - [`.agents/project-spec.mkd`](.agents/project-spec.mkd) — project spec: purpose, per-component contracts, protocols, enforced invariants, known gaps
 - [`.agents/project-structure.mkd`](.agents/project-structure.mkd) — directory map and key modules
 - [`.agents/spec-meta-shim.mkd`](.agents/spec-meta-shim.mkd) — meta-shim protocol: frame addressing, relay/pass-through rules, argument-expansion state
+- [`.agents/spec-meta-shim-rationale.mkd`](.agents/spec-meta-shim-rationale.mkd) — why each `SHIM_*` variable exists, per-variable use cases, and what was deliberately left out
 - [`.agents/spec-commits.mkd`](.agents/spec-commits.mkd) — commit message rules and style (**read before committing**)
 - [`.agents/commands/`](.agents/commands/) — reusable prompts
 - [`.agents/skills/`](.agents/skills/) — task recipes; scan the index and follow one when it fits the task

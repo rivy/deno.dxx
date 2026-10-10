@@ -1,11 +1,14 @@
 <!-- spell-checker:ignore () dxx dxf dxi dxr dxg Deno denoland jsdelivr xProcess xArgs MSDV FFI COMSPEC ERRORLEVEL setLocal nullglob globstar shim shims shimmed shimmer unshimmed scoop dprint cspell deps -->
 <!-- spell-checker:ignore (vars) ARGF ARGS ARGV ARGX PPID TID ORIGIN -->
+<!-- spell-checker:ignore (shell/CMD) tasklist WMI -->
 
 # Meta-shim protocol spec
 
 Normative specification of the **meta-shim protocol** — the contract by which a shim, runner, or relay hands process information (`$0`, raw argument text, target identity) to the process it launches, **including across intervening meta-shim layers**.
 
 This document is the protocol; [`project-spec.mkd`](project-spec.mkd) §5 describes the currently-implemented subset (protocol **v1**). Sections marked _[status]_ record the gap between this spec and the implementation. Sections marked _[decision]_ are open design calls.
+
+For **why** each variable exists — a per-variable use case, the concrete failure it prevents, and the candidates deliberately rejected — see the companion [`spec-meta-shim-rationale.mkd`](spec-meta-shim-rationale.mkd). It also ranks the variables by value-for-effort, for a partial implementation.
 
 Throughout: **MUST** / **MUST NOT** / **SHOULD** / **MAY** have their usual (RFC-2119-ish) force.
 
@@ -112,23 +115,42 @@ Archived frames MUST NOT carry `ARGS` (see §9). The archive profile is diagnost
 
 ## 5 · Claiming a frame
 
-A process MUST NOT use inbound frame data to describe itself or its target until the frame is **claimed**. Gates are evaluated in order:
+A process MUST NOT use inbound frame data to describe itself or its target until the frame is **claimed**. A frame carries two independent assertions, and claiming tests both:
 
-- **G0 · version** — `SHIM_V` is absent or understood (§3). If it fails, no claim; stop.
-- **G1 · handoff (strong)** — `SHIM_PPID` is set and equals this process's parent PID (`Deno.ppid`).
-- **G2 · target-equivalence (as-built)** — `SHIM_TARGET` is path-equivalent to `Deno.mainModule`; **or** it is path-equivalent to `Deno.execPath()` **and** the frame's parsed `scriptName` is path-equivalent to `Deno.mainModule`.
+| Gate                | Question                                             | Property   |
+| ------------------- | ---------------------------------------------------- | ---------- |
+| **G0 · version**    | can I interpret this frame at all?                   | legibility |
+| **G2 · addressing** | is this frame **about me**?                          | identity   |
+| **G1 · handoff**    | is this frame **from my actual parent**, i.e. fresh? | provenance |
+
+- **G0** — `SHIM_V` is absent or understood (§3).
+- **G2** — `SHIM_TARGET` is path-equivalent to `Deno.mainModule`; **or** it is path-equivalent to `Deno.execPath()` **and** the frame's parsed `scriptName` is path-equivalent to `Deno.mainModule`; **or** this process is standalone (`isDirectExecution`) and `SHIM_TARGET` is path-equivalent to `Deno.execPath()`.
+- **G1** — `SHIM_PPID` is set and equals `Deno.ppid`.
 
 The claim rule:
 
-> Claim **iff** G0 holds **and** ( G1 holds, **or** `SHIM_PPID` is unset and G2 holds ).
+> Claim **iff** G0 **and** G2 **and** ( G1, when `SHIM_PPID` is set ).
 
-Consequences, all intentional:
+G1 and G2 are **not** alternative addressing schemes, and G1 is not a "better" address — it answers a different question. G2 can only ever establish that a frame _describes_ this process; it cannot establish that the frame is _current_. Nothing in a path comparison distinguishes "my shim set this 3 ms ago" from "some ancestor set this, nobody cleared it, and I happen to be the same script." G1 supplies exactly that missing half. Both are therefore required, with G1 skipped only when the producer could not assert it.
 
-- A **mismatching** `SHIM_PPID` is positive evidence of an intervening process. The frame MUST NOT be claimed even when G2 would otherwise pass. This is what finally distinguishes two identical targets in one chain — the case G2 alone cannot decide.
-- `SHIM_PPID` is **not obtainable in portable `cmd.exe` batch** (no `$$` equivalent; `tasklist`/WMI probing is slow, deprecated, and locale-fragile). Batch producers therefore omit it and rely on G2, which is adequate for them: a generated `.cmd` shim is always depth-1 and spawns `deno` directly.
-- Producers which **are** real executables — `dxr`, a compiled scoop shim — can always emit `SHIM_PPID` trivially. Since every chain deeper than one hop necessarily involves such a relay, G1 coverage lands exactly where F1's aliasing risk actually lives.
+### 5.1 · What G1 actually buys
 
-_[status]_ G0 and G1 are unimplemented. v1 implements G2 only, as `isShimTarget` in [`../src/lib/xProcess.ts`](../src/lib/xProcess.ts).
+G2 alone already rejects the ordinary F1 case: a frame addressed to `foo.ts` reaching an unrelated `bar.ts` fails the path comparison. G1 earns its place in the cases where G2 is either **weak** or **stale**:
+
+- **Weak address — the runner prong.** When `SHIM_TARGET` names `deno.exe` rather than a script, it is nearly non-specific: _every_ Deno process in the subtree matches `Deno.execPath()`. Disambiguation then rests entirely on heuristically parsing `scriptName` out of `ARG0`/`ARGS` (`denoRunnerPartsFromWords`, which must track Deno's evolving option set). G1 does not care how good that parse was.
+- **Stale address — the same-script-twice case.** A script re-invoking itself (`deno run foo.ts` from inside `foo.ts`) produces a child for which G2 passes _perfectly_ and wrongly: identical target, identical `mainModule`. G2 cannot decide this case even in principle; G1 decides it immediately, because the child's parent is the middle `foo.ts`, not the shim.
+- **Uncooperative predecessor.** Consume-and-clear (§7.4) is the primary F1 defense, but it is **conditional on `env` permission** and on the previous process having run this protocol at all — see the permission-gated delete in [`../src/lib/xProcess.ts`](../src/lib/xProcess.ts). A frame also survives a crash between claim and clear. G1 is the only gate that holds when clearing did not happen, because it depends on nothing the predecessor chose to do.
+
+That last point is the main argument. Clearing is cooperative; addressing is coincidence-prone; parentage is neither.
+
+### 5.2 · Limits and obligations
+
+- **Setting `SHIM_PPID` is an assertion of direct parentage.** A producer MUST set it only if the process receiving the frame will be its immediate child. `Deno.Command`/`Deno.run` spawn via `CreateProcess`/`exec` with no interposed shell, so `dxr`'s PID is genuinely the target's parent. A producer which cannot guarantee that MUST omit it — a wrong `SHIM_PPID` silently breaks its own handoff (false negative → impaired operation), which is safe but useless.
+- **Not obtainable in portable `cmd.exe` batch.** There is no `$$` equivalent; `tasklist`/WMI probing is slow, deprecated, and locale-fragile. Batch producers omit it and rely on G2 — adequate there, since a generated `.cmd` shim is depth-1 and spawns `deno` directly. Producers which are real executables (`dxr`, a compiled scoop shim) get their PID for free. Because every chain deeper than one hop necessarily involves such a relay, G1 coverage lands where the risk actually concentrates.
+- **Residual risk: PID reuse.** A recycled PID could coincidentally match a leaked `SHIM_PPID`. Requiring G2 _as well_ reduces this to needing a stale frame, a wraparound, **and** a matching target — negligible, and the reason the rule ANDs rather than ORs.
+- G1 proves parentage, not intent: a parent could pass a frame meant for a different child. `SHIM_TARGET` (G2) is what rules that out. Neither gate is sufficient alone.
+
+_[status]_ G0, G1, and G2's standalone prong are unimplemented. v1 implements the first two prongs of G2 only, as `isShimTarget`. The standalone prong is a pre-existing gap independent of G1: a meta-shim targeting a `deno compile` binary has no `mainModule` to match (R5), so without it such a target can never claim.
 
 ## 6 · Roles — consumer vs relay
 
@@ -302,14 +324,15 @@ _[status]_ Proposed additions to [`../src/lib/xProcess.ts`](../src/lib/xProcess.
 
 A conforming implementation MUST be covered by:
 
-1. **Claim matrix** — for each of G1/G2 × {match, mismatch, absent}, assert claim/no-claim per §5, including the "PPID mismatch vetoes a passing G2" case.
-2. **Leak test** — meta-shim → `xProcess`-naive intermediary → `xProcess`-aware grandchild; the grandchild MUST report impaired, not the parent's identity (F1).
-3. **Chain test** — meta-shim → `dxr` → script at depth 3; the script's `runAs` MUST equal the origin text the user typed (F2).
-4. **Idempotency property** — §8.2's identity over the existing torture-case list, and over a second expansion pass (F3).
-5. **Continuity test** — a leaked `SHIM_ORIGIN_ARG0`/`SHIM_CHAIN` pair with no claimable frame MUST be reset, not inherited (§7.1).
-6. **Guard tests** — depth 9 and a relay cycle each MUST error non-zero with a diagnostic (§7.2).
-7. **Clear test** — after startup, no `SHIM_*` or `DENO_SHIM_*` variable remains visible to a child (§7.4), including unknown-version frames.
-8. **Oversize test** — argument text above the §8.3 cap round-trips through `SHIM_ARGF`.
+1. **Claim matrix** — for each of G1/G2 × {match, mismatch, absent}, assert claim/no-claim per §5. The three cases which matter most: `SHIM_PPID` mismatch vetoes a passing G2; `SHIM_PPID` absent falls back to G2 alone (the batch-shim profile); a passing G1 does **not** rescue a failing G2.
+2. **Self re-invocation** — a claimed script spawning `deno run <itself>` with `env` permission **withheld** (so §7.4 cannot clear). The child MUST NOT claim the parent's frame; this is the case G2 cannot decide even in principle (§5.1).
+3. **Leak test** — meta-shim → `xProcess`-naive intermediary → `xProcess`-aware grandchild; the grandchild MUST report impaired, not the parent's identity (F1).
+4. **Chain test** — meta-shim → `dxr` → script at depth 3; the script's `runAs` MUST equal the origin text the user typed (F2).
+5. **Idempotency property** — §8.2's identity over the existing torture-case list, and over a second expansion pass (F3).
+6. **Continuity test** — a leaked `SHIM_ORIGIN_ARG0`/`SHIM_CHAIN` pair with no claimable frame MUST be reset, not inherited (§7.1).
+7. **Guard tests** — depth 9 and a relay cycle each MUST error non-zero with a diagnostic (§7.2).
+8. **Clear test** — after startup, no `SHIM_*` or `DENO_SHIM_*` variable remains visible to a child (§7.4), including unknown-version frames.
+9. **Oversize test** — argument text above the §8.3 cap round-trips through `SHIM_ARGF`.
 
 ## 14 · Open decisions
 
