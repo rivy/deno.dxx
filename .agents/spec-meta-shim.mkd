@@ -1,0 +1,320 @@
+<!-- spell-checker:ignore () dxx dxf dxi dxr dxg Deno denoland jsdelivr xProcess xArgs MSDV FFI COMSPEC ERRORLEVEL setLocal nullglob globstar shim shims shimmed shimmer unshimmed scoop dprint cspell deps -->
+<!-- spell-checker:ignore (vars) ARGF ARGS ARGV ARGX PPID TID ORIGIN -->
+
+# Meta-shim protocol spec
+
+Normative specification of the **meta-shim protocol** — the contract by which a shim, runner, or relay hands process information (`$0`, raw argument text, target identity) to the process it launches, **including across intervening meta-shim layers**.
+
+This document is the protocol; [`project-spec.mkd`](project-spec.mkd) §5 describes the currently-implemented subset (protocol **v1**). Sections marked _[status]_ record the gap between this spec and the implementation. Sections marked _[decision]_ are open design calls.
+
+Throughout: **MUST** / **MUST NOT** / **SHOULD** / **MAY** have their usual (RFC-2119-ish) force.
+
+## 1 · Scope & terminology
+
+| Term        | Meaning                                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| shim        | adaption layer which launches a target; normally transparent                                                      |
+| meta-shim   | shim which additionally transmits process information to its target out-of-band (via environment)                 |
+| meta-runner | meta-shim which installs nothing, transmitting information for a target named on its own command line (eg, `dxr`) |
+| producer    | any process which emits a frame (§4) for the process it launches                                                  |
+| consumer    | a process which claims an inbound frame (§5) and uses it to describe **itself**                                   |
+| relay       | a process which claims an inbound frame and re-emits derived information for **its own** target (§6)              |
+| frame       | one producer→target information unit; the protocol's message                                                      |
+| chain       | the ordered sequence of frames traversed from the user's invocation to the current process                        |
+| origin      | the outermost frame of a chain — the text the **user** actually typed                                             |
+| claim       | a consumer's determination that an inbound frame is addressed to it (§5)                                          |
+
+The protocol is deliberately **tool-neutral**: `dxx` is one implementation. The `SHIM_` namespace is shared interop surface, intended to be implemented by other shim generators (notably the _scoop_ compiled shim).
+
+## 2 · Problem statement
+
+The environment is a **broadcast** channel being used for **point-to-point** messaging. Every variable a producer sets is inherited by every descendant, transitively and indefinitely. Three failure modes follow, and the protocol exists to close them:
+
+- **F1 · mis-delivery** — a producer's frame reaches a process it was not addressed to (an `xProcess`-aware grandchild below a naive intermediary), which then reports a stranger's `$0` and arguments as its own.
+- **F2 · chain amnesia** — a meta-shim layer which launches another meta-shim layer overwrites the frame, destroying the origin. The final target reports `deno run …/myapp.ts` where the user typed `myapp` — defeating R2 ([`project-spec.mkd`](project-spec.mkd) §2).
+- **F3 · repeated expansion** — argument text expanded by one layer is expanded **again** by the next, so `*` becomes a file list and then those file names are themselves globbed.
+
+v1 addresses F1 only (targeting gate plus consume-and-clear) and leaves F2 and F3 to ad-hoc reasoning per call site. That is the thing which "doesn't scale": routing, role, and expansion state are all **inferred** from a flat triple of variables rather than **declared**.
+
+The design response is three-fold, and each of the following sections is one leg of it:
+
+1. **Declare provenance, not just payload** — a frame carries who produced it, for whom, and at what protocol version (§3, §4).
+2. **Separate the hop from the chain** — per-hop payload is overwritten every layer; chain-scoped facts (the origin) accumulate write-once and are inherited only across valid claims (§4.2, §7).
+3. **Label expansion state** — a consumer never guesses whether to expand; the producer says (§8).
+
+## 3 · Versioning & namespace
+
+| Variable  | Value                                                                    |
+| --------- | ------------------------------------------------------------------------ |
+| `SHIM_V`  | protocol major version as a decimal integer; this document specifies `2` |
+| `SHIM_BY` | producer identity, `<tool>/<version>` (eg, `dxi/0.0.16`, `scoop-cs/1.2`) |
+
+- A producer MUST set `SHIM_V` and SHOULD set `SHIM_BY`.
+- A consumer MUST ignore (but still clear, §7.4) every frame whose `SHIM_V` it does not understand, and MUST then fall back to impaired operation rather than guess at the payload. **Forward-incompatible changes are therefore safe**: an old consumer degrades, it does not misread.
+- An absent `SHIM_V` means **v1** (the as-built subset). Consumers MUST continue to accept v1 frames (§11).
+- A consumer MUST ignore unrecognized `SHIM_*` names.
+- The bare `SHIM_` prefix is retained deliberately: shared namespace **is** the interop mechanism, and §5's claim gate — not name scoping — is what prevents cross-tool confusion. The legacy `DENO_SHIM_` prefix is the deprecated namespaced form and MUST NOT be emitted by new producers.
+
+## 4 · Variable catalog
+
+A frame has two parts with different lifetimes. Mixing them is the root of F2.
+
+### 4.1 · Hop-scoped — overwritten by every producer
+
+| Variable         | Req.   | Meaning                                                                                               |
+| ---------------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| `SHIM_TARGET`    | MUST   | path/URL of the target this frame is addressed to — the primary claim gate (§5)                       |
+| `SHIM_ARG0`      | MUST   | invocation text of the target: runner text + runner options + script                                  |
+| `SHIM_ARGS`      | SHOULD | target argument text; interpretation governed by `SHIM_ARGS_FORM` (§8)                                |
+| `SHIM_ARGS_FORM` | SHOULD | `raw` \| `requoted` \| `file` — declares how `SHIM_ARGS` must be interpreted (§8)                     |
+| `SHIM_ARGF`      | MAY    | path to a file holding the argument text, when `SHIM_ARGS_FORM` is `file` (§8.3)                      |
+| `SHIM_PPID`      | SHOULD | PID of the producing process — the strong claim gate (§5)                                             |
+| `SHIM_PIPE`      | MAY    | path of a generated script the target MAY write to, pushing environment/CWD changes back to the shell |
+| `SHIM_EXEC`      | MAY    | secondary-shim executable path (implementation detail; Windows)                                       |
+
+### 4.2 · Chain-scoped — inherited, never overwritten
+
+| Variable           | Req. | Meaning                                                                                             |
+| ------------------ | ---- | --------------------------------------------------------------------------------------------------- |
+| `SHIM_ORIGIN_ARG0` | MUST | **write-once**: the outermost invocation text in the chain; the answer to "what did the user type?" |
+| `SHIM_CHAIN`       | MUST | **append-only** breadcrumb of traversed layers; `;`-separated (§4.3)                                |
+
+- A producer MUST set `SHIM_ORIGIN_ARG0` to its own `SHIM_ARG0` **only if** it did not inherit one through a valid claim; otherwise it MUST pass the inherited value through unchanged.
+- There is deliberately **no** `SHIM_ORIGIN_ARGS`. Outer argument text is not useful to an inner target (the arguments which reach it are the inner ones), and omitting it is what keeps environment use bounded — see §9.
+
+### 4.3 · `SHIM_CHAIN` format
+
+A `;`-separated list, outermost segment first, one segment appended per layer:
+
+```text
+<tool>/<version>@<target-basename>
+```
+
+Segment text MUST be restricted to `[A-Za-z0-9._/@+-]`; any other byte MUST be percent-encoded. This keeps the value safe to carry through `cmd.exe` without quoting or delayed-expansion hazards (no `; | & < > % !` or `"`).
+
+Chain **depth** is the segment count; no separate counter variable is defined.
+
+```text
+SHIM_CHAIN=dxi%2F0.0.16@myapp;dxr/0.0.16@myapp.ts
+```
+
+### 4.4 · Archive profile (optional)
+
+A producer MAY additionally preserve per-layer fidelity using indexed variables, with `N` = 1 for the outermost layer:
+
+| Variable                | Meaning                    |
+| ----------------------- | -------------------------- |
+| `SHIM_FRAME_<N>_ARG0`   | that layer's `SHIM_ARG0`   |
+| `SHIM_FRAME_<N>_TARGET` | that layer's `SHIM_TARGET` |
+| `SHIM_FRAME_<N>_BY`     | that layer's `SHIM_BY`     |
+
+Archived frames MUST NOT carry `ARGS` (see §9). The archive profile is diagnostic (`--trace`, bug reports); a consumer MUST function fully without it. `SHIM_FRAME_1_ARG0`, when present, MUST agree with `SHIM_ORIGIN_ARG0`.
+
+## 5 · Claiming a frame
+
+A process MUST NOT use inbound frame data to describe itself or its target until the frame is **claimed**. Gates are evaluated in order:
+
+- **G0 · version** — `SHIM_V` is absent or understood (§3). If it fails, no claim; stop.
+- **G1 · handoff (strong)** — `SHIM_PPID` is set and equals this process's parent PID (`Deno.ppid`).
+- **G2 · target-equivalence (as-built)** — `SHIM_TARGET` is path-equivalent to `Deno.mainModule`; **or** it is path-equivalent to `Deno.execPath()` **and** the frame's parsed `scriptName` is path-equivalent to `Deno.mainModule`.
+
+The claim rule:
+
+> Claim **iff** G0 holds **and** ( G1 holds, **or** `SHIM_PPID` is unset and G2 holds ).
+
+Consequences, all intentional:
+
+- A **mismatching** `SHIM_PPID` is positive evidence of an intervening process. The frame MUST NOT be claimed even when G2 would otherwise pass. This is what finally distinguishes two identical targets in one chain — the case G2 alone cannot decide.
+- `SHIM_PPID` is **not obtainable in portable `cmd.exe` batch** (no `$$` equivalent; `tasklist`/WMI probing is slow, deprecated, and locale-fragile). Batch producers therefore omit it and rely on G2, which is adequate for them: a generated `.cmd` shim is always depth-1 and spawns `deno` directly.
+- Producers which **are** real executables — `dxr`, a compiled scoop shim — can always emit `SHIM_PPID` trivially. Since every chain deeper than one hop necessarily involves such a relay, G1 coverage lands exactly where F1's aliasing risk actually lives.
+
+_[status]_ G0 and G1 are unimplemented. v1 implements G2 only, as `isShimTarget` in [`../src/lib/xProcess.ts`](../src/lib/xProcess.ts).
+
+## 6 · Roles — consumer vs relay
+
+On a successful claim, a process MUST determine its role. This replaces the v1-era heuristic of string-comparing `argv[0]` against `SHIM_ARG0` to detect self.
+
+| Condition                                                                                              | Role     |
+| ------------------------------------------------------------------------------------------------------ | -------- |
+| `SHIM_TARGET` resolves to **me-as-script** (path-equivalent to `Deno.mainModule`)                      | consumer |
+| `SHIM_TARGET` resolves to **me-as-runner** and the real script is named inside `SHIM_ARG0`/`SHIM_ARGS` | relay    |
+
+- A **consumer** uses the frame to describe itself (`argv0`, `execArgv`, `runAs`, arguments), then consumes and clears (§7.4). It MUST NOT re-emit.
+- A **relay** MUST NOT treat the frame's `ARG0`/`ARGS` as its own. It MUST re-emit a derived frame for its target per §7.
+- A process which claims no frame is an **origin producer**: it starts a fresh chain.
+
+_[status]_ Both halves exist in v1 as `isShimTarget` and `isCommandLineRunnerShimTarget`, but they are consumed as independent booleans at separate call sites rather than resolved into one role. Resolving them is the smallest change which makes relaying expressible.
+
+## 7 · Normative algorithm
+
+Every conforming participant performs these steps in order, at startup, before any argument interpretation.
+
+### 7.1 · Ingest
+
+```text
+inbound := claim()                                  # §5; null when no claim
+if inbound is null:
+    chain       := []                               # fresh chain
+    origin_arg0 := <my own best-effort invocation text>
+else:
+    chain       := inbound.CHAIN
+    origin_arg0 := inbound.ORIGIN_ARG0 ?? inbound.ARG0
+role := inbound is null ? ORIGIN : role_of(inbound)  # §6
+```
+
+**Chain continuity is the safety invariant**: `SHIM_ORIGIN_ARG0` and `SHIM_CHAIN` MUST be inherited **only** when an inbound frame was claimed, and MUST be reset otherwise. A stale chain leaked past a naive intermediary cannot be inherited, because the frame carrying it will fail the next hop's gate. Without this rule, write-once `SHIM_ORIGIN_ARG0` would be a permanent environment-poisoning hazard.
+
+### 7.2 · Guard
+
+Before emitting, a producer MUST abort with a diagnostic when:
+
+- depth(`chain`) ≥ **8** — runaway relay nesting;
+- a segment equal to this layer's own `<tool>/<version>@<target>` already appears in `chain` — relay cycle.
+
+Both are reported as errors and exit non-zero; neither MUST be silently truncated.
+
+### 7.3 · Emit (producers and relays only)
+
+```text
+SHIM_V           := 2
+SHIM_BY          := <tool>/<version>
+SHIM_TARGET      := <resolved target of the process I am about to spawn>
+SHIM_ARG0        := <my runner text> <my delegated options> <target>
+SHIM_PPID        := <my own PID>                      # when obtainable
+SHIM_ARGS, SHIM_ARGS_FORM := §8
+SHIM_ORIGIN_ARG0 := origin_arg0                       # inherited unchanged, or mine if ORIGIN
+SHIM_CHAIN       := chain + <my segment>
+```
+
+A **relay** forwarding arguments it did not itself expand MUST forward `SHIM_ARGS` **verbatim** together with the unchanged `SHIM_ARGS_FORM`. If it did expand, it MUST re-emit `reQuote()`d words with `SHIM_ARGS_FORM=requoted`. A relay therefore never has to decide whether to expand — it labels what it forwards, and the decision belongs to whoever reads the label.
+
+### 7.4 · Consume and clear
+
+After ingest, a process MUST delete **every** recognized `SHIM_*` / `DENO_SHIM_*` variable from its own environment (subject to `env` permission), whether or not it claimed the frame, and whether or not it understood the version. Variables it re-emits in §7.3 are set on the **child's** environment only.
+
+Clearing an unclaimed frame is as important as clearing a claimed one: it is what stops F1 propagating further down the tree.
+
+_[status]_ v1 clears the catalog of §4.1 v1 names only; the clear list MUST grow to cover `SHIM_V`, `SHIM_BY`, `SHIM_ARGS_FORM`, `SHIM_ARGF`, `SHIM_PPID`, `SHIM_ORIGIN_ARG0`, `SHIM_CHAIN`, and the `SHIM_FRAME_*` archive. v1's clear loop also queries permission for the literal variable name `'name'` rather than the variable under test — a bug to fix alongside.
+
+## 8 · Argument text & expansion state
+
+### 8.1 · Forms
+
+| `SHIM_ARGS_FORM` | `SHIM_ARGS` holds                                                 | Consumer MUST                                           |
+| ---------------- | ----------------------------------------------------------------- | ------------------------------------------------------- |
+| `raw`            | verbatim command-tail text exactly as the OS/shell delivered it   | word-split, de-quote, and expand per `project-spec` §6  |
+| `requoted`       | words already split and expanded, each passed through `reQuote()` | word-split and de-quote; expansion MUST be a no-op      |
+| `file`           | nothing; the text is in the file named by `SHIM_ARGF` (§8.3)      | read the file, then treat per its first line's form tag |
+
+### 8.2 · The idempotency invariant
+
+`reQuote()` MUST produce text whose re-expansion is the **identity**. Stated testably, for every word sequence `W`:
+
+```text
+expand(wordSplit(W.map(reQuote).join(' '))) === W
+```
+
+This requires `reQuote()` to neutralize glob metacharacters (`*`, `?`, `[…]`, `{…}`, `~`), not merely to quote whitespace. With this invariant, F3 is closed structurally rather than by convention: a `requoted` payload is safe to expand any number of times, so a relay which cannot tell whether a downstream layer will expand does not need to know.
+
+This strengthens the existing round-trip requirement in [`project-spec.mkd`](project-spec.mkd) §4.6 and MUST be pinned by a property-style test over the torture-case argument list in [`../tests/xArgs.integration.test.ts`](../tests/xArgs.integration.test.ts).
+
+### 8.3 · Oversized text — `SHIM_ARGF`
+
+The Windows environment block caps total size (~32 KiB); v1 rejects `SHIM_ARGS` above a heuristic 8 KiB. `SHIM_ARGS_FORM=file` lifts the cap: the producer writes the argument text to a temporary file, sets `SHIM_ARGF` to its path, and leaves `SHIM_ARGS` unset. The consumer reads it and SHOULD delete it after consumption, warning but not failing if deletion is impossible.
+
+The file's first line MUST be a form tag (`raw` or `requoted`); argument text follows. This also resolves `dxr`'s OS error 206 (command line over 32 KiB) by removing the need to pass long argument text on the command line at all.
+
+_[status]_ Unimplemented; previously tracked as open item §9.8 of [`project-spec.mkd`](project-spec.mkd).
+
+### 8.4 · Absent vs. empty
+
+The two cases are semantically distinct and MUST be distinguishable: "no information, fall back to `Deno.args`" versus "definitively zero arguments". `cmd.exe` cannot hold an empty variable (`set "X="` deletes it), so emptiness MUST NOT be encoded in `SHIM_ARGS` itself.
+
+> `SHIM_ARGS_FORM` **present** ⇒ `SHIM_ARGS` is authoritative; unset `SHIM_ARGS` means **zero arguments**. `SHIM_ARGS_FORM` **absent** ⇒ v1 compatibility: an unset `SHIM_ARGS` carries no information.
+
+Note that the leading `.` in the current `.cmd` template is an internal guard for batch string-substitution on a possibly-empty value — it is stripped inside the shim and is **not** part of the wire format.
+
+### 8.5 · Platform rule
+
+On POSIX hosts the shell has already expanded correctly and `Deno.args` is faithful, so `SHIM_ARGS` carries no information the process does not already have.
+
+- POSIX producers SHOULD omit `SHIM_ARGS` entirely; if emitted it MUST be `requoted`.
+- POSIX consumers MUST prefer `Deno.args` over `SHIM_ARGS`.
+- `SHIM_ARG0` remains valuable on POSIX — resolving the real `$0` is the whole reason a POSIX meta-shim exists.
+
+## 9 · Bounding environment growth
+
+Chain-scoped state is append-only, so its size MUST be bounded by construction:
+
+- exactly **one** `SHIM_ARGS` exists at any depth — the live hop's. Archived frames (§4.4) MUST NOT carry argument text.
+- `SHIM_ORIGIN_ARG0` is one value regardless of depth.
+- `SHIM_CHAIN` grows by one short segment per layer, capped at 8 by §7.2.
+
+Total chain-scoped cost is therefore `O(depth)` in **short** strings plus a single payload bounded by §8.3 — not `O(depth)` in 8 KiB payloads. This is the concrete sense in which the design scales.
+
+## 10 · Platform profiles
+
+Conformance is defined per producer kind, so a minimal implementation is genuinely cheap — two added lines of batch for the chain-scoped core.
+
+| Field               | `cmd.exe` batch shim | compiled shim (scoop CS) | meta-runner (`dxr`) | POSIX `sh` shim |
+| ------------------- | -------------------- | ------------------------ | ------------------- | --------------- |
+| `SHIM_V`, `SHIM_BY` | MUST                 | MUST                     | MUST                | MUST            |
+| `SHIM_TARGET`       | MUST                 | MUST                     | MUST                | MUST            |
+| `SHIM_ARG0`         | MUST                 | MUST                     | MUST                | MUST            |
+| `SHIM_ARGS`/`_FORM` | MUST (`raw`)         | SHOULD (`raw`)           | MUST (`requoted`)   | SHOULD omit     |
+| `SHIM_PPID`         | MAY omit (§5)        | MUST                     | MUST                | SHOULD          |
+| `SHIM_ORIGIN_ARG0`  | MUST                 | MUST                     | MUST                | MUST            |
+| `SHIM_CHAIN`        | MUST                 | MUST                     | MUST                | MUST            |
+| `SHIM_FRAME_*`      | MAY                  | MAY                      | SHOULD              | MAY             |
+| `SHIM_PIPE`         | MAY                  | MAY                      | —                   | —               |
+
+The write-once and append-only rules are each one line of batch:
+
+```batch
+@if NOT DEFINED SHIM_ORIGIN_ARG0 @set "SHIM_ORIGIN_ARG0=%~0"
+@set "SHIM_CHAIN=%SHIM_CHAIN%;dxi/<%=version%>@<%=shimName%>"
+```
+
+The remaining `.cmd` requirements of [`project-spec.mkd`](project-spec.mkd) §5 (the `(goto) 2>NUL` interrupt trick, `SHIM_ERRORLEVEL` propagation, `SHIM_TID` pipe construction, `SHIM_DEBUG`, first-line self-identification) are unchanged by this document.
+
+## 11 · Backward compatibility
+
+- A v2 consumer MUST accept a v1 frame (no `SHIM_V`): claim via G2, treat `SHIM_ARGS` per §8.4's v1 rule, and operate at depth 1 with `origin_arg0 = SHIM_ARG0`.
+- A v1 consumer receiving a v2 frame reads `SHIM_TARGET`/`SHIM_ARG0`/`SHIM_ARGS` and ignores the rest. This works **because the hop-scoped names and meanings are unchanged** — v2 is purely additive on the v1 triple. Preserving that is a hard constraint on future revisions.
+- Legacy aliases `SHIM_URL`, `SHIM_ARGV0`, `SHIM_ARGV`, and all `DENO_SHIM_*` forms MUST continue to be **read** and **cleared**; they MUST NOT be written.
+
+## 12 · Library surface
+
+_[status]_ Proposed additions to [`../src/lib/xProcess.ts`](../src/lib/xProcess.ts); none exist today.
+
+| Export                    | Meaning                                               |
+| ------------------------- | ----------------------------------------------------- |
+| `shim.role`               | `'consumer'` \| `'relay'` \| `'origin'` (§6)          |
+| `shim.originARG0`         | inherited `SHIM_ORIGIN_ARG0`, when the chain is valid |
+| `shim.chain`              | parsed `SHIM_CHAIN` segments                          |
+| `shim.depth`              | `shim.chain.length`                                   |
+| `shim.argsForm`           | `'raw'` \| `'requoted'` \| `'file'` \| `undefined`    |
+| `emitFrame(spawnOptions)` | helper producing the §7.3 environment for a child     |
+
+`runAs` MUST prefer `shim.originARG0` when the chain is valid and `shim.depth > 1`. For a chained invocation the origin text is the only text which can actually re-run the application — which is the point of R2, and the F2 failure it closes.
+
+## 13 · Conformance tests
+
+A conforming implementation MUST be covered by:
+
+1. **Claim matrix** — for each of G1/G2 × {match, mismatch, absent}, assert claim/no-claim per §5, including the "PPID mismatch vetoes a passing G2" case.
+2. **Leak test** — meta-shim → `xProcess`-naive intermediary → `xProcess`-aware grandchild; the grandchild MUST report impaired, not the parent's identity (F1).
+3. **Chain test** — meta-shim → `dxr` → script at depth 3; the script's `runAs` MUST equal the origin text the user typed (F2).
+4. **Idempotency property** — §8.2's identity over the existing torture-case list, and over a second expansion pass (F3).
+5. **Continuity test** — a leaked `SHIM_ORIGIN_ARG0`/`SHIM_CHAIN` pair with no claimable frame MUST be reset, not inherited (§7.1).
+6. **Guard tests** — depth 9 and a relay cycle each MUST error non-zero with a diagnostic (§7.2).
+7. **Clear test** — after startup, no `SHIM_*` or `DENO_SHIM_*` variable remains visible to a child (§7.4), including unknown-version frames.
+8. **Oversize test** — argument text above the §8.3 cap round-trips through `SHIM_ARGF`.
+
+## 14 · Open decisions
+
+- _[decision]_ **`SHIM_PPID` on POSIX** — `sh` has `$$`, but the `sh` shim `exec`s or runs `deno` as a child, so the PID the target sees as its parent depends on whether `exec` is used. Settle the shim's spawn form first, then mark G1 MUST or MAY for POSIX.
+- _[decision]_ **Archive profile scope** — keep `SHIM_FRAME_*` (§4.4) as a diagnostic-only `MAY`, or drop it and rely on `SHIM_CHAIN` alone? `SHIM_CHAIN` carries target basenames, not full `ARG0` text; the archive is the only way to reconstruct an intermediate layer's exact invocation.
+- _[decision]_ **`SHIM_EXEC`** — implementation detail currently in the public catalog. Retire it from the spec, or specify it properly.
+- _[decision]_ **Depth cap of 8** — arbitrary. Confirm, or make it `SHIM_MAX_DEPTH`-overridable for test harnesses.
+- _[decision]_ **Chain segment identity** — `<tool>/<version>@<target-basename>` may collide for two distinct targets sharing a basename, weakening §7.2's cycle detection. A short hash of the full target URL would be exact but less legible in diagnostics.

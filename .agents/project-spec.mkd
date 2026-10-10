@@ -196,6 +196,8 @@ _[status]_ `xWait` is slated for replacement by `rivy/deno.progress`.
 
 A **shim** is a transparent adaption layer. A **meta-shim** (or meta-runner, e.g. `dxr`) additionally passes process information to its target through environment variables.
 
+This section describes the **as-built** subset (protocol v1). [`spec-meta-shim.mkd`](spec-meta-shim.mkd) specifies the full protocol (v2 draft) — frame addressing, consumer/relay roles, chain pass-through across stacked meta-shim layers, and declared argument-expansion state; it is additive on the v1 variables below.
+
 | Variable      | Direction | Meaning                                                                                                      |
 | ------------- | --------- | ------------------------------------------------------------------------------------------------------------ |
 | `SHIM_TARGET` | in        | path/URL of the script the shim is launching — the **targeting gate** (§4.5)                                 |
@@ -335,7 +337,7 @@ Ordered roughly by how much they block the documented feature set:
 5. **`dxi` shim revision** — upgrade pre-existing shims in place; promote the [`../tools/`](../tools/) prototypes.
 6. **`dxr` enhancements** — auto-set requested permissions (warning when inferred), run remote scripts `dpx`-style with extra search directories (`src`, …), and `--install` a remote script.
 7. **dexter/xtr** — the file format and its auto-execution are placeholders with no specification yet; they MUST be specified before implementation.
-8. **`SHIM_ARGF`** — file-based transport for argument text beyond the environment-block cap (§5).
+8. **`SHIM_ARGF`** — file-based transport for argument text beyond the environment-block cap (§5); specified in [`spec-meta-shim.mkd`](spec-meta-shim.mkd) §8.3.
 9. **POSIX meta-shim** — decide the fate of `PosixShimTemplate` (§4.2).
 10. **`Deno.run` migration** — retire `$deprecated.ts` usage in favor of `Deno.Command`.
 11. **`xWait` ⇒ `rivy/deno.progress`**.
